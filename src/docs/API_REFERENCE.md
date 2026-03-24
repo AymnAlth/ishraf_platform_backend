@@ -4,13 +4,31 @@
 
 الملفات الجاهزة للاستخدام:
 - Postman Collection: `src/docs/postman/ishraf-platform.postman_collection.json`
+- Postman Staging Environment: `src/docs/postman/ishraf-platform.staging.postman_environment.json`
 - OpenAPI Spec: `src/docs/openapi/ishraf-platform.openapi.json`
+- Testing Guide: `src/docs/TESTING_WITH_OPENAPI_AND_POSTMAN.md`
 
 ## Base URL
 
 ```text
+https://ishraf-platform-backend-staging.onrender.com/api/v1
+```
+
+للتشغيل المحلي بدلًا من الاستضافة:
+
+```text
 http://localhost:4000/api/v1
 ```
+
+المرجع التشغيلي الحالي يعتمد على متغيرات البيئة التالية:
+- `PUBLIC_ROOT_URL=https://ishraf-platform-backend-staging.onrender.com`
+- `PUBLIC_API_BASE_URL=https://ishraf-platform-backend-staging.onrender.com/api/v1`
+- `DATABASE_URL=<Neon pooled connection>`
+- `DATABASE_URL_MIGRATIONS=<Neon direct connection>`
+
+مهم:
+- روابط قاعدة البيانات تبقى داخل ملفات البيئة وRender env vars فقط
+- لا يتم نشر connection strings الحقيقية داخل ملفات التوثيق أو OpenAPI أو Postman
 
 Health endpoints are exposed outside the API prefix:
 
@@ -61,10 +79,19 @@ Authorization: Bearer <accessToken>
 ## Quick Start With Postman
 
 1. استورد الملف `src/docs/postman/ishraf-platform.postman_collection.json`
-2. عدّل المتغير `baseUrl` إذا كان السيرفر يعمل على منفذ مختلف
-3. نفّذ `Auth / Login`
-4. سيتم حفظ `accessToken` و`refreshToken` تلقائيًا داخل متغيرات الـ collection
-5. نفّذ بقية الطلبات مباشرة
+2. استورد ملف البيئة الجاهز للاستضافة:
+   - `src/docs/postman/ishraf-platform.staging.postman_environment.json`
+3. اختر environment `Ishraf Platform Staging`
+4. أدخل:
+   - `loginIdentifier`
+   - `loginPassword`
+5. نفّذ `Health / Health Ready`
+6. نفّذ `Auth / Login`
+7. سيتم حفظ `accessToken` و`refreshToken` تلقائيًا داخل متغيرات الـ collection
+8. نفّذ بقية الطلبات مباشرة على الاستضافة
+
+لشرح Postman وOpenAPI خطوة بخطوة:
+- `src/docs/TESTING_WITH_OPENAPI_AND_POSTMAN.md`
 
 ملاحظات تشغيلية سريعة:
 - `POST /auth/login` عليه rate limit: خمس محاولات فاشلة خلال 15 دقيقة لكل `IP + identifier`

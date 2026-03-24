@@ -8,6 +8,18 @@ This file is the backend-authoritative reference before the first frontend wave 
 - This is an intentional Wave 1 release decision, not a microservices split
 - Domain boundaries are enforced through modules, services, repositories, ownership helpers, reporting, and automation layers
 
+## Hosted Staging Reference
+
+- Public root URL: `https://ishraf-platform-backend-staging.onrender.com`
+- Public API base URL: `https://ishraf-platform-backend-staging.onrender.com/api/v1`
+- Runtime database provider: `Neon Postgres`
+- Runtime database connections are controlled by env only:
+  - `DATABASE_URL`
+  - `DATABASE_URL_MIGRATIONS`
+  - `DATABASE_SCHEMA=public`
+  - `PUBLIC_ROOT_URL`
+  - `PUBLIC_API_BASE_URL`
+
 ## Canonical Data Model Decisions
 
 These points resolve the old-document vs implementation mismatch:
@@ -184,6 +196,7 @@ These are explicitly deferred and are not blockers for frontend Wave 1:
 - Human reference: `src/docs/API_REFERENCE.md`
 - OpenAPI: `src/docs/openapi/ishraf-platform.openapi.json`
 - Postman: `src/docs/postman/ishraf-platform.postman_collection.json`
+- OpenAPI/Postman testing guide: `src/docs/TESTING_WITH_OPENAPI_AND_POSTMAN.md`
 - Deployment: `src/docs/DEPLOY_RENDER_NEON.md`
 - Legacy alignment: `src/docs/LEGACY_DOC_ALIGNMENT.md`
 - This file: Wave 1 backend handoff and source-of-truth alignment document

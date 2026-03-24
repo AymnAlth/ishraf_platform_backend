@@ -9,9 +9,11 @@ describe("buildEnv", () => {
       PORT: "4001",
       APP_NAME: "ishraf-platform-backend",
       API_PREFIX: "/api/v1",
+      PUBLIC_ROOT_URL: "https://ishraf-platform-backend-staging.onrender.com",
+      PUBLIC_API_BASE_URL: "https://ishraf-platform-backend-staging.onrender.com/api/v1",
       DATABASE_URL: "postgresql://localhost:5432/test_db",
       DATABASE_URL_MIGRATIONS: "postgresql://localhost:5432/test_db_direct",
-      DATABASE_SCHEMA: "eshraf",
+      DATABASE_SCHEMA: "public",
       ACCESS_TOKEN_SECRET: "access-secret",
       ACCESS_TOKEN_TTL_MINUTES: "15",
       REFRESH_TOKEN_SECRET: "refresh-secret",
@@ -31,10 +33,11 @@ describe("buildEnv", () => {
 
     expect(env.PORT).toBe(4001);
     expect(env.NODE_ENV).toBe("test");
-    expect(env.DATABASE_SCHEMA).toBe("eshraf");
+    expect(env.DATABASE_SCHEMA).toBe("public");
     expect(env.REFRESH_TOKEN_TTL_DAYS).toBe(7);
     expect(env.BCRYPT_SALT_ROUNDS).toBe(10);
     expect(env.TRUST_PROXY).toBe(false);
+    expect(env.PUBLIC_ROOT_URL).toBe("https://ishraf-platform-backend-staging.onrender.com");
   });
 
   it("throws when required values are missing", () => {
@@ -53,7 +56,7 @@ describe("buildEnv", () => {
         APP_NAME: "ishraf-platform-backend",
         API_PREFIX: "/api/v1",
         DATABASE_URL: "postgresql://localhost:5432/test_db",
-        DATABASE_SCHEMA: "eshraf",
+        DATABASE_SCHEMA: "public",
         ACCESS_TOKEN_SECRET: "access-secret",
         ACCESS_TOKEN_TTL_MINUTES: "15",
         REFRESH_TOKEN_SECRET: "refresh-secret",
@@ -127,5 +130,35 @@ describe("buildEnv", () => {
         LOG_LEVEL: "info"
       })
     ).toThrow(/AUTH_EXPOSE_RESET_TOKEN_IN_RESPONSE/i);
+  });
+
+  it("rejects mismatched public API URLs in production", () => {
+    expect(() =>
+      buildEnv({
+        NODE_ENV: "production",
+        PORT: "4000",
+        APP_NAME: "ishraf-platform-backend",
+        API_PREFIX: "/api/v1",
+        PUBLIC_ROOT_URL: "https://ishraf-platform-backend-staging.onrender.com",
+        PUBLIC_API_BASE_URL: "https://ishraf-platform-backend-staging.onrender.com/backend",
+        DATABASE_URL: "postgresql://localhost:5432/prod_db",
+        DATABASE_SCHEMA: "public",
+        ACCESS_TOKEN_SECRET: "production-access-secret-that-is-over-32-chars",
+        ACCESS_TOKEN_TTL_MINUTES: "15",
+        REFRESH_TOKEN_SECRET: "production-refresh-secret-that-is-over-32-chars",
+        REFRESH_TOKEN_TTL_DAYS: "7",
+        PASSWORD_RESET_TOKEN_TTL_MINUTES: "30",
+        CORS_ALLOWED_ORIGINS: "https://frontend.example.com",
+        TRUST_PROXY: "true",
+        REQUEST_BODY_LIMIT: "1mb",
+        AUTH_LOGIN_RATE_LIMIT_MAX: "5",
+        AUTH_LOGIN_RATE_LIMIT_WINDOW_MS: "900000",
+        AUTH_PASSWORD_RESET_RATE_LIMIT_MAX: "5",
+        AUTH_PASSWORD_RESET_RATE_LIMIT_WINDOW_MS: "900000",
+        AUTH_EXPOSE_RESET_TOKEN_IN_RESPONSE: "false",
+        BCRYPT_SALT_ROUNDS: "12",
+        LOG_LEVEL: "info"
+      })
+    ).toThrow(/PUBLIC_API_BASE_URL/i);
   });
 });

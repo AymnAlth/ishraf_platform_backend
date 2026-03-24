@@ -34,12 +34,14 @@ const envSchema = z.object({
   PORT: z.coerce.number().int().positive().default(4000),
   APP_NAME: z.string().min(1).default("ishraf-platform-backend"),
   API_PREFIX: z.string().min(1).default("/api/v1"),
+  PUBLIC_ROOT_URL: z.url().optional(),
+  PUBLIC_API_BASE_URL: z.url().optional(),
   DATABASE_URL: z.string().min(1),
   DATABASE_URL_MIGRATIONS: z.string().min(1).optional(),
   DATABASE_SCHEMA: z
     .string()
     .regex(/^[A-Za-z_][A-Za-z0-9_]*$/)
-    .default("eshraf"),
+    .default("public"),
   ACCESS_TOKEN_SECRET: z.string().min(1),
   ACCESS_TOKEN_TTL_MINUTES: z.coerce.number().int().positive().default(15),
   REFRESH_TOKEN_SECRET: z.string().min(1),
@@ -94,6 +96,15 @@ const validateProductionSafety = (source: AppEnv): string[] => {
 
   if (source.ACCESS_TOKEN_SECRET === source.REFRESH_TOKEN_SECRET) {
     issues.push("ACCESS_TOKEN_SECRET and REFRESH_TOKEN_SECRET must not be identical in production");
+  }
+
+  if (source.PUBLIC_ROOT_URL && source.PUBLIC_API_BASE_URL) {
+    const normalizedRoot = source.PUBLIC_ROOT_URL.replace(/\/+$/, "");
+    const normalizedApi = source.PUBLIC_API_BASE_URL.replace(/\/+$/, "");
+
+    if (!normalizedApi.startsWith(`${normalizedRoot}${source.API_PREFIX}`)) {
+      issues.push("PUBLIC_API_BASE_URL must start with PUBLIC_ROOT_URL + API_PREFIX");
+    }
   }
 
   return issues;

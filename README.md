@@ -25,8 +25,10 @@ Modular monolith backend scaffold built with Node.js, TypeScript, Express, Postg
 2. Copy `.env.example` to `.env` and adjust the values.
 
    Important:
-   `DATABASE_SCHEMA` defaults to `eshraf` for the live application schema.
-   For the test database use `.env.test` or `.env.test.example`.
+   - `PUBLIC_ROOT_URL` and `PUBLIC_API_BASE_URL` define the public backend URLs used by smoke checks and documentation.
+   - `DATABASE_URL` is the runtime database connection.
+   - `DATABASE_URL_MIGRATIONS` is the preferred connection for migrations when available.
+   - For the test database use `.env.test` or `.env.test.example`.
 
 3. Run migrations:
 
@@ -63,9 +65,15 @@ The recommended Wave 1 staging deployment target is:
 - Render Web Service
 - Neon Postgres
 
+Current hosted staging backend:
+
+- root: `https://ishraf-platform-backend-staging.onrender.com`
+- API base: `https://ishraf-platform-backend-staging.onrender.com/api/v1`
+
 Deployment references:
 
 - `src/docs/DEPLOY_RENDER_NEON.md`
+- `src/docs/TESTING_WITH_OPENAPI_AND_POSTMAN.md`
 - `.env.render.example`
 - `render.yaml`
 
@@ -75,6 +83,8 @@ Operational defaults for hosted staging:
 - `DATABASE_SCHEMA=public`
 - `TRUST_PROXY=true`
 - `AUTH_EXPOSE_RESET_TOKEN_IN_RESPONSE=false`
+- `PUBLIC_ROOT_URL=https://ishraf-platform-backend-staging.onrender.com`
+- `PUBLIC_API_BASE_URL=https://ishraf-platform-backend-staging.onrender.com/api/v1`
 - health check path: `/health/ready`
 
 Important:
@@ -101,7 +111,7 @@ Destructive helpers refuse to run unless:
 - the database name clearly looks like a test database
 - the schema is `public`
 
-This prevents accidental execution against the live `eshraf` schema.
+This prevents accidental execution against the hosted/runtime schema.
 
 Integration tests still require an explicit opt-in, but the project now wires it
 through the script itself so you do not need to export shell variables manually:
@@ -168,4 +178,5 @@ OpenAPI and Postman files are available under `src/docs/`.
 - Backend handoff: `src/docs/BACKEND_WAVE1_STATUS.md`
 - API reference: `src/docs/API_REFERENCE.md`
 - Deployment guide: `src/docs/DEPLOY_RENDER_NEON.md`
+- API testing guide: `src/docs/TESTING_WITH_OPENAPI_AND_POSTMAN.md`
 - Legacy alignment note: `src/docs/LEGACY_DOC_ALIGNMENT.md`

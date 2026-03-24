@@ -7,6 +7,22 @@
 
 هذه البيئة مخصصة لتطوير الفرونت، وليست إطلاق production نهائي للعملاء.
 
+البيئة المستضافة الحالية:
+
+- `PUBLIC_ROOT_URL=https://ishraf-platform-backend-staging.onrender.com`
+- `PUBLIC_API_BASE_URL=https://ishraf-platform-backend-staging.onrender.com/api/v1`
+- قاعدة البيانات الفعلية تعمل عبر Neon من خلال:
+  - `DATABASE_URL`
+  - `DATABASE_URL_MIGRATIONS`
+
+مهم:
+- لا تضع connection strings الحقيقية داخل ملفات التوثيق
+- احتفظ بها داخل `.env` المحلي وداخل Render env vars فقط
+
+للاختبار العملي بعد النشر باستخدام Postman وOpenAPI:
+
+- `src/docs/TESTING_WITH_OPENAPI_AND_POSTMAN.md`
+
 ## 1. قبل البدء
 
 - تأكد أن المشروع يمر محليًا:
@@ -44,6 +60,8 @@
 
 الحد الأدنى المطلوب على Render:
 
+- `PUBLIC_ROOT_URL`
+- `PUBLIC_API_BASE_URL`
 - `DATABASE_URL`
 - `DATABASE_URL_MIGRATIONS`
 - `ACCESS_TOKEN_SECRET`
@@ -60,6 +78,13 @@
 - `TRUST_PROXY=true`
 - `AUTH_EXPOSE_RESET_TOKEN_IN_RESPONSE=false`
 - `LOG_LEVEL=info`
+
+القيم الحالية الموصى بها للروابط العامة:
+
+```text
+PUBLIC_ROOT_URL=https://ishraf-platform-backend-staging.onrender.com
+PUBLIC_API_BASE_URL=https://ishraf-platform-backend-staging.onrender.com/api/v1
+```
 
 ## 5. تشغيل الـ Migrations
 
@@ -111,7 +136,7 @@ pnpm deploy:smoke
 
 المتغيرات:
 
-- `SMOKE_BASE_URL=https://<your-render-url>`
+- `SMOKE_BASE_URL=https://ishraf-platform-backend-staging.onrender.com`
 - `SMOKE_ADMIN_EMAIL` اختياري
 - `SMOKE_ADMIN_PASSWORD` اختياري
 

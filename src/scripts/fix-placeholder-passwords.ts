@@ -12,7 +12,7 @@ const scriptEnvSchema = z.object({
   DATABASE_SCHEMA: z
     .string()
     .regex(/^[A-Za-z_][A-Za-z0-9_]*$/)
-    .default("eshraf"),
+    .default("public"),
   BCRYPT_SALT_ROUNDS: z.coerce.number().int().min(10).max(15).default(12),
   TEMPORARY_PASSWORD: z.string().min(8).max(72).default(DEFAULT_TEMPORARY_PASSWORD)
 });
