@@ -1,0 +1,176 @@
+import type { Pool } from "pg";
+import { expect, it } from "vitest";
+
+import { runMigration } from "../../setup/test-db";
+
+interface MigrationSuiteContext {
+  pool: Pool;
+}
+
+export const registerMigrationSmokeTests = ({ pool }: MigrationSuiteContext): void => {
+  it("applies migrations with user, role profile, academic, operational, homework, and communication tables", async () => {
+    runMigration("up");
+
+    const tables = await pool.query<{ table_name: string }>(
+      `
+        SELECT table_name
+        FROM information_schema.tables
+        WHERE table_schema = 'public'
+          AND table_name IN (
+            'users',
+            'auth_refresh_tokens',
+            'password_reset_tokens',
+            'parents',
+            'teachers',
+            'supervisors',
+            'drivers',
+            'academic_years',
+            'semesters',
+            'grade_levels',
+            'classes',
+            'subjects',
+            'teacher_classes',
+            'supervisor_classes',
+            'students',
+            'student_parents',
+            'student_promotions',
+            'assessment_types',
+            'assessments',
+            'student_assessments',
+            'homework',
+            'homework_submissions',
+            'behavior_categories',
+            'behavior_records',
+            'attendance_sessions',
+            'attendance',
+            'buses',
+            'routes',
+            'bus_stops',
+            'student_bus_assignments',
+            'trips',
+            'bus_location_history',
+            'trip_student_events',
+            'messages',
+            'announcements',
+            'notifications'
+          )
+      `
+    );
+
+    expect(tables.rows.map((row) => row.table_name).sort()).toEqual([
+      "academic_years",
+      "announcements",
+      "assessment_types",
+      "assessments",
+      "attendance",
+      "attendance_sessions",
+      "auth_refresh_tokens",
+      "behavior_categories",
+      "behavior_records",
+      "bus_location_history",
+      "bus_stops",
+      "buses",
+      "classes",
+      "drivers",
+      "grade_levels",
+      "homework",
+      "homework_submissions",
+      "messages",
+      "notifications",
+      "parents",
+      "password_reset_tokens",
+      "routes",
+      "semesters",
+      "student_assessments",
+      "student_bus_assignments",
+      "student_parents",
+      "student_promotions",
+      "students",
+      "subjects",
+      "supervisor_classes",
+      "supervisors",
+      "teacher_classes",
+      "teachers",
+      "trip_student_events",
+      "trips",
+      "users"
+    ]);
+
+    const views = await pool.query<{ table_name: string }>(
+      `
+        SELECT table_name
+        FROM information_schema.views
+        WHERE table_schema = 'public'
+          AND table_name IN (
+            'vw_student_attendance_summary',
+            'vw_class_attendance_summary',
+            'vw_homework_details',
+            'vw_homework_submission_details',
+            'vw_admin_dashboard_summary'
+          )
+      `
+    );
+
+    expect(views.rows.map((row) => row.table_name).sort()).toEqual([
+      "vw_admin_dashboard_summary",
+      "vw_class_attendance_summary",
+      "vw_homework_details",
+      "vw_homework_submission_details",
+      "vw_student_attendance_summary"
+    ]);
+  });
+
+  it("rolls back the last migration and can be applied again", async () => {
+    runMigration("down");
+
+    const droppedTables = await pool.query<{ table_name: string }>(
+      `
+        SELECT table_name
+        FROM information_schema.tables
+        WHERE table_schema = 'public'
+          AND table_name IN (
+            'users',
+            'auth_refresh_tokens',
+            'password_reset_tokens',
+            'parents',
+            'teachers',
+            'supervisors',
+            'drivers',
+            'academic_years',
+            'semesters',
+            'grade_levels',
+            'classes',
+            'subjects',
+            'teacher_classes',
+            'supervisor_classes',
+            'students',
+            'student_parents',
+            'student_promotions',
+            'assessment_types',
+            'assessments',
+            'student_assessments',
+            'homework',
+            'homework_submissions',
+            'behavior_categories',
+            'behavior_records',
+            'attendance_sessions',
+            'attendance',
+            'buses',
+            'routes',
+            'bus_stops',
+            'student_bus_assignments',
+            'trips',
+            'bus_location_history',
+            'trip_student_events',
+            'messages',
+            'announcements',
+            'notifications'
+          )
+      `
+    );
+
+    expect(droppedTables.rows).toHaveLength(0);
+
+    runMigration("up");
+  });
+};

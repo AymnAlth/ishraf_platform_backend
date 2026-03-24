@@ -1,0 +1,109 @@
+import type { Request, Response } from "express";
+
+import { buildSuccessResponse } from "../../../common/base/http-response";
+import type { AuthenticatedUser } from "../../../common/types/auth.types";
+import type {
+  CommunicationMessageIdParamsDto,
+  CommunicationNotificationIdParamsDto,
+  CommunicationOtherUserIdParamsDto,
+  ConversationQueryDto,
+  CreateAnnouncementRequestDto,
+  CreateNotificationRequestDto,
+  InboxQueryDto,
+  NotificationsQueryDto,
+  SendMessageRequestDto,
+  SentQueryDto
+} from "../dto/communication.dto";
+import type { CommunicationService } from "../service/communication.service";
+
+const assertAuthUser = (req: Request): AuthenticatedUser => req.authUser as AuthenticatedUser;
+
+export class CommunicationController {
+  constructor(private readonly communicationService: CommunicationService) {}
+
+  async sendMessage(req: Request, res: Response): Promise<void> {
+    const payload = req.validated?.body as SendMessageRequestDto;
+    const response = await this.communicationService.sendMessage(assertAuthUser(req), payload);
+    res.status(201).json(buildSuccessResponse("Message sent successfully", response));
+  }
+
+  async listInbox(req: Request, res: Response): Promise<void> {
+    const query = req.validated?.query as InboxQueryDto;
+    const response = await this.communicationService.listInbox(assertAuthUser(req), query);
+    res.status(200).json(buildSuccessResponse("Inbox fetched successfully", response));
+  }
+
+  async listSent(req: Request, res: Response): Promise<void> {
+    const query = req.validated?.query as SentQueryDto;
+    const response = await this.communicationService.listSent(assertAuthUser(req), query);
+    res.status(200).json(buildSuccessResponse("Sent messages fetched successfully", response));
+  }
+
+  async getConversation(req: Request, res: Response): Promise<void> {
+    const params = req.validated?.params as CommunicationOtherUserIdParamsDto;
+    const query = req.validated?.query as ConversationQueryDto;
+    const response = await this.communicationService.getConversation(
+      assertAuthUser(req),
+      params.otherUserId,
+      query
+    );
+    res.status(200).json(buildSuccessResponse("Conversation fetched successfully", response));
+  }
+
+  async markMessageAsRead(req: Request, res: Response): Promise<void> {
+    const params = req.validated?.params as CommunicationMessageIdParamsDto;
+    const response = await this.communicationService.markMessageAsRead(
+      assertAuthUser(req),
+      params.messageId
+    );
+    res.status(200).json(buildSuccessResponse("Message marked as read", response));
+  }
+
+  async createAnnouncement(req: Request, res: Response): Promise<void> {
+    const payload = req.validated?.body as CreateAnnouncementRequestDto;
+    const response = await this.communicationService.createAnnouncement(
+      assertAuthUser(req),
+      payload
+    );
+    res.status(201).json(buildSuccessResponse("Announcement created successfully", response));
+  }
+
+  async listAllAnnouncements(req: Request, res: Response): Promise<void> {
+    const response = await this.communicationService.listAllAnnouncements(assertAuthUser(req));
+    res.status(200).json(buildSuccessResponse("Announcements fetched successfully", response));
+  }
+
+  async listActiveAnnouncementsFeed(req: Request, res: Response): Promise<void> {
+    const response = await this.communicationService.listActiveAnnouncementsFeed(
+      assertAuthUser(req)
+    );
+    res.status(200).json(buildSuccessResponse("Active announcements fetched successfully", response));
+  }
+
+  async createNotification(req: Request, res: Response): Promise<void> {
+    const payload = req.validated?.body as CreateNotificationRequestDto;
+    const response = await this.communicationService.createNotification(
+      assertAuthUser(req),
+      payload
+    );
+    res.status(201).json(buildSuccessResponse("Notification created successfully", response));
+  }
+
+  async listMyNotifications(req: Request, res: Response): Promise<void> {
+    const query = req.validated?.query as NotificationsQueryDto;
+    const response = await this.communicationService.listMyNotifications(
+      assertAuthUser(req),
+      query
+    );
+    res.status(200).json(buildSuccessResponse("Notifications fetched successfully", response));
+  }
+
+  async markNotificationAsRead(req: Request, res: Response): Promise<void> {
+    const params = req.validated?.params as CommunicationNotificationIdParamsDto;
+    const response = await this.communicationService.markNotificationAsRead(
+      assertAuthUser(req),
+      params.notificationId
+    );
+    res.status(200).json(buildSuccessResponse("Notification marked as read", response));
+  }
+}

@@ -1,0 +1,1627 @@
+{
+  "info": {
+    "name": "Ishraf Platform Backend API",
+    "_postman_id": "3d0d6f8e-7228-4d87-88af-7ab8cf5145b4",
+    "description": "Complete Postman collection for the ready backend modules. Paginated list endpoints now return data.items + data.pagination.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "rootUrl",
+      "value": "http://localhost:4000"
+    },
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:4000/api/v1"
+    },
+    {
+      "key": "accessToken",
+      "value": ""
+    },
+    {
+      "key": "refreshToken",
+      "value": ""
+    },
+    {
+      "key": "userId",
+      "value": "1"
+    },
+    {
+      "key": "academicYearId",
+      "value": "1"
+    },
+    {
+      "key": "semesterId",
+      "value": "1"
+    },
+    {
+      "key": "gradeLevelId",
+      "value": "1"
+    },
+    {
+      "key": "classId",
+      "value": "1"
+    },
+    {
+      "key": "subjectId",
+      "value": "1"
+    },
+    {
+      "key": "teacherProfileId",
+      "value": "1"
+    },
+    {
+      "key": "supervisorProfileId",
+      "value": "1"
+    },
+    {
+      "key": "studentId",
+      "value": "1"
+    },
+    {
+      "key": "homeworkId",
+      "value": "1"
+    },
+    {
+      "key": "resetToken",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "description": "Runtime liveness and readiness probes.",
+      "item": [
+        {
+          "name": "Health",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{rootUrl}}/health",
+              "host": [
+                "{{rootUrl}}"
+              ],
+              "path": [
+                "health"
+              ]
+            },
+            "description": "Simple liveness endpoint."
+          }
+        },
+        {
+          "name": "Health Ready",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{rootUrl}}/health/ready",
+              "host": [
+                "{{rootUrl}}"
+              ],
+              "path": [
+                "health",
+                "ready"
+              ]
+            },
+            "description": "Readiness endpoint that checks database connectivity."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Auth",
+      "description": "Authentication endpoints. Login and refresh requests automatically save collection access and refresh tokens.",
+      "item": [
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json?.data?.tokens?.accessToken) {",
+                  "  pm.collectionVariables.set('accessToken', json.data.tokens.accessToken);",
+                  "}",
+                  "if (json?.data?.tokens?.refreshToken) {",
+                  "  pm.collectionVariables.set('refreshToken', json.data.tokens.refreshToken);",
+                  "}",
+                  "if (json?.data?.user?.id) {",
+                  "  pm.collectionVariables.set('userId', json.data.user.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"identifier\": \"admin@eshraf.local\",\n  \"password\": \"ChangeMe123!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Logs in with email or phone and saves accessToken and refreshToken to collection variables."
+          }
+        },
+        {
+          "name": "Forgot Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"identifier\": \"parent@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/forgot-password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "forgot-password"
+              ]
+            },
+            "description": "Requests a password reset token. The response remains generic; resetToken appears only when AUTH_EXPOSE_RESET_TOKEN_IN_RESPONSE is enabled."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json?.data?.resetToken) {",
+                  "  pm.collectionVariables.set('resetToken', json.data.resetToken);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Reset Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"{{resetToken}}\",\n  \"newPassword\": \"NewStrongPassword123!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/reset-password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "reset-password"
+              ]
+            },
+            "description": "Resets the password using a token produced by Forgot Password."
+          }
+        },
+        {
+          "name": "Refresh",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json?.data?.accessToken) {",
+                  "  pm.collectionVariables.set('accessToken', json.data.accessToken);",
+                  "}",
+                  "if (json?.data?.refreshToken) {",
+                  "  pm.collectionVariables.set('refreshToken', json.data.refreshToken);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/refresh",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "refresh"
+              ]
+            },
+            "description": "Rotates the current refresh token and updates the stored accessToken and refreshToken variables."
+          }
+        },
+        {
+          "name": "Logout",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.unset('refreshToken');"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/logout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "logout"
+              ]
+            },
+            "description": "Revokes the current refresh token. This endpoint does not require Authorization header."
+          }
+        },
+        {
+          "name": "Change Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentPassword\": \"ChangeMe123!\",\n  \"newPassword\": \"UpdatedPassword123!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/change-password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "change-password"
+              ]
+            },
+            "description": "Changes the password for the authenticated user and revokes all refresh tokens for that user."
+          }
+        },
+        {
+          "name": "Me",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "me"
+              ]
+            },
+            "description": "Returns the current authenticated user."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "description": "Admin-only user management endpoints.",
+      "item": [
+        {
+          "name": "Create Teacher User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json?.data?.id) {",
+                  "  pm.collectionVariables.set('userId', json.data.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"New Teacher\",\n  \"email\": \"newteacher@eshraf.local\",\n  \"phone\": \"700000010\",\n  \"password\": \"StrongPass123\",\n  \"role\": \"teacher\",\n  \"profile\": {\n    \"specialization\": \"Mathematics\",\n    \"qualification\": \"Bachelor\",\n    \"hireDate\": \"2025-09-01\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users"
+              ]
+            },
+            "description": "Creates a teacher user. The API returns users.id, not teachers.id."
+          }
+        },
+        {
+          "name": "Create Parent User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"New Parent\",\n  \"email\": \"newparent@eshraf.local\",\n  \"phone\": \"700000011\",\n  \"password\": \"StrongPass123\",\n  \"role\": \"parent\",\n  \"profile\": {\n    \"address\": \"Dhamar\",\n    \"relationType\": \"father\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Supervisor User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"New Supervisor\",\n  \"email\": \"newsupervisor@eshraf.local\",\n  \"phone\": \"700000013\",\n  \"password\": \"StrongPass123\",\n  \"role\": \"supervisor\",\n  \"profile\": {\n    \"department\": \"Academic Affairs\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Driver User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"New Driver\",\n  \"email\": \"newdriver@eshraf.local\",\n  \"phone\": \"700000014\",\n  \"password\": \"StrongPass123\",\n  \"role\": \"driver\",\n  \"profile\": {\n    \"licenseNumber\": \"DRV-1001\",\n    \"driverStatus\": \"active\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Admin User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"New Admin\",\n  \"email\": \"newadmin@eshraf.local\",\n  \"phone\": \"700000012\",\n  \"password\": \"StrongPass123\",\n  \"role\": \"admin\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Users",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users?page=1&limit=20&sortBy=createdAt&sortOrder=desc",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                },
+                {
+                  "key": "sortBy",
+                  "value": "createdAt"
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "desc"
+                },
+                {
+                  "key": "role",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "isActive",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Admin-only paginated users list.\n\nSupported query params:\n- page\n- limit\n- sortBy: createdAt | fullName | email | role\n- sortOrder: asc | desc\n- role\n- isActive\n\nResponse shape:\ndata.items + data.pagination"
+          }
+        },
+        {
+          "name": "Get User By Id",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/{{userId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "{{userId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update User",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Updated User Name\",\n  \"profile\": {\n    \"specialization\": \"Physics\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/{{userId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "{{userId}}"
+              ]
+            },
+            "description": "Send only profile fields that match the user's current role."
+          }
+        },
+        {
+          "name": "Update User Status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isActive\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/{{userId}}/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "{{userId}}",
+                "status"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Academic Structure",
+      "description": "Admin-only academic years, semesters, grade levels, classes, subjects, and assignment endpoints.",
+      "item": [
+        {
+          "name": "Create Academic Year",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json?.data?.id) {",
+                  "  pm.collectionVariables.set('academicYearId', json.data.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"2026-2027\",\n  \"startDate\": \"2026-09-01\",\n  \"endDate\": \"2027-06-30\",\n  \"isActive\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/academic-structure/academic-years",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "academic-structure",
+                "academic-years"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Academic Years",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/academic-structure/academic-years",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "academic-structure",
+                "academic-years"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Academic Year By Id",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/academic-structure/academic-years/{{academicYearId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "academic-structure",
+                "academic-years",
+                "{{academicYearId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Academic Year",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"2026-2027 Updated\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/academic-structure/academic-years/{{academicYearId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "academic-structure",
+                "academic-years",
+                "{{academicYearId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Activate Academic Year",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/academic-structure/academic-years/{{academicYearId}}/activate",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "academic-structure",
+                "academic-years",
+                "{{academicYearId}}",
+                "activate"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Semester",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json?.data?.id) {",
+                  "  pm.collectionVariables.set('semesterId', json.data.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Semester 3\",\n  \"startDate\": \"2027-02-01\",\n  \"endDate\": \"2027-05-31\",\n  \"isActive\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/academic-structure/academic-years/{{academicYearId}}/semesters",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "academic-structure",
+                "academic-years",
+                "{{academicYearId}}",
+                "semesters"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Semesters By Academic Year",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/academic-structure/academic-years/{{academicYearId}}/semesters",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "academic-structure",
+                "academic-years",
+                "{{academicYearId}}",
+                "semesters"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Semester",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Semester 3 Updated\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/academic-structure/semesters/{{semesterId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "academic-structure",
+                "semesters",
+                "{{semesterId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Grade Level",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json?.data?.id) {",
+                  "  pm.collectionVariables.set('gradeLevelId', json.data.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Kindergarten\",\n  \"levelOrder\": 20\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/academic-structure/grade-levels",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "academic-structure",
+                "grade-levels"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Grade Levels",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/academic-structure/grade-levels",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "academic-structure",
+                "grade-levels"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Class",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json?.data?.id) {",
+                  "  pm.collectionVariables.set('classId', json.data.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"gradeLevelId\": \"{{gradeLevelId}}\",\n  \"academicYearId\": \"{{academicYearId}}\",\n  \"className\": \"B\",\n  \"section\": \"B\",\n  \"capacity\": 25,\n  \"isActive\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/academic-structure/classes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "academic-structure",
+                "classes"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Classes",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/academic-structure/classes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "academic-structure",
+                "classes"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Class By Id",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/academic-structure/classes/{{classId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "academic-structure",
+                "classes",
+                "{{classId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Subject",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json?.data?.id) {",
+                  "  pm.collectionVariables.set('subjectId', json.data.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"English\",\n  \"gradeLevelId\": \"{{gradeLevelId}}\",\n  \"code\": \"ENG-G1\",\n  \"isActive\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/academic-structure/subjects",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "academic-structure",
+                "subjects"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Subjects",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/academic-structure/subjects",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "academic-structure",
+                "subjects"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Subject By Id",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/academic-structure/subjects/{{subjectId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "academic-structure",
+                "subjects",
+                "{{subjectId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Teacher Assignment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"teacherId\": \"{{teacherProfileId}}\",\n  \"classId\": \"{{classId}}\",\n  \"subjectId\": \"{{subjectId}}\",\n  \"academicYearId\": \"{{academicYearId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/academic-structure/teacher-assignments",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "academic-structure",
+                "teacher-assignments"
+              ]
+            },
+            "description": "teacherId must be teachers.id, not users.id. The current Users API does not expose teachers.id."
+          }
+        },
+        {
+          "name": "List Teacher Assignments",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/academic-structure/teacher-assignments",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "academic-structure",
+                "teacher-assignments"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Supervisor Assignment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"supervisorId\": \"{{supervisorProfileId}}\",\n  \"classId\": \"{{classId}}\",\n  \"academicYearId\": \"{{academicYearId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/academic-structure/supervisor-assignments",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "academic-structure",
+                "supervisor-assignments"
+              ]
+            },
+            "description": "supervisorId must be supervisors.id, not users.id. The current Users API does not expose supervisors.id."
+          }
+        },
+        {
+          "name": "List Supervisor Assignments",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/academic-structure/supervisor-assignments",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "academic-structure",
+                "supervisor-assignments"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Homework",
+      "description": "Wave 1 homework endpoints for admin, teacher, and parent-owned student access.",
+      "item": [
+        {
+          "name": "Create Homework",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json?.data?.id) {",
+                  "  pm.collectionVariables.set('homeworkId', json.data.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"classId\": \"{{classId}}\",\n  \"subjectId\": \"{{subjectId}}\",\n  \"academicYearId\": \"{{academicYearId}}\",\n  \"semesterId\": \"{{semesterId}}\",\n  \"title\": \"Science Homework 1\",\n  \"description\": \"Read chapter 2\",\n  \"assignedDate\": \"2026-03-10\",\n  \"dueDate\": \"2026-03-12\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/homework",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "homework"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Homework",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/homework?page=1&limit=20&sortBy=dueDate&sortOrder=desc",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "homework"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                },
+                {
+                  "key": "sortBy",
+                  "value": "dueDate"
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "desc"
+                }
+              ]
+            },
+            "description": "Paginated homework list."
+          }
+        },
+        {
+          "name": "Get Homework Detail",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/homework/{{homeworkId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "homework",
+                "{{homeworkId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Save Homework Submissions",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"records\": [\n    {\n      \"studentId\": \"1\",\n      \"status\": \"submitted\",\n      \"notes\": \"Completed\"\n    },\n    {\n      \"studentId\": \"2\",\n      \"status\": \"not_submitted\",\n      \"notes\": \"Missing\"\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/homework/{{homeworkId}}/submissions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "homework",
+                "{{homeworkId}}",
+                "submissions"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Student Homework",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/homework/students/{{studentId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "homework",
+                "students",
+                "{{studentId}}"
+              ]
+            },
+            "description": "For parent accounts this is parent-owned and restricted to linked children."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reporting Wave 1",
+      "description": "Parent-owned child reporting, supervisor dashboard, and parent transport live status.",
+      "item": [
+        {
+          "name": "Parent Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/reporting/dashboards/parent/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reporting",
+                "dashboards",
+                "parent",
+                "me"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Parent Child Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/reporting/dashboards/parent/me/students/{{studentId}}/profile",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reporting",
+                "dashboards",
+                "parent",
+                "me",
+                "students",
+                "{{studentId}}",
+                "profile"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Parent Child Attendance Summary",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/reporting/dashboards/parent/me/students/{{studentId}}/reports/attendance-summary",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reporting",
+                "dashboards",
+                "parent",
+                "me",
+                "students",
+                "{{studentId}}",
+                "reports",
+                "attendance-summary"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Parent Child Assessment Summary",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/reporting/dashboards/parent/me/students/{{studentId}}/reports/assessment-summary",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reporting",
+                "dashboards",
+                "parent",
+                "me",
+                "students",
+                "{{studentId}}",
+                "reports",
+                "assessment-summary"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Parent Child Behavior Summary",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/reporting/dashboards/parent/me/students/{{studentId}}/reports/behavior-summary",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reporting",
+                "dashboards",
+                "parent",
+                "me",
+                "students",
+                "{{studentId}}",
+                "reports",
+                "behavior-summary"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Supervisor Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/reporting/dashboards/supervisor/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reporting",
+                "dashboards",
+                "supervisor",
+                "me"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Parent Transport Live Status",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/reporting/transport/parent/me/students/{{studentId}}/live-status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reporting",
+                "transport",
+                "parent",
+                "me",
+                "students",
+                "{{studentId}}",
+                "live-status"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

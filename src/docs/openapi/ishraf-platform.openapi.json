@@ -1,0 +1,4044 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Ishraf Platform Backend API",
+    "version": "1.0.0",
+    "description": "Complete API documentation for the ready backend modules. Paginated list endpoints now return data.items + data.pagination."
+  },
+  "servers": [
+    {
+      "url": "http://localhost:4000/api/v1",
+      "description": "Local development"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Auth",
+      "description": "Authentication endpoints."
+    },
+    {
+      "name": "Users",
+      "description": "Admin-only user management endpoints."
+    },
+    {
+      "name": "Academic Structure",
+      "description": "Admin-only academic structure endpoints."
+    },
+    {
+      "name": "Homework",
+      "description": "Homework management and student homework endpoints."
+    },
+    {
+      "name": "Reporting",
+      "description": "Wave 1 reporting and parent/supervisor dashboard additions."
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "Role": {
+        "type": "string",
+        "enum": [
+          "admin",
+          "parent",
+          "teacher",
+          "supervisor",
+          "driver"
+        ]
+      },
+      "DriverStatus": {
+        "type": "string",
+        "enum": [
+          "active",
+          "inactive",
+          "suspended"
+        ]
+      },
+      "ErrorDetail": {
+        "type": "object",
+        "properties": {
+          "field": {
+            "type": "string",
+            "nullable": true
+          },
+          "code": {
+            "type": "string",
+            "nullable": true
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "message"
+        ]
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": false
+          },
+          "message": {
+            "type": "string"
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ErrorDetail"
+            }
+          }
+        },
+        "required": [
+          "success",
+          "message",
+          "errors"
+        ]
+      },
+      "IdentifierId": {
+        "type": "string",
+        "pattern": "^[0-9]+$",
+        "example": "1"
+      },
+      "AuthUser": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/IdentifierId"
+          },
+          "fullName": {
+            "type": "string",
+            "example": "Sara Teacher"
+          },
+          "email": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "email",
+            "example": "teacher1@eshraf.local"
+          },
+          "phone": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "example": "700000003"
+          },
+          "role": {
+            "$ref": "#/components/schemas/Role"
+          },
+          "isActive": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "required": [
+          "id",
+          "fullName",
+          "email",
+          "phone",
+          "role",
+          "isActive"
+        ]
+      },
+      "Tokens": {
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string",
+            "example": "jwt-access-token"
+          },
+          "refreshToken": {
+            "type": "string",
+            "example": "jwt-refresh-token"
+          },
+          "expiresIn": {
+            "type": "integer",
+            "example": 900
+          }
+        },
+        "required": [
+          "accessToken",
+          "refreshToken",
+          "expiresIn"
+        ]
+      },
+      "CurrentUser": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/AuthUser"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "lastLoginAt": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "date-time",
+                "example": "2026-03-13T10:00:00.000Z"
+              }
+            },
+            "required": [
+              "lastLoginAt"
+            ]
+          }
+        ]
+      },
+      "LoginRequest": {
+        "type": "object",
+        "properties": {
+          "identifier": {
+            "type": "string",
+            "example": "admin@eshraf.local"
+          },
+          "password": {
+            "type": "string",
+            "example": "ChangeMe123!"
+          }
+        },
+        "required": [
+          "identifier",
+          "password"
+        ]
+      },
+      "RefreshTokenRequest": {
+        "type": "object",
+        "properties": {
+          "refreshToken": {
+            "type": "string",
+            "example": "jwt-refresh-token"
+          }
+        },
+        "required": [
+          "refreshToken"
+        ]
+      },
+      "LogoutRequest": {
+        "type": "object",
+        "properties": {
+          "refreshToken": {
+            "type": "string",
+            "example": "jwt-refresh-token"
+          }
+        },
+        "required": [
+          "refreshToken"
+        ]
+      },
+      "ChangePasswordRequest": {
+        "type": "object",
+        "properties": {
+          "currentPassword": {
+            "type": "string",
+            "example": "ChangeMe123!"
+          },
+          "newPassword": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 72,
+            "example": "UpdatedPassword123!"
+          }
+        },
+        "required": [
+          "currentPassword",
+          "newPassword"
+        ]
+      },
+      "ParentProfile": {
+        "type": "object",
+        "properties": {
+          "address": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "example": "Dhamar"
+          },
+          "relationType": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "example": "father"
+          }
+        },
+        "required": [
+          "address",
+          "relationType"
+        ]
+      },
+      "TeacherProfile": {
+        "type": "object",
+        "properties": {
+          "specialization": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "example": "Mathematics"
+          },
+          "qualification": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "example": "Bachelor"
+          },
+          "hireDate": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+            "example": "2025-09-01"
+          }
+        },
+        "required": [
+          "specialization",
+          "qualification",
+          "hireDate"
+        ]
+      },
+      "SupervisorProfile": {
+        "type": "object",
+        "properties": {
+          "department": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "example": "Academic Affairs"
+          }
+        },
+        "required": [
+          "department"
+        ]
+      },
+      "DriverProfile": {
+        "type": "object",
+        "properties": {
+          "licenseNumber": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "example": "DRV-1001"
+          },
+          "driverStatus": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/DriverStatus"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "licenseNumber",
+          "driverStatus"
+        ]
+      },
+      "UserProfile": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/ParentProfile"
+          },
+          {
+            "$ref": "#/components/schemas/TeacherProfile"
+          },
+          {
+            "$ref": "#/components/schemas/SupervisorProfile"
+          },
+          {
+            "$ref": "#/components/schemas/DriverProfile"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/IdentifierId"
+          },
+          "fullName": {
+            "type": "string",
+            "example": "Sara Teacher"
+          },
+          "email": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "email",
+            "example": "teacher1@eshraf.local"
+          },
+          "phone": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "example": "700000003"
+          },
+          "role": {
+            "$ref": "#/components/schemas/Role"
+          },
+          "isActive": {
+            "type": "boolean",
+            "example": true
+          },
+          "lastLoginAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "example": null
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2026-03-13T11:00:00.000Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2026-03-13T11:00:00.000Z"
+          },
+          "profile": {
+            "$ref": "#/components/schemas/UserProfile"
+          }
+        },
+        "required": [
+          "id",
+          "fullName",
+          "email",
+          "phone",
+          "role",
+          "isActive",
+          "lastLoginAt",
+          "createdAt",
+          "updatedAt",
+          "profile"
+        ]
+      },
+      "CreateUserAdminRequest": {
+        "type": "object",
+        "properties": {
+          "fullName": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 72
+          },
+          "role": {
+            "type": "string",
+            "const": "admin"
+          },
+          "profile": {
+            "type": "null"
+          }
+        },
+        "required": [
+          "fullName",
+          "password",
+          "role"
+        ]
+      },
+      "CreateUserParentRequest": {
+        "type": "object",
+        "properties": {
+          "fullName": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 72
+          },
+          "role": {
+            "type": "string",
+            "const": "parent"
+          },
+          "profile": {
+            "type": "object",
+            "properties": {
+              "address": {
+                "type": "string"
+              },
+              "relationType": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "required": [
+          "fullName",
+          "password",
+          "role",
+          "profile"
+        ]
+      },
+      "CreateUserTeacherRequest": {
+        "type": "object",
+        "properties": {
+          "fullName": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 72
+          },
+          "role": {
+            "type": "string",
+            "const": "teacher"
+          },
+          "profile": {
+            "type": "object",
+            "properties": {
+              "specialization": {
+                "type": "string"
+              },
+              "qualification": {
+                "type": "string"
+              },
+              "hireDate": {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+              }
+            }
+          }
+        },
+        "required": [
+          "fullName",
+          "password",
+          "role",
+          "profile"
+        ]
+      },
+      "CreateUserSupervisorRequest": {
+        "type": "object",
+        "properties": {
+          "fullName": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 72
+          },
+          "role": {
+            "type": "string",
+            "const": "supervisor"
+          },
+          "profile": {
+            "type": "object",
+            "properties": {
+              "department": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "required": [
+          "fullName",
+          "password",
+          "role",
+          "profile"
+        ]
+      },
+      "CreateUserDriverRequest": {
+        "type": "object",
+        "properties": {
+          "fullName": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 72
+          },
+          "role": {
+            "type": "string",
+            "const": "driver"
+          },
+          "profile": {
+            "type": "object",
+            "properties": {
+              "licenseNumber": {
+                "type": "string"
+              },
+              "driverStatus": {
+                "$ref": "#/components/schemas/DriverStatus"
+              }
+            },
+            "required": [
+              "licenseNumber"
+            ]
+          }
+        },
+        "required": [
+          "fullName",
+          "password",
+          "role",
+          "profile"
+        ]
+      },
+      "CreateUserRequest": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/CreateUserAdminRequest"
+          },
+          {
+            "$ref": "#/components/schemas/CreateUserParentRequest"
+          },
+          {
+            "$ref": "#/components/schemas/CreateUserTeacherRequest"
+          },
+          {
+            "$ref": "#/components/schemas/CreateUserSupervisorRequest"
+          },
+          {
+            "$ref": "#/components/schemas/CreateUserDriverRequest"
+          }
+        ]
+      },
+      "UpdateUserRequest": {
+        "type": "object",
+        "properties": {
+          "fullName": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "profile": {
+            "type": "object",
+            "properties": {
+              "address": {
+                "type": "string"
+              },
+              "relationType": {
+                "type": "string"
+              },
+              "specialization": {
+                "type": "string"
+              },
+              "qualification": {
+                "type": "string"
+              },
+              "hireDate": {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+              },
+              "department": {
+                "type": "string"
+              },
+              "licenseNumber": {
+                "type": "string"
+              },
+              "driverStatus": {
+                "$ref": "#/components/schemas/DriverStatus"
+              }
+            }
+          }
+        }
+      },
+      "UpdateUserStatusRequest": {
+        "type": "object",
+        "properties": {
+          "isActive": {
+            "type": "boolean",
+            "example": false
+          }
+        },
+        "required": [
+          "isActive"
+        ]
+      },
+      "AcademicYearSummary": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/IdentifierId"
+          },
+          "name": {
+            "type": "string",
+            "example": "2025-2026"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ]
+      },
+      "AcademicYear": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/IdentifierId"
+          },
+          "name": {
+            "type": "string"
+          },
+          "startDate": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+          },
+          "endDate": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "startDate",
+          "endDate",
+          "isActive",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "CreateAcademicYearRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 50
+          },
+          "startDate": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+          },
+          "endDate": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+          },
+          "isActive": {
+            "type": "boolean",
+            "default": false
+          }
+        },
+        "required": [
+          "name",
+          "startDate",
+          "endDate"
+        ]
+      },
+      "UpdateAcademicYearRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 50
+          },
+          "startDate": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+          },
+          "endDate": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+          },
+          "isActive": {
+            "type": "boolean"
+          }
+        }
+      },
+      "Semester": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/IdentifierId"
+          },
+          "academicYear": {
+            "$ref": "#/components/schemas/AcademicYearSummary"
+          },
+          "name": {
+            "type": "string"
+          },
+          "startDate": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+          },
+          "endDate": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "academicYear",
+          "name",
+          "startDate",
+          "endDate",
+          "isActive",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "CreateSemesterRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 50
+          },
+          "startDate": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+          },
+          "endDate": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+          },
+          "isActive": {
+            "type": "boolean",
+            "default": false
+          }
+        },
+        "required": [
+          "name",
+          "startDate",
+          "endDate"
+        ]
+      },
+      "UpdateSemesterRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 50
+          },
+          "startDate": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+          },
+          "endDate": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+          },
+          "isActive": {
+            "type": "boolean"
+          }
+        }
+      },
+      "GradeLevelSummary": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/IdentifierId"
+          },
+          "name": {
+            "type": "string"
+          },
+          "levelOrder": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "levelOrder"
+        ]
+      },
+      "GradeLevel": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/IdentifierId"
+          },
+          "name": {
+            "type": "string"
+          },
+          "levelOrder": {
+            "type": "integer"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "levelOrder",
+          "createdAt"
+        ]
+      },
+      "CreateGradeLevelRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "levelOrder": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "required": [
+          "name",
+          "levelOrder"
+        ]
+      },
+      "ClassSummary": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/IdentifierId"
+          },
+          "className": {
+            "type": "string"
+          },
+          "section": {
+            "type": "string"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "gradeLevel": {
+            "$ref": "#/components/schemas/GradeLevelSummary"
+          }
+        },
+        "required": [
+          "id",
+          "className",
+          "section",
+          "isActive",
+          "gradeLevel"
+        ]
+      },
+      "Class": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/IdentifierId"
+          },
+          "className": {
+            "type": "string"
+          },
+          "section": {
+            "type": "string"
+          },
+          "capacity": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "academicYear": {
+            "$ref": "#/components/schemas/AcademicYearSummary"
+          },
+          "gradeLevel": {
+            "$ref": "#/components/schemas/GradeLevelSummary"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "className",
+          "section",
+          "capacity",
+          "isActive",
+          "academicYear",
+          "gradeLevel",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "CreateClassRequest": {
+        "type": "object",
+        "properties": {
+          "gradeLevelId": {
+            "$ref": "#/components/schemas/IdentifierId"
+          },
+          "academicYearId": {
+            "$ref": "#/components/schemas/IdentifierId"
+          },
+          "className": {
+            "type": "string",
+            "maxLength": 50
+          },
+          "section": {
+            "type": "string",
+            "maxLength": 50
+          },
+          "capacity": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "isActive": {
+            "type": "boolean",
+            "default": true
+          }
+        },
+        "required": [
+          "gradeLevelId",
+          "academicYearId",
+          "className",
+          "section"
+        ]
+      },
+      "SubjectSummary": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/IdentifierId"
+          },
+          "name": {
+            "type": "string"
+          },
+          "code": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "gradeLevel": {
+            "$ref": "#/components/schemas/GradeLevelSummary"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "code",
+          "isActive",
+          "gradeLevel"
+        ]
+      },
+      "Subject": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/IdentifierId"
+          },
+          "name": {
+            "type": "string"
+          },
+          "code": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "gradeLevel": {
+            "$ref": "#/components/schemas/GradeLevelSummary"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "code",
+          "isActive",
+          "gradeLevel",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "CreateSubjectRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "gradeLevelId": {
+            "$ref": "#/components/schemas/IdentifierId"
+          },
+          "code": {
+            "type": "string",
+            "maxLength": 50
+          },
+          "isActive": {
+            "type": "boolean",
+            "default": true
+          }
+        },
+        "required": [
+          "name",
+          "gradeLevelId"
+        ]
+      },
+      "AssignmentUserSummary": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/IdentifierId"
+          },
+          "userId": {
+            "$ref": "#/components/schemas/IdentifierId"
+          },
+          "fullName": {
+            "type": "string"
+          },
+          "email": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "phone": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "userId",
+          "fullName",
+          "email",
+          "phone"
+        ]
+      },
+      "TeacherAssignment": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/IdentifierId"
+          },
+          "academicYear": {
+            "$ref": "#/components/schemas/AcademicYearSummary"
+          },
+          "class": {
+            "$ref": "#/components/schemas/ClassSummary"
+          },
+          "subject": {
+            "$ref": "#/components/schemas/SubjectSummary"
+          },
+          "teacher": {
+            "$ref": "#/components/schemas/AssignmentUserSummary"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "academicYear",
+          "class",
+          "subject",
+          "teacher",
+          "createdAt"
+        ]
+      },
+      "CreateTeacherAssignmentRequest": {
+        "type": "object",
+        "description": "teacherId is the teachers.id value, not users.id.",
+        "properties": {
+          "teacherId": {
+            "$ref": "#/components/schemas/IdentifierId"
+          },
+          "classId": {
+            "$ref": "#/components/schemas/IdentifierId"
+          },
+          "subjectId": {
+            "$ref": "#/components/schemas/IdentifierId"
+          },
+          "academicYearId": {
+            "$ref": "#/components/schemas/IdentifierId"
+          }
+        },
+        "required": [
+          "teacherId",
+          "classId",
+          "subjectId",
+          "academicYearId"
+        ]
+      },
+      "SupervisorAssignment": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/IdentifierId"
+          },
+          "academicYear": {
+            "$ref": "#/components/schemas/AcademicYearSummary"
+          },
+          "class": {
+            "$ref": "#/components/schemas/ClassSummary"
+          },
+          "supervisor": {
+            "$ref": "#/components/schemas/AssignmentUserSummary"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "academicYear",
+          "class",
+          "supervisor",
+          "createdAt"
+        ]
+      },
+      "CreateSupervisorAssignmentRequest": {
+        "type": "object",
+        "description": "supervisorId is the supervisors.id value, not users.id.",
+        "properties": {
+          "supervisorId": {
+            "$ref": "#/components/schemas/IdentifierId"
+          },
+          "classId": {
+            "$ref": "#/components/schemas/IdentifierId"
+          },
+          "academicYearId": {
+            "$ref": "#/components/schemas/IdentifierId"
+          }
+        },
+        "required": [
+          "supervisorId",
+          "classId",
+          "academicYearId"
+        ]
+      },
+      "PaginationMeta": {
+        "type": "object",
+        "properties": {
+          "page": {
+            "type": "integer",
+            "minimum": 1,
+            "example": 1
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100,
+            "example": 20
+          },
+          "totalItems": {
+            "type": "integer",
+            "minimum": 0,
+            "example": 5
+          },
+          "totalPages": {
+            "type": "integer",
+            "minimum": 0,
+            "example": 1
+          }
+        },
+        "required": [
+          "page",
+          "limit",
+          "totalItems",
+          "totalPages"
+        ]
+      },
+      "PaginatedUsersData": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/User"
+            }
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/PaginationMeta"
+          }
+        },
+        "required": [
+          "items",
+          "pagination"
+        ]
+      },
+      "PaginatedUsersResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true
+          },
+          "message": {
+            "type": "string",
+            "example": "Users fetched successfully"
+          },
+          "data": {
+            "$ref": "#/components/schemas/PaginatedUsersData"
+          }
+        },
+        "required": [
+          "success",
+          "message",
+          "data"
+        ]
+      },
+      "ForgotPasswordRequest": {
+        "type": "object",
+        "properties": {
+          "identifier": {
+            "type": "string",
+            "example": "parent@example.com"
+          }
+        },
+        "required": [
+          "identifier"
+        ]
+      },
+      "ResetPasswordRequest": {
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string",
+            "example": "raw-reset-token"
+          },
+          "newPassword": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 72,
+            "example": "NewStrongPassword123!"
+          }
+        },
+        "required": [
+          "token",
+          "newPassword"
+        ]
+      },
+      "GenericSuccessObject": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        },
+        "required": [
+          "success",
+          "message",
+          "data"
+        ]
+      },
+      "HomeworkSubmissionStatus": {
+        "type": "string",
+        "enum": [
+          "submitted",
+          "not_submitted",
+          "late"
+        ]
+      },
+      "CreateHomeworkRequest": {
+        "type": "object",
+        "properties": {
+          "teacherId": {
+            "$ref": "#/components/schemas/IdentifierId"
+          },
+          "classId": {
+            "$ref": "#/components/schemas/IdentifierId"
+          },
+          "subjectId": {
+            "$ref": "#/components/schemas/IdentifierId"
+          },
+          "academicYearId": {
+            "$ref": "#/components/schemas/IdentifierId"
+          },
+          "semesterId": {
+            "$ref": "#/components/schemas/IdentifierId"
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 4000
+          },
+          "assignedDate": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+          },
+          "dueDate": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+          }
+        },
+        "required": [
+          "classId",
+          "subjectId",
+          "academicYearId",
+          "semesterId",
+          "title",
+          "assignedDate",
+          "dueDate"
+        ]
+      },
+      "SaveHomeworkSubmissionsRequest": {
+        "type": "object",
+        "properties": {
+          "records": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "properties": {
+                "studentId": {
+                  "$ref": "#/components/schemas/IdentifierId"
+                },
+                "status": {
+                  "$ref": "#/components/schemas/HomeworkSubmissionStatus"
+                },
+                "submittedAt": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                },
+                "notes": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              },
+              "required": [
+                "studentId",
+                "status"
+              ]
+            }
+          }
+        },
+        "required": [
+          "records"
+        ]
+      }
+    }
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "tags": [
+          "Health"
+        ],
+        "summary": "Liveness check",
+        "responses": {
+          "200": {
+            "description": "Service is healthy"
+          }
+        }
+      }
+    },
+    "/health/ready": {
+      "get": {
+        "tags": [
+          "Health"
+        ],
+        "summary": "Readiness check",
+        "description": "Checks database readiness and returns 503 when the service is not ready to accept traffic.",
+        "responses": {
+          "200": {
+            "description": "Service is ready"
+          },
+          "503": {
+            "description": "Service is not ready"
+          }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Login with email or phone",
+        "description": "Authenticates a user using email or phone and returns both access and refresh tokens. Login is rate-limited to five failed attempts per 15 minutes per IP and identifier.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "const": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Login successful"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "user": {
+                          "$ref": "#/components/schemas/AuthUser"
+                        },
+                        "tokens": {
+                          "$ref": "#/components/schemas/Tokens"
+                        }
+                      },
+                      "required": [
+                        "user",
+                        "tokens"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Inactive user",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many login attempts",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/refresh": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Rotate refresh token",
+        "description": "Accepts a refresh token, revokes it, and issues a new access token and refresh token.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshTokenRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Token refreshed successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "const": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Token refreshed successfully"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Tokens"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or expired refresh token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Logout using refresh token",
+        "description": "Revokes the current refresh token. This endpoint is idempotent and does not require an access token.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LogoutRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Logout successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "const": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Logout successful"
+                    },
+                    "data": {
+                      "type": "null"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/change-password": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Change the current user password",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangePasswordRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Password changed successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "const": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Password changed successfully"
+                    },
+                    "data": {
+                      "type": "null"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Current password is incorrect or access token is invalid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Inactive user",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/me": {
+      "get": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Get current authenticated user",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Current user fetched successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "const": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Current user fetched successfully"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/CurrentUser"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid access token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Inactive user",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users": {
+      "post": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Create a user",
+        "description": "Admin-only endpoint. Creates a user and its role-specific profile inside a single transaction.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateUserRequest"
+              },
+              "examples": {
+                "teacher": {
+                  "value": {
+                    "fullName": "New Teacher",
+                    "email": "newteacher@eshraf.local",
+                    "phone": "700000010",
+                    "password": "StrongPass123",
+                    "role": "teacher",
+                    "profile": {
+                      "specialization": "Mathematics",
+                      "qualification": "Bachelor",
+                      "hireDate": "2025-09-01"
+                    }
+                  }
+                },
+                "parent": {
+                  "value": {
+                    "fullName": "New Parent",
+                    "email": "newparent@eshraf.local",
+                    "phone": "700000011",
+                    "password": "StrongPass123",
+                    "role": "parent",
+                    "profile": {
+                      "address": "Dhamar",
+                      "relationType": "father"
+                    }
+                  }
+                },
+                "admin": {
+                  "value": {
+                    "fullName": "New Admin",
+                    "email": "newadmin@eshraf.local",
+                    "phone": "700000012",
+                    "password": "StrongPass123",
+                    "role": "admin"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "User created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "const": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "User created successfully"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/User"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid access token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden for non-admin users",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Duplicate email, phone, or role-specific unique field",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "List users",
+        "description": "Admin-only endpoint. Returns users with a role-specific profile object in a paginated envelope.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Users fetched successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedUsersResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid access token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden for non-admin users",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            },
+            "description": "Page number. Default is 1."
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            },
+            "description": "Page size. Default is 20 and max is 100."
+          },
+          {
+            "name": "sortBy",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "createdAt",
+                "fullName",
+                "email",
+                "role"
+              ],
+              "default": "createdAt"
+            },
+            "description": "Sort field whitelist for the users list."
+          },
+          {
+            "name": "sortOrder",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "default": "desc"
+            },
+            "description": "Sort direction."
+          },
+          {
+            "name": "role",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/Role"
+            },
+            "description": "Optional role filter."
+          },
+          {
+            "name": "isActive",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            },
+            "description": "Optional active status filter."
+          }
+        ]
+      }
+    },
+    "/users/{id}": {
+      "get": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Get user by id",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/IdentifierId"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User fetched successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "const": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "User fetched successfully"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/User"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid access token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden for non-admin users",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Update user",
+        "description": "Admin-only endpoint. Updates the base user fields and the role-compatible profile fields only.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/IdentifierId"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUserRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "User updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "const": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "User updated successfully"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/User"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error or role-incompatible profile fields",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid access token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden for non-admin users",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Duplicate email, phone, or role-specific unique field",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/{id}/status": {
+      "patch": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Update user active status",
+        "description": "Admin-only endpoint. Disabling a user immediately revokes all refresh tokens for that user.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/IdentifierId"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUserStatusRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "User status updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "const": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "User status updated successfully"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/User"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid access token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden for non-admin users",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/academic-structure/academic-years": {
+      "post": {
+        "tags": [
+          "Academic Structure"
+        ],
+        "summary": "Create academic year",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAcademicYearRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Academic year created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "const": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Academic year created successfully"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/AcademicYear"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Academic Structure"
+        ],
+        "summary": "List academic years",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Academic years fetched successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "const": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Academic years fetched successfully"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/AcademicYear"
+                      }
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/academic-structure/academic-years/{id}": {
+      "get": {
+        "tags": [
+          "Academic Structure"
+        ],
+        "summary": "Get academic year by id",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/IdentifierId"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Academic year fetched successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "const": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Academic year fetched successfully"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/AcademicYear"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Academic Structure"
+        ],
+        "summary": "Update academic year",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/IdentifierId"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateAcademicYearRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Academic year updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "const": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Academic year updated successfully"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/AcademicYear"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/academic-structure/academic-years/{id}/activate": {
+      "patch": {
+        "tags": [
+          "Academic Structure"
+        ],
+        "summary": "Activate academic year",
+        "description": "Makes the selected academic year the only active academic year.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/IdentifierId"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Academic year activated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "const": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Academic year activated successfully"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/AcademicYear"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/academic-structure/academic-years/{academicYearId}/semesters": {
+      "post": {
+        "tags": [
+          "Academic Structure"
+        ],
+        "summary": "Create semester",
+        "description": "Creates a semester inside an academic year. Semester dates must stay within the academic year range.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "academicYearId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/IdentifierId"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSemesterRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Semester created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "const": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Semester created successfully"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Semester"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Academic Structure"
+        ],
+        "summary": "List semesters by academic year",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "academicYearId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/IdentifierId"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Semesters fetched successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "const": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Semesters fetched successfully"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Semester"
+                      }
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/academic-structure/semesters/{id}": {
+      "patch": {
+        "tags": [
+          "Academic Structure"
+        ],
+        "summary": "Update semester",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/IdentifierId"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateSemesterRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Semester updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "const": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Semester updated successfully"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Semester"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/academic-structure/grade-levels": {
+      "post": {
+        "tags": [
+          "Academic Structure"
+        ],
+        "summary": "Create grade level",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateGradeLevelRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Grade level created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "const": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Grade level created successfully"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/GradeLevel"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Academic Structure"
+        ],
+        "summary": "List grade levels",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Grade levels fetched successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "const": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Grade levels fetched successfully"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/GradeLevel"
+                      }
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/academic-structure/classes": {
+      "post": {
+        "tags": [
+          "Academic Structure"
+        ],
+        "summary": "Create class",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateClassRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Class created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "const": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Class created successfully"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Class"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Academic Structure"
+        ],
+        "summary": "List classes",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Classes fetched successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "const": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Classes fetched successfully"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Class"
+                      }
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/academic-structure/classes/{id}": {
+      "get": {
+        "tags": [
+          "Academic Structure"
+        ],
+        "summary": "Get class by id",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/IdentifierId"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Class fetched successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "const": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Class fetched successfully"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Class"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/academic-structure/subjects": {
+      "post": {
+        "tags": [
+          "Academic Structure"
+        ],
+        "summary": "Create subject",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSubjectRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Subject created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "const": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Subject created successfully"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Subject"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Academic Structure"
+        ],
+        "summary": "List subjects",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Subjects fetched successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "const": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Subjects fetched successfully"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Subject"
+                      }
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/academic-structure/subjects/{id}": {
+      "get": {
+        "tags": [
+          "Academic Structure"
+        ],
+        "summary": "Get subject by id",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/IdentifierId"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Subject fetched successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "const": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Subject fetched successfully"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Subject"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/academic-structure/teacher-assignments": {
+      "post": {
+        "tags": [
+          "Academic Structure"
+        ],
+        "summary": "Create teacher assignment",
+        "description": "Creates a teacher assignment. teacherId is the teachers.id value, not users.id. The service also validates that the class belongs to the selected academic year and the subject belongs to the same grade level as the class.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTeacherAssignmentRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Teacher assignment created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "const": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Teacher assignment created successfully"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/TeacherAssignment"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Academic Structure"
+        ],
+        "summary": "List teacher assignments",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Teacher assignments fetched successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "const": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Teacher assignments fetched successfully"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/TeacherAssignment"
+                      }
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/academic-structure/supervisor-assignments": {
+      "post": {
+        "tags": [
+          "Academic Structure"
+        ],
+        "summary": "Create supervisor assignment",
+        "description": "Creates a supervisor assignment. supervisorId is the supervisors.id value, not users.id.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSupervisorAssignmentRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Supervisor assignment created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "const": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Supervisor assignment created successfully"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/SupervisorAssignment"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Academic Structure"
+        ],
+        "summary": "List supervisor assignments",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Supervisor assignments fetched successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "const": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Supervisor assignments fetched successfully"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/SupervisorAssignment"
+                      }
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/forgot-password": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Request password reset",
+        "description": "Creates a password reset token for an active account when the identifier exists. Returns a generic success response to avoid account enumeration. The reset token is exposed only when AUTH_EXPOSE_RESET_TOKEN_IN_RESPONSE is enabled.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ForgotPasswordRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Password reset instructions prepared successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenericSuccessObject"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many password reset requests"
+          }
+        }
+      }
+    },
+    "/auth/reset-password": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Reset password with token",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResetPasswordRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Password reset successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenericSuccessObject"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many password reset requests"
+          }
+        }
+      }
+    },
+    "/homework": {
+      "post": {
+        "tags": [
+          "Homework"
+        ],
+        "summary": "Create homework",
+        "description": "Creates homework. Teachers create within their own assignments and cannot send teacherId. Admins must send teacherId explicitly.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateHomeworkRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Homework created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenericSuccessObject"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Homework"
+        ],
+        "summary": "List homework",
+        "description": "Paginated homework list for admin or teacher.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 20
+            }
+          },
+          {
+            "name": "sortBy",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "dueDate",
+                "assignedDate",
+                "createdAt",
+                "title"
+              ]
+            }
+          },
+          {
+            "name": "sortOrder",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            }
+          },
+          {
+            "name": "classId",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/IdentifierId"
+            }
+          },
+          {
+            "name": "subjectId",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/IdentifierId"
+            }
+          },
+          {
+            "name": "teacherId",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/IdentifierId"
+            }
+          },
+          {
+            "name": "academicYearId",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/IdentifierId"
+            }
+          },
+          {
+            "name": "semesterId",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/IdentifierId"
+            }
+          },
+          {
+            "name": "assignedDate",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "dueDate",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "dateFrom",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "dateTo",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Homework fetched successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenericSuccessObject"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/homework/{id}": {
+      "get": {
+        "tags": [
+          "Homework"
+        ],
+        "summary": "Get homework detail",
+        "description": "Returns one homework item with the full active class roster and submission state.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/IdentifierId"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Homework fetched successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenericSuccessObject"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/homework/{id}/submissions": {
+      "put": {
+        "tags": [
+          "Homework"
+        ],
+        "summary": "Save homework submissions",
+        "description": "Partial upsert of homework submissions for allowed students in the homework class.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/IdentifierId"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveHomeworkSubmissionsRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Homework submissions saved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenericSuccessObject"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/homework/students/{studentId}": {
+      "get": {
+        "tags": [
+          "Homework"
+        ],
+        "summary": "List student homework",
+        "description": "Returns homework for one student. Parents can access only linked children.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "studentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/IdentifierId"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Student homework fetched successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenericSuccessObject"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/reporting/dashboards/parent/me": {
+      "get": {
+        "tags": [
+          "Reporting"
+        ],
+        "summary": "Get parent dashboard",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Parent dashboard fetched successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenericSuccessObject"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/reporting/dashboards/parent/me/students/{studentId}/profile": {
+      "get": {
+        "tags": [
+          "Reporting"
+        ],
+        "summary": "Get parent-owned child profile",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "studentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/IdentifierId"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Reporting payload fetched successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenericSuccessObject"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/reporting/dashboards/parent/me/students/{studentId}/reports/attendance-summary": {
+      "get": {
+        "tags": [
+          "Reporting"
+        ],
+        "summary": "Get parent-owned child attendance summary",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "studentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/IdentifierId"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Reporting payload fetched successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenericSuccessObject"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/reporting/dashboards/parent/me/students/{studentId}/reports/assessment-summary": {
+      "get": {
+        "tags": [
+          "Reporting"
+        ],
+        "summary": "Get parent-owned child assessment summary",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "studentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/IdentifierId"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Reporting payload fetched successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenericSuccessObject"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/reporting/dashboards/parent/me/students/{studentId}/reports/behavior-summary": {
+      "get": {
+        "tags": [
+          "Reporting"
+        ],
+        "summary": "Get parent-owned child behavior summary",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "studentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/IdentifierId"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Reporting payload fetched successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenericSuccessObject"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/reporting/transport/parent/me/students/{studentId}/live-status": {
+      "get": {
+        "tags": [
+          "Reporting"
+        ],
+        "summary": "Get parent-owned child transport live status",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "studentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/IdentifierId"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Reporting payload fetched successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenericSuccessObject"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/reporting/dashboards/supervisor/me": {
+      "get": {
+        "tags": [
+          "Reporting"
+        ],
+        "summary": "Get supervisor dashboard",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Supervisor dashboard fetched successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenericSuccessObject"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

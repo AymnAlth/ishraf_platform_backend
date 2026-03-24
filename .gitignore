@@ -1,0 +1,12 @@
+node_modules/
+dist/
+coverage/
+.env
+.env.test
+.pnpm-store/
+.neon
+.agents/
+.claude/
+.tmp/
+.vscode/
+skills-lock.json

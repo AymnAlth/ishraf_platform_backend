@@ -1,0 +1,134 @@
+import type { Role } from "../../../config/constants";
+
+export interface CommunicationMessageIdParamsDto {
+  messageId: string;
+}
+
+export interface CommunicationNotificationIdParamsDto {
+  notificationId: string;
+}
+
+export interface CommunicationOtherUserIdParamsDto {
+  otherUserId: string;
+}
+
+export interface SendMessageRequestDto {
+  receiverUserId: string;
+  messageBody: string;
+}
+
+export interface InboxQueryDto {
+  page: number;
+  limit: number;
+  sortBy: "sentAt";
+  sortOrder: "asc" | "desc";
+  isRead?: boolean;
+}
+
+export interface SentQueryDto {
+  page: number;
+  limit: number;
+  sortBy: "sentAt";
+  sortOrder: "asc" | "desc";
+  receiverUserId?: string;
+}
+
+export interface ConversationQueryDto {
+  page: number;
+  limit: number;
+  sortBy: "sentAt";
+  sortOrder: "asc" | "desc";
+}
+
+export interface NotificationsQueryDto {
+  page: number;
+  limit: number;
+  sortBy: "createdAt" | "readAt";
+  sortOrder: "asc" | "desc";
+  isRead?: boolean;
+  notificationType?: string;
+}
+
+export interface MessageResponseDto {
+  id: string;
+  sender: {
+    userId: string;
+    fullName: string;
+  };
+  receiver: {
+    userId: string;
+    fullName: string;
+  };
+  messageBody: string;
+  sentAt: string;
+  readAt: string | null;
+}
+
+export interface InboxResponseDto {
+  items: MessageResponseDto[];
+  messages: MessageResponseDto[];
+  pagination: {
+    page: number;
+    limit: number;
+    totalItems: number;
+    totalPages: number;
+    hasNextPage: boolean;
+    hasPreviousPage: boolean;
+  };
+  unreadCount: number;
+}
+
+export interface CreateAnnouncementRequestDto {
+  title: string;
+  content: string;
+  targetRole?: Role | null;
+  expiresAt?: string | null;
+}
+
+export interface AnnouncementResponseDto {
+  id: string;
+  title: string;
+  content: string;
+  targetRole: Role | null;
+  publishedAt: string;
+  expiresAt: string | null;
+  createdBy: {
+    userId: string;
+    fullName: string;
+  };
+}
+
+export interface CreateNotificationRequestDto {
+  userId: string;
+  title: string;
+  message: string;
+  notificationType: string;
+  referenceType?: string | null;
+  referenceId?: string | null;
+}
+
+export interface NotificationResponseDto {
+  id: string;
+  title: string;
+  message: string;
+  notificationType: string;
+  referenceType: string | null;
+  referenceId: string | null;
+  isRead: boolean;
+  createdAt: string;
+  readAt: string | null;
+}
+
+export interface NotificationsListResponseDto {
+  items: NotificationResponseDto[];
+  notifications: NotificationResponseDto[];
+  pagination: {
+    page: number;
+    limit: number;
+    totalItems: number;
+    totalPages: number;
+    hasNextPage: boolean;
+    hasPreviousPage: boolean;
+  };
+  unreadCount: number;
+}
