@@ -7,6 +7,8 @@ import { DEFAULT_LIMIT, DEFAULT_PAGE } from "../../../common/utils/pagination.ut
 import { toPaginatedData } from "../../../common/utils/pagination.util";
 import type {
   AnnouncementResponseDto,
+  AvailableRecipientResponseDto,
+  AvailableRecipientsQueryDto,
   ConversationQueryDto,
   CreateAnnouncementRequestDto,
   CreateNotificationRequestDto,
@@ -21,6 +23,7 @@ import type {
 } from "../dto/communication.dto";
 import {
   toAnnouncementResponseDto,
+  toAvailableRecipientResponseDto,
   toPaginatedInboxResponseDto,
   toMessageResponseDto,
   toNotificationResponseDto,
@@ -98,8 +101,29 @@ const defaultNotificationsQuery = (): NotificationsQueryDto => ({
   sortOrder: "desc"
 });
 
+const defaultRecipientsQuery = (): AvailableRecipientsQueryDto => ({
+  page: DEFAULT_PAGE,
+  limit: DEFAULT_LIMIT
+});
+
 export class CommunicationService {
   constructor(private readonly communicationRepository: CommunicationRepository) {}
+
+  async listAvailableRecipients(
+    authUser: AuthenticatedUser,
+    query: AvailableRecipientsQueryDto = defaultRecipientsQuery()
+  ): Promise<PaginatedData<AvailableRecipientResponseDto>> {
+    const { rows, totalItems } = normalizePaginatedRows(
+      await this.communicationRepository.listAvailableRecipients(authUser.userId, query)
+    );
+
+    return toPaginatedData(
+      rows.map((row) => toAvailableRecipientResponseDto(row)),
+      query.page,
+      query.limit,
+      totalItems
+    );
+  }
 
   async sendMessage(
     authUser: AuthenticatedUser,

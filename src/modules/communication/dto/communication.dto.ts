@@ -12,6 +12,13 @@ export interface CommunicationOtherUserIdParamsDto {
   otherUserId: string;
 }
 
+export interface AvailableRecipientsQueryDto {
+  page: number;
+  limit: number;
+  search?: string;
+  role?: Role;
+}
+
 export interface SendMessageRequestDto {
   receiverUserId: string;
   messageBody: string;
@@ -131,4 +138,12 @@ export interface NotificationsListResponseDto {
     hasPreviousPage: boolean;
   };
   unreadCount: number;
+}
+
+export interface AvailableRecipientResponseDto {
+  userId: string;
+  fullName: string;
+  role: Role;
+  phone: string | null;
+  email: string | null;
 }

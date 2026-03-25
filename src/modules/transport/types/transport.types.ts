@@ -21,6 +21,7 @@ export type BusStatus = (typeof BUS_STATUS_VALUES)[number];
 export type TripType = (typeof TRIP_TYPE_VALUES)[number];
 export type TripStatus = (typeof TRIP_STATUS_VALUES)[number];
 export type TripStudentEventType = (typeof TRIP_STUDENT_EVENT_TYPE_VALUES)[number];
+export type TripRosterEventType = TripStudentEventType | "not_marked";
 
 export interface DriverReferenceRow {
   driverId: string;
@@ -138,6 +139,23 @@ export interface TripStudentEventRow {
   stopId: string | null;
   stopName: string | null;
   notes: string | null;
+}
+
+export interface TripStudentRosterFilters {
+  search?: string;
+  stopId?: string;
+}
+
+export interface TripStudentRosterRow {
+  studentId: string;
+  academicNo: string;
+  fullName: string;
+  stopId: string;
+  stopName: string;
+  stopOrder: number;
+  lastEventType: TripStudentEventType | null;
+  lastEventTime: Date | null;
+  lastEventStopId: string | null;
 }
 
 export interface BusWriteInput {

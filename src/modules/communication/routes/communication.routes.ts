@@ -5,6 +5,7 @@ import { asyncHandler } from "../../../common/utils/async-handler";
 import type { CommunicationController } from "../controller/communication.controller";
 import { communicationPolicies } from "../policies/communication.policy";
 import {
+  availableRecipientsQuerySchema,
   conversationQuerySchema,
   createAnnouncementSchema,
   createNotificationSchema,
@@ -21,6 +22,13 @@ export const createCommunicationRouter = (
   controller: CommunicationController
 ): Router => {
   const router = Router();
+
+  router.get(
+    "/recipients",
+    ...communicationPolicies.messages,
+    validateRequest({ query: availableRecipientsQuerySchema }),
+    asyncHandler((req, res) => controller.listAvailableRecipients(req, res))
+  );
 
   router.post(
     "/messages",

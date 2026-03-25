@@ -20,6 +20,7 @@ import type {
   DeactivateStudentBusAssignmentRequestDto,
   ListTripsQueryDto,
   RecordTripLocationRequestDto,
+  TransportTripRosterResponseDto,
   TransportBusResponseDto,
   TransportLatestLocationResponseDto,
   TransportRouteResponseDto,
@@ -27,6 +28,7 @@ import type {
   TransportStudentBusAssignmentResponseDto,
   TransportTripDetailResponseDto,
   TransportTripListItemResponseDto,
+  TripStudentRosterQueryDto,
   TransportTripStudentEventResponseDto
 } from "../dto/transport.dto";
 import {
@@ -36,6 +38,7 @@ import {
   toStudentBusAssignmentResponseDto,
   toTripDetailResponseDto,
   toTripListItemResponseDto,
+  toTripRosterResponseDto,
   toTripLocationResponseDto,
   toTripStudentEventResponseDto
 } from "../mapper/transport.mapper";
@@ -417,6 +420,19 @@ export class TransportService {
     const routeStops = await this.transportRepository.listRouteStopsByRouteId(trip.routeId);
 
     return toTripDetailResponseDto(trip, routeStops);
+  }
+
+  async getTripStudentRoster(
+    authUser: AuthenticatedUser,
+    tripId: string,
+    filters: TripStudentRosterQueryDto
+  ): Promise<TransportTripRosterResponseDto> {
+    assertTripOperator(authUser);
+    await this.assertDriverTripOwnership(authUser, tripId);
+    const trip = assertFound(await this.transportRepository.findTripById(tripId), "Trip");
+    const students = await this.transportRepository.listTripStudentRoster(tripId, filters);
+
+    return toTripRosterResponseDto(trip, students);
   }
 
   async startTrip(

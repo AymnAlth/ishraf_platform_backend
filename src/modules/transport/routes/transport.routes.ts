@@ -16,7 +16,8 @@ import {
   listTripsQuerySchema,
   recordTripLocationSchema,
   routeIdParamsSchema,
-  tripIdParamsSchema
+  tripIdParamsSchema,
+  tripStudentRosterQuerySchema
 } from "../validator/transport.validator";
 
 export const createTransportRouter = (controller: TransportController): Router => {
@@ -109,6 +110,16 @@ export const createTransportRouter = (controller: TransportController): Router =
     asyncHandler((req, res) => controller.getTripById(req, res))
   );
 
+  router.get(
+    "/trips/:id/students",
+    ...transportPolicies.accessTrips,
+    validateRequest({
+      params: tripIdParamsSchema,
+      query: tripStudentRosterQuerySchema
+    }),
+    asyncHandler((req, res) => controller.getTripStudentRoster(req, res))
+  );
+
   router.post(
     "/trips/:id/start",
     ...transportPolicies.operateTrips,
@@ -152,4 +163,3 @@ export const createTransportRouter = (controller: TransportController): Router =
 
   return router;
 };
-

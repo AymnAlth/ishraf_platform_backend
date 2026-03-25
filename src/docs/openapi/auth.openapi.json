@@ -1,453 +1,1656 @@
 {
-    "openapi":  "3.1.0",
-    "info":  {
-                 "title":  "Ishraf Platform Auth API",
-                 "version":  "1.0.0",
-                 "description":  "Authentication endpoints for the Ishraf Platform backend. Default server points to the hosted Render staging backend."
-             },
-    "servers":  [
-                    {
-                        "url":  "https://ishraf-platform-backend-staging.onrender.com/api/v1",
-                        "description":  "Hosted staging on Render"
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Ishraf Platform Auth API",
+    "version": "1.0.0",
+    "description": "Auth-only subset synchronized with the live runtime."
+  },
+  "servers": [
+    {
+      "url": "https://ishraf-platform-backend-staging.onrender.com/api/v1",
+      "description": "Hosted staging on Render"
+    },
+    {
+      "url": "http://localhost:4000/api/v1",
+      "description": "Local development"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "NumericStringId": {
+        "type": "string",
+        "pattern": "^[0-9]+$",
+        "example": "1"
+      },
+      "DateString": {
+        "type": "string",
+        "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+        "example": "2026-03-26"
+      },
+      "DateTimeString": {
+        "type": "string",
+        "format": "date-time",
+        "example": "2026-03-26T12:00:00.000Z"
+      },
+      "GenericObject": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "Pagination": {
+        "type": "object",
+        "properties": {
+          "page": {
+            "type": "integer",
+            "minimum": 1,
+            "example": 1
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100,
+            "example": 20
+          },
+          "totalItems": {
+            "type": "integer",
+            "minimum": 0,
+            "example": 1
+          },
+          "totalPages": {
+            "type": "integer",
+            "minimum": 0,
+            "example": 1
+          }
+        },
+        "required": [
+          "page",
+          "limit",
+          "totalItems",
+          "totalPages"
+        ]
+      },
+      "ErrorDetail": {
+        "type": "object",
+        "properties": {
+          "field": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "code": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "message"
+        ]
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "const": false
+          },
+          "message": {
+            "type": "string"
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ErrorDetail"
+            }
+          }
+        },
+        "required": [
+          "success",
+          "message",
+          "errors"
+        ]
+      },
+      "LoginRequest": {
+        "type": "object",
+        "properties": {
+          "identifier": {
+            "type": "string",
+            "minLength": 1
+          },
+          "password": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "identifier",
+          "password"
+        ],
+        "additionalProperties": false,
+        "example": {
+          "identifier": "{{loginIdentifier}}",
+          "password": "{{loginPassword}}"
+        }
+      },
+      "ForgotPasswordRequest": {
+        "type": "object",
+        "properties": {
+          "identifier": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "identifier"
+        ],
+        "additionalProperties": false,
+        "example": {
+          "identifier": "{{loginIdentifier}}"
+        }
+      },
+      "ResetPasswordRequest": {
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string",
+            "minLength": 1
+          },
+          "newPassword": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 72
+          }
+        },
+        "required": [
+          "token",
+          "newPassword"
+        ],
+        "additionalProperties": false,
+        "example": {
+          "token": "{{resetToken}}",
+          "newPassword": "{{newPassword}}"
+        }
+      },
+      "RefreshTokenRequest": {
+        "type": "object",
+        "properties": {
+          "refreshToken": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "refreshToken"
+        ],
+        "additionalProperties": false,
+        "example": {
+          "refreshToken": "{{refreshToken}}"
+        }
+      },
+      "LogoutRequest": {
+        "type": "object",
+        "properties": {
+          "refreshToken": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "refreshToken"
+        ],
+        "additionalProperties": false,
+        "example": {
+          "refreshToken": "{{refreshToken}}"
+        }
+      },
+      "ChangePasswordRequest": {
+        "type": "object",
+        "properties": {
+          "currentPassword": {
+            "type": "string",
+            "minLength": 1
+          },
+          "newPassword": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 72
+          }
+        },
+        "required": [
+          "currentPassword",
+          "newPassword"
+        ],
+        "additionalProperties": false,
+        "example": {
+          "currentPassword": "{{loginPassword}}",
+          "newPassword": "{{newPassword}}"
+        }
+      },
+      "CreateUserRequest": {
+        "type": "object",
+        "properties": {
+          "role": {
+            "type": "string",
+            "enum": [
+              "admin",
+              "parent",
+              "teacher",
+              "supervisor",
+              "driver"
+            ]
+          },
+          "fullName": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 150
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "phone": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 50
+          },
+          "password": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 72
+          },
+          "profile": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        },
+        "required": [
+          "role",
+          "fullName",
+          "password"
+        ],
+        "additionalProperties": false,
+        "description": "Discriminated by role. profile is role-specific: parent(address, relationType), teacher(specialization, qualification, hireDate), supervisor(department), driver(licenseNumber, driverStatus), admin(null or omitted).",
+        "example": {
+          "role": "parent",
+          "fullName": "ولي أمر جديد",
+          "email": "new-parent@example.com",
+          "phone": "777111111",
+          "password": "StrongPassword123!",
+          "profile": {
+            "address": "صنعاء",
+            "relationType": "father"
+          }
+        }
+      },
+      "UpdateUserRequest": {
+        "type": "object",
+        "properties": {
+          "fullName": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 150
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "phone": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 50
+          },
+          "profile": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        },
+        "additionalProperties": false,
+        "example": {
+          "fullName": "اسم محدث",
+          "phone": "777111112"
+        }
+      },
+      "UpdateUserStatusRequest": {
+        "type": "object",
+        "properties": {
+          "isActive": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "isActive"
+        ],
+        "additionalProperties": false,
+        "example": {
+          "isActive": false
+        }
+      },
+      "CreateAcademicYearRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 50
+          },
+          "startDate": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+            "example": "2026-03-26"
+          },
+          "endDate": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+            "example": "2026-03-26"
+          },
+          "isActive": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "startDate",
+          "endDate"
+        ],
+        "additionalProperties": false,
+        "example": {
+          "name": "2026-2027",
+          "startDate": "2026-09-01",
+          "endDate": "2027-06-30",
+          "isActive": false
+        }
+      },
+      "UpdateAcademicYearRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 50
+          },
+          "startDate": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+            "example": "2026-03-26"
+          },
+          "endDate": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+            "example": "2026-03-26"
+          },
+          "isActive": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false,
+        "example": {
+          "isActive": true
+        }
+      },
+      "CreateSemesterRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 50
+          },
+          "startDate": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+            "example": "2026-03-26"
+          },
+          "endDate": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+            "example": "2026-03-26"
+          },
+          "isActive": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "startDate",
+          "endDate"
+        ],
+        "additionalProperties": false,
+        "example": {
+          "name": "الفصل الثاني",
+          "startDate": "2026-01-20",
+          "endDate": "2026-06-20",
+          "isActive": false
+        }
+      },
+      "UpdateSemesterRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 50
+          },
+          "startDate": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+            "example": "2026-03-26"
+          },
+          "endDate": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+            "example": "2026-03-26"
+          },
+          "isActive": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false,
+        "example": {
+          "isActive": true
+        }
+      },
+      "CreateGradeLevelRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "levelOrder": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "required": [
+          "name",
+          "levelOrder"
+        ],
+        "additionalProperties": false,
+        "example": {
+          "name": "الصف الرابع",
+          "levelOrder": 4
+        }
+      },
+      "CreateClassRequest": {
+        "type": "object",
+        "properties": {
+          "gradeLevelId": {
+            "type": "string",
+            "pattern": "^[0-9]+$",
+            "example": "1"
+          },
+          "academicYearId": {
+            "type": "string",
+            "pattern": "^[0-9]+$",
+            "example": "1"
+          },
+          "className": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 50
+          },
+          "section": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 50
+          },
+          "capacity": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "isActive": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "gradeLevelId",
+          "academicYearId",
+          "className",
+          "section"
+        ],
+        "additionalProperties": false,
+        "example": {
+          "gradeLevelId": "1",
+          "academicYearId": "1",
+          "className": "الصف الأول",
+          "section": "B",
+          "capacity": 30,
+          "isActive": true
+        }
+      },
+      "CreateSubjectRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "gradeLevelId": {
+            "type": "string",
+            "pattern": "^[0-9]+$",
+            "example": "1"
+          },
+          "code": {
+            "type": "string",
+            "maxLength": 50
+          },
+          "isActive": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "gradeLevelId"
+        ],
+        "additionalProperties": false,
+        "example": {
+          "name": "العلوم",
+          "gradeLevelId": "1",
+          "code": "SCI-1",
+          "isActive": true
+        }
+      },
+      "CreateTeacherAssignmentRequest": {
+        "type": "object",
+        "properties": {
+          "teacherId": {
+            "type": "string",
+            "pattern": "^[0-9]+$",
+            "example": "1"
+          },
+          "classId": {
+            "type": "string",
+            "pattern": "^[0-9]+$",
+            "example": "1"
+          },
+          "subjectId": {
+            "type": "string",
+            "pattern": "^[0-9]+$",
+            "example": "1"
+          },
+          "academicYearId": {
+            "type": "string",
+            "pattern": "^[0-9]+$",
+            "example": "1"
+          }
+        },
+        "required": [
+          "teacherId",
+          "classId",
+          "subjectId",
+          "academicYearId"
+        ],
+        "additionalProperties": false,
+        "example": {
+          "teacherId": "3",
+          "classId": "1",
+          "subjectId": "1",
+          "academicYearId": "1"
+        }
+      },
+      "CreateSupervisorAssignmentRequest": {
+        "type": "object",
+        "properties": {
+          "supervisorId": {
+            "type": "string",
+            "pattern": "^[0-9]+$",
+            "example": "1"
+          },
+          "classId": {
+            "type": "string",
+            "pattern": "^[0-9]+$",
+            "example": "1"
+          },
+          "academicYearId": {
+            "type": "string",
+            "pattern": "^[0-9]+$",
+            "example": "1"
+          }
+        },
+        "required": [
+          "supervisorId",
+          "classId",
+          "academicYearId"
+        ],
+        "additionalProperties": false,
+        "example": {
+          "supervisorId": "4",
+          "classId": "1",
+          "academicYearId": "1"
+        }
+      },
+      "CreateStudentRequest": {
+        "type": "object",
+        "additionalProperties": true,
+        "example": {
+          "academicNo": "SEED-STU-010",
+          "fullName": "طالب جديد",
+          "dateOfBirth": "2018-09-10",
+          "gender": "male",
+          "classId": "1",
+          "status": "active",
+          "enrollmentDate": "2025-09-01"
+        }
+      },
+      "UpdateStudentRequest": {
+        "type": "object",
+        "additionalProperties": true,
+        "example": {
+          "fullName": "طالب محدث",
+          "status": "suspended"
+        }
+      },
+      "LinkStudentParentRequest": {
+        "type": "object",
+        "additionalProperties": true,
+        "example": {
+          "parentId": "10",
+          "relationType": "mother",
+          "isPrimary": false
+        }
+      },
+      "PromoteStudentRequest": {
+        "type": "object",
+        "additionalProperties": true,
+        "example": {
+          "toClassId": "2",
+          "academicYearId": "2",
+          "notes": "ترقية إلى الصف التالي"
+        }
+      },
+      "CreateAssessmentTypeRequest": {
+        "type": "object",
+        "additionalProperties": true,
+        "example": {
+          "code": "QUIZ",
+          "name": "Quiz",
+          "description": "Short quiz",
+          "isActive": true
+        }
+      },
+      "CreateAssessmentRequest": {
+        "type": "object",
+        "additionalProperties": true,
+        "example": {
+          "assessmentTypeId": "1",
+          "classId": "1",
+          "subjectId": "1",
+          "teacherId": "3",
+          "academicYearId": "1",
+          "semesterId": "1",
+          "title": "اختبار قصير 2",
+          "description": "الوحدة الثانية",
+          "maxScore": 20,
+          "weight": 10,
+          "assessmentDate": "2026-03-26",
+          "isPublished": true
+        }
+      },
+      "SaveAssessmentScoresRequest": {
+        "type": "object",
+        "additionalProperties": true,
+        "example": {
+          "records": [
+            {
+              "studentId": "1",
+              "score": 18,
+              "remarks": "ممتاز"
+            },
+            {
+              "studentId": "2",
+              "score": 14,
+              "remarks": "جيد"
+            }
+          ]
+        }
+      },
+      "UpdateStudentAssessmentScoreRequest": {
+        "type": "object",
+        "additionalProperties": true,
+        "example": {
+          "score": 19,
+          "remarks": "تحسن واضح"
+        }
+      },
+      "CreateAttendanceSessionRequest": {
+        "type": "object",
+        "additionalProperties": true,
+        "example": {
+          "classId": "1",
+          "subjectId": "1",
+          "academicYearId": "1",
+          "semesterId": "1",
+          "sessionDate": "2026-03-26",
+          "periodNo": 1,
+          "title": "حصة الرياضيات",
+          "notes": "اختبار سريع",
+          "teacherId": "3"
+        }
+      },
+      "SaveAttendanceRecordsRequest": {
+        "type": "object",
+        "additionalProperties": true,
+        "example": {
+          "records": [
+            {
+              "studentId": "1",
+              "status": "present"
+            },
+            {
+              "studentId": "2",
+              "status": "absent",
+              "notes": "غياب بدون عذر"
+            }
+          ]
+        }
+      },
+      "UpdateAttendanceRecordRequest": {
+        "type": "object",
+        "additionalProperties": true,
+        "example": {
+          "status": "late",
+          "notes": "وصل متأخرًا"
+        }
+      },
+      "CreateBehaviorCategoryRequest": {
+        "type": "object",
+        "additionalProperties": true,
+        "example": {
+          "code": "NEG-001",
+          "name": "تأخر متكرر",
+          "behaviorType": "negative",
+          "defaultSeverity": 3,
+          "isActive": true
+        }
+      },
+      "CreateBehaviorRecordRequest": {
+        "type": "object",
+        "additionalProperties": true,
+        "example": {
+          "studentId": "1",
+          "behaviorCategoryId": "1",
+          "academicYearId": "1",
+          "semesterId": "1",
+          "description": "تأخر عن الطابور",
+          "severity": 3,
+          "behaviorDate": "2026-03-26",
+          "teacherId": "3"
+        }
+      },
+      "UpdateBehaviorRecordRequest": {
+        "type": "object",
+        "additionalProperties": true,
+        "example": {
+          "severity": 2,
+          "description": "تم تعديل الملاحظة"
+        }
+      },
+      "CreateBusRequest": {
+        "type": "object",
+        "additionalProperties": true,
+        "example": {
+          "plateNumber": "SEED-1004",
+          "driverId": "30",
+          "capacity": 45,
+          "status": "active"
+        }
+      },
+      "CreateRouteRequest": {
+        "type": "object",
+        "additionalProperties": true,
+        "example": {
+          "routeName": "SEED Route 4",
+          "startPoint": "School",
+          "endPoint": "District D",
+          "estimatedDurationMinutes": 40,
+          "isActive": true
+        }
+      },
+      "CreateRouteStopRequest": {
+        "type": "object",
+        "additionalProperties": true,
+        "example": {
+          "stopName": "Stop 4",
+          "latitude": 15.37,
+          "longitude": 44.19,
+          "stopOrder": 4
+        }
+      },
+      "CreateTransportAssignmentRequest": {
+        "type": "object",
+        "additionalProperties": true,
+        "example": {
+          "studentId": "1",
+          "routeId": "1",
+          "stopId": "1",
+          "startDate": "2026-03-26",
+          "endDate": null
+        }
+      },
+      "DeactivateTransportAssignmentRequest": {
+        "type": "object",
+        "additionalProperties": true,
+        "example": {
+          "endDate": "2026-03-26"
+        }
+      },
+      "CreateTripRequest": {
+        "type": "object",
+        "additionalProperties": true,
+        "example": {
+          "busId": "1",
+          "routeId": "1",
+          "tripDate": "2026-03-26",
+          "tripType": "pickup"
+        }
+      },
+      "RecordTripLocationRequest": {
+        "type": "object",
+        "additionalProperties": true,
+        "example": {
+          "latitude": 15.3694,
+          "longitude": 44.191
+        }
+      },
+      "CreateTripStudentEventRequest": {
+        "type": "object",
+        "additionalProperties": true,
+        "example": {
+          "studentId": "1",
+          "eventType": "dropped_off",
+          "stopId": "1",
+          "notes": "تم النزول بنجاح"
+        }
+      },
+      "SendMessageRequest": {
+        "type": "object",
+        "additionalProperties": true,
+        "example": {
+          "receiverUserId": "20",
+          "messageBody": "رسالة مباشرة تجريبية"
+        }
+      },
+      "CreateAnnouncementRequest": {
+        "type": "object",
+        "additionalProperties": true,
+        "example": {
+          "title": "[Seed] New notice",
+          "content": "إعلان موجّه لأولياء الأمور",
+          "targetRole": "parent",
+          "expiresAt": "2026-04-01T00:00:00.000Z"
+        }
+      },
+      "CreateNotificationRequest": {
+        "type": "object",
+        "additionalProperties": true,
+        "example": {
+          "userId": "20",
+          "title": "إشعار يدوي",
+          "message": "رسالة إشعار يدوية",
+          "notificationType": "manual",
+          "referenceType": null,
+          "referenceId": null
+        }
+      },
+      "CreateHomeworkRequest": {
+        "type": "object",
+        "additionalProperties": true,
+        "example": {
+          "teacherId": "3",
+          "classId": "1",
+          "subjectId": "1",
+          "academicYearId": "1",
+          "semesterId": "1",
+          "title": "واجب الرياضيات 2",
+          "description": "حل الصفحات 12-14",
+          "assignedDate": "2026-03-26",
+          "dueDate": "2026-03-28"
+        }
+      },
+      "SaveHomeworkSubmissionsRequest": {
+        "type": "object",
+        "additionalProperties": true,
+        "example": {
+          "records": [
+            {
+              "studentId": "1",
+              "status": "submitted",
+              "submittedAt": "2026-03-26",
+              "notes": "تم التسليم"
+            },
+            {
+              "studentId": "2",
+              "status": "late",
+              "submittedAt": "2026-03-26",
+              "notes": "تسليم متأخر"
+            }
+          ]
+        }
+      }
+    }
+  },
+  "paths": {
+    "/auth/change-password": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Change Password",
+        "description": "Change the current authenticated user password.\n\nAllowed roles: admin, parent, teacher, supervisor, driver.",
+        "x-allowed-roles": [
+          "admin",
+          "parent",
+          "teacher",
+          "supervisor",
+          "driver"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "const": true
                     },
-                    {
-                        "url":  "http://localhost:4000/api/v1",
-                        "description":  "Local development"
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "type": "null"
                     }
-                ],
-    "components":  {
-                       "securitySchemes":  {
-                                               "bearerAuth":  {
-                                                                  "type":  "http",
-                                                                  "scheme":  "bearer",
-                                                                  "bearerFormat":  "JWT"
-                                                              }
-                                           },
-                       "schemas":  {
-                                       "ErrorResponse":  {
-                                                             "type":  "object",
-                                                             "properties":  {
-                                                                                "success":  {
-                                                                                                "const":  false
-                                                                                            },
-                                                                                "message":  {
-                                                                                                "type":  "string"
-                                                                                            },
-                                                                                "errors":  {
-                                                                                               "type":  "array",
-                                                                                               "items":  {
-                                                                                                             "type":  "object",
-                                                                                                             "properties":  {
-                                                                                                                                "field":  {
-                                                                                                                                              "type":  "string"
-                                                                                                                                          },
-                                                                                                                                "code":  {
-                                                                                                                                             "type":  "string"
-                                                                                                                                         },
-                                                                                                                                "message":  {
-                                                                                                                                                "type":  "string"
-                                                                                                                                            }
-                                                                                                                            },
-                                                                                                             "required":  [
-                                                                                                                              "message"
-                                                                                                                          ]
-                                                                                                         }
-                                                                                           }
-                                                                            },
-                                                             "required":  [
-                                                                              "success",
-                                                                              "message",
-                                                                              "errors"
-                                                                          ]
-                                                         },
-                                       "AuthUser":  {
-                                                        "type":  "object",
-                                                        "properties":  {
-                                                                           "id":  {
-                                                                                      "type":  "string",
-                                                                                      "format":  "uuid"
-                                                                                  },
-                                                                           "fullName":  {
-                                                                                            "type":  "string"
-                                                                                        },
-                                                                           "email":  {
-                                                                                         "type":  [
-                                                                                                      "string",
-                                                                                                      "null"
-                                                                                                  ],
-                                                                                         "format":  "email"
-                                                                                     },
-                                                                           "phone":  {
-                                                                                         "type":  [
-                                                                                                      "string",
-                                                                                                      "null"
-                                                                                                  ]
-                                                                                     },
-                                                                           "role":  {
-                                                                                        "type":  "string",
-                                                                                        "enum":  [
-                                                                                                     "admin",
-                                                                                                     "parent",
-                                                                                                     "teacher",
-                                                                                                     "supervisor",
-                                                                                                     "driver"
-                                                                                                 ]
-                                                                                    },
-                                                                           "isActive":  {
-                                                                                            "type":  "boolean"
-                                                                                        }
-                                                                       },
-                                                        "required":  [
-                                                                         "id",
-                                                                         "fullName",
-                                                                         "email",
-                                                                         "phone",
-                                                                         "role",
-                                                                         "isActive"
-                                                                     ]
-                                                    },
-                                       "CurrentUser":  {
-                                                           "allOf":  [
-                                                                         {
-                                                                             "$ref":  "#/components/schemas/AuthUser"
-                                                                         },
-                                                                         {
-                                                                             "type":  "object",
-                                                                             "properties":  {
-                                                                                                "lastLoginAt":  {
-                                                                                                                    "type":  [
-                                                                                                                                 "string",
-                                                                                                                                 "null"
-                                                                                                                             ],
-                                                                                                                    "format":  "date-time"
-                                                                                                                }
-                                                                                            },
-                                                                             "required":  [
-                                                                                              "lastLoginAt"
-                                                                                          ]
-                                                                         }
-                                                                     ]
-                                                       }
-                                   }
-                   },
-    "paths":  {
-                  "/auth/login":  {
-                                      "post":  {
-                                                   "summary":  "Login with email or phone",
-                                                   "requestBody":  {
-                                                                       "required":  true,
-                                                                       "content":  {
-                                                                                       "application/json":  {
-                                                                                                                "schema":  {
-                                                                                                                               "type":  "object",
-                                                                                                                               "properties":  {
-                                                                                                                                                  "identifier":  {
-                                                                                                                                                                     "type":  "string"
-                                                                                                                                                                 },
-                                                                                                                                                  "password":  {
-                                                                                                                                                                   "type":  "string"
-                                                                                                                                                               }
-                                                                                                                                              },
-                                                                                                                               "required":  [
-                                                                                                                                                "identifier",
-                                                                                                                                                "password"
-                                                                                                                                            ]
-                                                                                                                           }
-                                                                                                            }
-                                                                                   }
-                                                                   },
-                                                   "responses":  {
-                                                                     "200":  {
-                                                                                 "description":  "Login successful",
-                                                                                 "content":  {
-                                                                                                 "application/json":  {
-                                                                                                                          "example":  {
-                                                                                                                                          "success":  true,
-                                                                                                                                          "message":  "Login successful",
-                                                                                                                                          "data":  {
-                                                                                                                                                       "user":  {
-                                                                                                                                                                    "id":  "11111111-1111-4111-8111-111111111111",
-                                                                                                                                                                    "fullName":  "Sara Teacher",
-                                                                                                                                                                    "email":  "teacher1@eshraf.local",
-                                                                                                                                                                    "phone":  "700000003",
-                                                                                                                                                                    "role":  "teacher",
-                                                                                                                                                                    "isActive":  true
-                                                                                                                                                                },
-                                                                                                                                                       "tokens":  {
-                                                                                                                                                                      "accessToken":  "jwt-access-token",
-                                                                                                                                                                      "refreshToken":  "jwt-refresh-token",
-                                                                                                                                                                      "expiresIn":  900
-                                                                                                                                                                  }
-                                                                                                                                                   }
-                                                                                                                                      }
-                                                                                                                      }
-                                                                                             }
-                                                                             },
-                                                                     "401":  {
-                                                                                 "description":  "Invalid credentials",
-                                                                                 "content":  {
-                                                                                                 "application/json":  {
-                                                                                                                          "schema":  {
-                                                                                                                                         "$ref":  "#/components/schemas/ErrorResponse"
-                                                                                                                                     }
-                                                                                                                      }
-                                                                                             }
-                                                                             },
-                                                                     "403":  {
-                                                                                 "description":  "Inactive user"
-                                                                             },
-                                                                     "429":  {
-                                                                                 "description":  "Too many login attempts"
-                                                                             }
-                                                                 }
-                                               }
-                                  },
-                  "/auth/refresh":  {
-                                        "post":  {
-                                                     "summary":  "Rotate refresh token and issue a new access token",
-                                                     "requestBody":  {
-                                                                         "required":  true,
-                                                                         "content":  {
-                                                                                         "application/json":  {
-                                                                                                                  "schema":  {
-                                                                                                                                 "type":  "object",
-                                                                                                                                 "properties":  {
-                                                                                                                                                    "refreshToken":  {
-                                                                                                                                                                         "type":  "string"
-                                                                                                                                                                     }
-                                                                                                                                                },
-                                                                                                                                 "required":  [
-                                                                                                                                                  "refreshToken"
-                                                                                                                                              ]
-                                                                                                                             }
-                                                                                                              }
-                                                                                     }
-                                                                     },
-                                                     "responses":  {
-                                                                       "200":  {
-                                                                                   "description":  "Token refreshed successfully",
-                                                                                   "content":  {
-                                                                                                   "application/json":  {
-                                                                                                                            "example":  {
-                                                                                                                                            "success":  true,
-                                                                                                                                            "message":  "Token refreshed successfully",
-                                                                                                                                            "data":  {
-                                                                                                                                                         "accessToken":  "new-access-token",
-                                                                                                                                                         "refreshToken":  "new-refresh-token",
-                                                                                                                                                         "expiresIn":  900
-                                                                                                                                                     }
-                                                                                                                                        }
-                                                                                                                        }
-                                                                                               }
-                                                                               },
-                                                                       "401":  {
-                                                                                   "description":  "Invalid or expired refresh token"
-                                                                               }
-                                                                   }
-                                                 }
-                                    },
-                  "/auth/logout":  {
-                                       "post":  {
-                                                    "summary":  "Revoke the current refresh token",
-                                                    "requestBody":  {
-                                                                        "required":  true,
-                                                                        "content":  {
-                                                                                        "application/json":  {
-                                                                                                                 "schema":  {
-                                                                                                                                "type":  "object",
-                                                                                                                                "properties":  {
-                                                                                                                                                   "refreshToken":  {
-                                                                                                                                                                        "type":  "string"
-                                                                                                                                                                    }
-                                                                                                                                               },
-                                                                                                                                "required":  [
-                                                                                                                                                 "refreshToken"
-                                                                                                                                             ]
-                                                                                                                            }
-                                                                                                             }
-                                                                                    }
-                                                                    },
-                                                    "responses":  {
-                                                                      "200":  {
-                                                                                  "description":  "Logout successful",
-                                                                                  "content":  {
-                                                                                                  "application/json":  {
-                                                                                                                           "example":  {
-                                                                                                                                           "success":  true,
-                                                                                                                                           "message":  "Logout successful",
-                                                                                                                                           "data":  null
-                                                                                                                                       }
-                                                                                                                       }
-                                                                                              }
-                                                                              }
-                                                                  }
-                                                }
-                                   },
-                  "/auth/forgot-password":  {
-                                                "post":  {
-                                                             "summary":  "Request password reset",
-                                                             "description":  "Creates a password reset token for an active account when the identifier exists. The response stays generic, and the reset token is only exposed when AUTH_EXPOSE_RESET_TOKEN_IN_RESPONSE is enabled.",
-                                                             "requestBody":  {
-                                                                                 "required":  true,
-                                                                                 "content":  {
-                                                                                                 "application/json":  {
-                                                                                                                          "schema":  {
-                                                                                                                                         "type":  "object",
-                                                                                                                                         "properties":  {
-                                                                                                                                                            "identifier":  {
-                                                                                                                                                                               "type":  "string"
-                                                                                                                                                                           }
-                                                                                                                                                        },
-                                                                                                                                         "required":  [
-                                                                                                                                                          "identifier"
-                                                                                                                                                      ]
-                                                                                                                                     }
-                                                                                                                      }
-                                                                                             }
-                                                                             },
-                                                             "responses":  {
-                                                                               "200":  {
-                                                                                           "description":  "Password reset requested successfully"
-                                                                                       },
-                                                                               "429":  {
-                                                                                           "description":  "Too many password reset requests"
-                                                                                       }
-                                                                           }
-                                                         }
-                                            },
-                  "/auth/reset-password":  {
-                                               "post":  {
-                                                            "summary":  "Reset password with token",
-                                                            "requestBody":  {
-                                                                                "required":  true,
-                                                                                "content":  {
-                                                                                                "application/json":  {
-                                                                                                                         "schema":  {
-                                                                                                                                        "type":  "object",
-                                                                                                                                        "properties":  {
-                                                                                                                                                           "token":  {
-                                                                                                                                                                         "type":  "string"
-                                                                                                                                                                     },
-                                                                                                                                                           "newPassword":  {
-                                                                                                                                                                               "type":  "string",
-                                                                                                                                                                               "minLength":  8
-                                                                                                                                                                           }
-                                                                                                                                                       },
-                                                                                                                                        "required":  [
-                                                                                                                                                         "token",
-                                                                                                                                                         "newPassword"
-                                                                                                                                                     ]
-                                                                                                                                    }
-                                                                                                                     }
-                                                                                            }
-                                                                            },
-                                                            "responses":  {
-                                                                              "200":  {
-                                                                                          "description":  "Password reset successfully"
-                                                                                      },
-                                                                              "401":  {
-                                                                                          "description":  "Invalid or expired reset token"
-                                                                                      },
-                                                                              "429":  {
-                                                                                          "description":  "Too many password reset requests"
-                                                                                      }
-                                                                          }
-                                                        }
-                                           },
-                  "/auth/change-password":  {
-                                                "post":  {
-                                                             "summary":  "Change the current user password",
-                                                             "security":  [
-                                                                              {
-                                                                                  "bearerAuth":  [
-
-                                                                                                 ]
-                                                                              }
-                                                                          ],
-                                                             "requestBody":  {
-                                                                                 "required":  true,
-                                                                                 "content":  {
-                                                                                                 "application/json":  {
-                                                                                                                          "schema":  {
-                                                                                                                                         "type":  "object",
-                                                                                                                                         "properties":  {
-                                                                                                                                                            "currentPassword":  {
-                                                                                                                                                                                    "type":  "string"
-                                                                                                                                                                                },
-                                                                                                                                                            "newPassword":  {
-                                                                                                                                                                                "type":  "string",
-                                                                                                                                                                                "minLength":  8
-                                                                                                                                                                            }
-                                                                                                                                                        },
-                                                                                                                                         "required":  [
-                                                                                                                                                          "currentPassword",
-                                                                                                                                                          "newPassword"
-                                                                                                                                                      ]
-                                                                                                                                     }
-                                                                                                                      }
-                                                                                             }
-                                                                             },
-                                                             "responses":  {
-                                                                               "200":  {
-                                                                                           "description":  "Password changed successfully",
-                                                                                           "content":  {
-                                                                                                           "application/json":  {
-                                                                                                                                    "example":  {
-                                                                                                                                                    "success":  true,
-                                                                                                                                                    "message":  "Password changed successfully",
-                                                                                                                                                    "data":  null
-                                                                                                                                                }
-                                                                                                                                }
-                                                                                                       }
-                                                                                       },
-                                                                               "401":  {
-                                                                                           "description":  "Current password is incorrect"
-                                                                                       },
-                                                                               "403":  {
-                                                                                           "description":  "Inactive user"
-                                                                                       }
-                                                                           }
-                                                         }
-                                            },
-                  "/auth/me":  {
-                                   "get":  {
-                                               "summary":  "Fetch the current user profile",
-                                               "security":  [
-                                                                {
-                                                                    "bearerAuth":  [
-
-                                                                                   ]
-                                                                }
-                                                            ],
-                                               "responses":  {
-                                                                 "200":  {
-                                                                             "description":  "Current user fetched successfully",
-                                                                             "content":  {
-                                                                                             "application/json":  {
-                                                                                                                      "example":  {
-                                                                                                                                      "success":  true,
-                                                                                                                                      "message":  "Current user fetched successfully",
-                                                                                                                                      "data":  {
-                                                                                                                                                   "id":  "11111111-1111-4111-8111-111111111111",
-                                                                                                                                                   "fullName":  "Sara Teacher",
-                                                                                                                                                   "email":  "teacher1@eshraf.local",
-                                                                                                                                                   "phone":  "700000003",
-                                                                                                                                                   "role":  "teacher",
-                                                                                                                                                   "isActive":  true,
-                                                                                                                                                   "lastLoginAt":  "2026-03-13T10:00:00Z"
-                                                                                                                                               }
-                                                                                                                                  }
-                                                                                                                  }
-                                                                                         }
-                                                                         },
-                                                                 "401":  {
-                                                                             "description":  "Access token is required or invalid"
-                                                                         },
-                                                                 "403":  {
-                                                                             "description":  "Inactive user"
-                                                                         }
-                                                             }
-                                           }
-                               }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                },
+                "example": {
+                  "success": true,
+                  "message": "Password changed successfully",
+                  "data": null
+                }
               }
+            }
+          },
+          "400": {
+            "description": "Validation failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Validation failed",
+                  "errors": [
+                    {
+                      "field": "fieldName",
+                      "code": "invalid_type",
+                      "message": "Validation error example"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication is missing or expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Unauthorized",
+                  "errors": [
+                    {
+                      "code": "UNAUTHORIZED",
+                      "message": "Authentication is required"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated but not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Forbidden",
+                  "errors": [
+                    {
+                      "code": "FORBIDDEN",
+                      "message": "You do not have permission to access this resource"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangePasswordRequest"
+              },
+              "example": {
+                "currentPassword": "{{loginPassword}}",
+                "newPassword": "{{newPassword}}"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/forgot-password": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Forgot Password",
+        "description": "Request a password reset token for an active account. Staging usually does not expose resetToken in the response.\n\nPublic endpoint.",
+        "x-allowed-roles": [
+          "public"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "const": true
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/GenericObject"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                },
+                "example": {
+                  "success": true,
+                  "message": "Password reset requested successfully",
+                  "data": {
+                    "name": "Ishraf Platform Backend",
+                    "environment": "staging"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Validation failed",
+                  "errors": [
+                    {
+                      "field": "fieldName",
+                      "code": "invalid_type",
+                      "message": "Validation error example"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit reached",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Too Many Requests",
+                  "errors": [
+                    {
+                      "code": "TOO_MANY_REQUESTS",
+                      "message": "Please try again later"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ForgotPasswordRequest"
+              },
+              "example": {
+                "identifier": "{{loginIdentifier}}"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Login",
+        "description": "Authenticate with email or phone and issue access and refresh tokens.\n\nPublic endpoint.",
+        "x-allowed-roles": [
+          "public"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "const": true
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/GenericObject"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                },
+                "example": {
+                  "success": true,
+                  "message": "Login successful",
+                  "data": {
+                    "id": "1",
+                    "fullName": "Admin Seed",
+                    "email": "seed-admin-01@ishraf.local",
+                    "phone": "777000001",
+                    "role": "admin",
+                    "isActive": true,
+                    "createdAt": "2026-03-26T12:00:00.000Z",
+                    "updatedAt": "2026-03-26T12:00:00.000Z"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Validation failed",
+                  "errors": [
+                    {
+                      "field": "fieldName",
+                      "code": "invalid_type",
+                      "message": "Validation error example"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit reached",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Too Many Requests",
+                  "errors": [
+                    {
+                      "code": "TOO_MANY_REQUESTS",
+                      "message": "Please try again later"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              },
+              "example": {
+                "identifier": "{{loginIdentifier}}",
+                "password": "{{loginPassword}}"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Logout",
+        "description": "Revoke the provided refresh token.\n\nPublic endpoint.",
+        "x-allowed-roles": [
+          "public"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "const": true
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "type": "null"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                },
+                "example": {
+                  "success": true,
+                  "message": "Logout successful",
+                  "data": null
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Validation failed",
+                  "errors": [
+                    {
+                      "field": "fieldName",
+                      "code": "invalid_type",
+                      "message": "Validation error example"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LogoutRequest"
+              },
+              "example": {
+                "refreshToken": "{{refreshToken}}"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/me": {
+      "get": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Current User",
+        "description": "Return the authenticated active user profile used for frontend bootstrap.\n\nAllowed roles: admin, parent, teacher, supervisor, driver.",
+        "x-allowed-roles": [
+          "admin",
+          "parent",
+          "teacher",
+          "supervisor",
+          "driver"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "const": true
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/GenericObject"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                },
+                "example": {
+                  "success": true,
+                  "message": "Current user fetched successfully",
+                  "data": {
+                    "id": "1",
+                    "fullName": "Admin Seed",
+                    "email": "seed-admin-01@ishraf.local",
+                    "phone": "777000001",
+                    "role": "admin",
+                    "isActive": true,
+                    "createdAt": "2026-03-26T12:00:00.000Z",
+                    "updatedAt": "2026-03-26T12:00:00.000Z"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication is missing or expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Unauthorized",
+                  "errors": [
+                    {
+                      "code": "UNAUTHORIZED",
+                      "message": "Authentication is required"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated but not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Forbidden",
+                  "errors": [
+                    {
+                      "code": "FORBIDDEN",
+                      "message": "You do not have permission to access this resource"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/auth/refresh": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Refresh Token",
+        "description": "Exchange a valid refresh token for a fresh access/refresh pair.\n\nPublic endpoint.",
+        "x-allowed-roles": [
+          "public"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "const": true
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/GenericObject"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                },
+                "example": {
+                  "success": true,
+                  "message": "Token refreshed successfully",
+                  "data": {
+                    "id": "1",
+                    "fullName": "Admin Seed",
+                    "email": "seed-admin-01@ishraf.local",
+                    "phone": "777000001",
+                    "role": "admin",
+                    "isActive": true,
+                    "createdAt": "2026-03-26T12:00:00.000Z",
+                    "updatedAt": "2026-03-26T12:00:00.000Z"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Validation failed",
+                  "errors": [
+                    {
+                      "field": "fieldName",
+                      "code": "invalid_type",
+                      "message": "Validation error example"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshTokenRequest"
+              },
+              "example": {
+                "refreshToken": "{{refreshToken}}"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/reset-password": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Reset Password",
+        "description": "Reset the password using a valid reset token. Successful reset revokes existing refresh tokens.\n\nPublic endpoint.",
+        "x-allowed-roles": [
+          "public"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "const": true
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "type": "null"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                },
+                "example": {
+                  "success": true,
+                  "message": "Password reset successfully",
+                  "data": null
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Validation failed",
+                  "errors": [
+                    {
+                      "field": "fieldName",
+                      "code": "invalid_type",
+                      "message": "Validation error example"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit reached",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Too Many Requests",
+                  "errors": [
+                    {
+                      "code": "TOO_MANY_REQUESTS",
+                      "message": "Please try again later"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResetPasswordRequest"
+              },
+              "example": {
+                "token": "{{resetToken}}",
+                "newPassword": "{{newPassword}}"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
 }

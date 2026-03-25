@@ -1,6 +1,7 @@
 import type { PaginatedData } from "../../../common/types/pagination.types";
 import type {
   AnnouncementResponseDto,
+  AvailableRecipientResponseDto,
   InboxResponseDto,
   MessageResponseDto,
   NotificationResponseDto,
@@ -11,6 +12,7 @@ import type {
   MessageRow,
   NotificationRow
 } from "../types/communication.types";
+import type { CommunicationUserRow } from "../types/communication.types";
 
 const toUnreadCount = (value: number | string | undefined): number =>
   value === undefined ? 0 : Number(value);
@@ -28,6 +30,16 @@ export const toMessageResponseDto = (row: MessageRow): MessageResponseDto => ({
   messageBody: row.messageBody,
   sentAt: row.sentAt.toISOString(),
   readAt: row.readAt ? row.readAt.toISOString() : null
+});
+
+export const toAvailableRecipientResponseDto = (
+  row: CommunicationUserRow
+): AvailableRecipientResponseDto => ({
+  userId: row.id,
+  fullName: row.fullName,
+  role: row.role,
+  phone: row.phone,
+  email: row.email
 });
 
 export const toInboxResponseDto = (

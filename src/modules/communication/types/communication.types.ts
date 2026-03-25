@@ -13,6 +13,11 @@ export interface CommunicationUserRow {
   isActive: boolean;
 }
 
+export interface RecipientListQuery extends PaginationQuery {
+  search?: string;
+  role?: Role;
+}
+
 export interface MessageRow {
   id: string;
   senderUserId: string;

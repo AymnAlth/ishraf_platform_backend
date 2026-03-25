@@ -224,5 +224,102 @@ export const registerTransportIntegrationTests = (
       expect(detailResponse.body.data.eventSummary.boardedCount).toBe(1);
       expect(detailResponse.body.data.eventSummary.absentCount).toBe(1);
     });
+
+    it("returns the full trip student roster including not-yet-marked students and derived last-event state", async () => {
+      const adminLogin = await context.loginAsAdmin();
+      const driverLogin = await context.loginAsDriver();
+
+      const routeResponse = await context.createRoute(adminLogin.accessToken);
+      const routeId = routeResponse.body.data.id as string;
+      const firstStopResponse = await context.createRouteStop(adminLogin.accessToken, routeId);
+      const secondStopResponse = await context.createRouteStop(adminLogin.accessToken, routeId, {
+        stopName: "Second Stop",
+        stopOrder: 2
+      });
+      const busResponse = await context.createBus(adminLogin.accessToken);
+      const busId = busResponse.body.data.id as string;
+
+      await context.createAssignment(adminLogin.accessToken, {
+        studentId: "1",
+        routeId,
+        stopId: firstStopResponse.body.data.stopId as string
+      });
+      await context.createAssignment(adminLogin.accessToken, {
+        studentId: "2",
+        routeId,
+        stopId: secondStopResponse.body.data.stopId as string
+      });
+
+      const tripResponse = await context.createTrip(driverLogin.accessToken, {
+        busId,
+        routeId
+      });
+      const tripId = tripResponse.body.data.id as string;
+
+      await request(context.app)
+        .post(`/api/v1/transport/trips/${tripId}/start`)
+        .set("Authorization", `Bearer ${driverLogin.accessToken}`)
+        .send({});
+
+      await request(context.app)
+        .post(`/api/v1/transport/trips/${tripId}/events`)
+        .set("Authorization", `Bearer ${driverLogin.accessToken}`)
+        .send({
+          studentId: "1",
+          eventType: "boarded",
+          stopId: firstStopResponse.body.data.stopId
+        });
+
+      const rosterResponse = await request(context.app)
+        .get(`/api/v1/transport/trips/${tripId}/students`)
+        .set("Authorization", `Bearer ${driverLogin.accessToken}`);
+      const filteredRosterResponse = await request(context.app)
+        .get(`/api/v1/transport/trips/${tripId}/students`)
+        .query({
+          search: "Student Two",
+          stopId: secondStopResponse.body.data.stopId
+        })
+        .set("Authorization", `Bearer ${driverLogin.accessToken}`);
+
+      expect(rosterResponse.status).toBe(200);
+      expect(rosterResponse.body.data.tripId).toBe(tripId);
+      expect(rosterResponse.body.data.tripStatus).toBe("started");
+      expect(rosterResponse.body.data.students).toHaveLength(2);
+      expect(rosterResponse.body.data.students[0]).toMatchObject({
+        studentId: "1",
+        academicNo: "STU-1001",
+        fullName: "Student One",
+        assignedStop: {
+          stopId: firstStopResponse.body.data.stopId,
+          stopName: "Main Stop",
+          stopOrder: 1
+        },
+        currentTripEventType: "boarded",
+        lastEvent: {
+          eventType: "boarded",
+          stopId: firstStopResponse.body.data.stopId
+        }
+      });
+      expect(rosterResponse.body.data.students[0].lastEvent.eventTime).toBeTypeOf("string");
+      expect(rosterResponse.body.data.students[1]).toMatchObject({
+        studentId: "2",
+        academicNo: "STU-1002",
+        fullName: "Student Two",
+        assignedStop: {
+          stopId: secondStopResponse.body.data.stopId,
+          stopName: "Second Stop",
+          stopOrder: 2
+        },
+        currentTripEventType: "not_marked",
+        lastEvent: {
+          eventType: null,
+          eventTime: null,
+          stopId: null
+        }
+      });
+      expect(filteredRosterResponse.status).toBe(200);
+      expect(filteredRosterResponse.body.data.students).toHaveLength(1);
+      expect(filteredRosterResponse.body.data.students[0].studentId).toBe("2");
+    });
   });
 };

@@ -1,5 +1,6 @@
 import type {
   BusStatus,
+  TripRosterEventType,
   TripStatus,
   TripStudentEventType,
   TripType
@@ -15,6 +16,11 @@ export interface AssignmentIdParamsDto {
 
 export interface TripIdParamsDto {
   id: string;
+}
+
+export interface TripStudentRosterQueryDto {
+  search?: string;
+  stopId?: string;
 }
 
 export interface CreateBusRequestDto {
@@ -183,6 +189,29 @@ export interface TransportTripDetailResponseDto {
   latestLocation: TransportLatestLocationResponseDto | null;
   routeStops: TransportRouteStopResponseDto[];
   eventSummary: TransportTripEventSummaryDto;
+}
+
+export interface TransportTripRosterStudentResponseDto {
+  studentId: string;
+  academicNo: string;
+  fullName: string;
+  assignedStop: {
+    stopId: string;
+    stopName: string;
+    stopOrder: number;
+  };
+  currentTripEventType: TripRosterEventType;
+  lastEvent: {
+    eventType: TripStudentEventType | null;
+    eventTime: string | null;
+    stopId: string | null;
+  };
+}
+
+export interface TransportTripRosterResponseDto {
+  tripId: string;
+  tripStatus: TripStatus;
+  students: TransportTripRosterStudentResponseDto[];
 }
 
 export interface TransportTripStudentEventResponseDto {

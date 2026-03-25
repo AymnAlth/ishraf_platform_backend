@@ -7,6 +7,8 @@ import type {
   TransportTripDetailResponseDto,
   TransportTripEventSummaryDto,
   TransportTripListItemResponseDto,
+  TransportTripRosterResponseDto,
+  TransportTripRosterStudentResponseDto,
   TransportTripResponseDto,
   TransportTripStudentEventResponseDto
 } from "../dto/transport.dto";
@@ -17,6 +19,7 @@ import type {
   RouteStopRow,
   StudentBusAssignmentRow,
   TripRow,
+  TripStudentRosterRow,
   TripStudentEventRow
 } from "../types/transport.types";
 
@@ -149,6 +152,34 @@ export const toTripDetailResponseDto = (
       : null,
   routeStops: routeStops.map((stop) => toRouteStopResponseDto(stop)),
   eventSummary: toTripEventSummary(row)
+});
+
+export const toTripRosterStudentResponseDto = (
+  row: TripStudentRosterRow
+): TransportTripRosterStudentResponseDto => ({
+  studentId: row.studentId,
+  academicNo: row.academicNo,
+  fullName: row.fullName,
+  assignedStop: {
+    stopId: row.stopId,
+    stopName: row.stopName,
+    stopOrder: row.stopOrder
+  },
+  currentTripEventType: row.lastEventType ?? "not_marked",
+  lastEvent: {
+    eventType: row.lastEventType,
+    eventTime: row.lastEventTime ? row.lastEventTime.toISOString() : null,
+    stopId: row.lastEventStopId
+  }
+});
+
+export const toTripRosterResponseDto = (
+  trip: TripRow,
+  rows: TripStudentRosterRow[]
+): TransportTripRosterResponseDto => ({
+  tripId: trip.id,
+  tripStatus: trip.tripStatus,
+  students: rows.map((row) => toTripRosterStudentResponseDto(row))
 });
 
 export const toTripStudentEventResponseDto = (

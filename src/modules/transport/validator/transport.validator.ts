@@ -69,6 +69,13 @@ export const tripIdParamsSchema = z.object({
   id: idSchema
 });
 
+export const tripStudentRosterQuerySchema = z
+  .object({
+    search: z.string().trim().min(1).max(150).optional(),
+    stopId: idSchema.optional()
+  })
+  .strict();
+
 export const createBusSchema = z
   .object({
     plateNumber: trimmedString(30),

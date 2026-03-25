@@ -2,7 +2,8 @@ import { z } from "zod";
 
 import {
   booleanQuerySchema,
-  buildPaginatedQuerySchema
+  buildPaginatedQuerySchema,
+  paginationQuerySchema
 } from "../../../common/validators/query.validator";
 import { ROLE_VALUES } from "../../../config/constants";
 import {
@@ -48,6 +49,15 @@ export const notificationIdParamsSchema = z.object({
 export const otherUserIdParamsSchema = z.object({
   otherUserId: idSchema
 });
+
+export const availableRecipientsQuerySchema = z
+  .object({
+    search: z.string().trim().min(1).max(150).optional(),
+    role: z.enum(ROLE_VALUES).optional(),
+    page: paginationQuerySchema.shape.page,
+    limit: paginationQuerySchema.shape.limit
+  })
+  .strict();
 
 export const sendMessageSchema = z
   .object({

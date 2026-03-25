@@ -3,6 +3,7 @@ import type { Request, Response } from "express";
 import { buildSuccessResponse } from "../../../common/base/http-response";
 import type { AuthenticatedUser } from "../../../common/types/auth.types";
 import type {
+  AvailableRecipientsQueryDto,
   CommunicationMessageIdParamsDto,
   CommunicationNotificationIdParamsDto,
   CommunicationOtherUserIdParamsDto,
@@ -20,6 +21,17 @@ const assertAuthUser = (req: Request): AuthenticatedUser => req.authUser as Auth
 
 export class CommunicationController {
   constructor(private readonly communicationService: CommunicationService) {}
+
+  async listAvailableRecipients(req: Request, res: Response): Promise<void> {
+    const query = req.validated?.query as AvailableRecipientsQueryDto;
+    const response = await this.communicationService.listAvailableRecipients(
+      assertAuthUser(req),
+      query
+    );
+    res
+      .status(200)
+      .json(buildSuccessResponse("Available recipients returned successfully", response));
+  }
 
   async sendMessage(req: Request, res: Response): Promise<void> {
     const payload = req.validated?.body as SendMessageRequestDto;

@@ -203,5 +203,42 @@ export const registerCommunicationIntegrationTests = (
       expect(listAfterReadResponse.status).toBe(200);
       expect(listAfterReadResponse.body.data.unreadCount).toBe(0);
     });
+
+    it("lists available message recipients for the authenticated user with search and role filtering", async () => {
+      const driverLogin = await context.loginAsDriver();
+
+      const recipientsResponse = await request(context.app)
+        .get("/api/v1/communication/recipients")
+        .set("Authorization", `Bearer ${driverLogin.accessToken}`);
+      const filteredResponse = await request(context.app)
+        .get("/api/v1/communication/recipients")
+        .query({
+          search: "Supervisor",
+          role: "supervisor"
+        })
+        .set("Authorization", `Bearer ${driverLogin.accessToken}`);
+
+      expect(recipientsResponse.status).toBe(200);
+      expect(recipientsResponse.body.data.items).toHaveLength(3);
+      expect(recipientsResponse.body.data.pagination).toMatchObject({
+        page: 1,
+        limit: 20,
+        totalItems: 3,
+        totalPages: 1,
+        hasNextPage: false,
+        hasPreviousPage: false
+      });
+      expect(
+        recipientsResponse.body.data.items.some(
+          (recipient: { userId: string }) => recipient.userId === SEEDED_DRIVER.id
+        )
+      ).toBe(false);
+      expect(filteredResponse.status).toBe(200);
+      expect(filteredResponse.body.data.items).toHaveLength(1);
+      expect(filteredResponse.body.data.items[0]).toMatchObject({
+        fullName: "Mona Supervisor",
+        role: "supervisor"
+      });
+    });
   });
 };

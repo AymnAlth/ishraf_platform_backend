@@ -23,6 +23,8 @@ import type {
   StudentBusAssignmentWriteInput,
   StudentTransportReferenceRow,
   TripListQuery,
+  TripStudentRosterFilters,
+  TripStudentRosterRow,
   TripScope,
   TripLocationWriteInput,
   TripRow,
@@ -594,6 +596,82 @@ export class TransportRepository {
     );
 
     return mapSingleRow(result.rows);
+  }
+
+  async listTripStudentRoster(
+    tripId: string,
+    filters: TripStudentRosterFilters = {},
+    queryable: Queryable = db
+  ): Promise<TripStudentRosterRow[]> {
+    const candidateConditions = [
+      "sba.route_id = tr.route_id",
+      "sba.start_date <= tr.trip_date",
+      "(sba.end_date IS NULL OR sba.end_date >= tr.trip_date)"
+    ];
+    const outerConditions = ["tr.id = $1"];
+    const values: unknown[] = [tripId];
+
+    if (filters.stopId) {
+      values.push(filters.stopId);
+      candidateConditions.push(`sba.stop_id = $${values.length}`);
+    }
+
+    if (filters.search) {
+      values.push(`%${filters.search}%`);
+      outerConditions.push(
+        `(st.full_name ILIKE $${values.length} OR st.academic_no ILIKE $${values.length})`
+      );
+    }
+
+    const result = await queryable.query<TripStudentRosterRow>(
+      `
+        WITH candidate_assignments AS (
+          SELECT DISTINCT ON (sba.student_id)
+            sba.id,
+            sba.student_id,
+            sba.route_id,
+            sba.stop_id,
+            sba.start_date,
+            sba.end_date
+          FROM ${databaseTables.studentBusAssignments} sba
+          JOIN ${databaseTables.trips} tr ON tr.id = $1
+          WHERE ${candidateConditions.join(" AND ")}
+          ORDER BY sba.student_id, sba.start_date DESC, sba.id DESC
+        )
+        SELECT
+          st.id AS "studentId",
+          st.academic_no AS "academicNo",
+          st.full_name AS "fullName",
+          bs.id AS "stopId",
+          bs.stop_name AS "stopName",
+          bs.stop_order AS "stopOrder",
+          last_event.event_type AS "lastEventType",
+          last_event.event_time AS "lastEventTime",
+          last_event.stop_id AS "lastEventStopId"
+        FROM ${databaseTables.trips} tr
+        JOIN candidate_assignments candidate ON true
+        JOIN ${databaseTables.students} st ON st.id = candidate.student_id
+        JOIN ${databaseTables.busStops} bs
+          ON bs.id = candidate.stop_id
+         AND bs.route_id = tr.route_id
+        LEFT JOIN LATERAL (
+          SELECT
+            tse.event_type,
+            tse.event_time,
+            tse.stop_id
+          FROM ${databaseTables.tripStudentEvents} tse
+          WHERE tse.trip_id = tr.id
+            AND tse.student_id = candidate.student_id
+          ORDER BY tse.event_time DESC, tse.id DESC
+          LIMIT 1
+        ) last_event ON true
+        WHERE ${outerConditions.join(" AND ")}
+        ORDER BY bs.stop_order ASC, st.full_name ASC, st.id ASC
+      `,
+      values
+    );
+
+    return result.rows;
   }
 
   async hasDriverTripOwnership(

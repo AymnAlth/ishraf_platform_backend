@@ -14,7 +14,8 @@ import type {
   ListTripsQueryDto,
   RecordTripLocationRequestDto,
   RouteIdParamsDto,
-  TripIdParamsDto
+  TripIdParamsDto,
+  TripStudentRosterQueryDto
 } from "../dto/transport.dto";
 import type { TransportService } from "../service/transport.service";
 
@@ -112,6 +113,19 @@ export class TransportController {
     const params = req.validated?.params as TripIdParamsDto;
     const response = await this.transportService.getTripById(assertAuthUser(req), params.id);
     res.status(200).json(buildSuccessResponse("Trip fetched successfully", response));
+  }
+
+  async getTripStudentRoster(req: Request, res: Response): Promise<void> {
+    const params = req.validated?.params as TripIdParamsDto;
+    const query = req.validated?.query as TripStudentRosterQueryDto;
+    const response = await this.transportService.getTripStudentRoster(
+      assertAuthUser(req),
+      params.id,
+      query
+    );
+    res
+      .status(200)
+      .json(buildSuccessResponse("Trip students roster returned successfully", response));
   }
 
   async startTrip(req: Request, res: Response): Promise<void> {

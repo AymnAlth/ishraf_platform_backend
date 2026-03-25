@@ -20,6 +20,7 @@ import type {
   NotificationListQuery,
   NotificationRow,
   NotificationWriteInput,
+  RecipientListQuery,
   SentListQuery,
   UserInboxSummaryRow,
   UserNotificationSummaryRow
@@ -104,6 +105,53 @@ export class CommunicationRepository {
     );
 
     return mapSingleRow(result.rows);
+  }
+
+  async listAvailableRecipients(
+    currentUserId: string,
+    filters: RecipientListQuery,
+    queryable: Queryable = db
+  ): Promise<PaginatedQueryResult<CommunicationUserRow>> {
+    const conditions = ["is_active = true", "id <> $1"];
+    const values: unknown[] = [currentUserId];
+
+    if (filters.role) {
+      values.push(filters.role);
+      conditions.push(`role = $${values.length}`);
+    }
+
+    if (filters.search) {
+      values.push(`%${filters.search}%`);
+      conditions.push(
+        `(full_name ILIKE $${values.length} OR COALESCE(email, '') ILIKE $${values.length} OR COALESCE(phone, '') ILIKE $${values.length})`
+      );
+    }
+
+    const whereClause = `WHERE ${conditions.join(" AND ")}`;
+    const countResult = await queryable.query<{ total: string }>(
+      `
+        SELECT COUNT(*)::text AS total
+        FROM ${databaseTables.users}
+        ${whereClause}
+      `,
+      values
+    );
+    const totalItems = Number(countResult.rows[0]?.total ?? 0);
+    const pagination = buildPaginationWindow(filters.page, filters.limit);
+    const result = await queryable.query<CommunicationUserRow>(
+      `
+        ${userSelect}
+        ${whereClause}
+        ORDER BY full_name ASC, id ASC
+        ${buildLimitOffsetClause(values.length + 1)}
+      `,
+      [...values, filters.limit, pagination.offset]
+    );
+
+    return {
+      rows: result.rows,
+      totalItems
+    };
   }
 
   async createMessage(

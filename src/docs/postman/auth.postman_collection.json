@@ -1,165 +1,361 @@
 {
-    "info":  {
-                 "name":  "Ishraf Platform Auth API",
-                 "_postman_id":  "d12a6e0a-7e2f-48e2-87c8-a0a7ce1df51c",
-                 "schema":  "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
-             },
-    "variable":  [
-                     {
-                         "key":  "baseUrl",
-                         "value":  "https://ishraf-platform-backend-staging.onrender.com/api/v1"
-                     },
-                     {
-                         "key":  "accessToken",
-                         "value":  ""
-                     },
-                     {
-                         "key":  "refreshToken",
-                         "value":  ""
-                     },
-                     {
-                         "key":  "loginIdentifier",
-                         "value":  ""
-                     },
-                     {
-                         "key":  "loginPassword",
-                         "value":  ""
-                     },
-                     {
-                         "key":  "newPassword",
-                         "value":  "UpdatedPassword123!"
-                     }
-                 ],
-    "item":  [
-                 {
-                     "name":  "Login",
-                     "request":  {
-                                     "method":  "POST",
-                                     "header":  [
-                                                    {
-                                                        "key":  "Content-Type",
-                                                        "value":  "application/json"
-                                                    }
-                                                ],
-                                     "body":  {
-                                                  "mode":  "raw",
-                                                  "raw":  "{\n  \"identifier\": \"{{loginIdentifier}}\",\n  \"password\": \"{{loginPassword}}\"\n}"
-                                              },
-                                     "url":  {
-                                                 "raw":  "{{baseUrl}}/auth/login",
-                                                 "host":  [
-                                                              "{{baseUrl}}"
-                                                          ],
-                                                 "path":  [
-                                                              "auth",
-                                                              "login"
-                                                          ]
-                                             }
-                                 }
-                 },
-                 {
-                     "name":  "Refresh",
-                     "request":  {
-                                     "method":  "POST",
-                                     "header":  [
-                                                    {
-                                                        "key":  "Content-Type",
-                                                        "value":  "application/json"
-                                                    }
-                                                ],
-                                     "body":  {
-                                                  "mode":  "raw",
-                                                  "raw":  "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
-                                              },
-                                     "url":  {
-                                                 "raw":  "{{baseUrl}}/auth/refresh",
-                                                 "host":  [
-                                                              "{{baseUrl}}"
-                                                          ],
-                                                 "path":  [
-                                                              "auth",
-                                                              "refresh"
-                                                          ]
-                                             }
-                                 }
-                 },
-                 {
-                     "name":  "Logout",
-                     "request":  {
-                                     "method":  "POST",
-                                     "header":  [
-                                                    {
-                                                        "key":  "Content-Type",
-                                                        "value":  "application/json"
-                                                    }
-                                                ],
-                                     "body":  {
-                                                  "mode":  "raw",
-                                                  "raw":  "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
-                                              },
-                                     "url":  {
-                                                 "raw":  "{{baseUrl}}/auth/logout",
-                                                 "host":  [
-                                                              "{{baseUrl}}"
-                                                          ],
-                                                 "path":  [
-                                                              "auth",
-                                                              "logout"
-                                                          ]
-                                             }
-                                 }
-                 },
-                 {
-                     "name":  "Change Password",
-                     "request":  {
-                                     "method":  "POST",
-                                     "header":  [
-                                                    {
-                                                        "key":  "Content-Type",
-                                                        "value":  "application/json"
-                                                    },
-                                                    {
-                                                        "key":  "Authorization",
-                                                        "value":  "Bearer {{accessToken}}"
-                                                    }
-                                                ],
-                                     "body":  {
-                                                  "mode":  "raw",
-                                                  "raw":  "{\n  \"currentPassword\": \"{{loginPassword}}\",\n  \"newPassword\": \"{{newPassword}}\"\n}"
-                                              },
-                                     "url":  {
-                                                 "raw":  "{{baseUrl}}/auth/change-password",
-                                                 "host":  [
-                                                              "{{baseUrl}}"
-                                                          ],
-                                                 "path":  [
-                                                              "auth",
-                                                              "change-password"
-                                                          ]
-                                             }
-                                 }
-                 },
-                 {
-                     "name":  "Me",
-                     "request":  {
-                                     "method":  "GET",
-                                     "header":  [
-                                                    {
-                                                        "key":  "Authorization",
-                                                        "value":  "Bearer {{accessToken}}"
-                                                    }
-                                                ],
-                                     "url":  {
-                                                 "raw":  "{{baseUrl}}/auth/me",
-                                                 "host":  [
-                                                              "{{baseUrl}}"
-                                                          ],
-                                                 "path":  [
-                                                              "auth",
-                                                              "me"
-                                                          ]
-                                             }
-                                 }
-                 }
-             ]
+  "info": {
+    "name": "Ishraf Platform Auth API",
+    "_postman_id": "b0b36686-966a-4dca-9648-f82164731e1f",
+    "description": "Auth-only Postman subset synchronized with the full collection.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "rootUrl",
+      "value": "https://ishraf-platform-backend-staging.onrender.com"
+    },
+    {
+      "key": "baseUrl",
+      "value": "https://ishraf-platform-backend-staging.onrender.com/api/v1"
+    },
+    {
+      "key": "accessToken",
+      "value": ""
+    },
+    {
+      "key": "refreshToken",
+      "value": ""
+    },
+    {
+      "key": "loginIdentifier",
+      "value": ""
+    },
+    {
+      "key": "loginPassword",
+      "value": ""
+    },
+    {
+      "key": "newPassword",
+      "value": "UpdatedPassword123!"
+    },
+    {
+      "key": "resetToken",
+      "value": ""
+    },
+    {
+      "key": "userId",
+      "value": "1"
+    },
+    {
+      "key": "academicYearId",
+      "value": "1"
+    },
+    {
+      "key": "semesterId",
+      "value": "1"
+    },
+    {
+      "key": "gradeLevelId",
+      "value": "1"
+    },
+    {
+      "key": "classId",
+      "value": "1"
+    },
+    {
+      "key": "subjectId",
+      "value": "1"
+    },
+    {
+      "key": "studentId",
+      "value": "1"
+    },
+    {
+      "key": "parentId",
+      "value": "10"
+    },
+    {
+      "key": "assessmentId",
+      "value": "1"
+    },
+    {
+      "key": "studentAssessmentId",
+      "value": "1"
+    },
+    {
+      "key": "attendanceSessionId",
+      "value": "1"
+    },
+    {
+      "key": "attendanceRecordId",
+      "value": "1"
+    },
+    {
+      "key": "behaviorRecordId",
+      "value": "1"
+    },
+    {
+      "key": "routeId",
+      "value": "1"
+    },
+    {
+      "key": "stopId",
+      "value": "1"
+    },
+    {
+      "key": "assignmentId",
+      "value": "1"
+    },
+    {
+      "key": "tripId",
+      "value": "1"
+    },
+    {
+      "key": "messageId",
+      "value": "1"
+    },
+    {
+      "key": "notificationId",
+      "value": "1"
+    },
+    {
+      "key": "otherUserId",
+      "value": "20"
+    },
+    {
+      "key": "homeworkId",
+      "value": "1"
+    }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "description": "Authentication, session lifecycle, password recovery, and current-user endpoints.",
+      "item": [
+        {
+          "name": "Change Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "Purpose: Change the current authenticated user password.\n\nRoles: admin, parent, teacher, supervisor, driver\n\nAuth: Bearer access token required\n\nBody schema: ChangePasswordRequest",
+            "url": {
+              "raw": "{{baseUrl}}/auth/change-password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "change-password"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentPassword\": \"{{loginPassword}}\",\n  \"newPassword\": \"{{newPassword}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Forgot Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "Purpose: Request a password reset token for an active account. Staging usually does not expose resetToken in the response.\n\nRoles: public\n\nAuth: No bearer token required\n\nBody schema: ForgotPasswordRequest",
+            "url": {
+              "raw": "{{baseUrl}}/auth/forgot-password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "forgot-password"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"identifier\": \"{{loginIdentifier}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "Purpose: Authenticate with email or phone and issue access and refresh tokens.\n\nRoles: public\n\nAuth: No bearer token required\n\nBody schema: LoginRequest",
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"identifier\": \"{{loginIdentifier}}\",\n  \"password\": \"{{loginPassword}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (pm.response.code === 200 && json?.success && json?.data) {",
+                  "  if (json.data.accessToken) pm.collectionVariables.set('accessToken', json.data.accessToken);",
+                  "  if (json.data.refreshToken) pm.collectionVariables.set('refreshToken', json.data.refreshToken);",
+                  "  if (json.data.user?.id) pm.collectionVariables.set('userId', json.data.user.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "Purpose: Revoke the provided refresh token.\n\nRoles: public\n\nAuth: No bearer token required\n\nBody schema: LogoutRequest",
+            "url": {
+              "raw": "{{baseUrl}}/auth/logout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "logout"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Current User",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "description": "Purpose: Return the authenticated active user profile used for frontend bootstrap.\n\nRoles: admin, parent, teacher, supervisor, driver\n\nAuth: Bearer access token required",
+            "url": {
+              "raw": "{{baseUrl}}/auth/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "me"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "Purpose: Exchange a valid refresh token for a fresh access/refresh pair.\n\nRoles: public\n\nAuth: No bearer token required\n\nBody schema: RefreshTokenRequest",
+            "url": {
+              "raw": "{{baseUrl}}/auth/refresh",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "refresh"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (pm.response.code === 200 && json?.success && json?.data) {",
+                  "  if (json.data.accessToken) pm.collectionVariables.set('accessToken', json.data.accessToken);",
+                  "  if (json.data.refreshToken) pm.collectionVariables.set('refreshToken', json.data.refreshToken);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Reset Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "Purpose: Reset the password using a valid reset token. Successful reset revokes existing refresh tokens.\n\nRoles: public\n\nAuth: No bearer token required\n\nBody schema: ResetPasswordRequest",
+            "url": {
+              "raw": "{{baseUrl}}/auth/reset-password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "reset-password"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"{{resetToken}}\",\n  \"newPassword\": \"{{newPassword}}\"\n}"
+            }
+          }
+        }
+      ]
+    }
+  ]
 }
