@@ -656,7 +656,7 @@
         "type": "object",
         "additionalProperties": true,
         "example": {
-          "parentId": "10",
+          "parentId": "1003",
           "relationType": "mother",
           "isPrimary": false
         }

@@ -706,7 +706,7 @@
         "type": "object",
         "additionalProperties": true,
         "example": {
-          "parentId": "10",
+          "parentId": "1003",
           "relationType": "mother",
           "isPrimary": false
         }
@@ -6218,7 +6218,7 @@
           "Students"
         ],
         "summary": "Link Parent to Student",
-        "description": "Link an existing parent profile to a student.\n\nAllowed roles: admin.",
+        "description": "Link an existing parent to a student. parentId may be either the parent user id returned by /users?role=parent or the underlying parent profile id.\n\nAllowed roles: admin.\n\nNote: The backend resolves parentId to the stored parent profile id automatically. Prefer sending the user id returned by /users?role=parent in admin frontend flows.",
         "x-allowed-roles": [
           "admin"
         ],
@@ -6371,7 +6371,7 @@
                 "$ref": "#/components/schemas/LinkStudentParentRequest"
               },
               "example": {
-                "parentId": "10",
+                "parentId": "1003",
                 "relationType": "mother",
                 "isPrimary": false
               }
@@ -6555,7 +6555,7 @@
           "Students"
         ],
         "summary": "Set Primary Parent",
-        "description": "Mark one linked parent as the primary parent for that student.\n\nAllowed roles: admin.",
+        "description": "Mark one linked parent as the primary parent for that student. parentId may be either the parent user id returned by /users?role=parent or the underlying parent profile id.\n\nAllowed roles: admin.\n\nNote: The backend resolves parentId to the stored parent profile id automatically. Prefer sending the user id returned by /users?role=parent in admin frontend flows.",
         "x-allowed-roles": [
           "admin"
         ],
@@ -6703,7 +6703,7 @@
             "name": "parentId",
             "in": "path",
             "required": true,
-            "description": "Parent profile numeric string identifier.",
+            "description": "Parent identifier. These student-parent endpoints accept either the parent user id from /users?role=parent or the underlying parent profile id.",
             "schema": {
               "type": "string",
               "pattern": "^[0-9]+$",

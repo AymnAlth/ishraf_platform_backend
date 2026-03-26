@@ -76,14 +76,19 @@ export const registerStudentsIntegrationTests = (
       expect(invalidResponse.status).toBe(400);
     });
 
-    it("links a parent to a student and lists all parent links", async () => {
+    it("links a parent to a student using the parent user id returned by /users", async () => {
       const { accessToken } = await context.loginAsAdmin();
+      const parentsResponse = await request(context.app)
+        .get("/api/v1/users")
+        .query({ role: "parent" })
+        .set("Authorization", `Bearer ${accessToken}`);
+      const selectedParentUserId = parentsResponse.body.data.items[0].id;
 
       const createResponse = await request(context.app)
         .post("/api/v1/students/2/parents")
         .set("Authorization", `Bearer ${accessToken}`)
         .send({
-          parentId: "1",
+          parentId: selectedParentUserId,
           relationType: "father",
           isPrimary: true
         });
@@ -91,8 +96,10 @@ export const registerStudentsIntegrationTests = (
         .get("/api/v1/students/2/parents")
         .set("Authorization", `Bearer ${accessToken}`);
 
+      expect(parentsResponse.status).toBe(200);
       expect(createResponse.status).toBe(201);
       expect(createResponse.body.data.parentId).toBe("1");
+      expect(createResponse.body.data.userId).toBe(AUTH_TEST_FIXTURES.inactiveUser.id);
       expect(createResponse.body.data.isPrimary).toBe(true);
       expect(listResponse.status).toBe(200);
       expect(listResponse.body.data).toHaveLength(1);
@@ -101,18 +108,18 @@ export const registerStudentsIntegrationTests = (
 
     it("switches the primary parent without violating the unique primary index", async () => {
       const { accessToken } = await context.loginAsAdmin();
-      const secondParentId = await context.createAdditionalParent();
+      const secondParent = await context.createAdditionalParentAccount();
 
       const linkSecondParentResponse = await request(context.app)
         .post("/api/v1/students/1/parents")
         .set("Authorization", `Bearer ${accessToken}`)
         .send({
-          parentId: secondParentId,
+          parentId: secondParent.userId,
           relationType: "mother",
           isPrimary: false
         });
       const primaryResponse = await request(context.app)
-        .patch(`/api/v1/students/1/parents/${secondParentId}/primary`)
+        .patch(`/api/v1/students/1/parents/${secondParent.userId}/primary`)
         .set("Authorization", `Bearer ${accessToken}`);
       const linksInDatabase = await context.pool.query<{
         parent_id: string;
@@ -128,11 +135,12 @@ export const registerStudentsIntegrationTests = (
 
       expect(linkSecondParentResponse.status).toBe(201);
       expect(primaryResponse.status).toBe(200);
-      expect(primaryResponse.body.data.parentId).toBe(secondParentId);
+      expect(primaryResponse.body.data.parentId).toBe(secondParent.parentId);
+      expect(primaryResponse.body.data.userId).toBe(secondParent.userId);
       expect(primaryResponse.body.data.isPrimary).toBe(true);
       expect(
         linksInDatabase.rows.filter((row) => row.is_primary).map((row) => row.parent_id)
-      ).toEqual([secondParentId]);
+      ).toEqual([secondParent.parentId]);
     });
 
     it("promotes a student and updates the stored class in the same request", async () => {

@@ -1,6 +1,7 @@
 import { ConflictError } from "../../../common/errors/conflict-error";
 import { NotFoundError } from "../../../common/errors/not-found-error";
 import { ValidationError } from "../../../common/errors/validation-error";
+import type { Queryable } from "../../../common/interfaces/queryable.interface";
 import type { PaginatedData } from "../../../common/types/pagination.types";
 import { toPaginatedData } from "../../../common/utils/pagination.util";
 import { db } from "../../../database/db";
@@ -93,6 +94,15 @@ const assertParentExists = (parent: ParentReferenceRow | null): ParentReferenceR
 export class StudentsService {
   constructor(private readonly studentsRepository: StudentsRepository) {}
 
+  private async resolveParentReference(
+    parentIdentifier: string,
+    queryable: Queryable = db
+  ): Promise<ParentReferenceRow> {
+    return assertParentExists(
+      await this.studentsRepository.findParentById(parentIdentifier, queryable)
+    );
+  }
+
   async createStudent(
     payload: CreateStudentRequestDto
   ): Promise<StudentDetailResponseDto> {
@@ -158,11 +168,11 @@ export class StudentsService {
   ): Promise<StudentParentLinkResponseDto> {
     const link = await db.withTransaction(async (client) => {
       assertFound(await this.studentsRepository.findStudentById(studentId, client), "Student");
-      assertParentExists(await this.studentsRepository.findParentById(payload.parentId, client));
+      const parent = await this.resolveParentReference(payload.parentId, client);
       assertParentLinkDoesNotExist(
         await this.studentsRepository.findStudentParentLink(
           studentId,
-          payload.parentId,
+          parent.parentId,
           client
         )
       );
@@ -174,7 +184,7 @@ export class StudentsService {
       await this.studentsRepository.createStudentParentLink(
         {
           studentId,
-          parentId: payload.parentId,
+          parentId: parent.parentId,
           relationType: payload.relationType,
           isPrimary: payload.isPrimary ?? false
         },
@@ -184,7 +194,7 @@ export class StudentsService {
       return assertFound(
         await this.studentsRepository.findStudentParentLink(
           studentId,
-          payload.parentId,
+          parent.parentId,
           client
         ),
         "Student parent link"
@@ -207,18 +217,31 @@ export class StudentsService {
   ): Promise<StudentParentLinkResponseDto> {
     const link = await db.withTransaction(async (client) => {
       assertFound(await this.studentsRepository.findStudentById(studentId, client), "Student");
+      const parent = await this.resolveParentReference(parentId, client);
       const existingLink = assertFound(
-        await this.studentsRepository.findStudentParentLink(studentId, parentId, client),
+        await this.studentsRepository.findStudentParentLink(
+          studentId,
+          parent.parentId,
+          client
+        ),
         "Student parent link"
       );
 
       if (!existingLink.isPrimary) {
         await this.studentsRepository.clearPrimaryParent(studentId, client);
-        await this.studentsRepository.setStudentParentPrimary(studentId, parentId, client);
+        await this.studentsRepository.setStudentParentPrimary(
+          studentId,
+          parent.parentId,
+          client
+        );
       }
 
       return assertFound(
-        await this.studentsRepository.findStudentParentLink(studentId, parentId, client),
+        await this.studentsRepository.findStudentParentLink(
+          studentId,
+          parent.parentId,
+          client
+        ),
         "Student parent link"
       );
     });

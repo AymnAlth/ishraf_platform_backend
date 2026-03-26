@@ -352,7 +352,9 @@ export class StudentsRepository {
     const result = await queryable.query<ParentReferenceRow>(
       `
         ${parentReferenceSelect}
-        WHERE p.id = $1
+        WHERE p.user_id::text = $1
+           OR p.id::text = $1
+        ORDER BY CASE WHEN p.user_id::text = $1 THEN 0 ELSE 1 END, p.id ASC
         LIMIT 1
       `,
       [parentId]

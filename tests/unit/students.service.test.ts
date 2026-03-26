@@ -167,7 +167,12 @@ describe("StudentsService", () => {
 
   it("auto-switches the primary parent when linking a new primary parent", async () => {
     vi.mocked(repositoryMock.findStudentById).mockResolvedValue(studentRow());
-    vi.mocked(repositoryMock.findParentById).mockResolvedValue(parentRow());
+    vi.mocked(repositoryMock.findParentById).mockResolvedValue(
+      parentRow({
+        parentId: "1",
+        userId: "1003"
+      })
+    );
     vi.mocked(repositoryMock.findStudentParentLink)
       .mockResolvedValueOnce(null)
       .mockResolvedValueOnce(parentLinkRow());
@@ -175,7 +180,7 @@ describe("StudentsService", () => {
     vi.mocked(repositoryMock.createStudentParentLink).mockResolvedValue("1");
 
     const response = await studentsService.linkParent("1", {
-      parentId: "1",
+      parentId: "1003",
       relationType: "father",
       isPrimary: true
     });
@@ -183,6 +188,21 @@ describe("StudentsService", () => {
     expect(response.isPrimary).toBe(true);
     expect(repositoryMock.clearPrimaryParent).toHaveBeenCalledOnce();
     expect(repositoryMock.createStudentParentLink).toHaveBeenCalledOnce();
+    expect(repositoryMock.findStudentParentLink).toHaveBeenNthCalledWith(
+      1,
+      "1",
+      "1",
+      expect.anything()
+    );
+    expect(repositoryMock.createStudentParentLink).toHaveBeenCalledWith(
+      {
+        studentId: "1",
+        parentId: "1",
+        relationType: "father",
+        isPrimary: true
+      },
+      expect.anything()
+    );
   });
 
   it("rejects duplicate parent links before inserting", async () => {
@@ -254,10 +274,35 @@ describe("StudentsService", () => {
 
   it("throws not found when setting a primary parent on a missing link", async () => {
     vi.mocked(repositoryMock.findStudentById).mockResolvedValue(studentRow());
+    vi.mocked(repositoryMock.findParentById).mockResolvedValue(parentRow({ parentId: "99" }));
     vi.mocked(repositoryMock.findStudentParentLink).mockResolvedValue(null);
 
     await expect(studentsService.setPrimaryParent("1", "99")).rejects.toBeInstanceOf(
       NotFoundError
+    );
+  });
+
+  it("accepts a parent user id when setting the primary parent", async () => {
+    vi.mocked(repositoryMock.findStudentById).mockResolvedValue(studentRow());
+    vi.mocked(repositoryMock.findParentById).mockResolvedValue(
+      parentRow({
+        parentId: "2",
+        userId: "2002"
+      })
+    );
+    vi.mocked(repositoryMock.findStudentParentLink)
+      .mockResolvedValueOnce(parentLinkRow({ parentId: "2", userId: "2002", isPrimary: false }))
+      .mockResolvedValueOnce(parentLinkRow({ parentId: "2", userId: "2002", isPrimary: true }));
+    vi.mocked(repositoryMock.clearPrimaryParent).mockResolvedValue(undefined);
+    vi.mocked(repositoryMock.setStudentParentPrimary).mockResolvedValue(undefined);
+
+    const response = await studentsService.setPrimaryParent("1", "2002");
+
+    expect(response.parentId).toBe("2");
+    expect(repositoryMock.setStudentParentPrimary).toHaveBeenCalledWith(
+      "1",
+      "2",
+      expect.anything()
     );
   });
 });

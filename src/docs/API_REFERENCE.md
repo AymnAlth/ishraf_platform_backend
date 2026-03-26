@@ -1374,6 +1374,13 @@ Authorization: Bearer <accessToken>
 - `PATCH /users/:id/status` يعطّل refresh tokens مباشرة، لكن access token الحالي يبقى صالحًا حتى انتهاء صلاحيته القصيرة.
 - `teacherId` و`supervisorId` في assignment endpoints هما profile ids من جدولي `teachers` و`supervisors`، وليس user ids.
 - Users API الحالية لا تعيد profile table ids بعد، لذلك إذا احتجت أول assignment جديد فستحتاج هذه المعرفات من قاعدة البيانات أو من بيانات موجودة مسبقًا.
+- في student-parent endpoints التالية:
+  - `POST /students/:id/parents`
+  - `PATCH /students/:studentId/parents/:parentId/primary`
+  قيمة `parentId` تقبل الآن:
+  - `users.id` القادم من `GET /users?role=parent`
+  - أو `parents.id` للتوافق الخلفي
+- المسار الموصى به للفرونت: استخدم دائمًا `users.id` القادم من `/users?role=parent`، والباك سيحوّله داخليًا إلى `parents.id` الصحيح قبل الحفظ.
 - النقل لا يعتمد على "عنوان الطالب" النصي كمصدر تشغيل.
   - مصدر الحقيقة الحالي هو:
     - `route`

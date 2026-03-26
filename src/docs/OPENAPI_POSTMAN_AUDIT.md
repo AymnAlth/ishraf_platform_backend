@@ -8,8 +8,8 @@
 
 | Artifact | Before | After |
 | --- | --- | --- |
-| Master OpenAPI | 111/119 | 119/119 |
-| Master Postman | 111/119 | 119/119 |
+| Master OpenAPI | 119/119 | 119/119 |
+| Master Postman | 119/119 | 119/119 |
 | Auth OpenAPI | 7/7 | 7/7 |
 | Auth Postman | 7/7 | 7/7 |
 
@@ -25,7 +25,7 @@
 | Attendance | 5 | 5/5 | 5/5 | 5/5 | 5/5 |
 | Assessments | 8 | 8/8 | 8/8 | 8/8 | 8/8 |
 | Behavior | 7 | 7/7 | 7/7 | 7/7 | 7/7 |
-| Transport | 26 | 18/26 | 18/26 | 26/26 | 26/26 |
+| Transport | 26 | 26/26 | 26/26 | 26/26 | 26/26 |
 | Communication | 12 | 12/12 | 12/12 | 12/12 | 12/12 |
 | Homework | 5 | 5/5 | 5/5 | 5/5 | 5/5 |
 | Reporting | 14 | 14/14 | 14/14 | 14/14 | 14/14 |
@@ -45,14 +45,7 @@
 
 ## Runtime Endpoints Missing From Master OpenAPI Before This Update
 
-- `GET /transport/route-assignments`
-- `POST /transport/route-assignments`
-- `PATCH /transport/route-assignments/:id/deactivate`
-- `GET /transport/route-assignments/me`
-- `DELETE /transport/students/:studentId/home-location`
-- `GET /transport/students/:studentId/home-location`
-- `PUT /transport/students/:studentId/home-location`
-- `POST /transport/trips/ensure-daily`
+
 
 ## Views, Events, Targets Alignment
 

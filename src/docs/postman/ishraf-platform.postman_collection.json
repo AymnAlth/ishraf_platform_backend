@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Ishraf Platform Backend API",
-    "_postman_id": "3b10d6cb-1081-4b58-8c8a-cd0b7f95d6db",
+    "_postman_id": "1fb250d5-36ce-4ca6-a1ab-79e645a3fca6",
     "description": "Full Postman collection covering every live backend endpoint.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
@@ -68,7 +68,7 @@
     },
     {
       "key": "parentId",
-      "value": "10"
+      "value": "1003"
     },
     {
       "key": "assessmentId",
@@ -1347,7 +1347,7 @@
                 "value": "application/json"
               }
             ],
-            "description": "Purpose: Link an existing parent profile to a student.\n\nRoles: admin\n\nAuth: Bearer access token required\n\nBody schema: LinkStudentParentRequest",
+            "description": "Purpose: Link an existing parent to a student. parentId may be either the parent user id returned by /users?role=parent or the underlying parent profile id.\n\nRoles: admin\n\nAuth: Bearer access token required\n\nBody schema: LinkStudentParentRequest\n\nNote: The backend resolves parentId to the stored parent profile id automatically. Prefer sending the user id returned by /users?role=parent in admin frontend flows.",
             "url": {
               "raw": "{{baseUrl}}/students/{{studentId}}/parents",
               "host": [
@@ -1362,7 +1362,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"parentId\": \"10\",\n  \"relationType\": \"mother\",\n  \"isPrimary\": false\n}"
+              "raw": "{\n  \"parentId\": \"1003\",\n  \"relationType\": \"mother\",\n  \"isPrimary\": false\n}"
             }
           }
         },
@@ -1409,7 +1409,7 @@
                 "value": "Bearer {{accessToken}}"
               }
             ],
-            "description": "Purpose: Mark one linked parent as the primary parent for that student.\n\nRoles: admin\n\nAuth: Bearer access token required",
+            "description": "Purpose: Mark one linked parent as the primary parent for that student. parentId may be either the parent user id returned by /users?role=parent or the underlying parent profile id.\n\nRoles: admin\n\nAuth: Bearer access token required\n\nNote: The backend resolves parentId to the stored parent profile id automatically. Prefer sending the user id returned by /users?role=parent in admin frontend flows.",
             "url": {
               "raw": "{{baseUrl}}/students/{{studentId}}/parents/{{parentId}}/primary",
               "host": [

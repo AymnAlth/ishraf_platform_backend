@@ -55,9 +55,9 @@
 | `GET /students` | list students | students list | `admin` | Bearer | `page`, `limit`, `sortBy`, `sortOrder`, `classId`, `academicYearId`, `status`, `gender` | `items`, `pagination` | paginated | `API_REFERENCE.md`, `src/modules/students/routes/students.routes.ts` |
 | `GET /students/:id` | student detail | student detail | `admin` | Bearer | path `id` | student detail | basis for profile page | `API_REFERENCE.md`, `src/modules/students/routes/students.routes.ts` |
 | `PATCH /students/:id` | update student | edit student | `admin` | Bearer | editable fields | updated student | class/year changes affect downstream modules | `API_REFERENCE.md`, `src/modules/students/routes/students.routes.ts` |
-| `POST /students/:id/parents` | link parent | parent linking form | `admin` | Bearer | `parentId`, `relationType`, `isPrimary?` | created link | duplicate link -> `409` | `API_REFERENCE.md`, `src/modules/students/routes/students.routes.ts` |
+| `POST /students/:id/parents` | link parent | parent linking form | `admin` | Bearer | `parentId`, `relationType`, `isPrimary?` | created link | prefer `users.id` from `/users?role=parent`; backend also accepts `parents.id`; duplicate link -> `409` | `API_REFERENCE.md`, `src/modules/students/routes/students.routes.ts` |
 | `GET /students/:id/parents` | list linked parents | parents tab | `admin` | Bearer | path `id` | parents list | required in student detail | `API_REFERENCE.md`, `src/modules/students/routes/students.routes.ts` |
-| `PATCH /students/:studentId/parents/:parentId/primary` | set primary parent | parent actions | `admin` | Bearer | path params | updated linkage | clear action/button | `API_REFERENCE.md`, `src/modules/students/routes/students.routes.ts` |
+| `PATCH /students/:studentId/parents/:parentId/primary` | set primary parent | parent actions | `admin` | Bearer | path params | updated linkage | `parentId` may be the parent `users.id` from `/users?role=parent` or the stored `parents.id`; prefer `users.id` in admin UI | `API_REFERENCE.md`, `src/modules/students/routes/students.routes.ts` |
 | `POST /students/:id/promotions` | promote student | promotion form | `admin` | Bearer | target class/year | promotion result | needs confirmation | `API_REFERENCE.md`, `src/modules/students/routes/students.routes.ts` |
 
 ## Attendance

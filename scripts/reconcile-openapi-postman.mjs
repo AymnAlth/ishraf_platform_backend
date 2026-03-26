@@ -984,7 +984,7 @@ function addSchema(name, schema) {
     }
   ],
   ["UpdateStudentRequest", { fullName: "طالب محدث", status: "suspended" }],
-  ["LinkStudentParentRequest", { parentId: "10", relationType: "mother", isPrimary: false }],
+  ["LinkStudentParentRequest", { parentId: "1003", relationType: "mother", isPrimary: false }],
   ["PromoteStudentRequest", { toClassId: "2", academicYearId: "2", notes: "ترقية إلى الصف التالي" }],
   ["CreateAssessmentTypeRequest", { code: "QUIZ", name: "Quiz", description: "Short quiz", isActive: true }],
   [
@@ -1087,7 +1087,8 @@ function pathParamDescription(routePath, paramName) {
   if (paramName === "otherUserId") return "The other conversation participant user id.";
   if (paramName === "messageId") return "Message numeric string identifier.";
   if (paramName === "notificationId") return "Notification numeric string identifier.";
-  if (paramName === "parentId") return "Parent profile numeric string identifier.";
+  if (paramName === "parentId")
+    return "Parent identifier. These student-parent endpoints accept either the parent user id from /users?role=parent or the underlying parent profile id.";
   if (routePath.startsWith("/users/:id")) return "User numeric string identifier.";
   if (routePath.startsWith("/students/:id")) return "Student numeric string identifier.";
   if (routePath.startsWith("/academic-structure/academic-years/:id")) return "Academic year numeric string identifier.";
@@ -1219,9 +1220,9 @@ endpoints.push(
   makeEndpoint({ m: "GET", p: "/students", t: "Students", s: "List Students", u: "List students with pagination and filters.", q: studentListQuery, kind: "paginated", e: "student", status: 200 }),
   makeEndpoint({ m: "GET", p: "/students/:id", t: "Students", s: "Get Student", u: "Return one student by id.", e: "student", status: 200 }),
   makeEndpoint({ m: "PATCH", p: "/students/:id", t: "Students", s: "Update Student", u: "Update student profile fields and lifecycle status.", b: "UpdateStudentRequest", e: "student", status: 200 }),
-  makeEndpoint({ m: "POST", p: "/students/:id/parents", t: "Students", s: "Link Parent to Student", u: "Link an existing parent profile to a student.", b: "LinkStudentParentRequest", e: "user" }),
+  makeEndpoint({ m: "POST", p: "/students/:id/parents", t: "Students", s: "Link Parent to Student", u: "Link an existing parent to a student. parentId may be either the parent user id returned by /users?role=parent or the underlying parent profile id.", b: "LinkStudentParentRequest", e: "user", notes: ["The backend resolves parentId to the stored parent profile id automatically. Prefer sending the user id returned by /users?role=parent in admin frontend flows."] }),
   makeEndpoint({ m: "GET", p: "/students/:id/parents", t: "Students", s: "List Student Parents", u: "Return parent links for one student.", kind: "array", e: "user", status: 200 }),
-  makeEndpoint({ m: "PATCH", p: "/students/:studentId/parents/:parentId/primary", t: "Students", s: "Set Primary Parent", u: "Mark one linked parent as the primary parent for that student.", e: "user", status: 200 }),
+  makeEndpoint({ m: "PATCH", p: "/students/:studentId/parents/:parentId/primary", t: "Students", s: "Set Primary Parent", u: "Mark one linked parent as the primary parent for that student. parentId may be either the parent user id returned by /users?role=parent or the underlying parent profile id.", e: "user", status: 200, notes: ["The backend resolves parentId to the stored parent profile id automatically. Prefer sending the user id returned by /users?role=parent in admin frontend flows."] }),
   makeEndpoint({ m: "POST", p: "/students/:id/promotions", t: "Students", s: "Promote Student", u: "Promote a student to another class for a target academic year.", b: "PromoteStudentRequest", e: "student" }),
   makeEndpoint({ m: "POST", p: "/assessments/types", t: "Assessments", s: "Create Assessment Type", u: "Create a reusable assessment type.", b: "CreateAssessmentTypeRequest", e: "assessment" }),
   makeEndpoint({ m: "GET", p: "/assessments/types", t: "Assessments", s: "List Assessment Types", u: "List assessment types.", r: ["admin", "teacher"], kind: "array", e: "assessment", status: 200 }),
@@ -1492,7 +1493,7 @@ function buildCollection(name, description, subset) {
       { key: "classId", value: "1" },
       { key: "subjectId", value: "1" },
       { key: "studentId", value: "1" },
-      { key: "parentId", value: "10" },
+      { key: "parentId", value: "1003" },
       { key: "assessmentId", value: "1" },
       { key: "studentAssessmentId", value: "1" },
       { key: "attendanceSessionId", value: "1" },
