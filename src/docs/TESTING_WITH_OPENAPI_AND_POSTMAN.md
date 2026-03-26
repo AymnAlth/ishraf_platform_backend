@@ -39,7 +39,7 @@
 - لديك بيانات الدخول لذلك الحساب
 
 مهم:
-- لا تعتمد على حسابات محلية قديمة من نوع `admin@eshraf.local`
+- لا تعتمد على أي حسابات محلية قديمة أو أمثلة أرشيفية داخل وثائق أقدم
 - استخدم حساب الـ staging الحقيقي الذي أنشأته على Neon/Render
 
 ## 3. اختبار سريع من المتصفح
@@ -335,8 +335,8 @@ pnpm db:migrate
 
 1. الكود الحالي
 2. `src/docs/BACKEND_WAVE1_STATUS.md`
-3. `src/docs/API_REFERENCE.md`
-4. ملفات OpenAPI وPostman
+3. ملفات OpenAPI وPostman
+4. `src/docs/API_REFERENCE.md`
 5. أي وثائق أقدم
 
 ## 10. ملخص عملي سريع جدًا

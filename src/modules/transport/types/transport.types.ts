@@ -16,12 +16,20 @@ export const TRIP_STUDENT_EVENT_TYPE_VALUES = [
   "dropped_off",
   "absent"
 ] as const;
+export const HOME_LOCATION_SOURCE_VALUES = ["admin", "parent"] as const;
+export const HOME_LOCATION_STATUS_VALUES = [
+  "pending",
+  "approved",
+  "rejected"
+] as const;
 
 export type BusStatus = (typeof BUS_STATUS_VALUES)[number];
 export type TripType = (typeof TRIP_TYPE_VALUES)[number];
 export type TripStatus = (typeof TRIP_STATUS_VALUES)[number];
 export type TripStudentEventType = (typeof TRIP_STUDENT_EVENT_TYPE_VALUES)[number];
 export type TripRosterEventType = TripStudentEventType | "not_marked";
+export type HomeLocationSource = (typeof HOME_LOCATION_SOURCE_VALUES)[number];
+export type HomeLocationStatus = (typeof HOME_LOCATION_STATUS_VALUES)[number];
 
 export interface DriverReferenceRow {
   driverId: string;
@@ -94,6 +102,49 @@ export interface StudentBusAssignmentRow {
   updatedAt?: Date;
 }
 
+export interface TransportRouteAssignmentRow {
+  routeAssignmentId: string;
+  busId: string;
+  plateNumber: string;
+  capacity: number;
+  busStatus: BusStatus;
+  driverId: string | null;
+  driverUserId: string | null;
+  driverFullName: string | null;
+  driverEmail: string | null;
+  driverPhone: string | null;
+  routeId: string;
+  routeName: string;
+  startPoint: string;
+  endPoint: string;
+  estimatedDurationMinutes: number;
+  routeIsActive: boolean;
+  startDate: Date | string;
+  endDate: Date | string | null;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface StudentHomeLocationRow {
+  studentId: string;
+  academicNo: string;
+  studentFullName: string;
+  locationId: string | null;
+  addressLabel: string | null;
+  addressText: string | null;
+  latitude: number | string | null;
+  longitude: number | string | null;
+  source: HomeLocationSource | null;
+  status: HomeLocationStatus | null;
+  submittedByUserId: string | null;
+  approvedByUserId: string | null;
+  approvedAt: Date | null;
+  notes: string | null;
+  createdAt: Date | null;
+  updatedAt: Date | null;
+}
+
 export interface LatestTripLocationRow {
   tripId: string;
   latitude: number | string;
@@ -152,7 +203,13 @@ export interface TripStudentRosterRow {
   fullName: string;
   stopId: string;
   stopName: string;
+  stopLatitude: number | string;
+  stopLongitude: number | string;
   stopOrder: number;
+  homeLatitude: number | string | null;
+  homeLongitude: number | string | null;
+  homeAddressLabel: string | null;
+  homeAddressText: string | null;
   lastEventType: TripStudentEventType | null;
   lastEventTime: Date | null;
   lastEventStopId: string | null;
@@ -193,7 +250,25 @@ export interface DeactivateStudentBusAssignmentInput {
   endDate: string;
 }
 
+export interface TransportRouteAssignmentWriteInput {
+  busId: string;
+  routeId: string;
+  startDate: string;
+  endDate?: string | null;
+}
+
+export interface DeactivateTransportRouteAssignmentInput {
+  endDate: string;
+}
+
 export interface TripWriteInput {
+  busId: string;
+  routeId: string;
+  tripDate: string;
+  tripType: TripType;
+}
+
+export interface TripNaturalKey {
   busId: string;
   routeId: string;
   tripDate: string;
@@ -228,6 +303,12 @@ export interface TripScope {
   driverId?: string;
 }
 
+export interface RouteAssignmentScope {
+  driverId?: string;
+  applicableOnDate?: string;
+  isActive?: boolean;
+}
+
 export interface TripLocationWriteInput {
   tripId: string;
   latitude: number;
@@ -239,5 +320,19 @@ export interface TripStudentEventWriteInput {
   studentId: string;
   eventType: TripStudentEventType;
   stopId?: string | null;
+  notes?: string | null;
+}
+
+export interface StudentHomeLocationWriteInput {
+  studentId: string;
+  addressLabel?: string | null;
+  addressText?: string | null;
+  latitude: number;
+  longitude: number;
+  source: HomeLocationSource;
+  status: HomeLocationStatus;
+  submittedByUserId: string;
+  approvedByUserId?: string | null;
+  approvedAt?: Date | null;
   notes?: string | null;
 }

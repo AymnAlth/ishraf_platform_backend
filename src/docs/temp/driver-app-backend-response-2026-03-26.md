@@ -2,6 +2,15 @@
 
 تاريخ الرد: `2026-03-26`
 
+مهم:
+
+- هذا الملف مؤقت وأرشيفي
+- المرجع الدائم المعتمد الآن هو:
+  - `src/docs/API_REFERENCE.md`
+  - `src/docs/openapi/ishraf-platform.openapi.json`
+  - `src/docs/postman/ishraf-platform.postman_collection.json`
+  - `src/docs/frontend-execution/driver-app/ENDPOINT_MAP.md`
+
 ## النتيجة المختصرة
 
 بعد مراجعة الباك الحالي على `staging`:

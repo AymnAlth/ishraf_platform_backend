@@ -8,14 +8,19 @@ import type {
   CreateRouteRequestDto,
   CreateRouteStopRequestDto,
   CreateStudentBusAssignmentRequestDto,
+  CreateTransportRouteAssignmentRequestDto,
   CreateTripRequestDto,
   CreateTripStudentEventRequestDto,
   DeactivateStudentBusAssignmentRequestDto,
+  DeactivateTransportRouteAssignmentRequestDto,
+  EnsureDailyTripRequestDto,
   ListTripsQueryDto,
   RecordTripLocationRequestDto,
   RouteIdParamsDto,
+  StudentIdParamsDto,
   TripIdParamsDto,
-  TripStudentRosterQueryDto
+  TripStudentRosterQueryDto,
+  SaveStudentHomeLocationRequestDto
 } from "../dto/transport.dto";
 import type { TransportService } from "../service/transport.service";
 
@@ -97,10 +102,54 @@ export class TransportController {
       .json(buildSuccessResponse("Active student transport assignments fetched successfully", response));
   }
 
+  async createRouteAssignment(req: Request, res: Response): Promise<void> {
+    const payload = req.validated?.body as CreateTransportRouteAssignmentRequestDto;
+    const response = await this.transportService.createRouteAssignment(
+      assertAuthUser(req),
+      payload
+    );
+    res
+      .status(201)
+      .json(buildSuccessResponse("Transport route assignment created successfully", response));
+  }
+
+  async listRouteAssignments(req: Request, res: Response): Promise<void> {
+    const response = await this.transportService.listRouteAssignments(assertAuthUser(req));
+    res
+      .status(200)
+      .json(buildSuccessResponse("Transport route assignments fetched successfully", response));
+  }
+
+  async deactivateRouteAssignment(req: Request, res: Response): Promise<void> {
+    const params = req.validated?.params as AssignmentIdParamsDto;
+    const payload = req.validated?.body as DeactivateTransportRouteAssignmentRequestDto;
+    const response = await this.transportService.deactivateRouteAssignment(
+      assertAuthUser(req),
+      params.id,
+      payload
+    );
+    res
+      .status(200)
+      .json(buildSuccessResponse("Transport route assignment deactivated successfully", response));
+  }
+
+  async listMyRouteAssignments(req: Request, res: Response): Promise<void> {
+    const response = await this.transportService.listMyRouteAssignments(assertAuthUser(req));
+    res
+      .status(200)
+      .json(buildSuccessResponse("My transport route assignments fetched successfully", response));
+  }
+
   async createTrip(req: Request, res: Response): Promise<void> {
     const payload = req.validated?.body as CreateTripRequestDto;
     const response = await this.transportService.createTrip(assertAuthUser(req), payload);
     res.status(201).json(buildSuccessResponse("Trip created successfully", response));
+  }
+
+  async ensureDailyTrip(req: Request, res: Response): Promise<void> {
+    const payload = req.validated?.body as EnsureDailyTripRequestDto;
+    const response = await this.transportService.ensureDailyTrip(assertAuthUser(req), payload);
+    res.status(200).json(buildSuccessResponse("Daily trip ensured successfully", response));
   }
 
   async listTrips(req: Request, res: Response): Promise<void> {
@@ -166,5 +215,40 @@ export class TransportController {
     const params = req.validated?.params as TripIdParamsDto;
     const response = await this.transportService.listTripEvents(assertAuthUser(req), params.id);
     res.status(200).json(buildSuccessResponse("Trip student events fetched successfully", response));
+  }
+
+  async getStudentHomeLocation(req: Request, res: Response): Promise<void> {
+    const params = req.validated?.params as StudentIdParamsDto;
+    const response = await this.transportService.getStudentHomeLocation(
+      assertAuthUser(req),
+      params.studentId
+    );
+    res
+      .status(200)
+      .json(buildSuccessResponse("Student home location fetched successfully", response));
+  }
+
+  async saveStudentHomeLocation(req: Request, res: Response): Promise<void> {
+    const params = req.validated?.params as StudentIdParamsDto;
+    const payload = req.validated?.body as SaveStudentHomeLocationRequestDto;
+    const response = await this.transportService.saveStudentHomeLocation(
+      assertAuthUser(req),
+      params.studentId,
+      payload
+    );
+    res
+      .status(200)
+      .json(buildSuccessResponse("Student home location saved successfully", response));
+  }
+
+  async deleteStudentHomeLocation(req: Request, res: Response): Promise<void> {
+    const params = req.validated?.params as StudentIdParamsDto;
+    const response = await this.transportService.deleteStudentHomeLocation(
+      assertAuthUser(req),
+      params.studentId
+    );
+    res
+      .status(200)
+      .json(buildSuccessResponse("Student home location deleted successfully", response));
   }
 }

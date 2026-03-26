@@ -10,14 +10,19 @@ import {
   createRouteSchema,
   createRouteStopSchema,
   createStudentBusAssignmentSchema,
+  createTransportRouteAssignmentSchema,
   createTripSchema,
   createTripStudentEventSchema,
   deactivateStudentBusAssignmentSchema,
+  deactivateTransportRouteAssignmentSchema,
+  ensureDailyTripSchema,
   listTripsQuerySchema,
   recordTripLocationSchema,
   routeIdParamsSchema,
+  studentIdParamsSchema,
   tripIdParamsSchema,
-  tripStudentRosterQuerySchema
+  tripStudentRosterQuerySchema,
+  saveStudentHomeLocationSchema
 } from "../validator/transport.validator";
 
 export const createTransportRouter = (controller: TransportController): Router => {
@@ -90,10 +95,46 @@ export const createTransportRouter = (controller: TransportController): Router =
   );
 
   router.post(
+    "/route-assignments",
+    ...transportPolicies.manageRouteAssignments,
+    validateRequest({ body: createTransportRouteAssignmentSchema }),
+    asyncHandler((req, res) => controller.createRouteAssignment(req, res))
+  );
+
+  router.get(
+    "/route-assignments",
+    ...transportPolicies.manageRouteAssignments,
+    asyncHandler((req, res) => controller.listRouteAssignments(req, res))
+  );
+
+  router.get(
+    "/route-assignments/me",
+    ...transportPolicies.driverRouteAssignments,
+    asyncHandler((req, res) => controller.listMyRouteAssignments(req, res))
+  );
+
+  router.patch(
+    "/route-assignments/:id/deactivate",
+    ...transportPolicies.manageRouteAssignments,
+    validateRequest({
+      params: assignmentIdParamsSchema,
+      body: deactivateTransportRouteAssignmentSchema
+    }),
+    asyncHandler((req, res) => controller.deactivateRouteAssignment(req, res))
+  );
+
+  router.post(
     "/trips",
     ...transportPolicies.accessTrips,
     validateRequest({ body: createTripSchema }),
     asyncHandler((req, res) => controller.createTrip(req, res))
+  );
+
+  router.post(
+    "/trips/ensure-daily",
+    ...transportPolicies.accessTrips,
+    validateRequest({ body: ensureDailyTripSchema }),
+    asyncHandler((req, res) => controller.ensureDailyTrip(req, res))
   );
 
   router.get(
@@ -159,6 +200,30 @@ export const createTransportRouter = (controller: TransportController): Router =
     ...transportPolicies.accessTrips,
     validateRequest({ params: tripIdParamsSchema }),
     asyncHandler((req, res) => controller.listTripEvents(req, res))
+  );
+
+  router.get(
+    "/students/:studentId/home-location",
+    ...transportPolicies.manageHomeLocations,
+    validateRequest({ params: studentIdParamsSchema }),
+    asyncHandler((req, res) => controller.getStudentHomeLocation(req, res))
+  );
+
+  router.put(
+    "/students/:studentId/home-location",
+    ...transportPolicies.manageHomeLocations,
+    validateRequest({
+      params: studentIdParamsSchema,
+      body: saveStudentHomeLocationSchema
+    }),
+    asyncHandler((req, res) => controller.saveStudentHomeLocation(req, res))
+  );
+
+  router.delete(
+    "/students/:studentId/home-location",
+    ...transportPolicies.manageHomeLocations,
+    validateRequest({ params: studentIdParamsSchema }),
+    asyncHandler((req, res) => controller.deleteStudentHomeLocation(req, res))
   );
 
   return router;

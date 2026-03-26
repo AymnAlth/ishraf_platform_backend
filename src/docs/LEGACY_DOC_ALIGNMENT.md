@@ -46,6 +46,11 @@
     - `trips`
     - `bus_location_history`
     - `trip_student_events`
+  - والمصدر التشغيلي الحقيقي لربط الطالب بالنقل هو:
+    - `student_bus_assignments`
+    - `bus_stops`
+    - `routes`
+  - وليس "عنوان الطالب" النصي
 
 - الطبقات الأعلى الموجودة في التنفيذ الحالي:
   - `reporting`
@@ -59,14 +64,19 @@
 
 المؤجل صراحة:
 
-- Firebase Realtime Database
-- FCM
+- Firebase / FCM / realtime transport
 - Google Maps / ETA
-- AI analytics / prediction
-- microservices split
+- AI analytics
+- 2FA
+- advanced system settings
+- CSV import إذا لم يعد مطلوبًا تشغيليًا
+
+أما `microservices split` فليس جزءًا من backlog التنفيذي الحالي قبل بدء الفرونت، بل وصف معماري قديم لا نعتمد عليه في Wave 1.
 
 ## Guidance For Frontend Work
 
 - لا تعتمد تطبيقات الفرونت على أسماء كيانات قديمة إذا اختلفت عن الكود الحالي
 - استخدم `BACKEND_WAVE1_STATUS.md` كمرجع handoff
-- استخدم `API_REFERENCE.md` و`OpenAPI/Postman` للعقود العملية
+- استخدم `OpenAPI/Postman` كمرجع العقد الكامل الدقيق
+- استخدم `API_REFERENCE.md` كمرجع بشري تشغيلي منسجم مع تلك العقود
+- استخدم `src/docs/frontend-execution/README.md` كحزمة التنفيذ المنظمة لفرق الفرونت

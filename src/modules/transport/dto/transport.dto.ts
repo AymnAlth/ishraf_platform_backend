@@ -1,5 +1,6 @@
 import type {
   BusStatus,
+  HomeLocationStatus,
   TripRosterEventType,
   TripStatus,
   TripStudentEventType,
@@ -12,6 +13,10 @@ export interface RouteIdParamsDto {
 
 export interface AssignmentIdParamsDto {
   id: string;
+}
+
+export interface StudentIdParamsDto {
+  studentId: string;
 }
 
 export interface TripIdParamsDto {
@@ -57,9 +62,26 @@ export interface DeactivateStudentBusAssignmentRequestDto {
   endDate?: string;
 }
 
+export interface CreateTransportRouteAssignmentRequestDto {
+  busId: string;
+  routeId: string;
+  startDate: string;
+  endDate?: string | null;
+}
+
+export interface DeactivateTransportRouteAssignmentRequestDto {
+  endDate?: string;
+}
+
 export interface CreateTripRequestDto {
   busId: string;
   routeId: string;
+  tripDate: string;
+  tripType: TripType;
+}
+
+export interface EnsureDailyTripRequestDto {
+  routeAssignmentId: string;
   tripDate: string;
   tripType: TripType;
 }
@@ -87,6 +109,15 @@ export interface CreateTripStudentEventRequestDto {
   studentId: string;
   eventType: TripStudentEventType;
   stopId?: string;
+  notes?: string | null;
+}
+
+export interface SaveStudentHomeLocationRequestDto {
+  addressLabel?: string | null;
+  addressText?: string | null;
+  latitude: number;
+  longitude: number;
+  status?: HomeLocationStatus;
   notes?: string | null;
 }
 
@@ -145,6 +176,28 @@ export interface TransportStudentBusAssignmentResponseDto {
   isActive: boolean;
 }
 
+export interface TransportRouteAssignmentResponseDto {
+  routeAssignmentId: string;
+  bus: {
+    id: string;
+    plateNumber: string;
+    capacity: number;
+    status: BusStatus;
+  };
+  driver: TransportDriverSummaryDto | null;
+  route: {
+    id: string;
+    routeName: string;
+    startPoint: string;
+    endPoint: string;
+    estimatedDurationMinutes: number;
+    isActive: boolean;
+  };
+  startDate: string;
+  endDate: string | null;
+  isActive: boolean;
+}
+
 export interface TransportLatestLocationResponseDto {
   latitude: number;
   longitude: number;
@@ -191,6 +244,11 @@ export interface TransportTripDetailResponseDto {
   eventSummary: TransportTripEventSummaryDto;
 }
 
+export interface TransportEnsureDailyTripResponseDto {
+  created: boolean;
+  trip: TransportTripListItemResponseDto;
+}
+
 export interface TransportTripRosterStudentResponseDto {
   studentId: string;
   academicNo: string;
@@ -198,8 +256,16 @@ export interface TransportTripRosterStudentResponseDto {
   assignedStop: {
     stopId: string;
     stopName: string;
+    latitude: number;
+    longitude: number;
     stopOrder: number;
   };
+  homeLocation: {
+    latitude: number;
+    longitude: number;
+    addressLabel: string | null;
+    addressText: string | null;
+  } | null;
   currentTripEventType: TripRosterEventType;
   lastEvent: {
     eventType: TripStudentEventType | null;
@@ -224,4 +290,23 @@ export interface TransportTripStudentEventResponseDto {
     stopName: string;
   } | null;
   notes: string | null;
+}
+
+export interface TransportStudentHomeLocationResponseDto {
+  student: TransportStudentSummaryDto;
+  homeLocation: {
+    locationId: string;
+    addressLabel: string | null;
+    addressText: string | null;
+    latitude: number;
+    longitude: number;
+    source: "admin" | "parent";
+    status: HomeLocationStatus;
+    submittedByUserId: string;
+    approvedByUserId: string | null;
+    approvedAt: string | null;
+    notes: string | null;
+    createdAt: string;
+    updatedAt: string;
+  } | null;
 }

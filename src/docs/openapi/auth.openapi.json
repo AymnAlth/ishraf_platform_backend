@@ -846,12 +846,38 @@
           "endDate": "2026-03-26"
         }
       },
+      "CreateTransportRouteAssignmentRequest": {
+        "type": "object",
+        "additionalProperties": true,
+        "example": {
+          "busId": "1",
+          "routeId": "1",
+          "startDate": "2026-03-26",
+          "endDate": null
+        }
+      },
+      "DeactivateTransportRouteAssignmentRequest": {
+        "type": "object",
+        "additionalProperties": true,
+        "example": {
+          "endDate": "2026-03-26"
+        }
+      },
       "CreateTripRequest": {
         "type": "object",
         "additionalProperties": true,
         "example": {
           "busId": "1",
           "routeId": "1",
+          "tripDate": "2026-03-26",
+          "tripType": "pickup"
+        }
+      },
+      "EnsureDailyTripRequest": {
+        "type": "object",
+        "additionalProperties": true,
+        "example": {
+          "routeAssignmentId": "1",
           "tripDate": "2026-03-26",
           "tripType": "pickup"
         }
@@ -872,6 +898,18 @@
           "eventType": "dropped_off",
           "stopId": "1",
           "notes": "تم النزول بنجاح"
+        }
+      },
+      "SaveStudentHomeLocationRequest": {
+        "type": "object",
+        "additionalProperties": true,
+        "example": {
+          "addressLabel": "Student Home 1",
+          "addressText": "Nearby the local market",
+          "latitude": 15.3701,
+          "longitude": 44.1921,
+          "status": "approved",
+          "notes": null
         }
       },
       "SendMessageRequest": {

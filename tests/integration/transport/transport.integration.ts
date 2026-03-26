@@ -85,6 +85,59 @@ export const registerTransportIntegrationTests = (
       expect(activeAssignmentsResponse.body.data[0].stop.stopName).toBe("Second Stop");
     });
 
+    it("manages recurring route assignments and ensures daily trips without duplicates", async () => {
+      const adminLogin = await context.loginAsAdmin();
+      const driverLogin = await context.loginAsDriver();
+
+      const routeResponse = await context.createRoute(adminLogin.accessToken);
+      const routeId = routeResponse.body.data.id as string;
+      await context.createRouteStop(adminLogin.accessToken, routeId);
+      const busResponse = await context.createBus(adminLogin.accessToken);
+      const busId = busResponse.body.data.id as string;
+
+      const createRouteAssignmentResponse = await context.createRouteAssignment(
+        adminLogin.accessToken,
+        {
+          busId,
+          routeId,
+          startDate: "2026-03-13"
+        }
+      );
+      const routeAssignmentId = createRouteAssignmentResponse.body.data.routeAssignmentId as string;
+
+      const listRouteAssignmentsResponse = await request(context.app)
+        .get("/api/v1/transport/route-assignments")
+        .set("Authorization", `Bearer ${adminLogin.accessToken}`);
+      const myRouteAssignmentsResponse = await request(context.app)
+        .get("/api/v1/transport/route-assignments/me")
+        .set("Authorization", `Bearer ${driverLogin.accessToken}`);
+      const ensureDailyResponse = await context.ensureDailyTrip(driverLogin.accessToken, {
+        routeAssignmentId,
+        tripDate: "2026-03-13",
+        tripType: "pickup"
+      });
+      const ensureDailyAgainResponse = await context.ensureDailyTrip(driverLogin.accessToken, {
+        routeAssignmentId,
+        tripDate: "2026-03-13",
+        tripType: "pickup"
+      });
+
+      expect(createRouteAssignmentResponse.status).toBe(201);
+      expect(listRouteAssignmentsResponse.status).toBe(200);
+      expect(listRouteAssignmentsResponse.body.data).toHaveLength(1);
+      expect(myRouteAssignmentsResponse.status).toBe(200);
+      expect(myRouteAssignmentsResponse.body.data).toHaveLength(1);
+      expect(myRouteAssignmentsResponse.body.data[0].bus.id).toBe(busId);
+      expect(ensureDailyResponse.status).toBe(200);
+      expect(ensureDailyResponse.body.data.created).toBe(true);
+      expect(ensureDailyResponse.body.data.trip.tripStatus).toBe("scheduled");
+      expect(ensureDailyAgainResponse.status).toBe(200);
+      expect(ensureDailyAgainResponse.body.data.created).toBe(false);
+      expect(ensureDailyAgainResponse.body.data.trip.id).toBe(
+        ensureDailyResponse.body.data.trip.id
+      );
+    });
+
     it("creates trips, enforces status transitions, and records locations only while started", async () => {
       const adminLogin = await context.loginAsAdmin();
       const driverLogin = await context.loginAsDriver();
@@ -249,6 +302,12 @@ export const registerTransportIntegrationTests = (
         routeId,
         stopId: secondStopResponse.body.data.stopId as string
       });
+      await context.saveStudentHomeLocation(adminLogin.accessToken, "1", {
+        addressLabel: "Student One Home",
+        addressText: "Behind the neighborhood mosque",
+        latitude: 15.4411,
+        longitude: 44.2411
+      });
 
       const tripResponse = await context.createTrip(driverLogin.accessToken, {
         busId,
@@ -292,7 +351,15 @@ export const registerTransportIntegrationTests = (
         assignedStop: {
           stopId: firstStopResponse.body.data.stopId,
           stopName: "Main Stop",
+          latitude: 14.2233445,
+          longitude: 44.2233445,
           stopOrder: 1
+        },
+        homeLocation: {
+          latitude: 15.4411,
+          longitude: 44.2411,
+          addressLabel: "Student One Home",
+          addressText: "Behind the neighborhood mosque"
         },
         currentTripEventType: "boarded",
         lastEvent: {
@@ -308,8 +375,11 @@ export const registerTransportIntegrationTests = (
         assignedStop: {
           stopId: secondStopResponse.body.data.stopId,
           stopName: "Second Stop",
+          latitude: 14.2233445,
+          longitude: 44.2233445,
           stopOrder: 2
         },
+        homeLocation: null,
         currentTripEventType: "not_marked",
         lastEvent: {
           eventType: null,
@@ -320,6 +390,49 @@ export const registerTransportIntegrationTests = (
       expect(filteredRosterResponse.status).toBe(200);
       expect(filteredRosterResponse.body.data.students).toHaveLength(1);
       expect(filteredRosterResponse.body.data.students[0].studentId).toBe("2");
+    });
+
+    it("validates trip student events against assignment coverage on the trip date", async () => {
+      const adminLogin = await context.loginAsAdmin();
+      const driverLogin = await context.loginAsDriver();
+
+      const routeResponse = await context.createRoute(adminLogin.accessToken);
+      const routeId = routeResponse.body.data.id as string;
+      const stopResponse = await context.createRouteStop(adminLogin.accessToken, routeId);
+      const busResponse = await context.createBus(adminLogin.accessToken);
+      const busId = busResponse.body.data.id as string;
+
+      await context.createAssignment(adminLogin.accessToken, {
+        studentId: "1",
+        routeId,
+        stopId: stopResponse.body.data.stopId as string,
+        startDate: "2026-03-20"
+      });
+
+      const tripResponse = await context.createTrip(driverLogin.accessToken, {
+        busId,
+        routeId,
+        tripDate: "2026-03-13",
+        tripType: "pickup"
+      });
+      const tripId = tripResponse.body.data.id as string;
+
+      await request(context.app)
+        .post(`/api/v1/transport/trips/${tripId}/start`)
+        .set("Authorization", `Bearer ${driverLogin.accessToken}`)
+        .send({});
+
+      const eventResponse = await request(context.app)
+        .post(`/api/v1/transport/trips/${tripId}/events`)
+        .set("Authorization", `Bearer ${driverLogin.accessToken}`)
+        .send({
+          studentId: "1",
+          eventType: "boarded",
+          stopId: stopResponse.body.data.stopId
+        });
+
+      expect(eventResponse.status).toBe(400);
+      expect(eventResponse.body.errors[0].code).toBe("STUDENT_TRIP_DATE_ASSIGNMENT_NOT_FOUND");
     });
   });
 };

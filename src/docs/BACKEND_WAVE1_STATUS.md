@@ -66,6 +66,8 @@ The following backend modules are ready or close enough for frontend Wave 1:
 - assessments management
 - behavior management
 - transport management
+- transport route assignments
+- student transport home location management
 - communication admin flows
 - admin dashboard
 - reporting student profile and summary endpoints
@@ -100,9 +102,13 @@ The following backend modules are ready or close enough for frontend Wave 1:
 
 ### Driver
 
+- recurring route assignment discovery
+- ensure-daily trip flow
 - transport trip flows within current ownership enforcement
+- trip student roster endpoint for operational pickup/drop-off flows
 - transport summary scoped to driver-owned trips
 - communication notifications/messages allowed for the role
+- recipients directory endpoint for message compose flows
 
 ## Gaps Closed Before Frontend Wave 1
 
@@ -155,18 +161,29 @@ These frontend blockers are now closed in the backend:
 
 - `GET /api/v1/reporting/transport/parent/me/students/:studentId/live-status`
 
+### Driver transport and communication helpers
+
+- `GET /api/v1/transport/route-assignments/me`
+- `POST /api/v1/transport/trips/ensure-daily`
+- `GET /api/v1/transport/trips/:id/students`
+- `GET /api/v1/transport/students/:studentId/home-location`
+- `PUT /api/v1/transport/students/:studentId/home-location`
+- `DELETE /api/v1/transport/students/:studentId/home-location`
+- `GET /api/v1/communication/recipients`
+  - current Wave 1 policy: all active users except self
+
 ## Not In Wave 1
 
 These are explicitly deferred and are not blockers for frontend Wave 1:
 
-- Firebase Realtime Database
-- FCM push notifications
-- Google Maps / ETA / stop proximity logic
-- AI analytics / prediction / recommendations
+- Firebase / FCM / realtime transport
+- Google Maps / ETA
+- AI analytics
 - 2FA
 - advanced system settings
-- microservices split
 - CSV import unless school onboarding pressure makes it necessary later
+
+The `microservices` wording in older documents is a historical architecture note, not an active execution item before frontend Wave 1.
 
 ## Operational Notes For Frontend
 
@@ -177,10 +194,23 @@ These are explicitly deferred and are not blockers for frontend Wave 1:
   - `data.pagination`
 - Some feeds also include `unreadCount`
 - Parent access is ownership-based and should never assume unrestricted `studentId` access
+- Transport source-of-truth is:
+  - `routes`
+  - `transport_route_assignments`
+  - `bus_stops`
+  - `student_bus_assignments`
+  - `trips`
+  - `trip_student_events`
+- Student textual address is not the transport routing source of truth in Wave 1
+- Student home location is now supported as a reference/approved location layer, but:
+  - it does not replace assigned stop operationally
+  - driver daily flow should start from route assignments, then `ensure-daily`
 - Real ETA is not part of Wave 1; parent transport live status is based on the current assignment, active trip, last known location, and recent trip events
 - auth login, forgot-password, and reset-password are rate-limited
 - in hosted staging, forgot-password responses must not assume `resetToken` is returned
 - hosted staging target is Render + Neon, documented in `src/docs/DEPLOY_RENDER_NEON.md`
+- admin reporting and student-scoped contract alignment is documented in:
+  - `src/docs/frontend-execution/admin-dashboard/ATTENDANCE_BEHAVIOR_ROUTE_ALIGNMENT.md`
 
 ## Recommended Frontend Start Order
 
@@ -199,4 +229,10 @@ These are explicitly deferred and are not blockers for frontend Wave 1:
 - OpenAPI/Postman testing guide: `src/docs/TESTING_WITH_OPENAPI_AND_POSTMAN.md`
 - Deployment: `src/docs/DEPLOY_RENDER_NEON.md`
 - Legacy alignment: `src/docs/LEGACY_DOC_ALIGNMENT.md`
+- Frontend execution pack: `src/docs/frontend-execution/README.md`
+- Admin contract alignment note: `src/docs/frontend-execution/admin-dashboard/ATTENDANCE_BEHAVIOR_ROUTE_ALIGNMENT.md`
+- Transport execution handoff: `TRANSPORT_EXECUTION_AND_HANDOFF.md`
+- Transport frontend handoffs:
+  - `src/docs/transport/admin-dashboard-transport-handoff.md`
+  - `src/docs/transport/driver-app-transport-handoff.md`
 - This file: Wave 1 backend handoff and source-of-truth alignment document

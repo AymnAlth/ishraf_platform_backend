@@ -1,3 +1,5 @@
+import { toDateOnly } from "../../../common/utils/date.util";
+
 import type {
   AttendanceRecordResponseDto,
   AttendanceSessionCountsDto,
@@ -12,9 +14,6 @@ import type {
   AttendanceSessionStudentRow
 } from "../types/attendance.types";
 
-const toDateOnlySafe = (value: Date | string): string =>
-  typeof value === "string" ? value.slice(0, 10) : value.toISOString().slice(0, 10);
-
 const toCountsDto = (row: AttendanceSessionRow): AttendanceSessionCountsDto => ({
   present: row.presentCount,
   absent: row.absentCount,
@@ -28,7 +27,7 @@ export const toAttendanceSessionHeaderResponseDto = (
   row: AttendanceSessionRow
 ): AttendanceSessionHeaderResponseDto => ({
   id: row.id,
-  sessionDate: toDateOnlySafe(row.sessionDate),
+  sessionDate: toDateOnly(row.sessionDate),
   periodNo: row.periodNo,
   title: row.title,
   notes: row.notes,

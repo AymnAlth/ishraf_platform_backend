@@ -69,6 +69,7 @@ const notificationRow = (
 
 describe("CommunicationService", () => {
   const repositoryMock = {
+    listAvailableRecipients: vi.fn(),
     findUserById: vi.fn(),
     createMessage: vi.fn(),
     findMessageById: vi.fn(),
@@ -118,6 +119,56 @@ describe("CommunicationService", () => {
 
     expect(response.id).toBe("1");
     expect(repositoryMock.createMessage).toHaveBeenCalledOnce();
+  });
+
+  it("returns the available recipients list using the current Wave 1 messaging policy contract", async () => {
+    vi.mocked(repositoryMock.listAvailableRecipients).mockResolvedValue({
+      rows: [
+        userRow({
+          id: "1003",
+          fullName: "Supervisor User",
+          role: "supervisor",
+          email: "supervisor@example.com"
+        }),
+        userRow({
+          id: "1004",
+          fullName: "Admin User",
+          role: "admin",
+          email: "admin@example.com"
+        })
+      ],
+      totalItems: 2
+    });
+
+    const response = await communicationService.listAvailableRecipients(
+      {
+        userId: "1002",
+        role: "teacher",
+        email: "teacher@example.com",
+        isActive: true
+      },
+      {
+        page: 1,
+        limit: 20
+      }
+    );
+
+    expect(repositoryMock.listAvailableRecipients).toHaveBeenCalledWith("1002", {
+      page: 1,
+      limit: 20
+    });
+    expect(response.items).toHaveLength(2);
+    expect(response.pagination).toMatchObject({
+      page: 1,
+      limit: 20,
+      totalItems: 2,
+      totalPages: 1
+    });
+    expect(response.items[0]).toMatchObject({
+      userId: "1003",
+      fullName: "Supervisor User",
+      role: "supervisor"
+    });
   });
 
   it("rejects self-messaging and self-conversations", async () => {

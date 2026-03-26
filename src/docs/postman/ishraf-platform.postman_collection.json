@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Ishraf Platform Backend API",
-    "_postman_id": "a699f55c-2bca-4fcf-bd91-6946307e20a8",
+    "_postman_id": "3b10d6cb-1081-4b58-8c8a-cd0b7f95d6db",
     "description": "Full Postman collection covering every live backend endpoint.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
@@ -100,6 +100,10 @@
     },
     {
       "key": "assignmentId",
+      "value": "1"
+    },
+    {
+      "key": "routeAssignmentId",
       "value": "1"
     },
     {
@@ -2366,6 +2370,121 @@
           }
         },
         {
+          "name": "[NEW] List Route Assignments",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "description": "Purpose: List recurring bus-to-route assignments for admin transport management.\n\nRoles: admin\n\nAuth: Bearer access token required",
+            "url": {
+              "raw": "{{baseUrl}}/transport/route-assignments",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "transport",
+                "route-assignments"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "[NEW] Create Route Assignment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "Purpose: Create a recurring bus-to-route assignment used by the driver daily workflow.\n\nRoles: admin\n\nAuth: Bearer access token required\n\nBody schema: CreateTransportRouteAssignmentRequest",
+            "url": {
+              "raw": "{{baseUrl}}/transport/route-assignments",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "transport",
+                "route-assignments"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"busId\": \"1\",\n  \"routeId\": \"1\",\n  \"startDate\": \"2026-03-26\",\n  \"endDate\": null\n}"
+            }
+          }
+        },
+        {
+          "name": "[NEW] Deactivate Route Assignment",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "Purpose: Deactivate a recurring bus-to-route assignment. Legacy trips remain intact.\n\nRoles: admin\n\nAuth: Bearer access token required\n\nBody schema: DeactivateTransportRouteAssignmentRequest",
+            "url": {
+              "raw": "{{baseUrl}}/transport/route-assignments/{{routeAssignmentId}}/deactivate",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "transport",
+                "route-assignments",
+                "{{routeAssignmentId}}",
+                "deactivate"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"endDate\": \"2026-03-26\"\n}"
+            }
+          }
+        },
+        {
+          "name": "[NEW] List My Route Assignments",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "description": "Purpose: Return the active recurring route assignments owned by the authenticated driver.\n\nRoles: driver\n\nAuth: Bearer access token required",
+            "url": {
+              "raw": "{{baseUrl}}/transport/route-assignments/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "transport",
+                "route-assignments",
+                "me"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
           "name": "List Routes",
           "request": {
             "method": "GET",
@@ -2478,6 +2597,92 @@
             "body": {
               "mode": "raw",
               "raw": "{\n  \"stopName\": \"Stop 4\",\n  \"latitude\": 15.37,\n  \"longitude\": 44.19,\n  \"stopOrder\": 4\n}"
+            }
+          }
+        },
+        {
+          "name": "[NEW] Delete Student Home Location",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "description": "Purpose: Delete the current saved home location for one student.\n\nRoles: admin\n\nAuth: Bearer access token required",
+            "url": {
+              "raw": "{{baseUrl}}/transport/students/{{studentId}}/home-location",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "transport",
+                "students",
+                "{{studentId}}",
+                "home-location"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "[NEW] Get Student Home Location",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "description": "Purpose: Return the current saved home location reference for one student. In this round the endpoint is admin-only.\n\nRoles: admin\n\nAuth: Bearer access token required\n\nNote: If the student exists but no home location has been saved yet, the response remains 200 with homeLocation=null.",
+            "url": {
+              "raw": "{{baseUrl}}/transport/students/{{studentId}}/home-location",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "transport",
+                "students",
+                "{{studentId}}",
+                "home-location"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "[NEW] Save Student Home Location",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "Purpose: Create or update the current student home location reference. v1 uses admin as the submitting source.\n\nRoles: admin\n\nAuth: Bearer access token required\n\nBody schema: SaveStudentHomeLocationRequest\n\nNote: Admin may save pending, approved, or rejected locations. Only approved locations appear in the driver roster.",
+            "url": {
+              "raw": "{{baseUrl}}/transport/students/{{studentId}}/home-location",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "transport",
+                "students",
+                "{{studentId}}",
+                "home-location"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"addressLabel\": \"Student Home 1\",\n  \"addressText\": \"Nearby the local market\",\n  \"latitude\": 15.3701,\n  \"longitude\": 44.1921,\n  \"status\": \"approved\",\n  \"notes\": null\n}"
             }
           }
         },
@@ -2684,7 +2889,7 @@
                 "value": "application/json"
               }
             ],
-            "description": "Purpose: Create one trip student event. stopId is required for boarded and dropped_off events, and must be omitted for absent.\n\nRoles: admin, driver\n\nAuth: Bearer access token required\n\nBody schema: CreateTripStudentEventRequest\n\nSide effects: Dropped-off events trigger parent notifications through the internal automation service.",
+            "description": "Purpose: Create one trip student event. stopId is required for boarded and dropped_off events, and must be omitted for absent.\n\nRoles: admin, driver\n\nAuth: Bearer access token required\n\nBody schema: CreateTripStudentEventRequest\n\nNote: Trip student event validation is trip-date aware: the student must have a transport assignment covering the trip date and route.\n\nSide effects: Dropped-off events trigger parent notifications through the internal automation service.",
             "url": {
               "raw": "{{baseUrl}}/transport/trips/{{tripId}}/events",
               "host": [
@@ -2774,7 +2979,7 @@
                 "value": "Bearer {{accessToken}}"
               }
             ],
-            "description": "Purpose: Return the full student roster for one trip, including assigned stops and the latest event state per student within the same trip.\n\nRoles: admin, driver\n\nAuth: Bearer access token required\n\nQuery params: search, stopId\n\nNote: The roster returns all students assigned to the trip route for the trip date, even when no trip event has been recorded yet.\n\nNote: If the trip exists but has no eligible students, the response remains 200 with students=[].\n\nDerived data: Roster rows are derived from trip-date transport assignments plus the latest trip_student_events row per student inside the same trip.",
+            "description": "Purpose: Return the full student roster for one trip, including assigned stop coordinates, the latest event state inside the same trip, and approved home location when available.\n\nRoles: admin, driver\n\nAuth: Bearer access token required\n\nQuery params: search, stopId\n\nNote: The roster returns all students assigned to the trip route for the trip date, even when no trip event has been recorded yet.\n\nNote: If the trip exists but has no eligible students, the response remains 200 with students=[].\n\nNote: Only approved homeLocation data is exposed to the driver-facing roster.\n\nDerived data: Roster rows are derived from trip-date transport assignments, route stop coordinates, approved student_transport_home_locations, and the latest trip_student_events row per student inside the same trip.",
             "url": {
               "raw": "{{baseUrl}}/transport/trips/{{tripId}}/students",
               "host": [
@@ -2798,6 +3003,39 @@
                   "description": "Filter roster rows by assigned stop id."
                 }
               ]
+            }
+          }
+        },
+        {
+          "name": "[NEW] Ensure Daily Trip",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "Purpose: Create or reuse the operational trip for one route assignment, trip date, and trip type without creating duplicates.\n\nRoles: admin, driver\n\nAuth: Bearer access token required\n\nBody schema: EnsureDailyTripRequest\n\nNote: If a matching trip already exists for the same bus, route, tripDate, and tripType, the response remains 200 with created=false.\n\nNote: This is the preferred driver-facing daily trip flow. POST /transport/trips remains a legacy fallback.\n\nDerived data: The endpoint reuses the natural uniqueness of bus + route + tripDate + tripType.",
+            "url": {
+              "raw": "{{baseUrl}}/transport/trips/ensure-daily",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "transport",
+                "trips",
+                "ensure-daily"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"routeAssignmentId\": \"1\",\n  \"tripDate\": \"2026-03-26\",\n  \"tripType\": \"pickup\"\n}"
             }
           }
         }

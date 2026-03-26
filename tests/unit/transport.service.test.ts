@@ -13,8 +13,10 @@ import type {
   LatestTripLocationRow,
   RouteRow,
   RouteStopRow,
+  StudentHomeLocationRow,
   StudentBusAssignmentRow,
   StudentTransportReferenceRow,
+  TransportRouteAssignmentRow,
   TripRow,
   TripStudentEventRow
 } from "../../src/modules/transport/types/transport.types";
@@ -97,6 +99,33 @@ const assignmentRow = (
   ...overrides
 });
 
+const routeAssignmentRow = (
+  overrides: Partial<TransportRouteAssignmentRow> = {}
+): TransportRouteAssignmentRow => ({
+  routeAssignmentId: "50",
+  busId: "1",
+  plateNumber: "BUS-001",
+  capacity: 40,
+  busStatus: "active",
+  driverId: "1",
+  driverUserId: "1004",
+  driverFullName: "Ali Driver",
+  driverEmail: "driver@example.com",
+  driverPhone: "01000000004",
+  routeId: "1",
+  routeName: "Route 1",
+  startPoint: "School",
+  endPoint: "Dhamar",
+  estimatedDurationMinutes: 35,
+  routeIsActive: true,
+  startDate: "2026-03-01",
+  endDate: null,
+  isActive: true,
+  createdAt: new Date("2026-03-01T10:00:00.000Z"),
+  updatedAt: new Date("2026-03-01T10:00:00.000Z"),
+  ...overrides
+});
+
 const tripRow = (overrides: Partial<TripRow> = {}): TripRow => ({
   id: "30",
   tripDate: "2026-03-13",
@@ -119,6 +148,28 @@ const tripRow = (overrides: Partial<TripRow> = {}): TripRow => ({
   droppedOffCount: 0,
   absentCount: 0,
   totalEvents: 0,
+  ...overrides
+});
+
+const studentHomeLocationRow = (
+  overrides: Partial<StudentHomeLocationRow> = {}
+): StudentHomeLocationRow => ({
+  studentId: "1",
+  academicNo: "STU-1001",
+  studentFullName: "Student One",
+  locationId: "60",
+  addressLabel: "Main Home",
+  addressText: "Near the market",
+  latitude: 14.4455667,
+  longitude: 44.5566778,
+  source: "admin",
+  status: "approved",
+  submittedByUserId: "1001",
+  approvedByUserId: "1001",
+  approvedAt: new Date("2026-03-13T10:00:00.000Z"),
+  notes: null,
+  createdAt: new Date("2026-03-13T10:00:00.000Z"),
+  updatedAt: new Date("2026-03-13T10:00:00.000Z"),
   ...overrides
 });
 
@@ -153,10 +204,12 @@ const tripEventRow = (
 
 describe("TransportService", () => {
   const repositoryMock = {
+    findDriverProfileByUserId: vi.fn(),
     findDriverById: vi.fn(),
     createBus: vi.fn(),
     listBuses: vi.fn(),
     findBusById: vi.fn(),
+    hasDriverBusOwnership: vi.fn(),
     createRoute: vi.fn(),
     listRoutes: vi.fn(),
     findRouteById: vi.fn(),
@@ -169,15 +222,26 @@ describe("TransportService", () => {
     createStudentBusAssignment: vi.fn(),
     deactivateStudentBusAssignment: vi.fn(),
     listActiveStudentAssignments: vi.fn(),
+    createTransportRouteAssignment: vi.fn(),
+    findTransportRouteAssignmentById: vi.fn(),
+    listTransportRouteAssignments: vi.fn(),
+    hasDriverRouteAssignmentOwnership: vi.fn(),
+    deactivateTransportRouteAssignment: vi.fn(),
     createTrip: vi.fn(),
+    findTripByNaturalKey: vi.fn(),
     listTrips: vi.fn(),
     findTripById: vi.fn(),
+    hasDriverTripOwnership: vi.fn(),
     updateTripStatus: vi.fn(),
     createTripLocation: vi.fn(),
     findLatestTripLocationByTripId: vi.fn(),
     createTripStudentEvent: vi.fn(),
     findTripStudentEventById: vi.fn(),
-    listTripEventsByTripId: vi.fn()
+    listTripEventsByTripId: vi.fn(),
+    findStudentAssignmentByStudentIdOnDate: vi.fn(),
+    findStudentHomeLocationByStudentId: vi.fn(),
+    upsertStudentHomeLocation: vi.fn(),
+    deleteStudentHomeLocation: vi.fn()
   };
 
   let transportService: TransportService;
@@ -208,6 +272,10 @@ describe("TransportService", () => {
 
     Object.values(repositoryMock).forEach((mockFn) => mockFn.mockReset());
     Object.values(automationMock).forEach((mockFn) => mockFn.mockReset());
+    vi.mocked(repositoryMock.findDriverProfileByUserId).mockResolvedValue(driverRow());
+    vi.mocked(repositoryMock.hasDriverBusOwnership).mockResolvedValue(true);
+    vi.mocked(repositoryMock.hasDriverTripOwnership).mockResolvedValue(true);
+    vi.mocked(repositoryMock.hasDriverRouteAssignmentOwnership).mockResolvedValue(true);
   });
 
   it("creates buses for admins", async () => {
@@ -297,6 +365,125 @@ describe("TransportService", () => {
     ).rejects.toBeInstanceOf(ConflictError);
   });
 
+  it("creates and lists transport route assignments", async () => {
+    vi.mocked(repositoryMock.findBusById).mockResolvedValue(busRow());
+    vi.mocked(repositoryMock.findRouteById).mockResolvedValue(routeRow());
+    vi.mocked(repositoryMock.createTransportRouteAssignment).mockResolvedValue("50");
+    vi.mocked(repositoryMock.findTransportRouteAssignmentById).mockResolvedValue(
+      routeAssignmentRow()
+    );
+    vi.mocked(repositoryMock.listTransportRouteAssignments).mockResolvedValue([
+      routeAssignmentRow()
+    ]);
+
+    const created = await transportService.createRouteAssignment(
+      {
+        userId: "1001",
+        role: "admin",
+        email: "admin@example.com",
+        isActive: true
+      },
+      {
+        busId: "1",
+        routeId: "1",
+        startDate: "2026-03-13"
+      }
+    );
+    const listed = await transportService.listRouteAssignments({
+      userId: "1001",
+      role: "admin",
+      email: "admin@example.com",
+      isActive: true
+    });
+
+    expect(created.routeAssignmentId).toBe("50");
+    expect(listed).toHaveLength(1);
+    expect(listed[0].route.routeName).toBe("Route 1");
+  });
+
+  it("ensures a daily trip by reusing an existing trip when one already exists", async () => {
+    vi.mocked(repositoryMock.findTransportRouteAssignmentById).mockResolvedValue(
+      routeAssignmentRow()
+    );
+    vi.mocked(repositoryMock.findDriverProfileByUserId).mockResolvedValue(driverRow());
+    vi.mocked(repositoryMock.hasDriverRouteAssignmentOwnership).mockResolvedValue(true);
+    vi.mocked(repositoryMock.findTripByNaturalKey).mockResolvedValue(
+      tripRow({
+        id: "88"
+      })
+    );
+
+    const response = await transportService.ensureDailyTrip(
+      {
+        userId: "1004",
+        role: "driver",
+        email: "driver@example.com",
+        isActive: true
+      },
+      {
+        routeAssignmentId: "50",
+        tripDate: "2026-03-13",
+        tripType: "pickup"
+      }
+    );
+
+    expect(response.created).toBe(false);
+    expect(response.trip.id).toBe("88");
+    expect(repositoryMock.createTrip).not.toHaveBeenCalled();
+  });
+
+  it("rejects ensureDailyTrip when the route assignment does not cover the requested date", async () => {
+    vi.mocked(repositoryMock.findTransportRouteAssignmentById).mockResolvedValue(
+      routeAssignmentRow({
+        startDate: "2026-03-20",
+        endDate: null
+      })
+    );
+
+    await expect(
+      transportService.ensureDailyTrip(
+        {
+          userId: "1001",
+          role: "admin",
+          email: "admin@example.com",
+          isActive: true
+        },
+        {
+          routeAssignmentId: "50",
+          tripDate: "2026-03-13",
+          tripType: "pickup"
+        }
+      )
+    ).rejects.toBeInstanceOf(ValidationError);
+  });
+
+  it("saves approved student home locations for admins", async () => {
+    vi.mocked(repositoryMock.findStudentTransportReferenceById).mockResolvedValue(studentRow());
+    vi.mocked(repositoryMock.upsertStudentHomeLocation).mockResolvedValue(undefined);
+    vi.mocked(repositoryMock.findStudentHomeLocationByStudentId).mockResolvedValue(
+      studentHomeLocationRow()
+    );
+
+    const response = await transportService.saveStudentHomeLocation(
+      {
+        userId: "1001",
+        role: "admin",
+        email: "admin@example.com",
+        isActive: true
+      },
+      "1",
+      {
+        addressLabel: "Main Home",
+        latitude: 14.4455667,
+        longitude: 44.5566778
+      }
+    );
+
+    expect(response.student.studentId).toBe("1");
+    expect(response.homeLocation?.status).toBe("approved");
+    expect(response.homeLocation?.approvedByUserId).toBe("1001");
+  });
+
   it("allows drivers to create trips and enforces started-only locations", async () => {
     vi.mocked(repositoryMock.findBusById).mockResolvedValue(busRow());
     vi.mocked(repositoryMock.findRouteById).mockResolvedValue(routeRow());
@@ -376,7 +563,7 @@ describe("TransportService", () => {
       })
     );
     vi.mocked(repositoryMock.findStudentTransportReferenceById).mockResolvedValue(studentRow());
-    vi.mocked(repositoryMock.findActiveStudentAssignmentByStudentId).mockResolvedValue(
+    vi.mocked(repositoryMock.findStudentAssignmentByStudentIdOnDate).mockResolvedValue(
       assignmentRow({
         routeId: "2",
         routeName: "Route 2"
@@ -408,7 +595,7 @@ describe("TransportService", () => {
       })
     );
     vi.mocked(repositoryMock.findStudentTransportReferenceById).mockResolvedValue(studentRow());
-    vi.mocked(repositoryMock.findActiveStudentAssignmentByStudentId).mockResolvedValue(
+    vi.mocked(repositoryMock.findStudentAssignmentByStudentIdOnDate).mockResolvedValue(
       assignmentRow()
     );
     vi.mocked(repositoryMock.findRouteStopById).mockResolvedValue(routeStopRow());
@@ -474,7 +661,7 @@ describe("TransportService", () => {
       })
     );
     vi.mocked(repositoryMock.findStudentTransportReferenceById).mockResolvedValue(studentRow());
-    vi.mocked(repositoryMock.findActiveStudentAssignmentByStudentId).mockResolvedValue(
+    vi.mocked(repositoryMock.findStudentAssignmentByStudentIdOnDate).mockResolvedValue(
       assignmentRow()
     );
     vi.mocked(repositoryMock.findRouteStopById).mockResolvedValue(routeStopRow());

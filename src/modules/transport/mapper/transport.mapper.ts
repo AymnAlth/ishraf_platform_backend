@@ -1,9 +1,14 @@
+import { toDateOnly } from "../../../common/utils/date.util";
+
 import type {
   TransportBusResponseDto,
   TransportLatestLocationResponseDto,
   TransportRouteResponseDto,
+  TransportRouteAssignmentResponseDto,
   TransportRouteStopResponseDto,
+  TransportStudentHomeLocationResponseDto,
   TransportStudentBusAssignmentResponseDto,
+  TransportStudentSummaryDto,
   TransportTripDetailResponseDto,
   TransportTripEventSummaryDto,
   TransportTripListItemResponseDto,
@@ -16,15 +21,14 @@ import type {
   BusRow,
   LatestTripLocationRow,
   RouteRow,
+  TransportRouteAssignmentRow,
   RouteStopRow,
+  StudentHomeLocationRow,
   StudentBusAssignmentRow,
   TripRow,
   TripStudentRosterRow,
   TripStudentEventRow
 } from "../types/transport.types";
-
-const toDateOnly = (value: Date | string): string =>
-  typeof value === "string" ? value.slice(0, 10) : value.toISOString().slice(0, 10);
 
 const toNumber = (value: number | string): number => Number(value);
 
@@ -87,6 +91,49 @@ export const toStudentBusAssignmentResponseDto = (
   stop: {
     id: row.stopId,
     stopName: row.stopName
+  },
+  startDate: toDateOnly(row.startDate),
+  endDate: row.endDate ? toDateOnly(row.endDate) : null,
+  isActive: row.isActive
+});
+
+const toStudentSummaryDto = (
+  studentId: string,
+  academicNo: string,
+  fullName: string
+): TransportStudentSummaryDto => ({
+  studentId,
+  academicNo,
+  fullName
+});
+
+export const toRouteAssignmentResponseDto = (
+  row: TransportRouteAssignmentRow
+): TransportRouteAssignmentResponseDto => ({
+  routeAssignmentId: row.routeAssignmentId,
+  bus: {
+    id: row.busId,
+    plateNumber: row.plateNumber,
+    capacity: row.capacity,
+    status: row.busStatus
+  },
+  driver:
+    row.driverId && row.driverUserId
+      ? {
+          driverId: row.driverId,
+          userId: row.driverUserId,
+          fullName: row.driverFullName ?? "",
+          email: row.driverEmail,
+          phone: row.driverPhone
+        }
+      : null,
+  route: {
+    id: row.routeId,
+    routeName: row.routeName,
+    startPoint: row.startPoint,
+    endPoint: row.endPoint,
+    estimatedDurationMinutes: row.estimatedDurationMinutes,
+    isActive: row.routeIsActive
   },
   startDate: toDateOnly(row.startDate),
   endDate: row.endDate ? toDateOnly(row.endDate) : null,
@@ -163,8 +210,19 @@ export const toTripRosterStudentResponseDto = (
   assignedStop: {
     stopId: row.stopId,
     stopName: row.stopName,
+    latitude: toNumber(row.stopLatitude),
+    longitude: toNumber(row.stopLongitude),
     stopOrder: row.stopOrder
   },
+  homeLocation:
+    row.homeLatitude !== null && row.homeLongitude !== null
+      ? {
+          latitude: toNumber(row.homeLatitude),
+          longitude: toNumber(row.homeLongitude),
+          addressLabel: row.homeAddressLabel,
+          addressText: row.homeAddressText
+        }
+      : null,
   currentTripEventType: row.lastEventType ?? "not_marked",
   lastEvent: {
     eventType: row.lastEventType,
@@ -186,11 +244,7 @@ export const toTripStudentEventResponseDto = (
   row: TripStudentEventRow
 ): TransportTripStudentEventResponseDto => ({
   tripStudentEventId: row.tripStudentEventId,
-  student: {
-    studentId: row.studentId,
-    academicNo: row.academicNo,
-    fullName: row.studentFullName
-  },
+  student: toStudentSummaryDto(row.studentId, row.academicNo, row.studentFullName),
   eventType: row.eventType,
   eventTime: row.eventTime.toISOString(),
   stop:
@@ -201,4 +255,35 @@ export const toTripStudentEventResponseDto = (
         }
       : null,
   notes: row.notes
+});
+
+export const toStudentHomeLocationResponseDto = (
+  row: StudentHomeLocationRow
+): TransportStudentHomeLocationResponseDto => ({
+  student: toStudentSummaryDto(row.studentId, row.academicNo, row.studentFullName),
+  homeLocation:
+    row.locationId &&
+    row.latitude !== null &&
+    row.longitude !== null &&
+    row.source &&
+    row.status &&
+    row.submittedByUserId &&
+    row.createdAt &&
+    row.updatedAt
+      ? {
+          locationId: row.locationId,
+          addressLabel: row.addressLabel,
+          addressText: row.addressText,
+          latitude: toNumber(row.latitude),
+          longitude: toNumber(row.longitude),
+          source: row.source,
+          status: row.status,
+          submittedByUserId: row.submittedByUserId,
+          approvedByUserId: row.approvedByUserId,
+          approvedAt: row.approvedAt ? row.approvedAt.toISOString() : null,
+          notes: row.notes,
+          createdAt: row.createdAt.toISOString(),
+          updatedAt: row.updatedAt.toISOString()
+        }
+      : null
 });

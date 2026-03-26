@@ -896,12 +896,38 @@
           "endDate": "2026-03-26"
         }
       },
+      "CreateTransportRouteAssignmentRequest": {
+        "type": "object",
+        "additionalProperties": true,
+        "example": {
+          "busId": "1",
+          "routeId": "1",
+          "startDate": "2026-03-26",
+          "endDate": null
+        }
+      },
+      "DeactivateTransportRouteAssignmentRequest": {
+        "type": "object",
+        "additionalProperties": true,
+        "example": {
+          "endDate": "2026-03-26"
+        }
+      },
       "CreateTripRequest": {
         "type": "object",
         "additionalProperties": true,
         "example": {
           "busId": "1",
           "routeId": "1",
+          "tripDate": "2026-03-26",
+          "tripType": "pickup"
+        }
+      },
+      "EnsureDailyTripRequest": {
+        "type": "object",
+        "additionalProperties": true,
+        "example": {
+          "routeAssignmentId": "1",
           "tripDate": "2026-03-26",
           "tripType": "pickup"
         }
@@ -922,6 +948,18 @@
           "eventType": "dropped_off",
           "stopId": "1",
           "notes": "تم النزول بنجاح"
+        }
+      },
+      "SaveStudentHomeLocationRequest": {
+        "type": "object",
+        "additionalProperties": true,
+        "example": {
+          "addressLabel": "Student Home 1",
+          "addressText": "Nearby the local market",
+          "latitude": 15.3701,
+          "longitude": 44.1921,
+          "status": "approved",
+          "notes": null
         }
       },
       "SendMessageRequest": {
@@ -10213,10 +10251,21 @@
                   "message": "Create Transport Assignment completed successfully",
                   "data": {
                     "assignmentId": "1",
-                    "studentId": "1",
-                    "routeId": "1",
-                    "stopId": "1",
+                    "student": {
+                      "studentId": "1",
+                      "academicNo": "SEED-STU-001",
+                      "fullName": "طالب تجريبي 1"
+                    },
+                    "route": {
+                      "id": "1",
+                      "routeName": "SEED Route 1"
+                    },
+                    "stop": {
+                      "id": "1",
+                      "stopName": "Stop 1"
+                    },
                     "startDate": "2026-03-26",
+                    "endDate": null,
                     "isActive": true
                   }
                 }
@@ -10348,10 +10397,21 @@
                   "message": "Deactivate Transport Assignment completed successfully",
                   "data": {
                     "assignmentId": "1",
-                    "studentId": "1",
-                    "routeId": "1",
-                    "stopId": "1",
+                    "student": {
+                      "studentId": "1",
+                      "academicNo": "SEED-STU-001",
+                      "fullName": "طالب تجريبي 1"
+                    },
+                    "route": {
+                      "id": "1",
+                      "routeName": "SEED Route 1"
+                    },
+                    "stop": {
+                      "id": "1",
+                      "stopName": "Stop 1"
+                    },
                     "startDate": "2026-03-26",
+                    "endDate": null,
                     "isActive": true
                   }
                 }
@@ -10516,10 +10576,21 @@
                   "data": [
                     {
                       "assignmentId": "1",
-                      "studentId": "1",
-                      "routeId": "1",
-                      "stopId": "1",
+                      "student": {
+                        "studentId": "1",
+                        "academicNo": "SEED-STU-001",
+                        "fullName": "طالب تجريبي 1"
+                      },
+                      "route": {
+                        "id": "1",
+                        "routeName": "SEED Route 1"
+                      },
+                      "stop": {
+                        "id": "1",
+                        "stopName": "Stop 1"
+                      },
                       "startDate": "2026-03-26",
+                      "endDate": null,
                       "isActive": true
                     }
                   ]
@@ -10621,7 +10692,13 @@
                       "plateNumber": "SEED-1001",
                       "capacity": 40,
                       "status": "active",
-                      "driverId": "30"
+                      "driver": {
+                        "driverId": "30",
+                        "userId": "15",
+                        "fullName": "Seed Driver 01",
+                        "email": "seed-driver-01@ishraf.local",
+                        "phone": "770500001"
+                      }
                     }
                   ]
                 }
@@ -10716,7 +10793,13 @@
                     "plateNumber": "SEED-1001",
                     "capacity": 40,
                     "status": "active",
-                    "driverId": "30"
+                    "driver": {
+                      "driverId": "30",
+                      "userId": "15",
+                      "fullName": "Seed Driver 01",
+                      "email": "seed-driver-01@ishraf.local",
+                      "phone": "770500001"
+                    }
                   }
                 }
               }
@@ -10805,6 +10888,582 @@
             }
           }
         }
+      }
+    },
+    "/transport/route-assignments": {
+      "get": {
+        "tags": [
+          "Transport"
+        ],
+        "summary": "[NEW] List Route Assignments",
+        "description": "List recurring bus-to-route assignments for admin transport management.\n\nAllowed roles: admin.",
+        "x-allowed-roles": [
+          "admin"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "const": true
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/GenericObject"
+                      }
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                },
+                "example": {
+                  "success": true,
+                  "message": "[NEW] List Route Assignments completed successfully",
+                  "data": [
+                    {
+                      "routeAssignmentId": "1",
+                      "bus": {
+                        "id": "1",
+                        "plateNumber": "SEED-1001",
+                        "capacity": 40,
+                        "status": "active"
+                      },
+                      "driver": {
+                        "driverId": "30",
+                        "userId": "15",
+                        "fullName": "Seed Driver 01",
+                        "email": "seed-driver-01@ishraf.local",
+                        "phone": "770500001"
+                      },
+                      "route": {
+                        "id": "1",
+                        "routeName": "SEED Route 1",
+                        "startPoint": "School",
+                        "endPoint": "District A",
+                        "estimatedDurationMinutes": 35,
+                        "isActive": true
+                      },
+                      "startDate": "2026-03-26",
+                      "endDate": null,
+                      "isActive": true
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication is missing or expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Unauthorized",
+                  "errors": [
+                    {
+                      "code": "UNAUTHORIZED",
+                      "message": "Authentication is required"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated but not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Forbidden",
+                  "errors": [
+                    {
+                      "code": "FORBIDDEN",
+                      "message": "You do not have permission to access this resource"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Transport"
+        ],
+        "summary": "[NEW] Create Route Assignment",
+        "description": "Create a recurring bus-to-route assignment used by the driver daily workflow.\n\nAllowed roles: admin.",
+        "x-allowed-roles": [
+          "admin"
+        ],
+        "responses": {
+          "201": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "const": true
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/GenericObject"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                },
+                "example": {
+                  "success": true,
+                  "message": "[NEW] Create Route Assignment completed successfully",
+                  "data": {
+                    "routeAssignmentId": "1",
+                    "bus": {
+                      "id": "1",
+                      "plateNumber": "SEED-1001",
+                      "capacity": 40,
+                      "status": "active"
+                    },
+                    "driver": {
+                      "driverId": "30",
+                      "userId": "15",
+                      "fullName": "Seed Driver 01",
+                      "email": "seed-driver-01@ishraf.local",
+                      "phone": "770500001"
+                    },
+                    "route": {
+                      "id": "1",
+                      "routeName": "SEED Route 1",
+                      "startPoint": "School",
+                      "endPoint": "District A",
+                      "estimatedDurationMinutes": 35,
+                      "isActive": true
+                    },
+                    "startDate": "2026-03-26",
+                    "endDate": null,
+                    "isActive": true
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Validation failed",
+                  "errors": [
+                    {
+                      "field": "fieldName",
+                      "code": "invalid_type",
+                      "message": "Validation error example"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication is missing or expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Unauthorized",
+                  "errors": [
+                    {
+                      "code": "UNAUTHORIZED",
+                      "message": "Authentication is required"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated but not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Forbidden",
+                  "errors": [
+                    {
+                      "code": "FORBIDDEN",
+                      "message": "You do not have permission to access this resource"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTransportRouteAssignmentRequest"
+              },
+              "example": {
+                "busId": "1",
+                "routeId": "1",
+                "startDate": "2026-03-26",
+                "endDate": null
+              }
+            }
+          }
+        }
+      }
+    },
+    "/transport/route-assignments/{id}/deactivate": {
+      "patch": {
+        "tags": [
+          "Transport"
+        ],
+        "summary": "[NEW] Deactivate Route Assignment",
+        "description": "Deactivate a recurring bus-to-route assignment. Legacy trips remain intact.\n\nAllowed roles: admin.",
+        "x-allowed-roles": [
+          "admin"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "const": true
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/GenericObject"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                },
+                "example": {
+                  "success": true,
+                  "message": "[NEW] Deactivate Route Assignment completed successfully",
+                  "data": {
+                    "routeAssignmentId": "1",
+                    "bus": {
+                      "id": "1",
+                      "plateNumber": "SEED-1001",
+                      "capacity": 40,
+                      "status": "active"
+                    },
+                    "driver": {
+                      "driverId": "30",
+                      "userId": "15",
+                      "fullName": "Seed Driver 01",
+                      "email": "seed-driver-01@ishraf.local",
+                      "phone": "770500001"
+                    },
+                    "route": {
+                      "id": "1",
+                      "routeName": "SEED Route 1",
+                      "startPoint": "School",
+                      "endPoint": "District A",
+                      "estimatedDurationMinutes": 35,
+                      "isActive": true
+                    },
+                    "startDate": "2026-03-26",
+                    "endDate": null,
+                    "isActive": true
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Validation failed",
+                  "errors": [
+                    {
+                      "field": "fieldName",
+                      "code": "invalid_type",
+                      "message": "Validation error example"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication is missing or expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Unauthorized",
+                  "errors": [
+                    {
+                      "code": "UNAUTHORIZED",
+                      "message": "Authentication is required"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated but not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Forbidden",
+                  "errors": [
+                    {
+                      "code": "FORBIDDEN",
+                      "message": "You do not have permission to access this resource"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Primary resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Not Found",
+                  "errors": [
+                    {
+                      "code": "NOT_FOUND",
+                      "message": "Requested resource was not found"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Transport route assignment numeric string identifier.",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9]+$",
+              "example": "1"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeactivateTransportRouteAssignmentRequest"
+              },
+              "example": {
+                "endDate": "2026-03-26"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/transport/route-assignments/me": {
+      "get": {
+        "tags": [
+          "Transport"
+        ],
+        "summary": "[NEW] List My Route Assignments",
+        "description": "Return the active recurring route assignments owned by the authenticated driver.\n\nAllowed roles: driver.",
+        "x-allowed-roles": [
+          "driver"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "const": true
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/GenericObject"
+                      }
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                },
+                "example": {
+                  "success": true,
+                  "message": "[NEW] List My Route Assignments completed successfully",
+                  "data": [
+                    {
+                      "routeAssignmentId": "1",
+                      "bus": {
+                        "id": "1",
+                        "plateNumber": "SEED-1001",
+                        "capacity": 40,
+                        "status": "active"
+                      },
+                      "driver": {
+                        "driverId": "30",
+                        "userId": "15",
+                        "fullName": "Seed Driver 01",
+                        "email": "seed-driver-01@ishraf.local",
+                        "phone": "770500001"
+                      },
+                      "route": {
+                        "id": "1",
+                        "routeName": "SEED Route 1",
+                        "startPoint": "School",
+                        "endPoint": "District A",
+                        "estimatedDurationMinutes": 35,
+                        "isActive": true
+                      },
+                      "startDate": "2026-03-26",
+                      "endDate": null,
+                      "isActive": true
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication is missing or expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Unauthorized",
+                  "errors": [
+                    {
+                      "code": "UNAUTHORIZED",
+                      "message": "Authentication is required"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated but not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Forbidden",
+                  "errors": [
+                    {
+                      "code": "FORBIDDEN",
+                      "message": "You do not have permission to access this resource"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/transport/routes": {
@@ -11084,7 +11743,6 @@
                   "message": "List Route Stops completed successfully",
                   "data": [
                     {
-                      "routeId": "1",
                       "stopId": "1",
                       "stopName": "Stop 1",
                       "latitude": 15.3694,
@@ -11234,7 +11892,6 @@
                   "success": true,
                   "message": "Create Route Stop completed successfully",
                   "data": {
-                    "routeId": "1",
                     "stopId": "1",
                     "stopName": "Stop 1",
                     "latitude": 15.3694,
@@ -11363,6 +12020,515 @@
         }
       }
     },
+    "/transport/students/{studentId}/home-location": {
+      "delete": {
+        "tags": [
+          "Transport"
+        ],
+        "summary": "[NEW] Delete Student Home Location",
+        "description": "Delete the current saved home location for one student.\n\nAllowed roles: admin.",
+        "x-allowed-roles": [
+          "admin"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "const": true
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/GenericObject"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                },
+                "example": {
+                  "success": true,
+                  "message": "[NEW] Delete Student Home Location completed successfully",
+                  "data": {
+                    "student": {
+                      "studentId": "1",
+                      "academicNo": "SEED-STU-001",
+                      "fullName": "طالب تجريبي 1"
+                    },
+                    "homeLocation": {
+                      "locationId": "1",
+                      "addressLabel": "Student Home 1",
+                      "addressText": "Nearby the local market",
+                      "latitude": 15.3701,
+                      "longitude": 44.1921,
+                      "source": "admin",
+                      "status": "approved",
+                      "submittedByUserId": "1",
+                      "approvedByUserId": "1",
+                      "approvedAt": "2026-03-26T12:00:00.000Z",
+                      "notes": null,
+                      "createdAt": "2026-03-26T12:00:00.000Z",
+                      "updatedAt": "2026-03-26T12:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Validation failed",
+                  "errors": [
+                    {
+                      "field": "fieldName",
+                      "code": "invalid_type",
+                      "message": "Validation error example"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication is missing or expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Unauthorized",
+                  "errors": [
+                    {
+                      "code": "UNAUTHORIZED",
+                      "message": "Authentication is required"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated but not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Forbidden",
+                  "errors": [
+                    {
+                      "code": "FORBIDDEN",
+                      "message": "You do not have permission to access this resource"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Primary resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Not Found",
+                  "errors": [
+                    {
+                      "code": "NOT_FOUND",
+                      "message": "Requested resource was not found"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "studentId",
+            "in": "path",
+            "required": true,
+            "description": "Student numeric string identifier. This is the same id used by /students/:id.",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9]+$",
+              "example": "1"
+            }
+          }
+        ]
+      },
+      "get": {
+        "tags": [
+          "Transport"
+        ],
+        "summary": "[NEW] Get Student Home Location",
+        "description": "Return the current saved home location reference for one student. In this round the endpoint is admin-only.\n\nAllowed roles: admin.\n\nNote: If the student exists but no home location has been saved yet, the response remains 200 with homeLocation=null.",
+        "x-allowed-roles": [
+          "admin"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "const": true
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/GenericObject"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                },
+                "example": {
+                  "success": true,
+                  "message": "[NEW] Get Student Home Location completed successfully",
+                  "data": {
+                    "student": {
+                      "studentId": "1",
+                      "academicNo": "SEED-STU-001",
+                      "fullName": "طالب تجريبي 1"
+                    },
+                    "homeLocation": {
+                      "locationId": "1",
+                      "addressLabel": "Student Home 1",
+                      "addressText": "Nearby the local market",
+                      "latitude": 15.3701,
+                      "longitude": 44.1921,
+                      "source": "admin",
+                      "status": "approved",
+                      "submittedByUserId": "1",
+                      "approvedByUserId": "1",
+                      "approvedAt": "2026-03-26T12:00:00.000Z",
+                      "notes": null,
+                      "createdAt": "2026-03-26T12:00:00.000Z",
+                      "updatedAt": "2026-03-26T12:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Validation failed",
+                  "errors": [
+                    {
+                      "field": "fieldName",
+                      "code": "invalid_type",
+                      "message": "Validation error example"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication is missing or expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Unauthorized",
+                  "errors": [
+                    {
+                      "code": "UNAUTHORIZED",
+                      "message": "Authentication is required"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated but not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Forbidden",
+                  "errors": [
+                    {
+                      "code": "FORBIDDEN",
+                      "message": "You do not have permission to access this resource"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Primary resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Not Found",
+                  "errors": [
+                    {
+                      "code": "NOT_FOUND",
+                      "message": "Requested resource was not found"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "studentId",
+            "in": "path",
+            "required": true,
+            "description": "Student numeric string identifier. This is the same id used by /students/:id.",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9]+$",
+              "example": "1"
+            }
+          }
+        ]
+      },
+      "put": {
+        "tags": [
+          "Transport"
+        ],
+        "summary": "[NEW] Save Student Home Location",
+        "description": "Create or update the current student home location reference. v1 uses admin as the submitting source.\n\nAllowed roles: admin.\n\nNote: Admin may save pending, approved, or rejected locations. Only approved locations appear in the driver roster.",
+        "x-allowed-roles": [
+          "admin"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "const": true
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/GenericObject"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                },
+                "example": {
+                  "success": true,
+                  "message": "[NEW] Save Student Home Location completed successfully",
+                  "data": {
+                    "student": {
+                      "studentId": "1",
+                      "academicNo": "SEED-STU-001",
+                      "fullName": "طالب تجريبي 1"
+                    },
+                    "homeLocation": {
+                      "locationId": "1",
+                      "addressLabel": "Student Home 1",
+                      "addressText": "Nearby the local market",
+                      "latitude": 15.3701,
+                      "longitude": 44.1921,
+                      "source": "admin",
+                      "status": "approved",
+                      "submittedByUserId": "1",
+                      "approvedByUserId": "1",
+                      "approvedAt": "2026-03-26T12:00:00.000Z",
+                      "notes": null,
+                      "createdAt": "2026-03-26T12:00:00.000Z",
+                      "updatedAt": "2026-03-26T12:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Validation failed",
+                  "errors": [
+                    {
+                      "field": "fieldName",
+                      "code": "invalid_type",
+                      "message": "Validation error example"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication is missing or expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Unauthorized",
+                  "errors": [
+                    {
+                      "code": "UNAUTHORIZED",
+                      "message": "Authentication is required"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated but not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Forbidden",
+                  "errors": [
+                    {
+                      "code": "FORBIDDEN",
+                      "message": "You do not have permission to access this resource"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Primary resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Not Found",
+                  "errors": [
+                    {
+                      "code": "NOT_FOUND",
+                      "message": "Requested resource was not found"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "studentId",
+            "in": "path",
+            "required": true,
+            "description": "Student numeric string identifier. This is the same id used by /students/:id.",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9]+$",
+              "example": "1"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveStudentHomeLocationRequest"
+              },
+              "example": {
+                "addressLabel": "Student Home 1",
+                "addressText": "Nearby the local market",
+                "latitude": 15.3701,
+                "longitude": 44.1921,
+                "status": "approved",
+                "notes": null
+              }
+            }
+          }
+        }
+      }
+    },
     "/transport/trips": {
       "get": {
         "tags": [
@@ -11424,13 +12590,34 @@
                     "items": [
                       {
                         "id": "1",
-                        "busId": "1",
-                        "routeId": "1",
-                        "routeName": "SEED Route 1",
                         "tripDate": "2026-03-26",
                         "tripType": "pickup",
                         "tripStatus": "started",
-                        "startedAt": "2026-03-26T12:00:00.000Z"
+                        "startedAt": "2026-03-26T12:00:00.000Z",
+                        "endedAt": null,
+                        "bus": {
+                          "id": "1",
+                          "plateNumber": "SEED-1001"
+                        },
+                        "driver": {
+                          "driverId": "30",
+                          "fullName": "Seed Driver 01"
+                        },
+                        "route": {
+                          "id": "1",
+                          "routeName": "SEED Route 1"
+                        },
+                        "latestLocation": {
+                          "latitude": 15.3694,
+                          "longitude": 44.191,
+                          "recordedAt": "2026-03-26T12:00:00.000Z"
+                        },
+                        "eventSummary": {
+                          "boardedCount": 1,
+                          "droppedOffCount": 0,
+                          "absentCount": 0,
+                          "totalEvents": 1
+                        }
                       }
                     ],
                     "pagination": {
@@ -11681,13 +12868,34 @@
                   "message": "Create Trip completed successfully",
                   "data": {
                     "id": "1",
-                    "busId": "1",
-                    "routeId": "1",
-                    "routeName": "SEED Route 1",
                     "tripDate": "2026-03-26",
                     "tripType": "pickup",
                     "tripStatus": "started",
-                    "startedAt": "2026-03-26T12:00:00.000Z"
+                    "startedAt": "2026-03-26T12:00:00.000Z",
+                    "endedAt": null,
+                    "bus": {
+                      "id": "1",
+                      "plateNumber": "SEED-1001"
+                    },
+                    "driver": {
+                      "driverId": "30",
+                      "fullName": "Seed Driver 01"
+                    },
+                    "route": {
+                      "id": "1",
+                      "routeName": "SEED Route 1"
+                    },
+                    "latestLocation": {
+                      "latitude": 15.3694,
+                      "longitude": 44.191,
+                      "recordedAt": "2026-03-26T12:00:00.000Z"
+                    },
+                    "eventSummary": {
+                      "boardedCount": 1,
+                      "droppedOffCount": 0,
+                      "absentCount": 0,
+                      "totalEvents": 1
+                    }
                   }
                 }
               }
@@ -11817,14 +13025,46 @@
                   "success": true,
                   "message": "Get Trip completed successfully",
                   "data": {
-                    "id": "1",
-                    "busId": "1",
-                    "routeId": "1",
-                    "routeName": "SEED Route 1",
-                    "tripDate": "2026-03-26",
-                    "tripType": "pickup",
-                    "tripStatus": "started",
-                    "startedAt": "2026-03-26T12:00:00.000Z"
+                    "trip": {
+                      "id": "1",
+                      "tripDate": "2026-03-26",
+                      "tripType": "pickup",
+                      "tripStatus": "started",
+                      "startedAt": "2026-03-26T12:00:00.000Z",
+                      "endedAt": null,
+                      "bus": {
+                        "id": "1",
+                        "plateNumber": "SEED-1001"
+                      },
+                      "driver": {
+                        "driverId": "30",
+                        "fullName": "Seed Driver 01"
+                      },
+                      "route": {
+                        "id": "1",
+                        "routeName": "SEED Route 1"
+                      }
+                    },
+                    "latestLocation": {
+                      "latitude": 15.3694,
+                      "longitude": 44.191,
+                      "recordedAt": "2026-03-26T12:00:00.000Z"
+                    },
+                    "routeStops": [
+                      {
+                        "stopId": "1",
+                        "stopName": "Stop 1",
+                        "latitude": 15.3694,
+                        "longitude": 44.191,
+                        "stopOrder": 1
+                      }
+                    ],
+                    "eventSummary": {
+                      "boardedCount": 1,
+                      "droppedOffCount": 0,
+                      "absentCount": 0,
+                      "totalEvents": 1
+                    }
                   }
                 }
               }
@@ -11972,13 +13212,34 @@
                   "message": "End Trip completed successfully",
                   "data": {
                     "id": "1",
-                    "busId": "1",
-                    "routeId": "1",
-                    "routeName": "SEED Route 1",
                     "tripDate": "2026-03-26",
                     "tripType": "pickup",
                     "tripStatus": "started",
-                    "startedAt": "2026-03-26T12:00:00.000Z"
+                    "startedAt": "2026-03-26T12:00:00.000Z",
+                    "endedAt": null,
+                    "bus": {
+                      "id": "1",
+                      "plateNumber": "SEED-1001"
+                    },
+                    "driver": {
+                      "driverId": "30",
+                      "fullName": "Seed Driver 01"
+                    },
+                    "route": {
+                      "id": "1",
+                      "routeName": "SEED Route 1"
+                    },
+                    "latestLocation": {
+                      "latitude": 15.3694,
+                      "longitude": 44.191,
+                      "recordedAt": "2026-03-26T12:00:00.000Z"
+                    },
+                    "eventSummary": {
+                      "boardedCount": 1,
+                      "droppedOffCount": 0,
+                      "absentCount": 0,
+                      "totalEvents": 1
+                    }
                   }
                 }
               }
@@ -12130,11 +13391,18 @@
                   "data": [
                     {
                       "tripStudentEventId": "1",
-                      "tripId": "1",
-                      "studentId": "1",
-                      "studentFullName": "طالب تجريبي 1",
+                      "student": {
+                        "studentId": "1",
+                        "academicNo": "SEED-STU-001",
+                        "fullName": "طالب تجريبي 1"
+                      },
                       "eventType": "boarded",
-                      "eventTime": "2026-03-26T12:00:00.000Z"
+                      "eventTime": "2026-03-26T12:00:00.000Z",
+                      "stop": {
+                        "stopId": "1",
+                        "stopName": "Stop 1"
+                      },
+                      "notes": null
                     }
                   ]
                 }
@@ -12247,13 +13515,13 @@
           "Transport"
         ],
         "summary": "Create Trip Student Event",
-        "description": "Create one trip student event. stopId is required for boarded and dropped_off events, and must be omitted for absent.\n\nAllowed roles: admin, driver.\n\nSide effects: Dropped-off events trigger parent notifications through the internal automation service.",
+        "description": "Create one trip student event. stopId is required for boarded and dropped_off events, and must be omitted for absent.\n\nAllowed roles: admin, driver.\n\nNote: Trip student event validation is trip-date aware: the student must have a transport assignment covering the trip date and route.\n\nSide effects: Dropped-off events trigger parent notifications through the internal automation service.",
         "x-allowed-roles": [
           "admin",
           "driver"
         ],
         "responses": {
-          "200": {
+          "201": {
             "description": "Successful response",
             "content": {
               "application/json": {
@@ -12281,11 +13549,18 @@
                   "message": "Create Trip Student Event completed successfully",
                   "data": {
                     "tripStudentEventId": "1",
-                    "tripId": "1",
-                    "studentId": "1",
-                    "studentFullName": "طالب تجريبي 1",
+                    "student": {
+                      "studentId": "1",
+                      "academicNo": "SEED-STU-001",
+                      "fullName": "طالب تجريبي 1"
+                    },
                     "eventType": "boarded",
-                    "eventTime": "2026-03-26T12:00:00.000Z"
+                    "eventTime": "2026-03-26T12:00:00.000Z",
+                    "stop": {
+                      "stopId": "1",
+                      "stopName": "Stop 1"
+                    },
+                    "notes": null
                   }
                 }
               }
@@ -12421,7 +13696,7 @@
           "driver"
         ],
         "responses": {
-          "200": {
+          "201": {
             "description": "Successful response",
             "content": {
               "application/json": {
@@ -12449,13 +13724,34 @@
                   "message": "Record Trip Location completed successfully",
                   "data": {
                     "id": "1",
-                    "busId": "1",
-                    "routeId": "1",
-                    "routeName": "SEED Route 1",
                     "tripDate": "2026-03-26",
                     "tripType": "pickup",
                     "tripStatus": "started",
-                    "startedAt": "2026-03-26T12:00:00.000Z"
+                    "startedAt": "2026-03-26T12:00:00.000Z",
+                    "endedAt": null,
+                    "bus": {
+                      "id": "1",
+                      "plateNumber": "SEED-1001"
+                    },
+                    "driver": {
+                      "driverId": "30",
+                      "fullName": "Seed Driver 01"
+                    },
+                    "route": {
+                      "id": "1",
+                      "routeName": "SEED Route 1"
+                    },
+                    "latestLocation": {
+                      "latitude": 15.3694,
+                      "longitude": 44.191,
+                      "recordedAt": "2026-03-26T12:00:00.000Z"
+                    },
+                    "eventSummary": {
+                      "boardedCount": 1,
+                      "droppedOffCount": 0,
+                      "absentCount": 0,
+                      "totalEvents": 1
+                    }
                   }
                 }
               }
@@ -12617,13 +13913,34 @@
                   "message": "Start Trip completed successfully",
                   "data": {
                     "id": "1",
-                    "busId": "1",
-                    "routeId": "1",
-                    "routeName": "SEED Route 1",
                     "tripDate": "2026-03-26",
                     "tripType": "pickup",
                     "tripStatus": "started",
-                    "startedAt": "2026-03-26T12:00:00.000Z"
+                    "startedAt": "2026-03-26T12:00:00.000Z",
+                    "endedAt": null,
+                    "bus": {
+                      "id": "1",
+                      "plateNumber": "SEED-1001"
+                    },
+                    "driver": {
+                      "driverId": "30",
+                      "fullName": "Seed Driver 01"
+                    },
+                    "route": {
+                      "id": "1",
+                      "routeName": "SEED Route 1"
+                    },
+                    "latestLocation": {
+                      "latitude": 15.3694,
+                      "longitude": 44.191,
+                      "recordedAt": "2026-03-26T12:00:00.000Z"
+                    },
+                    "eventSummary": {
+                      "boardedCount": 1,
+                      "droppedOffCount": 0,
+                      "absentCount": 0,
+                      "totalEvents": 1
+                    }
                   }
                 }
               }
@@ -12737,7 +14054,7 @@
           "Transport"
         ],
         "summary": "[NEW] Get Trip Student Roster",
-        "description": "Return the full student roster for one trip, including assigned stops and the latest event state per student within the same trip.\n\nAllowed roles: admin, driver.\n\nNote: The roster returns all students assigned to the trip route for the trip date, even when no trip event has been recorded yet.\n\nNote: If the trip exists but has no eligible students, the response remains 200 with students=[].\n\nDerived data: Roster rows are derived from trip-date transport assignments plus the latest trip_student_events row per student inside the same trip.",
+        "description": "Return the full student roster for one trip, including assigned stop coordinates, the latest event state inside the same trip, and approved home location when available.\n\nAllowed roles: admin, driver.\n\nNote: The roster returns all students assigned to the trip route for the trip date, even when no trip event has been recorded yet.\n\nNote: If the trip exists but has no eligible students, the response remains 200 with students=[].\n\nNote: Only approved homeLocation data is exposed to the driver-facing roster.\n\nDerived data: Roster rows are derived from trip-date transport assignments, route stop coordinates, approved student_transport_home_locations, and the latest trip_student_events row per student inside the same trip.",
         "x-allowed-roles": [
           "admin",
           "driver"
@@ -12780,7 +14097,15 @@
                         "assignedStop": {
                           "stopId": "1",
                           "stopName": "Stop 1",
+                          "latitude": 15.3694,
+                          "longitude": 44.191,
                           "stopOrder": 1
+                        },
+                        "homeLocation": {
+                          "latitude": 15.3701,
+                          "longitude": 44.1921,
+                          "addressLabel": "Student Home 1",
+                          "addressText": "Nearby the local market"
                         },
                         "currentTripEventType": "boarded",
                         "lastEvent": {
@@ -12916,6 +14241,162 @@
             "description": "Filter roster rows by assigned stop id."
           }
         ]
+      }
+    },
+    "/transport/trips/ensure-daily": {
+      "post": {
+        "tags": [
+          "Transport"
+        ],
+        "summary": "[NEW] Ensure Daily Trip",
+        "description": "Create or reuse the operational trip for one route assignment, trip date, and trip type without creating duplicates.\n\nAllowed roles: admin, driver.\n\nNote: If a matching trip already exists for the same bus, route, tripDate, and tripType, the response remains 200 with created=false.\n\nNote: This is the preferred driver-facing daily trip flow. POST /transport/trips remains a legacy fallback.\n\nDerived data: The endpoint reuses the natural uniqueness of bus + route + tripDate + tripType.",
+        "x-allowed-roles": [
+          "admin",
+          "driver"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "const": true
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/GenericObject"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                },
+                "example": {
+                  "success": true,
+                  "message": "[NEW] Ensure Daily Trip completed successfully",
+                  "data": {
+                    "created": true,
+                    "trip": {
+                      "id": "1",
+                      "tripDate": "2026-03-26",
+                      "tripType": "pickup",
+                      "tripStatus": "scheduled",
+                      "startedAt": null,
+                      "endedAt": null,
+                      "bus": {
+                        "id": "1",
+                        "plateNumber": "SEED-1001"
+                      },
+                      "driver": {
+                        "driverId": "30",
+                        "fullName": "Seed Driver 01"
+                      },
+                      "route": {
+                        "id": "1",
+                        "routeName": "SEED Route 1"
+                      },
+                      "latestLocation": null,
+                      "eventSummary": {
+                        "boardedCount": 0,
+                        "droppedOffCount": 0,
+                        "absentCount": 0,
+                        "totalEvents": 0
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Validation failed",
+                  "errors": [
+                    {
+                      "field": "fieldName",
+                      "code": "invalid_type",
+                      "message": "Validation error example"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication is missing or expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Unauthorized",
+                  "errors": [
+                    {
+                      "code": "UNAUTHORIZED",
+                      "message": "Authentication is required"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated but not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Forbidden",
+                  "errors": [
+                    {
+                      "code": "FORBIDDEN",
+                      "message": "You do not have permission to access this resource"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EnsureDailyTripRequest"
+              },
+              "example": {
+                "routeAssignmentId": "1",
+                "tripDate": "2026-03-26",
+                "tripType": "pickup"
+              }
+            }
+          }
+        }
       }
     },
     "/communication/announcements": {

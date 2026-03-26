@@ -115,6 +115,39 @@ describe("mapPostgresError", () => {
         ]
       });
     });
+
+    it("maps duplicate route assignments and duplicate daily trips to conflict errors", () => {
+      const busConflict = mapPostgresError({
+        code: "23505",
+        constraint: "uq_transport_route_assignments_one_active_bus"
+      });
+      const tripConflict = mapPostgresError({
+        code: "23505",
+        constraint: "uq_trips_bus_route_date_type"
+      });
+
+      expect(busConflict).toBeInstanceOf(ConflictError);
+      expect(busConflict).toMatchObject({
+        message: "This bus already has an active route assignment",
+        details: [
+          {
+            field: "busId",
+            code: "TRANSPORT_ROUTE_ACTIVE_BUS_CONFLICT"
+          }
+        ]
+      });
+
+      expect(tripConflict).toBeInstanceOf(ConflictError);
+      expect(tripConflict).toMatchObject({
+        message: "A trip already exists for the selected bus, route, date, and type",
+        details: [
+          {
+            field: "tripDate",
+            code: "TRIP_ALREADY_EXISTS"
+          }
+        ]
+      });
+    });
   });
 
   describe("known foreign key constraints", () => {
@@ -150,6 +183,24 @@ describe("mapPostgresError", () => {
           {
             field: "userId",
             code: "NOTIFICATION_USER_NOT_FOUND"
+          }
+        ]
+      });
+    });
+
+    it("maps transport home location foreign keys to conflict errors", () => {
+      const error = mapPostgresError({
+        code: "23503",
+        constraint: "student_transport_home_locations_student_id_fkey"
+      });
+
+      expect(error).toBeInstanceOf(ConflictError);
+      expect(error).toMatchObject({
+        message: "Student does not exist",
+        details: [
+          {
+            field: "studentId",
+            code: "STUDENT_NOT_FOUND"
           }
         ]
       });
@@ -235,6 +286,27 @@ describe("mapPostgresError", () => {
       expect(announcementError).toBeInstanceOf(ValidationError);
       expect(announcementError).toMatchObject({
         message: "Announcement target role is invalid"
+      });
+    });
+
+    it("maps transport alignment checks to validation errors", () => {
+      const routeAssignmentError = mapPostgresError({
+        code: "23514",
+        constraint: "chk_transport_route_assignments_dates"
+      });
+      const homeLocationError = mapPostgresError({
+        code: "23514",
+        constraint: "chk_student_transport_home_locations_status"
+      });
+
+      expect(routeAssignmentError).toBeInstanceOf(ValidationError);
+      expect(routeAssignmentError).toMatchObject({
+        message: "Route assignment end date must be later than or equal to the start date"
+      });
+
+      expect(homeLocationError).toBeInstanceOf(ValidationError);
+      expect(homeLocationError).toMatchObject({
+        message: "Home location status is invalid"
       });
     });
   });
@@ -331,6 +403,24 @@ describe("mapPostgresError", () => {
       expect(studentRouteMismatch).toBeInstanceOf(ValidationError);
       expect(studentRouteMismatch).toMatchObject({
         message: "Student bus assignment does not match the trip route"
+      });
+    });
+
+    it("maps trip-date-aware transport assignment messages to validation errors", () => {
+      const error = mapPostgresError({
+        code: "P0001",
+        message: "Student 1 has no transport assignment for trip 4 date 2026-03-13"
+      });
+
+      expect(error).toBeInstanceOf(ValidationError);
+      expect(error).toMatchObject({
+        message: "Student does not have a transport assignment for the trip date",
+        details: [
+          {
+            field: "studentId",
+            code: "STUDENT_TRIP_DATE_ASSIGNMENT_NOT_FOUND"
+          }
+        ]
       });
     });
   });

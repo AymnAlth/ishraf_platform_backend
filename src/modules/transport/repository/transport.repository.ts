@@ -13,16 +13,22 @@ import type {
   BusRow,
   BusWriteInput,
   DeactivateStudentBusAssignmentInput,
+  DeactivateTransportRouteAssignmentInput,
   DriverReferenceRow,
   LatestTripLocationRow,
   RouteRow,
   RouteStopRow,
   RouteStopWriteInput,
   RouteWriteInput,
+  RouteAssignmentScope,
+  StudentHomeLocationRow,
+  StudentHomeLocationWriteInput,
   StudentBusAssignmentRow,
   StudentBusAssignmentWriteInput,
   StudentTransportReferenceRow,
+  TransportRouteAssignmentRow,
   TripListQuery,
+  TripNaturalKey,
   TripStudentRosterFilters,
   TripStudentRosterRow,
   TripScope,
@@ -30,6 +36,7 @@ import type {
   TripRow,
   TripStudentEventRow,
   TripStudentEventWriteInput,
+  TransportRouteAssignmentWriteInput,
   TripWriteInput
 } from "../types/transport.types";
 
@@ -99,6 +106,59 @@ const studentAssignmentReadSelect = `
   JOIN ${databaseTables.students} st ON st.id = sba.student_id
   JOIN ${databaseTables.routes} r ON r.id = sba.route_id
   JOIN ${databaseTables.busStops} bs ON bs.id = sba.stop_id
+`;
+
+const routeAssignmentReadSelect = `
+  SELECT
+    tra.id AS "routeAssignmentId",
+    b.id AS "busId",
+    b.plate_number AS "plateNumber",
+    b.capacity,
+    b.status AS "busStatus",
+    d.id AS "driverId",
+    u.id AS "driverUserId",
+    u.full_name AS "driverFullName",
+    u.email AS "driverEmail",
+    u.phone AS "driverPhone",
+    r.id AS "routeId",
+    r.route_name AS "routeName",
+    r.start_point AS "startPoint",
+    r.end_point AS "endPoint",
+    r.estimated_duration_minutes AS "estimatedDurationMinutes",
+    r.is_active AS "routeIsActive",
+    tra.start_date AS "startDate",
+    tra.end_date AS "endDate",
+    tra.is_active AS "isActive",
+    tra.created_at AS "createdAt",
+    tra.updated_at AS "updatedAt"
+  FROM ${databaseTables.transportRouteAssignments} tra
+  JOIN ${databaseTables.buses} b ON b.id = tra.bus_id
+  LEFT JOIN ${databaseTables.drivers} d ON d.id = b.driver_id
+  LEFT JOIN ${databaseTables.users} u ON u.id = d.user_id
+  JOIN ${databaseTables.routes} r ON r.id = tra.route_id
+`;
+
+const studentHomeLocationReadSelect = `
+  SELECT
+    st.id AS "studentId",
+    st.academic_no AS "academicNo",
+    st.full_name AS "studentFullName",
+    shl.id AS "locationId",
+    shl.address_label AS "addressLabel",
+    shl.address_text AS "addressText",
+    shl.latitude,
+    shl.longitude,
+    shl.source,
+    shl.status,
+    shl.submitted_by_user_id AS "submittedByUserId",
+    shl.approved_by_user_id AS "approvedByUserId",
+    shl.approved_at AS "approvedAt",
+    shl.notes,
+    shl.created_at AS "createdAt",
+    shl.updated_at AS "updatedAt"
+  FROM ${databaseTables.students} st
+  LEFT JOIN ${databaseTables.studentTransportHomeLocations} shl
+    ON shl.student_id = st.id
 `;
 
 const tripEventCountsSelect = `
@@ -424,6 +484,26 @@ export class TransportRepository {
     return mapSingleRow(result.rows);
   }
 
+  async findStudentAssignmentByStudentIdOnDate(
+    studentId: string,
+    effectiveDate: string,
+    queryable: Queryable = db
+  ): Promise<StudentBusAssignmentRow | null> {
+    const result = await queryable.query<StudentBusAssignmentRow>(
+      `
+        ${studentAssignmentReadSelect}
+        WHERE sba.student_id = $1
+          AND sba.start_date <= $2::date
+          AND (sba.end_date IS NULL OR sba.end_date >= $2::date)
+        ORDER BY sba.start_date DESC, sba.id DESC
+        LIMIT 1
+      `,
+      [studentId, effectiveDate]
+    );
+
+    return mapSingleRow(result.rows);
+  }
+
   async createStudentBusAssignment(
     input: StudentBusAssignmentWriteInput,
     queryable: Queryable = db
@@ -488,6 +568,119 @@ export class TransportRepository {
     return result.rows;
   }
 
+  async createTransportRouteAssignment(
+    input: TransportRouteAssignmentWriteInput,
+    queryable: Queryable = db
+  ): Promise<string> {
+    const result = await queryable.query<{ id: string }>(
+      `
+        INSERT INTO ${databaseTables.transportRouteAssignments} (
+          bus_id,
+          route_id,
+          start_date,
+          end_date,
+          is_active
+        )
+        VALUES ($1, $2, $3::date, $4::date, true)
+        RETURNING id
+      `,
+      [input.busId, input.routeId, input.startDate, input.endDate ?? null]
+    );
+
+    return result.rows[0].id;
+  }
+
+  async findTransportRouteAssignmentById(
+    routeAssignmentId: string,
+    queryable: Queryable = db
+  ): Promise<TransportRouteAssignmentRow | null> {
+    const result = await queryable.query<TransportRouteAssignmentRow>(
+      `
+        ${routeAssignmentReadSelect}
+        WHERE tra.id = $1
+        LIMIT 1
+      `,
+      [routeAssignmentId]
+    );
+
+    return mapSingleRow(result.rows);
+  }
+
+  async listTransportRouteAssignments(
+    scope: RouteAssignmentScope = {},
+    queryable: Queryable = db
+  ): Promise<TransportRouteAssignmentRow[]> {
+    const conditions: string[] = [];
+    const values: unknown[] = [];
+
+    const addCondition = (template: string, value: unknown): void => {
+      values.push(value);
+      conditions.push(template.replace("?", `$${values.length}`));
+    };
+
+    if (scope.driverId) {
+      addCondition("b.driver_id = ?", scope.driverId);
+    }
+
+    if (scope.isActive !== undefined) {
+      addCondition("tra.is_active = ?", scope.isActive);
+    }
+
+    if (scope.applicableOnDate) {
+      addCondition("tra.start_date <= ?::date", scope.applicableOnDate);
+      addCondition("(tra.end_date IS NULL OR tra.end_date >= ?::date)", scope.applicableOnDate);
+    }
+
+    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+    const result = await queryable.query<TransportRouteAssignmentRow>(
+      `
+        ${routeAssignmentReadSelect}
+        ${whereClause}
+        ORDER BY tra.is_active DESC, tra.start_date DESC, r.route_name ASC, b.plate_number ASC
+      `,
+      values
+    );
+
+    return result.rows;
+  }
+
+  async hasDriverRouteAssignmentOwnership(
+    driverId: string,
+    routeAssignmentId: string,
+    queryable: Queryable = db
+  ): Promise<boolean> {
+    const result = await queryable.query<{ exists: boolean }>(
+      `
+        SELECT EXISTS (
+          SELECT 1
+          FROM ${databaseTables.transportRouteAssignments} tra
+          JOIN ${databaseTables.buses} b ON b.id = tra.bus_id
+          WHERE tra.id = $1
+            AND b.driver_id = $2
+        ) AS exists
+      `,
+      [routeAssignmentId, driverId]
+    );
+
+    return Boolean(result.rows[0]?.exists);
+  }
+
+  async deactivateTransportRouteAssignment(
+    routeAssignmentId: string,
+    input: DeactivateTransportRouteAssignmentInput,
+    queryable: Queryable = db
+  ): Promise<void> {
+    await queryable.query(
+      `
+        UPDATE ${databaseTables.transportRouteAssignments}
+        SET is_active = false,
+            end_date = $2::date
+        WHERE id = $1
+      `,
+      [routeAssignmentId, input.endDate]
+    );
+  }
+
   async createTrip(input: TripWriteInput, queryable: Queryable = db): Promise<string> {
     const result = await queryable.query<{ id: string }>(
       `
@@ -504,6 +697,25 @@ export class TransportRepository {
     );
 
     return result.rows[0].id;
+  }
+
+  async findTripByNaturalKey(
+    key: TripNaturalKey,
+    queryable: Queryable = db
+  ): Promise<TripRow | null> {
+    const result = await queryable.query<TripRow>(
+      `
+        ${tripReadSelect}
+        WHERE tr.bus_id = $1
+          AND tr.route_id = $2
+          AND tr.trip_date = $3::date
+          AND tr.trip_type = $4
+        LIMIT 1
+      `,
+      [key.busId, key.routeId, key.tripDate, key.tripType]
+    );
+
+    return mapSingleRow(result.rows);
   }
 
   async listTrips(
@@ -644,7 +856,13 @@ export class TransportRepository {
           st.full_name AS "fullName",
           bs.id AS "stopId",
           bs.stop_name AS "stopName",
+          bs.latitude AS "stopLatitude",
+          bs.longitude AS "stopLongitude",
           bs.stop_order AS "stopOrder",
+          home.latitude AS "homeLatitude",
+          home.longitude AS "homeLongitude",
+          home.address_label AS "homeAddressLabel",
+          home.address_text AS "homeAddressText",
           last_event.event_type AS "lastEventType",
           last_event.event_time AS "lastEventTime",
           last_event.stop_id AS "lastEventStopId"
@@ -654,6 +872,9 @@ export class TransportRepository {
         JOIN ${databaseTables.busStops} bs
           ON bs.id = candidate.stop_id
          AND bs.route_id = tr.route_id
+        LEFT JOIN ${databaseTables.studentTransportHomeLocations} home
+          ON home.student_id = candidate.student_id
+         AND home.status = 'approved'
         LEFT JOIN LATERAL (
           SELECT
             tse.event_type,
@@ -834,5 +1055,84 @@ export class TransportRepository {
     );
 
     return result.rows;
+  }
+
+  async findStudentHomeLocationByStudentId(
+    studentId: string,
+    queryable: Queryable = db
+  ): Promise<StudentHomeLocationRow | null> {
+    const result = await queryable.query<StudentHomeLocationRow>(
+      `
+        ${studentHomeLocationReadSelect}
+        WHERE st.id = $1
+        LIMIT 1
+      `,
+      [studentId]
+    );
+
+    return mapSingleRow(result.rows);
+  }
+
+  async upsertStudentHomeLocation(
+    input: StudentHomeLocationWriteInput,
+    queryable: Queryable = db
+  ): Promise<void> {
+    await queryable.query(
+      `
+        INSERT INTO ${databaseTables.studentTransportHomeLocations} (
+          student_id,
+          address_label,
+          address_text,
+          latitude,
+          longitude,
+          source,
+          status,
+          submitted_by_user_id,
+          approved_by_user_id,
+          approved_at,
+          notes
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+        ON CONFLICT (student_id)
+        DO UPDATE
+        SET
+          address_label = EXCLUDED.address_label,
+          address_text = EXCLUDED.address_text,
+          latitude = EXCLUDED.latitude,
+          longitude = EXCLUDED.longitude,
+          source = EXCLUDED.source,
+          status = EXCLUDED.status,
+          submitted_by_user_id = EXCLUDED.submitted_by_user_id,
+          approved_by_user_id = EXCLUDED.approved_by_user_id,
+          approved_at = EXCLUDED.approved_at,
+          notes = EXCLUDED.notes
+      `,
+      [
+        input.studentId,
+        input.addressLabel ?? null,
+        input.addressText ?? null,
+        input.latitude,
+        input.longitude,
+        input.source,
+        input.status,
+        input.submittedByUserId,
+        input.approvedByUserId ?? null,
+        input.approvedAt ?? null,
+        input.notes ?? null
+      ]
+    );
+  }
+
+  async deleteStudentHomeLocation(
+    studentId: string,
+    queryable: Queryable = db
+  ): Promise<void> {
+    await queryable.query(
+      `
+        DELETE FROM ${databaseTables.studentTransportHomeLocations}
+        WHERE student_id = $1
+      `,
+      [studentId]
+    );
   }
 }

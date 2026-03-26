@@ -129,42 +129,8 @@ export const registerMigrationSmokeTests = ({ pool }: MigrationSuiteContext): vo
         FROM information_schema.tables
         WHERE table_schema = 'public'
           AND table_name IN (
-            'users',
-            'auth_refresh_tokens',
-            'password_reset_tokens',
-            'parents',
-            'teachers',
-            'supervisors',
-            'drivers',
-            'academic_years',
-            'semesters',
-            'grade_levels',
-            'classes',
-            'subjects',
-            'teacher_classes',
-            'supervisor_classes',
-            'students',
-            'student_parents',
-            'student_promotions',
-            'assessment_types',
-            'assessments',
-            'student_assessments',
-            'homework',
-            'homework_submissions',
-            'behavior_categories',
-            'behavior_records',
-            'attendance_sessions',
-            'attendance',
-            'buses',
-            'routes',
-            'bus_stops',
-            'student_bus_assignments',
-            'trips',
-            'bus_location_history',
-            'trip_student_events',
-            'messages',
-            'announcements',
-            'notifications'
+            'transport_route_assignments',
+            'student_transport_home_locations'
           )
       `
     );

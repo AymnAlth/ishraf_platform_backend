@@ -3,8 +3,11 @@ import { describe, expect, it } from "vitest";
 import {
   createBusSchema,
   createStudentBusAssignmentSchema,
+  createTransportRouteAssignmentSchema,
   createTripStudentEventSchema,
-  listTripsQuerySchema
+  ensureDailyTripSchema,
+  listTripsQuerySchema,
+  saveStudentHomeLocationSchema
 } from "../../src/modules/transport/validator/transport.validator";
 
 describe("transport.validator", () => {
@@ -34,6 +37,43 @@ describe("transport.validator", () => {
       expect(assignmentResult.data.studentId).toBe("1");
       expect(assignmentResult.data.routeId).toBe("2");
       expect(assignmentResult.data.stopId).toBe("3");
+    }
+  });
+
+  it("accepts route-assignment, ensure-daily, and home-location payloads", () => {
+    const routeAssignmentResult = createTransportRouteAssignmentSchema.safeParse({
+      busId: 1,
+      routeId: "2",
+      startDate: "2026-03-13"
+    });
+    const ensureDailyResult = ensureDailyTripSchema.safeParse({
+      routeAssignmentId: 3,
+      tripDate: "2026-03-13",
+      tripType: "pickup"
+    });
+    const homeLocationResult = saveStudentHomeLocationSchema.safeParse({
+      addressLabel: "Main Home",
+      latitude: "15.4401",
+      longitude: 44.2401,
+      status: "approved"
+    });
+
+    expect(routeAssignmentResult.success).toBe(true);
+    expect(ensureDailyResult.success).toBe(true);
+    expect(homeLocationResult.success).toBe(true);
+
+    if (routeAssignmentResult.success) {
+      expect(routeAssignmentResult.data.busId).toBe("1");
+      expect(routeAssignmentResult.data.routeId).toBe("2");
+    }
+
+    if (ensureDailyResult.success) {
+      expect(ensureDailyResult.data.routeAssignmentId).toBe("3");
+    }
+
+    if (homeLocationResult.success) {
+      expect(homeLocationResult.data.latitude).toBeCloseTo(15.4401);
+      expect(homeLocationResult.data.longitude).toBeCloseTo(44.2401);
     }
   });
 

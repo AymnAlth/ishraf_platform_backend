@@ -3,6 +3,7 @@ import { z } from "zod";
 import { buildPaginatedQuerySchema } from "../../../common/validators/query.validator";
 import {
   BUS_STATUS_VALUES,
+  HOME_LOCATION_STATUS_VALUES,
   TRIP_LIST_SORT_FIELDS,
   TRIP_STATUS_VALUES,
   TRIP_STUDENT_EVENT_TYPE_VALUES,
@@ -63,6 +64,10 @@ export const routeIdParamsSchema = z.object({
 
 export const assignmentIdParamsSchema = z.object({
   id: idSchema
+});
+
+export const studentIdParamsSchema = z.object({
+  studentId: idSchema
 });
 
 export const tripIdParamsSchema = z.object({
@@ -127,10 +132,40 @@ export const deactivateStudentBusAssignmentSchema = z
   })
   .strict();
 
+export const createTransportRouteAssignmentSchema = z
+  .object({
+    busId: idSchema,
+    routeId: idSchema,
+    startDate: dateSchema,
+    endDate: dateSchema.optional().nullable()
+  })
+  .strict()
+  .refine(
+    (payload) => !payload.endDate || payload.endDate >= payload.startDate,
+    {
+      path: ["endDate"],
+      message: "endDate must be later than or equal to startDate"
+    }
+  );
+
+export const deactivateTransportRouteAssignmentSchema = z
+  .object({
+    endDate: dateSchema.optional()
+  })
+  .strict();
+
 export const createTripSchema = z
   .object({
     busId: idSchema,
     routeId: idSchema,
+    tripDate: dateSchema,
+    tripType: z.enum(TRIP_TYPE_VALUES)
+  })
+  .strict();
+
+export const ensureDailyTripSchema = z
+  .object({
+    routeAssignmentId: idSchema,
     tripDate: dateSchema,
     tripType: z.enum(TRIP_TYPE_VALUES)
   })
@@ -196,3 +231,14 @@ export const createTripStudentEventSchema = z
       });
     }
   });
+
+export const saveStudentHomeLocationSchema = z
+  .object({
+    addressLabel: optionalTrimmedString(150),
+    addressText: optionalTrimmedString(1000),
+    latitude: latitudeSchema,
+    longitude: longitudeSchema,
+    status: z.enum(HOME_LOCATION_STATUS_VALUES).optional(),
+    notes: optionalTrimmedString(1000)
+  })
+  .strict();

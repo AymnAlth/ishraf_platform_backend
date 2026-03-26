@@ -3,6 +3,7 @@ import { NotFoundError } from "../../../common/errors/not-found-error";
 import { OwnershipService } from "../../../common/services/ownership.service";
 import { ProfileResolutionService } from "../../../common/services/profile-resolution.service";
 import type { AuthenticatedUser } from "../../../common/types/auth.types";
+import { toDateOnly } from "../../../common/utils/date.util";
 import type {
   ReportingAdminDashboardResponseDto,
   ReportingParentDashboardResponseDto,
@@ -49,9 +50,6 @@ const assertFound = <T>(value: T | null, label: string): T => {
 
   return value;
 };
-
-const toDateOnly = (value: Date | string): string =>
-  typeof value === "string" ? value.slice(0, 10) : value.toISOString().slice(0, 10);
 
 const toIsoString = (value: Date): string => value.toISOString();
 

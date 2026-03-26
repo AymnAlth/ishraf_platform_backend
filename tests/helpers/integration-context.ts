@@ -79,6 +79,15 @@ export interface IntegrationTestContext {
       endDate: string | null;
     }>
   ) => ReturnType<ReturnType<typeof api>["post"]>;
+  createRouteAssignment: (
+    accessToken: string,
+    overrides?: Partial<{
+      busId: string;
+      routeId: string;
+      startDate: string;
+      endDate: string | null;
+    }>
+  ) => ReturnType<ReturnType<typeof api>["post"]>;
   createTrip: (
     accessToken: string,
     overrides?: Partial<{
@@ -88,6 +97,26 @@ export interface IntegrationTestContext {
       tripType: string;
     }>
   ) => ReturnType<ReturnType<typeof api>["post"]>;
+  ensureDailyTrip: (
+    accessToken: string,
+    overrides?: Partial<{
+      routeAssignmentId: string;
+      tripDate: string;
+      tripType: string;
+    }>
+  ) => ReturnType<ReturnType<typeof api>["post"]>;
+  saveStudentHomeLocation: (
+    accessToken: string,
+    studentId: string,
+    overrides?: Partial<{
+      addressLabel: string | null;
+      addressText: string | null;
+      latitude: number;
+      longitude: number;
+      status: string;
+      notes: string | null;
+    }>
+  ) => ReturnType<ReturnType<typeof api>["put"]>;
   createAnnouncement: (
     accessToken: string,
     overrides?: Partial<{
@@ -179,6 +208,16 @@ export const createIntegrationTestContext = (pool: Pool): IntegrationTestContext
         startDate: overrides.startDate ?? "2026-03-13",
         endDate: overrides.endDate ?? undefined
       }),
+  createRouteAssignment: (accessToken, overrides = {}) =>
+    api()
+      .post("/api/v1/transport/route-assignments")
+      .set("Authorization", `Bearer ${accessToken}`)
+      .send({
+        busId: overrides.busId ?? "1",
+        routeId: overrides.routeId ?? "1",
+        startDate: overrides.startDate ?? "2026-03-13",
+        endDate: overrides.endDate ?? undefined
+      }),
   createTrip: (accessToken, overrides = {}) =>
     api()
       .post("/api/v1/transport/trips")
@@ -188,6 +227,27 @@ export const createIntegrationTestContext = (pool: Pool): IntegrationTestContext
         routeId: overrides.routeId ?? "1",
         tripDate: overrides.tripDate ?? "2026-03-13",
         tripType: overrides.tripType ?? "pickup"
+      }),
+  ensureDailyTrip: (accessToken, overrides = {}) =>
+    api()
+      .post("/api/v1/transport/trips/ensure-daily")
+      .set("Authorization", `Bearer ${accessToken}`)
+      .send({
+        routeAssignmentId: overrides.routeAssignmentId ?? "1",
+        tripDate: overrides.tripDate ?? "2026-03-13",
+        tripType: overrides.tripType ?? "pickup"
+      }),
+  saveStudentHomeLocation: (accessToken, studentId, overrides = {}) =>
+    api()
+      .put(`/api/v1/transport/students/${studentId}/home-location`)
+      .set("Authorization", `Bearer ${accessToken}`)
+      .send({
+        addressLabel: overrides.addressLabel ?? "Seed Home",
+        addressText: overrides.addressText ?? "Near the neighborhood market",
+        latitude: overrides.latitude ?? 15.4401,
+        longitude: overrides.longitude ?? 44.2401,
+        status: overrides.status ?? "approved",
+        notes: overrides.notes ?? undefined
       }),
   createAnnouncement: (accessToken, overrides = {}) =>
     api()

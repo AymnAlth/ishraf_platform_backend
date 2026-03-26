@@ -56,6 +56,7 @@ Modular monolith backend scaffold built with Node.js, TypeScript, Express, Postg
 - `pnpm db:migrate`
 - `pnpm db:migrate:down`
 - `pnpm deploy:bootstrap-admin`
+- `pnpm deploy:seed-frontend-data`
 - `pnpm deploy:smoke`
 
 ## Deployment and Staging
@@ -158,6 +159,7 @@ Frontend-ready operational modules now include:
 The backend-authoritative handoff document for the frontend team is:
 
 - `src/docs/BACKEND_WAVE1_STATUS.md`
+- `src/docs/frontend-execution/README.md`
 
 ## Auth API
 
@@ -176,7 +178,12 @@ OpenAPI and Postman files are available under `src/docs/`.
 ## Documentation Map
 
 - Backend handoff: `src/docs/BACKEND_WAVE1_STATUS.md`
+- API contract audit: `src/docs/OPENAPI_POSTMAN_AUDIT.md`
+- Frontend execution pack: `src/docs/frontend-execution/README.md`
+- Admin contract alignment note: `src/docs/frontend-execution/admin-dashboard/ATTENDANCE_BEHAVIOR_ROUTE_ALIGNMENT.md`
 - API reference: `src/docs/API_REFERENCE.md`
+- Endpoint addition guide: `src/docs/ADDING_ENDPOINTS.md`
+- Staging seed guide: `src/docs/STAGING_FRONTEND_SEED.md`
 - Deployment guide: `src/docs/DEPLOY_RENDER_NEON.md`
 - API testing guide: `src/docs/TESTING_WITH_OPENAPI_AND_POSTMAN.md`
 - Legacy alignment note: `src/docs/LEGACY_DOC_ALIGNMENT.md`

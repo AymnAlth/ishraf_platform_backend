@@ -1,3 +1,5 @@
+import { toDateOnly } from "../../../common/utils/date.util";
+
 import type {
   ReportingAdminDashboardResponseDto,
   ReportingAdminDashboardSummaryDto,
@@ -46,9 +48,6 @@ import type {
   TeacherProfileRow,
   TripStudentEventRow
 } from "../types/reporting.types";
-
-const toDateOnly = (value: Date | string): string =>
-  typeof value === "string" ? value.slice(0, 10) : value.toISOString().slice(0, 10);
 
 const toIsoString = (value: Date): string => value.toISOString();
 

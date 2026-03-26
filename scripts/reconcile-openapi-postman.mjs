@@ -233,7 +233,13 @@ const examples = {
     plateNumber: "SEED-1001",
     capacity: 40,
     status: "active",
-    driverId: "30"
+    driver: {
+      driverId: "30",
+      userId: "15",
+      fullName: "Seed Driver 01",
+      email: "seed-driver-01@ishraf.local",
+      phone: "770500001"
+    }
   },
   route: {
     id: "1",
@@ -244,7 +250,6 @@ const examples = {
     isActive: true
   },
   routeStop: {
-    routeId: "1",
     stopId: "1",
     stopName: "Stop 1",
     latitude: 15.3694,
@@ -253,29 +258,167 @@ const examples = {
   },
   assignment: {
     assignmentId: "1",
-    studentId: "1",
-    routeId: "1",
-    stopId: "1",
+    student: {
+      studentId: "1",
+      academicNo: "SEED-STU-001",
+      fullName: "طالب تجريبي 1"
+    },
+    route: {
+      id: "1",
+      routeName: "SEED Route 1"
+    },
+    stop: {
+      id: "1",
+      stopName: "Stop 1"
+    },
     startDate: TODAY,
+    endDate: null,
+    isActive: true
+  },
+  routeAssignment: {
+    routeAssignmentId: "1",
+    bus: {
+      id: "1",
+      plateNumber: "SEED-1001",
+      capacity: 40,
+      status: "active"
+    },
+    driver: {
+      driverId: "30",
+      userId: "15",
+      fullName: "Seed Driver 01",
+      email: "seed-driver-01@ishraf.local",
+      phone: "770500001"
+    },
+    route: {
+      id: "1",
+      routeName: "SEED Route 1",
+      startPoint: "School",
+      endPoint: "District A",
+      estimatedDurationMinutes: 35,
+      isActive: true
+    },
+    startDate: TODAY,
+    endDate: null,
     isActive: true
   },
   trip: {
     id: "1",
-    busId: "1",
-    routeId: "1",
-    routeName: "SEED Route 1",
     tripDate: TODAY,
     tripType: "pickup",
     tripStatus: "started",
-    startedAt: NOW
+    startedAt: NOW,
+    endedAt: null,
+    bus: {
+      id: "1",
+      plateNumber: "SEED-1001"
+    },
+    driver: {
+      driverId: "30",
+      fullName: "Seed Driver 01"
+    },
+    route: {
+      id: "1",
+      routeName: "SEED Route 1"
+    },
+    latestLocation: {
+      latitude: 15.3694,
+      longitude: 44.191,
+      recordedAt: NOW
+    },
+    eventSummary: {
+      boardedCount: 1,
+      droppedOffCount: 0,
+      absentCount: 0,
+      totalEvents: 1
+    }
+  },
+  tripDetail: {
+    trip: {
+      id: "1",
+      tripDate: TODAY,
+      tripType: "pickup",
+      tripStatus: "started",
+      startedAt: NOW,
+      endedAt: null,
+      bus: {
+        id: "1",
+        plateNumber: "SEED-1001"
+      },
+      driver: {
+        driverId: "30",
+        fullName: "Seed Driver 01"
+      },
+      route: {
+        id: "1",
+        routeName: "SEED Route 1"
+      }
+    },
+    latestLocation: {
+      latitude: 15.3694,
+      longitude: 44.191,
+      recordedAt: NOW
+    },
+    routeStops: [
+      {
+        stopId: "1",
+        stopName: "Stop 1",
+        latitude: 15.3694,
+        longitude: 44.191,
+        stopOrder: 1
+      }
+    ],
+    eventSummary: {
+      boardedCount: 1,
+      droppedOffCount: 0,
+      absentCount: 0,
+      totalEvents: 1
+    }
+  },
+  ensureDailyTrip: {
+    created: true,
+    trip: {
+      id: "1",
+      tripDate: TODAY,
+      tripType: "pickup",
+      tripStatus: "scheduled",
+      startedAt: null,
+      endedAt: null,
+      bus: {
+        id: "1",
+        plateNumber: "SEED-1001"
+      },
+      driver: {
+        driverId: "30",
+        fullName: "Seed Driver 01"
+      },
+      route: {
+        id: "1",
+        routeName: "SEED Route 1"
+      },
+      latestLocation: null,
+      eventSummary: {
+        boardedCount: 0,
+        droppedOffCount: 0,
+        absentCount: 0,
+        totalEvents: 0
+      }
+    }
   },
   tripEvent: {
     tripStudentEventId: "1",
-    tripId: "1",
-    studentId: "1",
-    studentFullName: "طالب تجريبي 1",
+    student: {
+      studentId: "1",
+      academicNo: "SEED-STU-001",
+      fullName: "طالب تجريبي 1"
+    },
     eventType: "boarded",
-    eventTime: NOW
+    eventTime: NOW,
+    stop: {
+      stopId: "1",
+      stopName: "Stop 1"
+    },
+    notes: null
   },
   tripRoster: {
     tripId: "1",
@@ -288,7 +431,15 @@ const examples = {
         assignedStop: {
           stopId: "1",
           stopName: "Stop 1",
+          latitude: 15.3694,
+          longitude: 44.191,
           stopOrder: 1
+        },
+        homeLocation: {
+          latitude: 15.3701,
+          longitude: 44.1921,
+          addressLabel: "Student Home 1",
+          addressText: "Nearby the local market"
         },
         currentTripEventType: "boarded",
         lastEvent: {
@@ -298,6 +449,28 @@ const examples = {
         }
       }
     ]
+  },
+  studentHomeLocation: {
+    student: {
+      studentId: "1",
+      academicNo: "SEED-STU-001",
+      fullName: "طالب تجريبي 1"
+    },
+    homeLocation: {
+      locationId: "1",
+      addressLabel: "Student Home 1",
+      addressText: "Nearby the local market",
+      latitude: 15.3701,
+      longitude: 44.1921,
+      source: "admin",
+      status: "approved",
+      submittedByUserId: "1",
+      approvedByUserId: "1",
+      approvedAt: NOW,
+      notes: null,
+      createdAt: NOW,
+      updatedAt: NOW
+    }
   },
   message: {
     id: "1",
@@ -860,9 +1033,13 @@ function addSchema(name, schema) {
   ["CreateRouteStopRequest", { stopName: "Stop 4", latitude: 15.37, longitude: 44.19, stopOrder: 4 }],
   ["CreateTransportAssignmentRequest", { studentId: "1", routeId: "1", stopId: "1", startDate: TODAY, endDate: null }],
   ["DeactivateTransportAssignmentRequest", { endDate: TODAY }],
+  ["CreateTransportRouteAssignmentRequest", { busId: "1", routeId: "1", startDate: TODAY, endDate: null }],
+  ["DeactivateTransportRouteAssignmentRequest", { endDate: TODAY }],
   ["CreateTripRequest", { busId: "1", routeId: "1", tripDate: TODAY, tripType: "pickup" }],
+  ["EnsureDailyTripRequest", { routeAssignmentId: "1", tripDate: TODAY, tripType: "pickup" }],
   ["RecordTripLocationRequest", { latitude: 15.3694, longitude: 44.191 }],
   ["CreateTripStudentEventRequest", { studentId: "1", eventType: "dropped_off", stopId: "1", notes: "تم النزول بنجاح" }],
+  ["SaveStudentHomeLocationRequest", { addressLabel: "Student Home 1", addressText: "Nearby the local market", latitude: 15.3701, longitude: 44.1921, status: "approved", notes: null }],
   ["SendMessageRequest", { receiverUserId: "20", messageBody: "رسالة مباشرة تجريبية" }],
   ["CreateAnnouncementRequest", { title: "[Seed] New notice", content: "إعلان موجّه لأولياء الأمور", targetRole: "parent", expiresAt: "2026-04-01T00:00:00.000Z" }],
   ["CreateNotificationRequest", { userId: "20", title: "إشعار يدوي", message: "رسالة إشعار يدوية", notificationType: "manual", referenceType: null, referenceId: null }],
@@ -921,6 +1098,7 @@ function pathParamDescription(routePath, paramName) {
   if (routePath.startsWith("/attendance/sessions/:id")) return "Attendance session numeric string identifier.";
   if (routePath.startsWith("/behavior/records/:id")) return "Behavior record numeric string identifier.";
   if (routePath.startsWith("/transport/assignments/:id")) return "Student bus assignment numeric string identifier.";
+  if (routePath.startsWith("/transport/route-assignments/:id")) return "Transport route assignment numeric string identifier.";
   if (routePath.startsWith("/transport/trips/:id")) return "Trip numeric string identifier.";
   if (routePath.startsWith("/homework/:id")) return "Homework numeric string identifier.";
   return "Numeric string identifier.";
@@ -952,6 +1130,7 @@ function postmanVariableForParam(routePath, paramName) {
   if (routePath.startsWith("/attendance/sessions/:id")) return "attendanceSessionId";
   if (routePath.startsWith("/behavior/records/:id")) return "behaviorRecordId";
   if (routePath.startsWith("/transport/assignments/:id")) return "assignmentId";
+  if (routePath.startsWith("/transport/route-assignments/:id")) return "routeAssignmentId";
   if (routePath.startsWith("/transport/trips/:id")) return "tripId";
   if (routePath.startsWith("/homework/:id")) return "homeworkId";
   return "id";
@@ -1073,15 +1252,23 @@ endpoints.push(
   makeEndpoint({ m: "POST", p: "/transport/assignments", t: "Transport", s: "Create Transport Assignment", u: "Create an active student bus assignment.", b: "CreateTransportAssignmentRequest", e: "assignment" }),
   makeEndpoint({ m: "PATCH", p: "/transport/assignments/:id/deactivate", t: "Transport", s: "Deactivate Transport Assignment", u: "Deactivate an active student bus assignment.", b: "DeactivateTransportAssignmentRequest", e: "assignment", status: 200 }),
   makeEndpoint({ m: "GET", p: "/transport/assignments/active", t: "Transport", s: "List Active Transport Assignments", u: "List active student bus assignments.", kind: "array", e: "assignment", status: 200 }),
+  makeEndpoint({ m: "POST", p: "/transport/route-assignments", t: "Transport", s: "[NEW] Create Route Assignment", u: "Create a recurring bus-to-route assignment used by the driver daily workflow.", b: "CreateTransportRouteAssignmentRequest", e: "routeAssignment" }),
+  makeEndpoint({ m: "GET", p: "/transport/route-assignments", t: "Transport", s: "[NEW] List Route Assignments", u: "List recurring bus-to-route assignments for admin transport management.", kind: "array", e: "routeAssignment", status: 200 }),
+  makeEndpoint({ m: "GET", p: "/transport/route-assignments/me", t: "Transport", s: "[NEW] List My Route Assignments", u: "Return the active recurring route assignments owned by the authenticated driver.", r: ["driver"], kind: "array", e: "routeAssignment", status: 200 }),
+  makeEndpoint({ m: "PATCH", p: "/transport/route-assignments/:id/deactivate", t: "Transport", s: "[NEW] Deactivate Route Assignment", u: "Deactivate a recurring bus-to-route assignment. Legacy trips remain intact.", b: "DeactivateTransportRouteAssignmentRequest", e: "routeAssignment", status: 200 }),
   makeEndpoint({ m: "POST", p: "/transport/trips", t: "Transport", s: "Create Trip", u: "Create a trip for a bus and route. Drivers and admins can create trips.", r: ["admin", "driver"], b: "CreateTripRequest", e: "trip" }),
+  makeEndpoint({ m: "POST", p: "/transport/trips/ensure-daily", t: "Transport", s: "[NEW] Ensure Daily Trip", u: "Create or reuse the operational trip for one route assignment, trip date, and trip type without creating duplicates.", r: ["admin", "driver"], b: "EnsureDailyTripRequest", e: "ensureDailyTrip", status: 200, notes: ["If a matching trip already exists for the same bus, route, tripDate, and tripType, the response remains 200 with created=false.", "This is the preferred driver-facing daily trip flow. POST /transport/trips remains a legacy fallback."], derived: "The endpoint reuses the natural uniqueness of bus + route + tripDate + tripType." }),
   makeEndpoint({ m: "GET", p: "/transport/trips", t: "Transport", s: "List Trips", u: "List trips with pagination. Drivers only see trips within their scope.", r: ["admin", "driver"], q: tripListQuery, kind: "paginated", e: "trip", status: 200 }),
-  makeEndpoint({ m: "GET", p: "/transport/trips/:id", t: "Transport", s: "Get Trip", u: "Return one trip detail including latest location, route stops, and event summary.", r: ["admin", "driver"], e: "trip", status: 200, derived: "Trip detail aggregates transport views such as vw_trip_details, vw_route_stops, and vw_latest_trip_location." }),
-  makeEndpoint({ m: "GET", p: "/transport/trips/:id/students", t: "Transport", s: "[NEW] Get Trip Student Roster", u: "Return the full student roster for one trip, including assigned stops and the latest event state per student within the same trip.", r: ["admin", "driver"], q: tripRosterQuery, e: "tripRoster", status: 200, notes: ["The roster returns all students assigned to the trip route for the trip date, even when no trip event has been recorded yet.", "If the trip exists but has no eligible students, the response remains 200 with students=[]."], derived: "Roster rows are derived from trip-date transport assignments plus the latest trip_student_events row per student inside the same trip." }),
+  makeEndpoint({ m: "GET", p: "/transport/trips/:id", t: "Transport", s: "Get Trip", u: "Return one trip detail including latest location, route stops, and event summary.", r: ["admin", "driver"], e: "tripDetail", status: 200, derived: "Trip detail aggregates transport views such as vw_trip_details, vw_route_stops, and vw_latest_trip_location." }),
+  makeEndpoint({ m: "GET", p: "/transport/trips/:id/students", t: "Transport", s: "[NEW] Get Trip Student Roster", u: "Return the full student roster for one trip, including assigned stop coordinates, the latest event state inside the same trip, and approved home location when available.", r: ["admin", "driver"], q: tripRosterQuery, e: "tripRoster", status: 200, notes: ["The roster returns all students assigned to the trip route for the trip date, even when no trip event has been recorded yet.", "If the trip exists but has no eligible students, the response remains 200 with students=[].", "Only approved homeLocation data is exposed to the driver-facing roster."], derived: "Roster rows are derived from trip-date transport assignments, route stop coordinates, approved student_transport_home_locations, and the latest trip_student_events row per student inside the same trip." }),
   makeEndpoint({ m: "POST", p: "/transport/trips/:id/start", t: "Transport", s: "Start Trip", u: "Mark a scheduled trip as started.", r: ["admin", "driver"], e: "trip", status: 200, side: "Trip start triggers parent notifications per assigned student through the internal automation service." }),
   makeEndpoint({ m: "POST", p: "/transport/trips/:id/end", t: "Transport", s: "End Trip", u: "Mark a trip as ended.", r: ["admin", "driver"], e: "trip", status: 200 }),
-  makeEndpoint({ m: "POST", p: "/transport/trips/:id/locations", t: "Transport", s: "Record Trip Location", u: "Record one location point for a started trip.", r: ["admin", "driver"], b: "RecordTripLocationRequest", e: "trip", status: 200 }),
-  makeEndpoint({ m: "POST", p: "/transport/trips/:id/events", t: "Transport", s: "Create Trip Student Event", u: "Create one trip student event. stopId is required for boarded and dropped_off events, and must be omitted for absent.", r: ["admin", "driver"], b: "CreateTripStudentEventRequest", e: "tripEvent", status: 200, side: "Dropped-off events trigger parent notifications through the internal automation service." }),
-  makeEndpoint({ m: "GET", p: "/transport/trips/:id/events", t: "Transport", s: "List Trip Events", u: "List student events recorded for a trip.", r: ["admin", "driver"], kind: "array", e: "tripEvent", status: 200 })
+  makeEndpoint({ m: "POST", p: "/transport/trips/:id/locations", t: "Transport", s: "Record Trip Location", u: "Record one location point for a started trip.", r: ["admin", "driver"], b: "RecordTripLocationRequest", e: "trip", status: 201 }),
+  makeEndpoint({ m: "POST", p: "/transport/trips/:id/events", t: "Transport", s: "Create Trip Student Event", u: "Create one trip student event. stopId is required for boarded and dropped_off events, and must be omitted for absent.", r: ["admin", "driver"], b: "CreateTripStudentEventRequest", e: "tripEvent", status: 201, notes: ["Trip student event validation is trip-date aware: the student must have a transport assignment covering the trip date and route."], side: "Dropped-off events trigger parent notifications through the internal automation service." }),
+  makeEndpoint({ m: "GET", p: "/transport/trips/:id/events", t: "Transport", s: "List Trip Events", u: "List student events recorded for a trip.", r: ["admin", "driver"], kind: "array", e: "tripEvent", status: 200 }),
+  makeEndpoint({ m: "GET", p: "/transport/students/:studentId/home-location", t: "Transport", s: "[NEW] Get Student Home Location", u: "Return the current saved home location reference for one student. In this round the endpoint is admin-only.", e: "studentHomeLocation", status: 200, notes: ["If the student exists but no home location has been saved yet, the response remains 200 with homeLocation=null."] }),
+  makeEndpoint({ m: "PUT", p: "/transport/students/:studentId/home-location", t: "Transport", s: "[NEW] Save Student Home Location", u: "Create or update the current student home location reference. v1 uses admin as the submitting source.", b: "SaveStudentHomeLocationRequest", e: "studentHomeLocation", status: 200, notes: ["Admin may save pending, approved, or rejected locations. Only approved locations appear in the driver roster."] }),
+  makeEndpoint({ m: "DELETE", p: "/transport/students/:studentId/home-location", t: "Transport", s: "[NEW] Delete Student Home Location", u: "Delete the current saved home location for one student.", e: "studentHomeLocation", status: 200 })
 );
 endpoints.push(
   makeEndpoint({ m: "GET", p: "/communication/recipients", t: "Communication", s: "[NEW] List Available Recipients", u: "Return the active users that the authenticated caller can currently message. v1 mirrors the current messaging policy: any active user except self.", r: ["admin", "parent", "teacher", "supervisor", "driver"], q: recipientsQuery, kind: "paginated", e: "recipient", status: 200, notes: ["The response is scope-limited to active users and excludes the authenticated user.", "Empty result sets return 200 with items=[]."] }),
@@ -1314,6 +1501,7 @@ function buildCollection(name, description, subset) {
       { key: "routeId", value: "1" },
       { key: "stopId", value: "1" },
       { key: "assignmentId", value: "1" },
+      { key: "routeAssignmentId", value: "1" },
       { key: "tripId", value: "1" },
       { key: "messageId", value: "1" },
       { key: "notificationId", value: "1" },
@@ -1392,10 +1580,18 @@ const moduleTable = moduleOrder.map((key) => {
 
 const missingBefore = baseline.masterOpenApi.missing.map((route) => `- \`${route.method} ${route.path}\``).join("\n");
 const newRuntimeEndpoints = [
+  "POST /transport/route-assignments",
+  "GET /transport/route-assignments",
+  "GET /transport/route-assignments/me",
+  "PATCH /transport/route-assignments/:id/deactivate",
+  "POST /transport/trips/ensure-daily",
   "GET /transport/trips/:id/students",
+  "GET /transport/students/:studentId/home-location",
+  "PUT /transport/students/:studentId/home-location",
+  "DELETE /transport/students/:studentId/home-location",
   "GET /communication/recipients"
 ];
-const audit = `# OpenAPI / Postman Audit\n\n- Audit date: ${TODAY}\n- Runtime endpoint count: ${actualRoutes.length}\n- Runtime changes during this reconciliation: ${newRuntimeEndpoints.length > 0 ? `${newRuntimeEndpoints.length} new endpoint(s)` : "none"}\n\n## Coverage Summary\n\n| Artifact | Before | After |\n| --- | --- | --- |\n| Master OpenAPI | ${baseline.masterOpenApi.covered.length}/${actualRoutes.length} | ${final.masterOpenApi.covered.length}/${actualRoutes.length} |\n| Master Postman | ${baseline.masterPostman.covered.length}/${actualRoutes.length} | ${final.masterPostman.covered.length}/${actualRoutes.length} |\n| Auth OpenAPI | ${baseline.authOpenApi.covered.length}/7 | ${final.authOpenApi.covered.length}/7 |\n| Auth Postman | ${baseline.authPostman.covered.length}/7 | ${final.authPostman.covered.length}/7 |\n\n## Per-Module Coverage\n\n| Module | Actual | OpenAPI Before | Postman Before | OpenAPI After | Postman After |\n| --- | --- | --- | --- | --- | --- |\n${moduleTable}\n\n## [NEW] Runtime Endpoints Added In This Pass\n\n${newRuntimeEndpoints.map((route) => `- \`${route}\``).join("\n")}\n\n## Runtime Endpoints Missing From Master OpenAPI Before This Update\n\n${missingBefore}\n\n## Views, Events, Targets Alignment\n\n### SQL Views Referenced\n${viewNames.map((name) => `- \`${name}\``).join("\n")}\n\n### Automation Events Documented\n${automationEvents.map((name) => `- \`${name}\``).join("\n")}\n\n### Target / Event Fields Documented\n${targetFields.map((name) => `- \`${name}\``).join("\n")}\n\n## Reconciliation Notes\n\n- \`/health\` and \`/health/ready\` now use root-level servers instead of inheriting \`/api/v1\`.\n- The auth subset now covers all 7 live auth routes, including forgot-password and reset-password.\n- IDs in the auth subset were normalized to numeric-string ids instead of UUID assumptions.\n- The new driver-facing roster and recipients endpoints are marked with \`[NEW]\` inside OpenAPI and Postman so frontend teams can spot them quickly.\n`;
+const audit = `# OpenAPI / Postman Audit\n\n- Audit date: ${TODAY}\n- Runtime endpoint count: ${actualRoutes.length}\n- Runtime changes during this reconciliation: ${newRuntimeEndpoints.length > 0 ? `${newRuntimeEndpoints.length} new endpoint(s)` : "none"}\n\n## Coverage Summary\n\n| Artifact | Before | After |\n| --- | --- | --- |\n| Master OpenAPI | ${baseline.masterOpenApi.covered.length}/${actualRoutes.length} | ${final.masterOpenApi.covered.length}/${actualRoutes.length} |\n| Master Postman | ${baseline.masterPostman.covered.length}/${actualRoutes.length} | ${final.masterPostman.covered.length}/${actualRoutes.length} |\n| Auth OpenAPI | ${baseline.authOpenApi.covered.length}/7 | ${final.authOpenApi.covered.length}/7 |\n| Auth Postman | ${baseline.authPostman.covered.length}/7 | ${final.authPostman.covered.length}/7 |\n\n## Per-Module Coverage\n\n| Module | Actual | OpenAPI Before | Postman Before | OpenAPI After | Postman After |\n| --- | --- | --- | --- | --- | --- |\n${moduleTable}\n\n## [NEW] Runtime Endpoints Added In This Pass\n\n${newRuntimeEndpoints.map((route) => `- \`${route}\``).join("\n")}\n\n## Runtime Endpoints Missing From Master OpenAPI Before This Update\n\n${missingBefore}\n\n## Views, Events, Targets Alignment\n\n### SQL Views Referenced\n${viewNames.map((name) => `- \`${name}\``).join("\n")}\n\n### Automation Events Documented\n${automationEvents.map((name) => `- \`${name}\``).join("\n")}\n\n### Target / Event Fields Documented\n${targetFields.map((name) => `- \`${name}\``).join("\n")}\n\n## Reconciliation Notes\n\n- \`/health\` and \`/health/ready\` now use root-level servers instead of inheriting \`/api/v1\`.\n- The auth subset now covers all 7 live auth routes, including forgot-password and reset-password.\n- IDs in the auth subset were normalized to numeric-string ids instead of UUID assumptions.\n- The new transport alignment endpoints and driver-facing roster/recipients surfaces are marked with \`[NEW]\` inside OpenAPI and Postman so frontend teams can spot them quickly.\n`;
 fs.writeFileSync(auditPath, audit);
 console.log(`Master OpenAPI: ${final.masterOpenApi.covered.length}/${actualRoutes.length}`);
 console.log(`Master Postman: ${final.masterPostman.covered.length}/${actualRoutes.length}`);

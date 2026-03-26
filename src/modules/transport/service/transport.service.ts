@@ -7,6 +7,7 @@ import { ProfileResolutionService } from "../../../common/services/profile-resol
 import type { AuthenticatedUser } from "../../../common/types/auth.types";
 import type { PaginatedData } from "../../../common/types/pagination.types";
 import type { DriverProfile } from "../../../common/types/profile.types";
+import { toDateOnly } from "../../../common/utils/date.util";
 import { toPaginatedData } from "../../../common/utils/pagination.util";
 import { db } from "../../../database/db";
 import type { AutomationPort } from "../../automation/types/automation.types";
@@ -15,16 +16,23 @@ import type {
   CreateRouteRequestDto,
   CreateRouteStopRequestDto,
   CreateStudentBusAssignmentRequestDto,
+  CreateTransportRouteAssignmentRequestDto,
   CreateTripRequestDto,
   CreateTripStudentEventRequestDto,
   DeactivateStudentBusAssignmentRequestDto,
+  DeactivateTransportRouteAssignmentRequestDto,
+  EnsureDailyTripRequestDto,
   ListTripsQueryDto,
   RecordTripLocationRequestDto,
+  SaveStudentHomeLocationRequestDto,
+  TransportEnsureDailyTripResponseDto,
   TransportTripRosterResponseDto,
   TransportBusResponseDto,
   TransportLatestLocationResponseDto,
   TransportRouteResponseDto,
+  TransportRouteAssignmentResponseDto,
   TransportRouteStopResponseDto,
+  TransportStudentHomeLocationResponseDto,
   TransportStudentBusAssignmentResponseDto,
   TransportTripDetailResponseDto,
   TransportTripListItemResponseDto,
@@ -34,7 +42,9 @@ import type {
 import {
   toBusResponseDto,
   toRouteResponseDto,
+  toRouteAssignmentResponseDto,
   toRouteStopResponseDto,
+  toStudentHomeLocationResponseDto,
   toStudentBusAssignmentResponseDto,
   toTripDetailResponseDto,
   toTripListItemResponseDto,
@@ -43,7 +53,12 @@ import {
   toTripStudentEventResponseDto
 } from "../mapper/transport.mapper";
 import type { TransportRepository } from "../repository/transport.repository";
-import type { TripRow, TripStudentEventType } from "../types/transport.types";
+import type {
+  HomeLocationStatus,
+  TransportRouteAssignmentRow,
+  TripRow,
+  TripStudentEventType
+} from "../types/transport.types";
 
 const assertFound = <T>(entity: T | null, label: string): T => {
   if (!entity) {
@@ -53,7 +68,9 @@ const assertFound = <T>(entity: T | null, label: string): T => {
   return entity;
 };
 
-const todayDateString = (): string => new Date().toISOString().slice(0, 10);
+const todayDateString = (): string => toDateOnly(new Date());
+
+const toDateOnlyString = (value: Date | string): string => toDateOnly(value);
 
 const buildValidationError = (
   message: string,
@@ -77,6 +94,12 @@ const assertAdmin = (authUser: AuthenticatedUser): void => {
 const assertTripOperator = (authUser: AuthenticatedUser): void => {
   if (authUser.role !== "admin" && authUser.role !== "driver") {
     throw new ForbiddenError("You do not have permission to access transport trips");
+  }
+};
+
+const assertDriverOnly = (authUser: AuthenticatedUser): void => {
+  if (authUser.role !== "driver") {
+    throw new ForbiddenError("You do not have permission to access driver transport operations");
   }
 };
 
@@ -140,6 +163,20 @@ const assertEventStopRequirements = (
       "TRIP_EVENT_STOP_NOT_ALLOWED"
     );
   }
+};
+
+const isDateCoveredByRange = (
+  targetDate: string,
+  startDate: Date | string,
+  endDate: Date | string | null
+): boolean => {
+  const start = toDateOnlyString(startDate);
+  const end =
+    endDate === null
+      ? null
+      : toDateOnlyString(endDate);
+
+  return start <= targetDate && (end === null || end >= targetDate);
 };
 
 export class TransportService {
@@ -344,6 +381,144 @@ export class TransportService {
     return rows.map((row) => toStudentBusAssignmentResponseDto(row));
   }
 
+  async createRouteAssignment(
+    authUser: AuthenticatedUser,
+    payload: CreateTransportRouteAssignmentRequestDto
+  ): Promise<TransportRouteAssignmentResponseDto> {
+    assertAdmin(authUser);
+    assertFound(await this.transportRepository.findBusById(payload.busId), "Bus");
+    assertFound(await this.transportRepository.findRouteById(payload.routeId), "Route");
+
+    const routeAssignment = await db.withTransaction(async (client) => {
+      const routeAssignmentId = await this.transportRepository.createTransportRouteAssignment(
+        {
+          busId: payload.busId,
+          routeId: payload.routeId,
+          startDate: payload.startDate,
+          endDate: payload.endDate
+        },
+        client
+      );
+
+      return assertFound(
+        await this.transportRepository.findTransportRouteAssignmentById(routeAssignmentId, client),
+        "Transport route assignment"
+      );
+    });
+
+    return toRouteAssignmentResponseDto(routeAssignment);
+  }
+
+  async listRouteAssignments(
+    authUser: AuthenticatedUser
+  ): Promise<TransportRouteAssignmentResponseDto[]> {
+    assertAdmin(authUser);
+    const rows = await this.transportRepository.listTransportRouteAssignments();
+
+    return rows.map((row) => toRouteAssignmentResponseDto(row));
+  }
+
+  async deactivateRouteAssignment(
+    authUser: AuthenticatedUser,
+    routeAssignmentId: string,
+    payload: DeactivateTransportRouteAssignmentRequestDto
+  ): Promise<TransportRouteAssignmentResponseDto> {
+    assertAdmin(authUser);
+    const routeAssignment = assertFound(
+      await this.transportRepository.findTransportRouteAssignmentById(routeAssignmentId),
+      "Transport route assignment"
+    );
+    const endDate = payload.endDate ?? todayDateString();
+
+    if (endDate < toDateOnlyString(routeAssignment.startDate)) {
+      throw buildValidationError(
+        "Route assignment end date must be later than or equal to the start date",
+        "endDate",
+        "INVALID_TRANSPORT_ROUTE_ASSIGNMENT_DATE_RANGE"
+      );
+    }
+
+    const updatedRouteAssignment = await db.withTransaction(async (client) => {
+      await this.transportRepository.deactivateTransportRouteAssignment(
+        routeAssignmentId,
+        { endDate },
+        client
+      );
+
+      return assertFound(
+        await this.transportRepository.findTransportRouteAssignmentById(routeAssignmentId, client),
+        "Transport route assignment"
+      );
+    });
+
+    return toRouteAssignmentResponseDto(updatedRouteAssignment);
+  }
+
+  async listMyRouteAssignments(
+    authUser: AuthenticatedUser
+  ): Promise<TransportRouteAssignmentResponseDto[]> {
+    assertDriverOnly(authUser);
+    const driver = await this.resolveDriverProfile(authUser);
+
+    if (!driver) {
+      return [];
+    }
+
+    const rows = await this.transportRepository.listTransportRouteAssignments({
+      driverId: driver.driverId,
+      isActive: true
+    });
+
+    return rows.map((row) => toRouteAssignmentResponseDto(row));
+  }
+
+  async ensureDailyTrip(
+    authUser: AuthenticatedUser,
+    payload: EnsureDailyTripRequestDto
+  ): Promise<TransportEnsureDailyTripResponseDto> {
+    assertTripOperator(authUser);
+    const routeAssignment = assertFound(
+      await this.transportRepository.findTransportRouteAssignmentById(payload.routeAssignmentId),
+      "Transport route assignment"
+    );
+
+    await this.assertDriverRouteAssignmentOwnership(authUser, payload.routeAssignmentId);
+    this.assertRouteAssignmentApplicableForDate(routeAssignment, payload.tripDate);
+
+    const existingTrip = await this.transportRepository.findTripByNaturalKey({
+      busId: routeAssignment.busId,
+      routeId: routeAssignment.routeId,
+      tripDate: payload.tripDate,
+      tripType: payload.tripType
+    });
+
+    if (existingTrip) {
+      return {
+        created: false,
+        trip: toTripListItemResponseDto(existingTrip)
+      };
+    }
+
+    const trip = await db.withTransaction(async (client) => {
+      const tripId = await this.transportRepository.createTrip(
+        {
+          busId: routeAssignment.busId,
+          routeId: routeAssignment.routeId,
+          tripDate: payload.tripDate,
+          tripType: payload.tripType
+        },
+        client
+      );
+
+      return assertFound(await this.transportRepository.findTripById(tripId, client), "Trip");
+    });
+
+    return {
+      created: true,
+      trip: toTripListItemResponseDto(trip)
+    };
+  }
+
   async createTrip(
     authUser: AuthenticatedUser,
     payload: CreateTripRequestDto
@@ -536,15 +711,16 @@ export class TransportService {
       "Student"
     );
 
-    const assignment = await this.transportRepository.findActiveStudentAssignmentByStudentId(
-      payload.studentId
+    const assignment = await this.transportRepository.findStudentAssignmentByStudentIdOnDate(
+      payload.studentId,
+      toDateOnlyString(trip.tripDate)
     );
 
     if (!assignment) {
       throw buildValidationError(
-        "Student does not have an active bus assignment",
+        "Student does not have a transport assignment for the trip date",
         "studentId",
-        "STUDENT_ACTIVE_BUS_ASSIGNMENT_NOT_FOUND"
+        "STUDENT_TRIP_DATE_ASSIGNMENT_NOT_FOUND"
       );
     }
 
@@ -611,6 +787,129 @@ export class TransportService {
     const rows = await this.transportRepository.listTripEventsByTripId(tripId);
 
     return rows.map((row) => toTripStudentEventResponseDto(row));
+  }
+
+  async getStudentHomeLocation(
+    authUser: AuthenticatedUser,
+    studentId: string
+  ): Promise<TransportStudentHomeLocationResponseDto> {
+    assertAdmin(authUser);
+    const row = assertFound(
+      await this.transportRepository.findStudentHomeLocationByStudentId(studentId),
+      "Student"
+    );
+
+    return toStudentHomeLocationResponseDto(row);
+  }
+
+  async saveStudentHomeLocation(
+    authUser: AuthenticatedUser,
+    studentId: string,
+    payload: SaveStudentHomeLocationRequestDto
+  ): Promise<TransportStudentHomeLocationResponseDto> {
+    assertAdmin(authUser);
+    assertFound(
+      await this.transportRepository.findStudentTransportReferenceById(studentId),
+      "Student"
+    );
+
+    const status: HomeLocationStatus = payload.status ?? "approved";
+    const approvedByUserId = status === "approved" ? authUser.userId : null;
+    const approvedAt = status === "approved" ? new Date() : null;
+
+    const row = await db.withTransaction(async (client) => {
+      await this.transportRepository.upsertStudentHomeLocation(
+        {
+          studentId,
+          addressLabel: payload.addressLabel,
+          addressText: payload.addressText,
+          latitude: payload.latitude,
+          longitude: payload.longitude,
+          source: "admin",
+          status,
+          submittedByUserId: authUser.userId,
+          approvedByUserId,
+          approvedAt,
+          notes: payload.notes
+        },
+        client
+      );
+
+      return assertFound(
+        await this.transportRepository.findStudentHomeLocationByStudentId(studentId, client),
+        "Student"
+      );
+    });
+
+    return toStudentHomeLocationResponseDto(row);
+  }
+
+  async deleteStudentHomeLocation(
+    authUser: AuthenticatedUser,
+    studentId: string
+  ): Promise<TransportStudentHomeLocationResponseDto> {
+    assertAdmin(authUser);
+    const student = assertFound(
+      await this.transportRepository.findStudentTransportReferenceById(studentId),
+      "Student"
+    );
+
+    await db.withTransaction(async (client) => {
+      await this.transportRepository.deleteStudentHomeLocation(studentId, client);
+      return undefined;
+    });
+
+    return {
+      student: {
+        studentId: student.studentId,
+        academicNo: student.academicNo,
+        fullName: student.fullName
+      },
+      homeLocation: null
+    };
+  }
+
+  private assertRouteAssignmentApplicableForDate(
+    routeAssignment: TransportRouteAssignmentRow,
+    tripDate: string
+  ): void {
+    if (
+      !routeAssignment.isActive ||
+      !isDateCoveredByRange(tripDate, routeAssignment.startDate, routeAssignment.endDate)
+    ) {
+      throw buildValidationError(
+        "Route assignment is not active for the requested trip date",
+        "routeAssignmentId",
+        "TRANSPORT_ROUTE_ASSIGNMENT_NOT_ACTIVE_FOR_TRIP_DATE"
+      );
+    }
+  }
+
+  private async assertDriverRouteAssignmentOwnership(
+    authUser: AuthenticatedUser,
+    routeAssignmentId: string
+  ): Promise<void> {
+    if (authUser.role !== "driver") {
+      return;
+    }
+
+    const driver = await this.resolveDriverProfile(authUser);
+
+    if (!driver) {
+      return;
+    }
+
+    const hasOwnership =
+      typeof this.transportRepository.hasDriverRouteAssignmentOwnership === "function"
+        ? await this.transportRepository.hasDriverRouteAssignmentOwnership(
+            driver.driverId,
+            routeAssignmentId
+          )
+        : false;
+
+    if (!hasOwnership) {
+      throw new ForbiddenError("You do not have permission to access this route assignment");
+    }
   }
 
   private async resolveDriverProfile(

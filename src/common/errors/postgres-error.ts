@@ -263,6 +263,30 @@ const UNIQUE_CONSTRAINT_MAP: Record<string, ConstraintMapping> = {
     message: "Student already has an active transport assignment",
     detailCode: "STUDENT_ACTIVE_TRANSPORT_ASSIGNMENT_EXISTS",
     type: "conflict"
+  },
+  uq_transport_route_assignments_one_active_bus: {
+    field: "busId",
+    message: "This bus already has an active route assignment",
+    detailCode: "TRANSPORT_ROUTE_ACTIVE_BUS_CONFLICT",
+    type: "conflict"
+  },
+  uq_transport_route_assignments_one_active_route: {
+    field: "routeId",
+    message: "This route already has an active bus assignment",
+    detailCode: "TRANSPORT_ROUTE_ACTIVE_ROUTE_CONFLICT",
+    type: "conflict"
+  },
+  uq_trips_bus_route_date_type: {
+    field: "tripDate",
+    message: "A trip already exists for the selected bus, route, date, and type",
+    detailCode: "TRIP_ALREADY_EXISTS",
+    type: "conflict"
+  },
+  uq_student_transport_home_locations_student: {
+    field: "studentId",
+    message: "Student already has a saved home location",
+    detailCode: "STUDENT_HOME_LOCATION_ALREADY_EXISTS",
+    type: "conflict"
   }
 };
 
@@ -609,6 +633,36 @@ const FOREIGN_KEY_CONSTRAINT_MAP: Record<string, ConstraintMapping> = {
     detailCode: "BUS_STOP_NOT_FOUND",
     type: "conflict"
   },
+  transport_route_assignments_bus_id_fkey: {
+    field: "busId",
+    message: "Bus does not exist",
+    detailCode: "BUS_NOT_FOUND",
+    type: "conflict"
+  },
+  transport_route_assignments_route_id_fkey: {
+    field: "routeId",
+    message: "Route does not exist",
+    detailCode: "ROUTE_NOT_FOUND",
+    type: "conflict"
+  },
+  student_transport_home_locations_student_id_fkey: {
+    field: "studentId",
+    message: "Student does not exist",
+    detailCode: "STUDENT_NOT_FOUND",
+    type: "conflict"
+  },
+  student_transport_home_locations_submitted_by_user_id_fkey: {
+    field: "submittedByUserId",
+    message: "Submitting user does not exist",
+    detailCode: "HOME_LOCATION_SUBMITTER_NOT_FOUND",
+    type: "conflict"
+  },
+  student_transport_home_locations_approved_by_user_id_fkey: {
+    field: "approvedByUserId",
+    message: "Approving user does not exist",
+    detailCode: "HOME_LOCATION_APPROVER_NOT_FOUND",
+    type: "conflict"
+  },
   fk_messages_sender: {
     field: "senderUserId",
     message: "Sender user does not exist",
@@ -798,6 +852,12 @@ const CHECK_CONSTRAINT_MAP: Record<string, ConstraintMapping> = {
     detailCode: "INVALID_STUDENT_BUS_ASSIGNMENT_DATE_RANGE",
     type: "validation"
   },
+  chk_transport_route_assignments_dates: {
+    field: "endDate",
+    message: "Route assignment end date must be later than or equal to the start date",
+    detailCode: "INVALID_TRANSPORT_ROUTE_ASSIGNMENT_DATE_RANGE",
+    type: "validation"
+  },
   chk_trips_type: {
     field: "tripType",
     message: "Trip type is invalid",
@@ -832,6 +892,30 @@ const CHECK_CONSTRAINT_MAP: Record<string, ConstraintMapping> = {
     field: "eventType",
     message: "Trip student event type is invalid",
     detailCode: "INVALID_TRIP_STUDENT_EVENT_TYPE",
+    type: "validation"
+  },
+  chk_student_transport_home_locations_latitude: {
+    field: "latitude",
+    message: "Latitude must be between -90 and 90",
+    detailCode: "INVALID_STUDENT_HOME_LOCATION_LATITUDE",
+    type: "validation"
+  },
+  chk_student_transport_home_locations_longitude: {
+    field: "longitude",
+    message: "Longitude must be between -180 and 180",
+    detailCode: "INVALID_STUDENT_HOME_LOCATION_LONGITUDE",
+    type: "validation"
+  },
+  chk_student_transport_home_locations_source: {
+    field: "source",
+    message: "Home location source is invalid",
+    detailCode: "INVALID_STUDENT_HOME_LOCATION_SOURCE",
+    type: "validation"
+  },
+  chk_student_transport_home_locations_status: {
+    field: "status",
+    message: "Home location status is invalid",
+    detailCode: "INVALID_STUDENT_HOME_LOCATION_STATUS",
     type: "validation"
   },
   chk_messages_not_self: {
@@ -973,6 +1057,13 @@ const MESSAGE_PATTERN_MAP: PatternMapping[] = [
     field: "studentId",
     message: "Student does not have an active bus assignment",
     detailCode: "STUDENT_ACTIVE_BUS_ASSIGNMENT_NOT_FOUND",
+    type: "validation"
+  },
+  {
+    pattern: /student .* has no transport assignment for trip .* date .*/i,
+    field: "studentId",
+    message: "Student does not have a transport assignment for the trip date",
+    detailCode: "STUDENT_TRIP_DATE_ASSIGNMENT_NOT_FOUND",
     type: "validation"
   },
   {
