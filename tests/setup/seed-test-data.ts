@@ -289,6 +289,27 @@ export const seedAcademicStructure = async (queryable: SeedQueryable): Promise<v
       "MATH-G3"
     ]
   );
+
+  await seedSubjectOfferings(queryable);
+};
+
+export const seedSubjectOfferings = async (queryable: SeedQueryable): Promise<void> => {
+  await queryable.query(
+    `
+      INSERT INTO subject_offerings (
+        subject_id,
+        semester_id,
+        is_active
+      )
+      SELECT
+        s.id,
+        sem.id,
+        true
+      FROM subjects s
+      CROSS JOIN semesters sem
+      WHERE sem.academic_year_id = 1
+    `
+  );
 };
 
 export const seedStudents = async (queryable: SeedQueryable): Promise<void> => {

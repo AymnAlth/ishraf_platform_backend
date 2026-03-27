@@ -143,6 +143,41 @@ export const registerHomeworkIntegrationTests = (
         "One or more students do not belong to the homework class"
       );
     });
+
+    it("rejects homework creation when the subject is not offered in the selected semester", async () => {
+      const { accessToken } = await context.loginAsAdmin();
+
+      const createSubjectResponse = await request(context.app)
+        .post("/api/v1/academic-structure/subjects")
+        .set("Authorization", `Bearer ${accessToken}`)
+        .send({
+          name: "Unscheduled Homework Subject",
+          gradeLevelId: "1",
+          code: "HW-NO-OFFER"
+        });
+
+      const subjectId = createSubjectResponse.body.data.id as string;
+      await context.seedTeacherAssignment("1", "1", subjectId, "1");
+
+      const createHomeworkResponse = await request(context.app)
+        .post("/api/v1/homework")
+        .set("Authorization", `Bearer ${accessToken}`)
+        .send({
+          teacherId: "1",
+          classId: "1",
+          subjectId,
+          academicYearId: "1",
+          semesterId: "2",
+          title: "Homework Without Offering",
+          assignedDate: "2026-03-17",
+          dueDate: "2026-03-18"
+        });
+
+      expect(createHomeworkResponse.status).toBe(400);
+      expect(createHomeworkResponse.body.message).toBe(
+        "Subject is not offered in the selected semester"
+      );
+    });
   });
 };
 

@@ -58,8 +58,12 @@
 - grade levels create/list
 - classes create/list/detail
 - subjects create/list/detail
+- subject offerings create/list/detail/update activation
 - teacher assignments create/list
 - supervisor assignments create/list
+- create-subject flow must support a two-step path when semester availability is required:
+  - create `subject`
+  - then create one or more `subject-offerings`
 
 ### 5. إدارة الطلاب
 

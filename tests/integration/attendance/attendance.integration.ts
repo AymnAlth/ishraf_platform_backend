@@ -296,5 +296,39 @@ export const registerAttendanceIntegrationTests = (
       expect(duplicateSessionResponse.status).toBe(409);
       expect(invalidPayloadResponse.status).toBe(400);
     });
+
+    it("rejects session creation when the subject is not offered in the selected semester", async () => {
+      const { accessToken } = await context.loginAsAdmin();
+
+      const createSubjectResponse = await request(context.app)
+        .post("/api/v1/academic-structure/subjects")
+        .set("Authorization", `Bearer ${accessToken}`)
+        .send({
+          name: "Unscheduled Science",
+          gradeLevelId: "1",
+          code: "SCI-NO-OFFER"
+        });
+
+      const subjectId = createSubjectResponse.body.data.id as string;
+      await context.seedTeacherAssignment("1", "1", subjectId, "1");
+
+      const createSessionResponse = await request(context.app)
+        .post("/api/v1/attendance/sessions")
+        .set("Authorization", `Bearer ${accessToken}`)
+        .send({
+          classId: "1",
+          subjectId,
+          teacherId: "1",
+          academicYearId: "1",
+          semesterId: "2",
+          sessionDate: "2026-02-24",
+          periodNo: 1
+        });
+
+      expect(createSessionResponse.status).toBe(400);
+      expect(createSessionResponse.body.message).toBe(
+        "Subject is not offered in the selected semester"
+      );
+    });
   });
 };

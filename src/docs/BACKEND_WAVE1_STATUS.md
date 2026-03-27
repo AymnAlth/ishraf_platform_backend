@@ -28,6 +28,8 @@ These points resolve the old-document vs implementation mismatch:
   - Canonical model: `attendance_sessions` + `attendance`
 - Exams and grades are not the primary assessment model anymore
   - Canonical model: `assessment_types` + `assessments` + `student_assessments`
+- Subjects are not semester-scoped directly
+  - Canonical model: `subjects` + `subject_offerings`
 - Behavior does not store category semantics inline only
   - Canonical model: `behavior_categories` + `behavior_records`
 - Transport operations are not reduced to a single trip entity
@@ -61,6 +63,7 @@ The following backend modules are ready or close enough for frontend Wave 1:
 - auth login / refresh / me / change-password / forgot-password / reset-password
 - user management
 - academic structure management
+- semester-aware subject offering management
 - student management
 - attendance management
 - assessments management
@@ -136,6 +139,13 @@ These frontend blockers are now closed in the backend:
 
 - `GET /health`
 - `GET /health/ready`
+
+### Academic structure
+
+- `POST /api/v1/academic-structure/subject-offerings`
+- `GET /api/v1/academic-structure/subject-offerings`
+- `GET /api/v1/academic-structure/subject-offerings/:id`
+- `PATCH /api/v1/academic-structure/subject-offerings/:id`
 
 ### Homework
 

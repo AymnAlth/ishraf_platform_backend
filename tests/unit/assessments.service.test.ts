@@ -149,6 +149,7 @@ describe("AssessmentsService", () => {
     findSubjectById: vi.fn(),
     findAcademicYearById: vi.fn(),
     findSemesterById: vi.fn(),
+    hasActiveSubjectOffering: vi.fn(),
     hasTeacherAssignment: vi.fn(),
     createAssessment: vi.fn(),
     listAssessments: vi.fn(),
@@ -188,6 +189,7 @@ describe("AssessmentsService", () => {
       name: "2025-2026"
     });
     vi.mocked(repositoryMock.findSemesterById).mockResolvedValue(semesterRow());
+    vi.mocked(repositoryMock.hasActiveSubjectOffering).mockResolvedValue(true);
     vi.mocked(repositoryMock.findTeacherById).mockResolvedValue(teacherProfile());
     vi.mocked(repositoryMock.hasTeacherAssignment).mockResolvedValue(true);
     vi.mocked(repositoryMock.createAssessment).mockResolvedValue("10");
@@ -228,6 +230,7 @@ describe("AssessmentsService", () => {
       name: "2025-2026"
     });
     vi.mocked(repositoryMock.findSemesterById).mockResolvedValue(semesterRow());
+    vi.mocked(repositoryMock.hasActiveSubjectOffering).mockResolvedValue(true);
 
     await expect(
       assessmentsService.createAssessment(
@@ -291,6 +294,42 @@ describe("AssessmentsService", () => {
         }
       )
     ).rejects.toBeInstanceOf(ValidationError);
+  });
+
+  it("rejects assessment creation when the subject is not offered in the selected semester", async () => {
+    vi.mocked(repositoryMock.findAssessmentTypeById).mockResolvedValue(assessmentTypeRow());
+    vi.mocked(repositoryMock.findClassById).mockResolvedValue(classRow());
+    vi.mocked(repositoryMock.findSubjectById).mockResolvedValue(subjectRow());
+    vi.mocked(repositoryMock.findAcademicYearById).mockResolvedValue({
+      id: "1",
+      name: "2025-2026"
+    });
+    vi.mocked(repositoryMock.findSemesterById).mockResolvedValue(semesterRow());
+    vi.mocked(repositoryMock.hasActiveSubjectOffering).mockResolvedValue(false);
+
+    await expect(
+      assessmentsService.createAssessment(
+        {
+          userId: "1001",
+          role: "admin",
+          email: "admin@example.com",
+          isActive: true
+        },
+        {
+          assessmentTypeId: "1",
+          classId: "1",
+          subjectId: "1",
+          teacherId: "1",
+          academicYearId: "1",
+          semesterId: "2",
+          title: "Invalid Offering",
+          maxScore: 50,
+          assessmentDate: "2026-03-03"
+        }
+      )
+    ).rejects.toMatchObject({
+      message: "Subject is not offered in the selected semester"
+    });
   });
 
   it("rejects duplicate students and students outside the assessment roster", async () => {

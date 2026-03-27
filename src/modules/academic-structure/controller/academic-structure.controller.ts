@@ -5,12 +5,15 @@ import type {
   AcademicYearParamsDto,
   AcademicYearRequestDto,
   ClassRequestDto,
+  CreateSubjectOfferingRequestDto,
   EntityIdParamsDto,
   GradeLevelRequestDto,
+  ListSubjectOfferingsQueryDto,
   SemesterRequestDto,
   SubjectRequestDto,
   SupervisorAssignmentRequestDto,
   TeacherAssignmentRequestDto,
+  UpdateSubjectOfferingRequestDto,
   UpdateAcademicYearRequestDto,
   UpdateSemesterRequestDto
 } from "../dto/academic-structure.dto";
@@ -149,6 +152,46 @@ export class AcademicStructureController {
     const response = await this.academicStructureService.getSubjectById(params.id);
 
     res.status(200).json(buildSuccessResponse("Subject fetched successfully", response));
+  }
+
+  async createSubjectOffering(req: Request, res: Response): Promise<void> {
+    const payload = req.validated?.body as CreateSubjectOfferingRequestDto;
+    const response = await this.academicStructureService.createSubjectOffering(payload);
+
+    res
+      .status(201)
+      .json(buildSuccessResponse("Subject offering created successfully", response));
+  }
+
+  async listSubjectOfferings(req: Request, res: Response): Promise<void> {
+    const query = req.validated?.query as ListSubjectOfferingsQueryDto;
+    const response = await this.academicStructureService.listSubjectOfferings(query);
+
+    res
+      .status(200)
+      .json(buildSuccessResponse("Subject offerings fetched successfully", response));
+  }
+
+  async getSubjectOfferingById(req: Request, res: Response): Promise<void> {
+    const params = req.validated?.params as EntityIdParamsDto;
+    const response = await this.academicStructureService.getSubjectOfferingById(params.id);
+
+    res
+      .status(200)
+      .json(buildSuccessResponse("Subject offering fetched successfully", response));
+  }
+
+  async updateSubjectOffering(req: Request, res: Response): Promise<void> {
+    const params = req.validated?.params as EntityIdParamsDto;
+    const payload = req.validated?.body as UpdateSubjectOfferingRequestDto;
+    const response = await this.academicStructureService.updateSubjectOffering(
+      params.id,
+      payload
+    );
+
+    res
+      .status(200)
+      .json(buildSuccessResponse("Subject offering updated successfully", response));
   }
 
   async createTeacherAssignment(req: Request, res: Response): Promise<void> {

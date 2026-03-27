@@ -47,6 +47,24 @@ export interface SubjectRequestDto {
   isActive?: boolean;
 }
 
+export interface CreateSubjectOfferingRequestDto {
+  subjectId: string;
+  semesterId: string;
+  isActive?: boolean;
+}
+
+export interface UpdateSubjectOfferingRequestDto {
+  isActive: boolean;
+}
+
+export interface ListSubjectOfferingsQueryDto {
+  academicYearId?: string;
+  semesterId?: string;
+  gradeLevelId?: string;
+  subjectId?: string;
+  isActive?: boolean;
+}
+
 export interface TeacherAssignmentRequestDto {
   teacherId: string;
   classId: string;
@@ -149,6 +167,24 @@ export interface SubjectResponseDto {
   code: string | null;
   isActive: boolean;
   gradeLevel: GradeLevelSummaryDto;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SubjectOfferingSemesterSummaryDto {
+  id: string;
+  name: string;
+  startDate: string;
+  endDate: string;
+  isActive: boolean;
+  academicYear: AcademicYearSummaryDto;
+}
+
+export interface SubjectOfferingResponseDto {
+  id: string;
+  isActive: boolean;
+  subject: SubjectSummaryDto;
+  semester: SubjectOfferingSemesterSummaryDto;
   createdAt: string;
   updatedAt: string;
 }

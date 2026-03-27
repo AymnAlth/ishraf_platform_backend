@@ -29,6 +29,7 @@ export const registerMigrationSmokeTests = ({ pool }: MigrationSuiteContext): vo
             'grade_levels',
             'classes',
             'subjects',
+            'subject_offerings',
             'teacher_classes',
             'supervisor_classes',
             'students',
@@ -86,6 +87,7 @@ export const registerMigrationSmokeTests = ({ pool }: MigrationSuiteContext): vo
       "student_parents",
       "student_promotions",
       "students",
+      "subject_offerings",
       "subjects",
       "supervisor_classes",
       "supervisors",
@@ -129,8 +131,7 @@ export const registerMigrationSmokeTests = ({ pool }: MigrationSuiteContext): vo
         FROM information_schema.tables
         WHERE table_schema = 'public'
           AND table_name IN (
-            'transport_route_assignments',
-            'student_transport_home_locations'
+            'subject_offerings'
           )
       `
     );

@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { booleanQuerySchema } from "../../../common/validators/query.validator";
+
 const idSchema = z
   .union([z.string().regex(/^\d+$/), z.number().int().positive()])
   .transform(String);
@@ -128,6 +130,30 @@ export const createSubjectSchema = z
     gradeLevelId: idSchema,
     code: optionalNonEmptyString("Code", 50),
     isActive: z.boolean().optional().default(true)
+  })
+  .strict();
+
+export const createSubjectOfferingSchema = z
+  .object({
+    subjectId: idSchema,
+    semesterId: idSchema,
+    isActive: z.boolean().optional().default(true)
+  })
+  .strict();
+
+export const updateSubjectOfferingSchema = z
+  .object({
+    isActive: z.boolean()
+  })
+  .strict();
+
+export const listSubjectOfferingsQuerySchema = z
+  .object({
+    academicYearId: idSchema.optional(),
+    semesterId: idSchema.optional(),
+    gradeLevelId: idSchema.optional(),
+    subjectId: idSchema.optional(),
+    isActive: booleanQuerySchema.optional()
   })
   .strict();
 

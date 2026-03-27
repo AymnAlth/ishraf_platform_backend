@@ -32,12 +32,12 @@
       "DateString": {
         "type": "string",
         "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-        "example": "2026-03-26"
+        "example": "2026-03-27"
       },
       "DateTimeString": {
         "type": "string",
         "format": "date-time",
-        "example": "2026-03-26T12:00:00.000Z"
+        "example": "2026-03-27T12:00:00.000Z"
       },
       "GenericObject": {
         "type": "object",
@@ -346,12 +346,12 @@
           "startDate": {
             "type": "string",
             "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-            "example": "2026-03-26"
+            "example": "2026-03-27"
           },
           "endDate": {
             "type": "string",
             "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-            "example": "2026-03-26"
+            "example": "2026-03-27"
           },
           "isActive": {
             "type": "boolean"
@@ -381,12 +381,12 @@
           "startDate": {
             "type": "string",
             "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-            "example": "2026-03-26"
+            "example": "2026-03-27"
           },
           "endDate": {
             "type": "string",
             "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-            "example": "2026-03-26"
+            "example": "2026-03-27"
           },
           "isActive": {
             "type": "boolean"
@@ -408,12 +408,12 @@
           "startDate": {
             "type": "string",
             "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-            "example": "2026-03-26"
+            "example": "2026-03-27"
           },
           "endDate": {
             "type": "string",
             "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-            "example": "2026-03-26"
+            "example": "2026-03-27"
           },
           "isActive": {
             "type": "boolean"
@@ -443,12 +443,12 @@
           "startDate": {
             "type": "string",
             "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-            "example": "2026-03-26"
+            "example": "2026-03-27"
           },
           "endDate": {
             "type": "string",
             "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-            "example": "2026-03-26"
+            "example": "2026-03-27"
           },
           "isActive": {
             "type": "boolean"
@@ -560,6 +560,49 @@
           "gradeLevelId": "1",
           "code": "SCI-1",
           "isActive": true
+        }
+      },
+      "CreateSubjectOfferingRequest": {
+        "type": "object",
+        "properties": {
+          "subjectId": {
+            "type": "string",
+            "pattern": "^[0-9]+$",
+            "example": "1"
+          },
+          "semesterId": {
+            "type": "string",
+            "pattern": "^[0-9]+$",
+            "example": "1"
+          },
+          "isActive": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "subjectId",
+          "semesterId"
+        ],
+        "additionalProperties": false,
+        "example": {
+          "subjectId": "1",
+          "semesterId": "1",
+          "isActive": true
+        }
+      },
+      "UpdateSubjectOfferingRequest": {
+        "type": "object",
+        "properties": {
+          "isActive": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "isActive"
+        ],
+        "additionalProperties": false,
+        "example": {
+          "isActive": false
         }
       },
       "CreateTeacherAssignmentRequest": {
@@ -694,7 +737,7 @@
           "description": "الوحدة الثانية",
           "maxScore": 20,
           "weight": 10,
-          "assessmentDate": "2026-03-26",
+          "assessmentDate": "2026-03-27",
           "isPublished": true
         }
       },
@@ -732,7 +775,7 @@
           "subjectId": "1",
           "academicYearId": "1",
           "semesterId": "1",
-          "sessionDate": "2026-03-26",
+          "sessionDate": "2026-03-27",
           "periodNo": 1,
           "title": "حصة الرياضيات",
           "notes": "اختبار سريع",
@@ -785,7 +828,7 @@
           "semesterId": "1",
           "description": "تأخر عن الطابور",
           "severity": 3,
-          "behaviorDate": "2026-03-26",
+          "behaviorDate": "2026-03-27",
           "teacherId": "3"
         }
       },
@@ -835,7 +878,7 @@
           "studentId": "1",
           "routeId": "1",
           "stopId": "1",
-          "startDate": "2026-03-26",
+          "startDate": "2026-03-27",
           "endDate": null
         }
       },
@@ -843,7 +886,7 @@
         "type": "object",
         "additionalProperties": true,
         "example": {
-          "endDate": "2026-03-26"
+          "endDate": "2026-03-27"
         }
       },
       "CreateTransportRouteAssignmentRequest": {
@@ -852,7 +895,7 @@
         "example": {
           "busId": "1",
           "routeId": "1",
-          "startDate": "2026-03-26",
+          "startDate": "2026-03-27",
           "endDate": null
         }
       },
@@ -860,7 +903,7 @@
         "type": "object",
         "additionalProperties": true,
         "example": {
-          "endDate": "2026-03-26"
+          "endDate": "2026-03-27"
         }
       },
       "CreateTripRequest": {
@@ -869,7 +912,7 @@
         "example": {
           "busId": "1",
           "routeId": "1",
-          "tripDate": "2026-03-26",
+          "tripDate": "2026-03-27",
           "tripType": "pickup"
         }
       },
@@ -878,7 +921,7 @@
         "additionalProperties": true,
         "example": {
           "routeAssignmentId": "1",
-          "tripDate": "2026-03-26",
+          "tripDate": "2026-03-27",
           "tripType": "pickup"
         }
       },
@@ -953,7 +996,7 @@
           "semesterId": "1",
           "title": "واجب الرياضيات 2",
           "description": "حل الصفحات 12-14",
-          "assignedDate": "2026-03-26",
+          "assignedDate": "2026-03-27",
           "dueDate": "2026-03-28"
         }
       },
@@ -965,13 +1008,13 @@
             {
               "studentId": "1",
               "status": "submitted",
-              "submittedAt": "2026-03-26",
+              "submittedAt": "2026-03-27",
               "notes": "تم التسليم"
             },
             {
               "studentId": "2",
               "status": "late",
-              "submittedAt": "2026-03-26",
+              "submittedAt": "2026-03-27",
               "notes": "تسليم متأخر"
             }
           ]
@@ -1255,8 +1298,8 @@
                     "phone": "777000001",
                     "role": "admin",
                     "isActive": true,
-                    "createdAt": "2026-03-26T12:00:00.000Z",
-                    "updatedAt": "2026-03-26T12:00:00.000Z"
+                    "createdAt": "2026-03-27T12:00:00.000Z",
+                    "updatedAt": "2026-03-27T12:00:00.000Z"
                   }
                 }
               }
@@ -1447,8 +1490,8 @@
                     "phone": "777000001",
                     "role": "admin",
                     "isActive": true,
-                    "createdAt": "2026-03-26T12:00:00.000Z",
-                    "updatedAt": "2026-03-26T12:00:00.000Z"
+                    "createdAt": "2026-03-27T12:00:00.000Z",
+                    "updatedAt": "2026-03-27T12:00:00.000Z"
                   }
                 }
               }
@@ -1546,8 +1589,8 @@
                     "phone": "777000001",
                     "role": "admin",
                     "isActive": true,
-                    "createdAt": "2026-03-26T12:00:00.000Z",
-                    "updatedAt": "2026-03-26T12:00:00.000Z"
+                    "createdAt": "2026-03-27T12:00:00.000Z",
+                    "updatedAt": "2026-03-27T12:00:00.000Z"
                   }
                 }
               }

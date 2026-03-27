@@ -12,8 +12,8 @@ const API_SERVER_URL = "https://ishraf-platform-backend-staging.onrender.com/api
 const ROOT_SERVER_URL = "https://ishraf-platform-backend-staging.onrender.com";
 const LOCAL_API_SERVER_URL = "http://localhost:4000/api/v1";
 const LOCAL_ROOT_SERVER_URL = "http://localhost:4000";
-const TODAY = "2026-03-26";
-const NOW = "2026-03-26T12:00:00.000Z";
+const TODAY = "2026-03-27";
+const NOW = "2026-03-27T12:00:00.000Z";
 
 const ROOT_SERVERS = [
   { url: ROOT_SERVER_URL, description: "Hosted staging on Render" },
@@ -156,6 +156,34 @@ const examples = {
     academicYearId: "1"
   },
   subject: { id: "1", name: "الرياضيات", code: "MATH-1", gradeLevelId: "1" },
+  subjectOffering: {
+    id: "1",
+    isActive: true,
+    subject: {
+      id: "1",
+      name: "الرياضيات",
+      code: "MATH-1",
+      isActive: true,
+      gradeLevel: {
+        id: "1",
+        name: "الصف الأول",
+        levelOrder: 1
+      }
+    },
+    semester: {
+      id: "1",
+      name: "الفصل الأول",
+      startDate: "2025-09-01",
+      endDate: "2026-01-31",
+      isActive: false,
+      academicYear: {
+        id: "1",
+        name: "2025-2026"
+      }
+    },
+    createdAt: NOW,
+    updatedAt: NOW
+  },
   student: {
     id: "1",
     academicNo: "SEED-STU-001",
@@ -941,6 +969,26 @@ const componentSchemas = {
     additionalProperties: false,
     example: { name: "العلوم", gradeLevelId: "1", code: "SCI-1", isActive: true }
   },
+  CreateSubjectOfferingRequest: {
+    type: "object",
+    properties: {
+      subjectId: clone(numericIdSchema),
+      semesterId: clone(numericIdSchema),
+      isActive: { type: "boolean" }
+    },
+    required: ["subjectId", "semesterId"],
+    additionalProperties: false,
+    example: { subjectId: "1", semesterId: "1", isActive: true }
+  },
+  UpdateSubjectOfferingRequest: {
+    type: "object",
+    properties: {
+      isActive: { type: "boolean" }
+    },
+    required: ["isActive"],
+    additionalProperties: false,
+    example: { isActive: false }
+  },
   CreateTeacherAssignmentRequest: {
     type: "object",
     properties: {
@@ -1095,6 +1143,7 @@ function pathParamDescription(routePath, paramName) {
   if (routePath.startsWith("/academic-structure/semesters/:id")) return "Semester numeric string identifier.";
   if (routePath.startsWith("/academic-structure/classes/:id")) return "Class numeric string identifier.";
   if (routePath.startsWith("/academic-structure/subjects/:id")) return "Subject numeric string identifier.";
+  if (routePath.startsWith("/academic-structure/subject-offerings/:id")) return "Subject offering numeric string identifier.";
   if (routePath.startsWith("/assessments/:id")) return "Assessment numeric string identifier.";
   if (routePath.startsWith("/attendance/sessions/:id")) return "Attendance session numeric string identifier.";
   if (routePath.startsWith("/behavior/records/:id")) return "Behavior record numeric string identifier.";
@@ -1127,6 +1176,7 @@ function postmanVariableForParam(routePath, paramName) {
   if (routePath.startsWith("/academic-structure/semesters/:id")) return "semesterId";
   if (routePath.startsWith("/academic-structure/classes/:id")) return "classId";
   if (routePath.startsWith("/academic-structure/subjects/:id")) return "subjectId";
+  if (routePath.startsWith("/academic-structure/subject-offerings/:id")) return "subjectOfferingId";
   if (routePath.startsWith("/assessments/:id")) return "assessmentId";
   if (routePath.startsWith("/attendance/sessions/:id")) return "attendanceSessionId";
   if (routePath.startsWith("/behavior/records/:id")) return "behaviorRecordId";
@@ -1166,6 +1216,13 @@ const attendanceListQuery = paginatedQuery(["sessionDate", "periodNo", "createdA
 const assessmentListQuery = paginatedQuery(["assessmentDate", "createdAt", "title"], [commonQuery.id("assessmentTypeId", "Filter by assessment type id."), commonQuery.id("classId", "Filter by class id."), commonQuery.id("subjectId", "Filter by subject id."), commonQuery.id("teacherId", "Filter by teacher profile id."), commonQuery.id("academicYearId", "Filter by academic year id."), commonQuery.id("semesterId", "Filter by semester id."), commonQuery.date("assessmentDate", "Filter by exact assessment date."), commonQuery.date("dateFrom", "Filter from assessment date."), commonQuery.date("dateTo", "Filter to assessment date."), commonQuery.boolean("isPublished", "Filter by publication state.")], "assessmentDate");
 const behaviorListQuery = paginatedQuery(["behaviorDate", "createdAt", "severity"], [commonQuery.id("studentId", "Filter by student id."), commonQuery.id("behaviorCategoryId", "Filter by behavior category id."), commonQuery.text("behaviorType", "Filter by behavior type.", "negative"), commonQuery.id("academicYearId", "Filter by academic year id."), commonQuery.id("semesterId", "Filter by semester id."), commonQuery.id("teacherId", "Filter by teacher profile id."), commonQuery.id("supervisorId", "Filter by supervisor profile id."), commonQuery.date("behaviorDate", "Filter by exact behavior date."), commonQuery.date("dateFrom", "Filter from behavior date."), commonQuery.date("dateTo", "Filter to behavior date.")], "behaviorDate");
 const homeworkListQuery = paginatedQuery(["dueDate", "assignedDate", "createdAt", "title"], [commonQuery.id("classId", "Filter by class id."), commonQuery.id("subjectId", "Filter by subject id."), commonQuery.id("teacherId", "Filter by teacher profile id."), commonQuery.id("academicYearId", "Filter by academic year id."), commonQuery.id("semesterId", "Filter by semester id."), commonQuery.date("assignedDate", "Filter by exact assigned date."), commonQuery.date("dueDate", "Filter by exact due date."), commonQuery.date("dateFrom", "Filter from date range."), commonQuery.date("dateTo", "Filter to date range.")], "dueDate");
+const subjectOfferingsQuery = [
+  commonQuery.id("academicYearId", "Filter by academic year id."),
+  commonQuery.id("semesterId", "Filter by semester id."),
+  commonQuery.id("gradeLevelId", "Filter by grade level id."),
+  commonQuery.id("subjectId", "Filter by subject id."),
+  commonQuery.boolean("isActive", "Filter by activation state.")
+];
 const tripListQuery = paginatedQuery(["tripDate", "tripStatus", "startedAt", "createdAt"], [commonQuery.id("busId", "Filter by bus id."), commonQuery.id("routeId", "Filter by route id."), commonQuery.text("tripType", "Filter by trip type.", "pickup"), commonQuery.text("tripStatus", "Filter by trip status.", "started"), commonQuery.date("tripDate", "Filter by exact trip date."), commonQuery.date("dateFrom", "Filter from trip date."), commonQuery.date("dateTo", "Filter to trip date.")], "tripDate");
 const tripRosterQuery = [commonQuery.text("search", "Filter roster rows by student full name or academic number.", "Student One"), commonQuery.id("stopId", "Filter roster rows by assigned stop id.")];
 const inboxQuery = paginatedQuery(["sentAt"], [commonQuery.boolean("isRead", "Filter by read state.")], "sentAt");
@@ -1207,9 +1264,13 @@ const endpoints = [
   makeEndpoint({ m: "POST", p: "/academic-structure/classes", t: "Academic Structure", s: "Create Class", u: "Create a class section.", b: "CreateClassRequest", e: "classEntity" }),
   makeEndpoint({ m: "GET", p: "/academic-structure/classes", t: "Academic Structure", s: "List Classes", u: "List classes.", kind: "array", e: "classEntity", status: 200 }),
   makeEndpoint({ m: "GET", p: "/academic-structure/classes/:id", t: "Academic Structure", s: "Get Class", u: "Return one class by id.", e: "classEntity", status: 200 }),
-  makeEndpoint({ m: "POST", p: "/academic-structure/subjects", t: "Academic Structure", s: "Create Subject", u: "Create a subject under a grade level.", b: "CreateSubjectRequest", e: "subject" }),
+  makeEndpoint({ m: "POST", p: "/academic-structure/subjects", t: "Academic Structure", s: "Create Subject", u: "Create a subject under a grade level. Subjects remain grade-level master data and do not accept semesterId.", b: "CreateSubjectRequest", e: "subject", notes: ["Use subject-offerings to link a subject into one or more semesters without changing the subject master record."] }),
   makeEndpoint({ m: "GET", p: "/academic-structure/subjects", t: "Academic Structure", s: "List Subjects", u: "List subjects.", kind: "array", e: "subject", status: 200 }),
   makeEndpoint({ m: "GET", p: "/academic-structure/subjects/:id", t: "Academic Structure", s: "Get Subject", u: "Return one subject by id.", e: "subject", status: 200 }),
+  makeEndpoint({ m: "POST", p: "/academic-structure/subject-offerings", t: "Academic Structure", s: "[NEW] Create Subject Offering", u: "Link an existing subject to a semester without changing the subject master data.", b: "CreateSubjectOfferingRequest", e: "subjectOffering", notes: ["[NEW] Subject offerings are the official semester-aware layer for subject availability."] }),
+  makeEndpoint({ m: "GET", p: "/academic-structure/subject-offerings", t: "Academic Structure", s: "[NEW] List Subject Offerings", u: "List subject offerings with optional academic year, semester, grade level, subject, and activation filters.", q: subjectOfferingsQuery, kind: "array", e: "subjectOffering", status: 200, notes: ["[NEW] This is the canonical list surface for semester-aware subject availability."] }),
+  makeEndpoint({ m: "GET", p: "/academic-structure/subject-offerings/:id", t: "Academic Structure", s: "[NEW] Get Subject Offering", u: "Return one subject offering by id.", e: "subjectOffering", status: 200 }),
+  makeEndpoint({ m: "PATCH", p: "/academic-structure/subject-offerings/:id", t: "Academic Structure", s: "[NEW] Update Subject Offering", u: "Update a subject offering activation state. This round only supports isActive changes.", b: "UpdateSubjectOfferingRequest", e: "subjectOffering", status: 200 }),
   makeEndpoint({ m: "POST", p: "/academic-structure/teacher-assignments", t: "Academic Structure", s: "Create Teacher Assignment", u: "Assign a teacher to a class and subject for an academic year.", b: "CreateTeacherAssignmentRequest", e: "classEntity" }),
   makeEndpoint({ m: "GET", p: "/academic-structure/teacher-assignments", t: "Academic Structure", s: "List Teacher Assignments", u: "List teacher assignments.", kind: "array", e: "classEntity", status: 200 }),
   makeEndpoint({ m: "POST", p: "/academic-structure/supervisor-assignments", t: "Academic Structure", s: "Create Supervisor Assignment", u: "Assign a supervisor to a class for an academic year.", b: "CreateSupervisorAssignmentRequest", e: "classEntity" }),
@@ -1226,13 +1287,13 @@ endpoints.push(
   makeEndpoint({ m: "POST", p: "/students/:id/promotions", t: "Students", s: "Promote Student", u: "Promote a student to another class for a target academic year.", b: "PromoteStudentRequest", e: "student" }),
   makeEndpoint({ m: "POST", p: "/assessments/types", t: "Assessments", s: "Create Assessment Type", u: "Create a reusable assessment type.", b: "CreateAssessmentTypeRequest", e: "assessment" }),
   makeEndpoint({ m: "GET", p: "/assessments/types", t: "Assessments", s: "List Assessment Types", u: "List assessment types.", r: ["admin", "teacher"], kind: "array", e: "assessment", status: 200 }),
-  makeEndpoint({ m: "POST", p: "/assessments", t: "Assessments", s: "Create Assessment", u: "Create an assessment. Teachers may omit teacherId and rely on the authenticated teacher profile.", r: ["admin", "teacher"], b: "CreateAssessmentRequest", e: "assessment" }),
+  makeEndpoint({ m: "POST", p: "/assessments", t: "Assessments", s: "Create Assessment", u: "Create an assessment. Teachers may omit teacherId and rely on the authenticated teacher profile.", r: ["admin", "teacher"], b: "CreateAssessmentRequest", e: "assessment", notes: ["The selected subjectId must have an active subject offering for the selected semesterId."] }),
   makeEndpoint({ m: "GET", p: "/assessments", t: "Assessments", s: "List Assessments", u: "List assessments with pagination and filters.", r: ["admin", "teacher"], q: assessmentListQuery, kind: "paginated", e: "assessment", status: 200 }),
   makeEndpoint({ m: "GET", p: "/assessments/:id", t: "Assessments", s: "Get Assessment", u: "Return one assessment detail record.", r: ["admin", "teacher"], e: "assessment", status: 200 }),
   makeEndpoint({ m: "GET", p: "/assessments/:id/scores", t: "Assessments", s: "Get Assessment Scores", u: "Return the score roster for one assessment.", r: ["admin", "teacher"], kind: "array", e: "assessmentScore", status: 200 }),
   makeEndpoint({ m: "PUT", p: "/assessments/:id/scores", t: "Assessments", s: "Save Assessment Scores", u: "Create or update the full score roster for an assessment.", r: ["admin", "teacher"], b: "SaveAssessmentScoresRequest", kind: "array", e: "assessmentScore", status: 200 }),
   makeEndpoint({ m: "PATCH", p: "/assessments/scores/:studentAssessmentId", t: "Assessments", s: "Update Student Assessment Score", u: "Update one student score row.", r: ["admin", "teacher"], b: "UpdateStudentAssessmentScoreRequest", e: "assessmentScore", status: 200 }),
-  makeEndpoint({ m: "POST", p: "/attendance/sessions", t: "Attendance", s: "Create Attendance Session", u: "Create an attendance session for a class and subject.", r: ["admin", "teacher"], b: "CreateAttendanceSessionRequest", e: "attendanceSession" }),
+  makeEndpoint({ m: "POST", p: "/attendance/sessions", t: "Attendance", s: "Create Attendance Session", u: "Create an attendance session for a class and subject.", r: ["admin", "teacher"], b: "CreateAttendanceSessionRequest", e: "attendanceSession", notes: ["The selected subjectId must have an active subject offering for the selected semesterId."] }),
   makeEndpoint({ m: "GET", p: "/attendance/sessions", t: "Attendance", s: "List Attendance Sessions", u: "List attendance sessions with pagination. There is no root /attendance endpoint.", r: ["admin", "teacher", "supervisor"], q: attendanceListQuery, kind: "paginated", e: "attendanceSession", status: 200, notes: ["Empty collections return 200 with items=[] and pagination metadata."] }),
   makeEndpoint({ m: "GET", p: "/attendance/sessions/:id", t: "Attendance", s: "Get Attendance Session", u: "Return one attendance session including its student roster.", r: ["admin", "teacher", "supervisor"], e: "attendanceSession", status: 200 }),
   makeEndpoint({ m: "PUT", p: "/attendance/sessions/:id/records", t: "Attendance", s: "Save Attendance Records", u: "Save the full attendance roster snapshot for one session.", r: ["admin", "teacher", "supervisor"], b: "SaveAttendanceRecordsRequest", kind: "array", e: "attendanceRecord", status: 200, side: "Any newly absent record can trigger parent notifications through the internal automation service." }),
@@ -1253,26 +1314,26 @@ endpoints.push(
   makeEndpoint({ m: "POST", p: "/transport/assignments", t: "Transport", s: "Create Transport Assignment", u: "Create an active student bus assignment.", b: "CreateTransportAssignmentRequest", e: "assignment" }),
   makeEndpoint({ m: "PATCH", p: "/transport/assignments/:id/deactivate", t: "Transport", s: "Deactivate Transport Assignment", u: "Deactivate an active student bus assignment.", b: "DeactivateTransportAssignmentRequest", e: "assignment", status: 200 }),
   makeEndpoint({ m: "GET", p: "/transport/assignments/active", t: "Transport", s: "List Active Transport Assignments", u: "List active student bus assignments.", kind: "array", e: "assignment", status: 200 }),
-  makeEndpoint({ m: "POST", p: "/transport/route-assignments", t: "Transport", s: "[NEW] Create Route Assignment", u: "Create a recurring bus-to-route assignment used by the driver daily workflow.", b: "CreateTransportRouteAssignmentRequest", e: "routeAssignment" }),
-  makeEndpoint({ m: "GET", p: "/transport/route-assignments", t: "Transport", s: "[NEW] List Route Assignments", u: "List recurring bus-to-route assignments for admin transport management.", kind: "array", e: "routeAssignment", status: 200 }),
-  makeEndpoint({ m: "GET", p: "/transport/route-assignments/me", t: "Transport", s: "[NEW] List My Route Assignments", u: "Return the active recurring route assignments owned by the authenticated driver.", r: ["driver"], kind: "array", e: "routeAssignment", status: 200 }),
-  makeEndpoint({ m: "PATCH", p: "/transport/route-assignments/:id/deactivate", t: "Transport", s: "[NEW] Deactivate Route Assignment", u: "Deactivate a recurring bus-to-route assignment. Legacy trips remain intact.", b: "DeactivateTransportRouteAssignmentRequest", e: "routeAssignment", status: 200 }),
+  makeEndpoint({ m: "POST", p: "/transport/route-assignments", t: "Transport", s: "Create Route Assignment", u: "Create a recurring bus-to-route assignment used by the driver daily workflow.", b: "CreateTransportRouteAssignmentRequest", e: "routeAssignment" }),
+  makeEndpoint({ m: "GET", p: "/transport/route-assignments", t: "Transport", s: "List Route Assignments", u: "List recurring bus-to-route assignments for admin transport management.", kind: "array", e: "routeAssignment", status: 200 }),
+  makeEndpoint({ m: "GET", p: "/transport/route-assignments/me", t: "Transport", s: "List My Route Assignments", u: "Return the active recurring route assignments owned by the authenticated driver.", r: ["driver"], kind: "array", e: "routeAssignment", status: 200 }),
+  makeEndpoint({ m: "PATCH", p: "/transport/route-assignments/:id/deactivate", t: "Transport", s: "Deactivate Route Assignment", u: "Deactivate a recurring bus-to-route assignment. Legacy trips remain intact.", b: "DeactivateTransportRouteAssignmentRequest", e: "routeAssignment", status: 200 }),
   makeEndpoint({ m: "POST", p: "/transport/trips", t: "Transport", s: "Create Trip", u: "Create a trip for a bus and route. Drivers and admins can create trips.", r: ["admin", "driver"], b: "CreateTripRequest", e: "trip" }),
-  makeEndpoint({ m: "POST", p: "/transport/trips/ensure-daily", t: "Transport", s: "[NEW] Ensure Daily Trip", u: "Create or reuse the operational trip for one route assignment, trip date, and trip type without creating duplicates.", r: ["admin", "driver"], b: "EnsureDailyTripRequest", e: "ensureDailyTrip", status: 200, notes: ["If a matching trip already exists for the same bus, route, tripDate, and tripType, the response remains 200 with created=false.", "This is the preferred driver-facing daily trip flow. POST /transport/trips remains a legacy fallback."], derived: "The endpoint reuses the natural uniqueness of bus + route + tripDate + tripType." }),
+  makeEndpoint({ m: "POST", p: "/transport/trips/ensure-daily", t: "Transport", s: "Ensure Daily Trip", u: "Create or reuse the operational trip for one route assignment, trip date, and trip type without creating duplicates.", r: ["admin", "driver"], b: "EnsureDailyTripRequest", e: "ensureDailyTrip", status: 200, notes: ["If a matching trip already exists for the same bus, route, tripDate, and tripType, the response remains 200 with created=false.", "This is the preferred driver-facing daily trip flow. POST /transport/trips remains a legacy fallback."], derived: "The endpoint reuses the natural uniqueness of bus + route + tripDate + tripType." }),
   makeEndpoint({ m: "GET", p: "/transport/trips", t: "Transport", s: "List Trips", u: "List trips with pagination. Drivers only see trips within their scope.", r: ["admin", "driver"], q: tripListQuery, kind: "paginated", e: "trip", status: 200 }),
   makeEndpoint({ m: "GET", p: "/transport/trips/:id", t: "Transport", s: "Get Trip", u: "Return one trip detail including latest location, route stops, and event summary.", r: ["admin", "driver"], e: "tripDetail", status: 200, derived: "Trip detail aggregates transport views such as vw_trip_details, vw_route_stops, and vw_latest_trip_location." }),
-  makeEndpoint({ m: "GET", p: "/transport/trips/:id/students", t: "Transport", s: "[NEW] Get Trip Student Roster", u: "Return the full student roster for one trip, including assigned stop coordinates, the latest event state inside the same trip, and approved home location when available.", r: ["admin", "driver"], q: tripRosterQuery, e: "tripRoster", status: 200, notes: ["The roster returns all students assigned to the trip route for the trip date, even when no trip event has been recorded yet.", "If the trip exists but has no eligible students, the response remains 200 with students=[].", "Only approved homeLocation data is exposed to the driver-facing roster."], derived: "Roster rows are derived from trip-date transport assignments, route stop coordinates, approved student_transport_home_locations, and the latest trip_student_events row per student inside the same trip." }),
+  makeEndpoint({ m: "GET", p: "/transport/trips/:id/students", t: "Transport", s: "Get Trip Student Roster", u: "Return the full student roster for one trip, including assigned stop coordinates, the latest event state inside the same trip, and approved home location when available.", r: ["admin", "driver"], q: tripRosterQuery, e: "tripRoster", status: 200, notes: ["The roster returns all students assigned to the trip route for the trip date, even when no trip event has been recorded yet.", "If the trip exists but has no eligible students, the response remains 200 with students=[].", "Only approved homeLocation data is exposed to the driver-facing roster."], derived: "Roster rows are derived from trip-date transport assignments, route stop coordinates, approved student_transport_home_locations, and the latest trip_student_events row per student inside the same trip." }),
   makeEndpoint({ m: "POST", p: "/transport/trips/:id/start", t: "Transport", s: "Start Trip", u: "Mark a scheduled trip as started.", r: ["admin", "driver"], e: "trip", status: 200, side: "Trip start triggers parent notifications per assigned student through the internal automation service." }),
   makeEndpoint({ m: "POST", p: "/transport/trips/:id/end", t: "Transport", s: "End Trip", u: "Mark a trip as ended.", r: ["admin", "driver"], e: "trip", status: 200 }),
   makeEndpoint({ m: "POST", p: "/transport/trips/:id/locations", t: "Transport", s: "Record Trip Location", u: "Record one location point for a started trip.", r: ["admin", "driver"], b: "RecordTripLocationRequest", e: "trip", status: 201 }),
   makeEndpoint({ m: "POST", p: "/transport/trips/:id/events", t: "Transport", s: "Create Trip Student Event", u: "Create one trip student event. stopId is required for boarded and dropped_off events, and must be omitted for absent.", r: ["admin", "driver"], b: "CreateTripStudentEventRequest", e: "tripEvent", status: 201, notes: ["Trip student event validation is trip-date aware: the student must have a transport assignment covering the trip date and route."], side: "Dropped-off events trigger parent notifications through the internal automation service." }),
   makeEndpoint({ m: "GET", p: "/transport/trips/:id/events", t: "Transport", s: "List Trip Events", u: "List student events recorded for a trip.", r: ["admin", "driver"], kind: "array", e: "tripEvent", status: 200 }),
-  makeEndpoint({ m: "GET", p: "/transport/students/:studentId/home-location", t: "Transport", s: "[NEW] Get Student Home Location", u: "Return the current saved home location reference for one student. In this round the endpoint is admin-only.", e: "studentHomeLocation", status: 200, notes: ["If the student exists but no home location has been saved yet, the response remains 200 with homeLocation=null."] }),
-  makeEndpoint({ m: "PUT", p: "/transport/students/:studentId/home-location", t: "Transport", s: "[NEW] Save Student Home Location", u: "Create or update the current student home location reference. v1 uses admin as the submitting source.", b: "SaveStudentHomeLocationRequest", e: "studentHomeLocation", status: 200, notes: ["Admin may save pending, approved, or rejected locations. Only approved locations appear in the driver roster."] }),
-  makeEndpoint({ m: "DELETE", p: "/transport/students/:studentId/home-location", t: "Transport", s: "[NEW] Delete Student Home Location", u: "Delete the current saved home location for one student.", e: "studentHomeLocation", status: 200 })
+  makeEndpoint({ m: "GET", p: "/transport/students/:studentId/home-location", t: "Transport", s: "Get Student Home Location", u: "Return the current saved home location reference for one student. In this round the endpoint is admin-only.", e: "studentHomeLocation", status: 200, notes: ["If the student exists but no home location has been saved yet, the response remains 200 with homeLocation=null."] }),
+  makeEndpoint({ m: "PUT", p: "/transport/students/:studentId/home-location", t: "Transport", s: "Save Student Home Location", u: "Create or update the current student home location reference. v1 uses admin as the submitting source.", b: "SaveStudentHomeLocationRequest", e: "studentHomeLocation", status: 200, notes: ["Admin may save pending, approved, or rejected locations. Only approved locations appear in the driver roster."] }),
+  makeEndpoint({ m: "DELETE", p: "/transport/students/:studentId/home-location", t: "Transport", s: "Delete Student Home Location", u: "Delete the current saved home location for one student.", e: "studentHomeLocation", status: 200 })
 );
 endpoints.push(
-  makeEndpoint({ m: "GET", p: "/communication/recipients", t: "Communication", s: "[NEW] List Available Recipients", u: "Return the active users that the authenticated caller can currently message. v1 mirrors the current messaging policy: any active user except self.", r: ["admin", "parent", "teacher", "supervisor", "driver"], q: recipientsQuery, kind: "paginated", e: "recipient", status: 200, notes: ["The response is scope-limited to active users and excludes the authenticated user.", "Empty result sets return 200 with items=[]."] }),
+  makeEndpoint({ m: "GET", p: "/communication/recipients", t: "Communication", s: "List Available Recipients", u: "Return the active users that the authenticated caller can currently message. v1 mirrors the current messaging policy: any active user except self.", r: ["admin", "parent", "teacher", "supervisor", "driver"], q: recipientsQuery, kind: "paginated", e: "recipient", status: 200, notes: ["The response is scope-limited to active users and excludes the authenticated user.", "Empty result sets return 200 with items=[]."] }),
   makeEndpoint({ m: "POST", p: "/communication/messages", t: "Communication", s: "Send Message", u: "Send a direct message to another active user.", r: ["admin", "parent", "teacher", "supervisor", "driver"], b: "SendMessageRequest", e: "message" }),
   makeEndpoint({ m: "GET", p: "/communication/messages/inbox", t: "Communication", s: "List Inbox", u: "List inbox messages for the authenticated user with unreadCount metadata.", r: ["admin", "parent", "teacher", "supervisor", "driver"], q: inboxQuery, kind: "paginated", e: "message", status: 200 }),
   makeEndpoint({ m: "GET", p: "/communication/messages/sent", t: "Communication", s: "List Sent Messages", u: "List sent messages for the authenticated user.", r: ["admin", "parent", "teacher", "supervisor", "driver"], q: sentQuery, kind: "paginated", e: "message", status: 200 }),
@@ -1284,7 +1345,7 @@ endpoints.push(
   makeEndpoint({ m: "POST", p: "/communication/notifications", t: "Communication", s: "Create Notification", u: "Create a manual notification for one user. notificationType is free-form and can coexist with automation-generated values.", b: "CreateNotificationRequest", e: "notification" }),
   makeEndpoint({ m: "GET", p: "/communication/notifications/me", t: "Communication", s: "List My Notifications", u: "List notifications for the authenticated user with unreadCount metadata.", r: ["admin", "parent", "teacher", "supervisor", "driver"], q: notificationsQuery, kind: "paginated", e: "notification", status: 200, derived: "Notification lists rely on views such as vw_notification_details and vw_user_notification_summary." }),
   makeEndpoint({ m: "PATCH", p: "/communication/notifications/:notificationId/read", t: "Communication", s: "Mark Notification Read", u: "Mark one notification as read.", r: ["admin", "parent", "teacher", "supervisor", "driver"], e: "notification", status: 200 }),
-  makeEndpoint({ m: "POST", p: "/homework", t: "Homework", s: "Create Homework", u: "Create homework for a class and subject. Teachers may omit teacherId and rely on the authenticated teacher profile.", r: ["admin", "teacher"], b: "CreateHomeworkRequest", e: "homework" }),
+  makeEndpoint({ m: "POST", p: "/homework", t: "Homework", s: "Create Homework", u: "Create homework for a class and subject. Teachers may omit teacherId and rely on the authenticated teacher profile.", r: ["admin", "teacher"], b: "CreateHomeworkRequest", e: "homework", notes: ["The selected subjectId must have an active subject offering for the selected semesterId."] }),
   makeEndpoint({ m: "GET", p: "/homework", t: "Homework", s: "List Homework", u: "List homework with pagination and academic filters.", r: ["admin", "teacher"], q: homeworkListQuery, kind: "paginated", e: "homework", status: 200, derived: "Homework lists are enriched by SQL views such as vw_homework_details." }),
   makeEndpoint({ m: "GET", p: "/homework/students/:studentId", t: "Homework", s: "Get Student Homework", u: "Return homework assigned to one student. Parents are restricted to their linked children.", r: ["admin", "teacher", "parent"], e: "studentHomework", status: 200, notes: ["If the student exists but has no homework yet, the response remains 200 with items=[]."], derived: "Student homework uses view-backed projections such as vw_homework_details and vw_homework_submission_details." }),
   makeEndpoint({ m: "GET", p: "/homework/:id", t: "Homework", s: "Get Homework", u: "Return one homework detail including roster-level submission summary.", r: ["admin", "teacher"], e: "homework", status: 200, derived: "Homework detail is enriched through SQL views such as vw_homework_details and vw_homework_submission_details." }),
@@ -1492,6 +1553,7 @@ function buildCollection(name, description, subset) {
       { key: "gradeLevelId", value: "1" },
       { key: "classId", value: "1" },
       { key: "subjectId", value: "1" },
+      { key: "subjectOfferingId", value: "1" },
       { key: "studentId", value: "1" },
       { key: "parentId", value: "1003" },
       { key: "assessmentId", value: "1" },
@@ -1579,20 +1641,16 @@ const moduleTable = moduleOrder.map((key) => {
   return `| ${tag} | ${total} | ${beforeOpenApiByModule.get(key)?.covered ?? 0}/${total} | ${beforePostmanByModule.get(key)?.covered ?? 0}/${total} | ${afterOpenApiByModule.get(key)?.covered ?? 0}/${total} | ${afterPostmanByModule.get(key)?.covered ?? 0}/${total} |`;
 }).join("\n");
 
-const missingBefore = baseline.masterOpenApi.missing.map((route) => `- \`${route.method} ${route.path}\``).join("\n");
+const missingBefore = baseline.masterOpenApi.missing.length > 0
+  ? baseline.masterOpenApi.missing.map((route) => `- \`${route.method} ${route.path}\``).join("\n")
+  : "- none";
 const newRuntimeEndpoints = [
-  "POST /transport/route-assignments",
-  "GET /transport/route-assignments",
-  "GET /transport/route-assignments/me",
-  "PATCH /transport/route-assignments/:id/deactivate",
-  "POST /transport/trips/ensure-daily",
-  "GET /transport/trips/:id/students",
-  "GET /transport/students/:studentId/home-location",
-  "PUT /transport/students/:studentId/home-location",
-  "DELETE /transport/students/:studentId/home-location",
-  "GET /communication/recipients"
+  "POST /academic-structure/subject-offerings",
+  "GET /academic-structure/subject-offerings",
+  "GET /academic-structure/subject-offerings/:id",
+  "PATCH /academic-structure/subject-offerings/:id"
 ];
-const audit = `# OpenAPI / Postman Audit\n\n- Audit date: ${TODAY}\n- Runtime endpoint count: ${actualRoutes.length}\n- Runtime changes during this reconciliation: ${newRuntimeEndpoints.length > 0 ? `${newRuntimeEndpoints.length} new endpoint(s)` : "none"}\n\n## Coverage Summary\n\n| Artifact | Before | After |\n| --- | --- | --- |\n| Master OpenAPI | ${baseline.masterOpenApi.covered.length}/${actualRoutes.length} | ${final.masterOpenApi.covered.length}/${actualRoutes.length} |\n| Master Postman | ${baseline.masterPostman.covered.length}/${actualRoutes.length} | ${final.masterPostman.covered.length}/${actualRoutes.length} |\n| Auth OpenAPI | ${baseline.authOpenApi.covered.length}/7 | ${final.authOpenApi.covered.length}/7 |\n| Auth Postman | ${baseline.authPostman.covered.length}/7 | ${final.authPostman.covered.length}/7 |\n\n## Per-Module Coverage\n\n| Module | Actual | OpenAPI Before | Postman Before | OpenAPI After | Postman After |\n| --- | --- | --- | --- | --- | --- |\n${moduleTable}\n\n## [NEW] Runtime Endpoints Added In This Pass\n\n${newRuntimeEndpoints.map((route) => `- \`${route}\``).join("\n")}\n\n## Runtime Endpoints Missing From Master OpenAPI Before This Update\n\n${missingBefore}\n\n## Views, Events, Targets Alignment\n\n### SQL Views Referenced\n${viewNames.map((name) => `- \`${name}\``).join("\n")}\n\n### Automation Events Documented\n${automationEvents.map((name) => `- \`${name}\``).join("\n")}\n\n### Target / Event Fields Documented\n${targetFields.map((name) => `- \`${name}\``).join("\n")}\n\n## Reconciliation Notes\n\n- \`/health\` and \`/health/ready\` now use root-level servers instead of inheriting \`/api/v1\`.\n- The auth subset now covers all 7 live auth routes, including forgot-password and reset-password.\n- IDs in the auth subset were normalized to numeric-string ids instead of UUID assumptions.\n- The new transport alignment endpoints and driver-facing roster/recipients surfaces are marked with \`[NEW]\` inside OpenAPI and Postman so frontend teams can spot them quickly.\n`;
+const audit = `# OpenAPI / Postman Audit\n\n- Audit date: ${TODAY}\n- Runtime endpoint count: ${actualRoutes.length}\n- Runtime changes during this reconciliation: ${newRuntimeEndpoints.length > 0 ? `${newRuntimeEndpoints.length} new endpoint(s)` : "none"}\n\n## Coverage Summary\n\n| Artifact | Before | After |\n| --- | --- | --- |\n| Master OpenAPI | ${baseline.masterOpenApi.covered.length}/${actualRoutes.length} | ${final.masterOpenApi.covered.length}/${actualRoutes.length} |\n| Master Postman | ${baseline.masterPostman.covered.length}/${actualRoutes.length} | ${final.masterPostman.covered.length}/${actualRoutes.length} |\n| Auth OpenAPI | ${baseline.authOpenApi.covered.length}/7 | ${final.authOpenApi.covered.length}/7 |\n| Auth Postman | ${baseline.authPostman.covered.length}/7 | ${final.authPostman.covered.length}/7 |\n\n## Per-Module Coverage\n\n| Module | Actual | OpenAPI Before | Postman Before | OpenAPI After | Postman After |\n| --- | --- | --- | --- | --- | --- |\n${moduleTable}\n\n## [NEW] Runtime Endpoints Added In This Pass\n\n${newRuntimeEndpoints.map((route) => `- \`${route}\``).join("\n")}\n\n## Runtime Endpoints Missing From Master OpenAPI Before This Update\n\n${missingBefore}\n\n## Views, Events, Targets Alignment\n\n### SQL Views Referenced\n${viewNames.map((name) => `- \`${name}\``).join("\n")}\n\n### Automation Events Documented\n${automationEvents.map((name) => `- \`${name}\``).join("\n")}\n\n### Target / Event Fields Documented\n${targetFields.map((name) => `- \`${name}\``).join("\n")}\n\n## Reconciliation Notes\n\n- \`/health\` and \`/health/ready\` now use root-level servers instead of inheriting \`/api/v1\`.\n- The auth subset now covers all 7 live auth routes, including forgot-password and reset-password.\n- IDs in the auth subset were normalized to numeric-string ids instead of UUID assumptions.\n- The new subject-offering endpoints are marked with \`[NEW]\` inside OpenAPI and Postman so admin frontend teams can spot the semester-aware academic change quickly.\n`;
 fs.writeFileSync(auditPath, audit);
 console.log(`Master OpenAPI: ${final.masterOpenApi.covered.length}/${actualRoutes.length}`);
 console.log(`Master Postman: ${final.masterPostman.covered.length}/${actualRoutes.length}`);

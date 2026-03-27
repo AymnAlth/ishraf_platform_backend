@@ -235,8 +235,28 @@ export class HomeworkRepository {
       `,
       [semesterId]
     );
-
     return mapSingleRow(result.rows);
+  }
+
+  async hasActiveSubjectOffering(
+    subjectId: string,
+    semesterId: string,
+    queryable: Queryable = db
+  ): Promise<boolean> {
+    const result = await queryable.query<{ exists: boolean }>(
+      `
+        SELECT EXISTS (
+          SELECT 1
+          FROM ${databaseTables.subjectOfferings}
+          WHERE subject_id = $1
+            AND semester_id = $2
+            AND is_active = true
+        ) AS exists
+      `,
+      [subjectId, semesterId]
+    );
+
+    return Boolean(result.rows[0]?.exists);
   }
 
   async createHomework(
@@ -481,3 +501,5 @@ export class HomeworkRepository {
     return result.rows;
   }
 }
+
+

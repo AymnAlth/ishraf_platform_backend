@@ -11,10 +11,13 @@ import {
   createGradeLevelSchema,
   createSemesterSchema,
   createSubjectSchema,
+  createSubjectOfferingSchema,
   createSupervisorAssignmentSchema,
   createTeacherAssignmentSchema,
   entityIdParamsSchema,
+  listSubjectOfferingsQuerySchema,
   updateAcademicYearSchema,
+  updateSubjectOfferingSchema,
   updateSemesterSchema
 } from "../validator/academic-structure.validator";
 
@@ -138,6 +141,37 @@ export const createAcademicStructureRouter = (
     ...academicStructurePolicies.adminOnly,
     validateRequest({ params: entityIdParamsSchema }),
     asyncHandler((req, res) => controller.getSubjectById(req, res))
+  );
+
+  router.post(
+    "/subject-offerings",
+    ...academicStructurePolicies.adminOnly,
+    validateRequest({ body: createSubjectOfferingSchema }),
+    asyncHandler((req, res) => controller.createSubjectOffering(req, res))
+  );
+
+  router.get(
+    "/subject-offerings",
+    ...academicStructurePolicies.adminOnly,
+    validateRequest({ query: listSubjectOfferingsQuerySchema }),
+    asyncHandler((req, res) => controller.listSubjectOfferings(req, res))
+  );
+
+  router.get(
+    "/subject-offerings/:id",
+    ...academicStructurePolicies.adminOnly,
+    validateRequest({ params: entityIdParamsSchema }),
+    asyncHandler((req, res) => controller.getSubjectOfferingById(req, res))
+  );
+
+  router.patch(
+    "/subject-offerings/:id",
+    ...academicStructurePolicies.adminOnly,
+    validateRequest({
+      params: entityIdParamsSchema,
+      body: updateSubjectOfferingSchema
+    }),
+    asyncHandler((req, res) => controller.updateSubjectOffering(req, res))
   );
 
   router.post(

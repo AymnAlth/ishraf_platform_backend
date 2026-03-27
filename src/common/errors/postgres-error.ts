@@ -149,6 +149,12 @@ const UNIQUE_CONSTRAINT_MAP: Record<string, ConstraintMapping> = {
     detailCode: "SUBJECT_CODE_ALREADY_EXISTS",
     type: "conflict"
   },
+  uq_subject_offerings_subject_semester: {
+    field: "subjectId",
+    message: "This subject is already offered in the selected semester",
+    detailCode: "SUBJECT_OFFERING_ALREADY_EXISTS",
+    type: "conflict"
+  },
   uq_teacher_classes_teacher_assignment: {
     field: "teacherId",
     message: "This teacher assignment already exists",
@@ -355,6 +361,18 @@ const FOREIGN_KEY_CONSTRAINT_MAP: Record<string, ConstraintMapping> = {
     field: "gradeLevelId",
     message: "Grade level does not exist",
     detailCode: "GRADE_LEVEL_NOT_FOUND",
+    type: "conflict"
+  },
+  subject_offerings_subject_id_fkey: {
+    field: "subjectId",
+    message: "Subject does not exist",
+    detailCode: "SUBJECT_NOT_FOUND",
+    type: "conflict"
+  },
+  subject_offerings_semester_id_fkey: {
+    field: "semesterId",
+    message: "Semester does not exist",
+    detailCode: "SEMESTER_NOT_FOUND",
     type: "conflict"
   },
   fk_teacher_classes_teacher: {

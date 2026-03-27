@@ -148,6 +148,24 @@ describe("mapPostgresError", () => {
         ]
       });
     });
+
+    it("maps duplicate subject offerings to a conflict error", () => {
+      const error = mapPostgresError({
+        code: "23505",
+        constraint: "uq_subject_offerings_subject_semester"
+      });
+
+      expect(error).toBeInstanceOf(ConflictError);
+      expect(error).toMatchObject({
+        message: "This subject is already offered in the selected semester",
+        details: [
+          {
+            field: "subjectId",
+            code: "SUBJECT_OFFERING_ALREADY_EXISTS"
+          }
+        ]
+      });
+    });
   });
 
   describe("known foreign key constraints", () => {
@@ -203,6 +221,27 @@ describe("mapPostgresError", () => {
             code: "STUDENT_NOT_FOUND"
           }
         ]
+      });
+    });
+
+    it("maps subject offering foreign keys to conflict errors", () => {
+      const subjectError = mapPostgresError({
+        code: "23503",
+        constraint: "subject_offerings_subject_id_fkey"
+      });
+      const semesterError = mapPostgresError({
+        code: "23503",
+        constraint: "subject_offerings_semester_id_fkey"
+      });
+
+      expect(subjectError).toBeInstanceOf(ConflictError);
+      expect(subjectError).toMatchObject({
+        message: "Subject does not exist"
+      });
+
+      expect(semesterError).toBeInstanceOf(ConflictError);
+      expect(semesterError).toMatchObject({
+        message: "Semester does not exist"
       });
     });
   });

@@ -53,6 +53,7 @@
 - admin dashboard
 - user management
 - academic structure management
+- semester-aware subject offering management
 - student lifecycle management
 - teacher/supervisor assignments
 - attendance operations

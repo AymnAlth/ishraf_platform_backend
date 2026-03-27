@@ -15,7 +15,7 @@
 
 - الباك إند مكتمل عمليًا لـ `Wave 1`
 - عدد الـ endpoints الحية حاليًا: `119`
-- ملفات `OpenAPI` و`Postman` الشاملة تغطي `119/119`
+- ملفات `OpenAPI` و`Postman` الشاملة تغطي `123/123`
 - الاستضافة تعمل على:
   - `Render` للباك
   - `Neon Postgres` لقاعدة البيانات
@@ -72,8 +72,8 @@
 
 من ناحية `OpenAPI` و`Postman`:
 
-- `ishraf-platform.openapi.json` = `119/119`
-- `ishraf-platform.postman_collection.json` = `119/119`
+- `ishraf-platform.openapi.json` = `123/123`
+- `ishraf-platform.postman_collection.json` = `123/123`
 - `auth.openapi.json` = `7/7`
 - `auth.postman_collection.json` = `7/7`
 

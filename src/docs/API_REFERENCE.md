@@ -8,8 +8,8 @@
   - `src/docs/openapi/ishraf-platform.openapi.json`
   - `src/docs/postman/ishraf-platform.postman_collection.json`
 - حالة التغطية الحالية:
-  - `OpenAPI = 119/119`
-  - `Postman = 119/119`
+  - `OpenAPI = 123/123`
+  - `Postman = 123/123`
 - هذا الملف يشرح العقود البشرية وقواعد الاستخدام والـ endpoints الأكثر أهمية للفرق، ويجب أن يبقى منسجمًا مع الكود و`OpenAPI/Postman` دون أن يحاول أن يكون clone حرفيًا لكل schema سطرًا بسطر.
 
 الملفات الجاهزة للاستخدام:
@@ -1030,6 +1030,11 @@ Authorization: Bearer <accessToken>
 
 الهدف: إنشاء مادة دراسية مرتبطة بمستوى.
 
+مهم:
+- `subjects` ليست `semester-scoped`
+- لا ترسل `semesterId` هنا
+- إذا كانت المادة متاحة في فصل معين، فذلك يتم عبر `subject-offerings`
+
 ```http
 POST /api/v1/academic-structure/subjects
 Authorization: Bearer <accessToken>
@@ -1122,6 +1127,94 @@ Authorization: Bearer <accessToken>
     "createdAt": "2026-03-13T03:44:07.985Z",
     "updatedAt": "2026-03-13T03:44:07.985Z"
   }
+}
+```
+
+#### POST `/academic-structure/subject-offerings`
+
+الهدف: ربط مادة موجودة مسبقًا بفصل دراسي محدد بدون تغيير تعريف المادة نفسها.
+
+```http
+POST /api/v1/academic-structure/subject-offerings
+Authorization: Bearer <accessToken>
+Content-Type: application/json
+```
+
+```json
+{
+  "subjectId": "1",
+  "semesterId": "1",
+  "isActive": true
+}
+```
+
+```json
+{
+  "success": true,
+  "message": "Subject offering created successfully",
+  "data": {
+    "id": "1",
+    "isActive": true,
+    "subject": {
+      "id": "1",
+      "name": "Science",
+      "code": "SCI-G1",
+      "isActive": true,
+      "gradeLevel": {
+        "id": "1",
+        "name": "Grade 1",
+        "levelOrder": 1
+      }
+    },
+    "semester": {
+      "id": "1",
+      "name": "Semester 1",
+      "startDate": "2025-09-01",
+      "endDate": "2026-01-31",
+      "isActive": false,
+      "academicYear": {
+        "id": "1",
+        "name": "2025-2026"
+      }
+    },
+    "createdAt": "2026-03-27T12:00:00.000Z",
+    "updatedAt": "2026-03-27T12:00:00.000Z"
+  }
+}
+```
+
+قواعد العمل:
+- يسمح بوجود نفس `subject` في أكثر من فصل
+- لا يسمح بتكرار نفس `(subjectId + semesterId)` مرتين
+- هذه هي الطبقة الرسمية `semester-aware` للمواد
+
+#### GET `/academic-structure/subject-offerings`
+
+الهدف: جلب روابط المواد بالفصول.
+
+```http
+GET /api/v1/academic-structure/subject-offerings
+Authorization: Bearer <accessToken>
+```
+
+الـ query params المدعومة:
+- `academicYearId`
+- `semesterId`
+- `gradeLevelId`
+- `subjectId`
+- `isActive`
+
+#### GET `/academic-structure/subject-offerings/:id`
+
+الهدف: جلب `subject offering` واحدة بالمعرّف.
+
+#### PATCH `/academic-structure/subject-offerings/:id`
+
+الهدف: تعديل حالة التفعيل `isActive` فقط في هذه الجولة.
+
+```json
+{
+  "isActive": false
 }
 ```
 
@@ -1381,6 +1474,15 @@ Authorization: Bearer <accessToken>
   - `users.id` القادم من `GET /users?role=parent`
   - أو `parents.id` للتوافق الخلفي
 - المسار الموصى به للفرونت: استخدم دائمًا `users.id` القادم من `/users?role=parent`، والباك سيحوّله داخليًا إلى `parents.id` الصحيح قبل الحفظ.
+- `subjects` تبقى master data على مستوى `gradeLevel` فقط.
+  - التوفر داخل فصل محدد يتم عبر `subject-offerings`.
+- في المسارات التشغيلية التالية:
+  - `POST /attendance/sessions`
+  - `POST /assessments`
+  - `POST /homework`
+  يجب أن يملك `subjectId` رابط `subject-offering` نشطًا مع `semesterId` المحدد، وإلا سيعيد الباك:
+  - `400 Validation Error`
+  - `Subject is not offered in the selected semester`
 - النقل لا يعتمد على "عنوان الطالب" النصي كمصدر تشغيل.
   - مصدر الحقيقة الحالي هو:
     - `route`
@@ -1501,6 +1603,7 @@ Rules:
 - the teacher must be assigned to `class + subject + academicYear`
 - the selected `semester` must belong to the selected `academicYear`
 - the selected subject must belong to the grade level of the selected class
+- the selected `subjectId` must have an active `subject-offering` for the selected `semesterId`
 
 #### GET `/homework`
 

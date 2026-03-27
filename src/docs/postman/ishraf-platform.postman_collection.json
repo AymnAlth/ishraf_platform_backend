@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Ishraf Platform Backend API",
-    "_postman_id": "1fb250d5-36ce-4ca6-a1ab-79e645a3fca6",
+    "_postman_id": "a888ea71-f200-43b4-9eea-4e640441388e",
     "description": "Full Postman collection covering every live backend endpoint.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
@@ -60,6 +60,10 @@
     },
     {
       "key": "subjectId",
+      "value": "1"
+    },
+    {
+      "key": "subjectOfferingId",
       "value": "1"
     },
     {
@@ -959,6 +963,146 @@
           }
         },
         {
+          "name": "[NEW] List Subject Offerings",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "description": "Purpose: List subject offerings with optional academic year, semester, grade level, subject, and activation filters.\n\nRoles: admin\n\nAuth: Bearer access token required\n\nQuery params: academicYearId, semesterId, gradeLevelId, subjectId, isActive\n\nNote: [NEW] This is the canonical list surface for semester-aware subject availability.",
+            "url": {
+              "raw": "{{baseUrl}}/academic-structure/subject-offerings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "academic-structure",
+                "subject-offerings"
+              ],
+              "query": [
+                {
+                  "key": "academicYearId",
+                  "value": "1",
+                  "description": "Filter by academic year id."
+                },
+                {
+                  "key": "semesterId",
+                  "value": "1",
+                  "description": "Filter by semester id."
+                },
+                {
+                  "key": "gradeLevelId",
+                  "value": "1",
+                  "description": "Filter by grade level id."
+                },
+                {
+                  "key": "subjectId",
+                  "value": "1",
+                  "description": "Filter by subject id."
+                },
+                {
+                  "key": "isActive",
+                  "value": "true",
+                  "description": "Filter by activation state."
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "[NEW] Create Subject Offering",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "Purpose: Link an existing subject to a semester without changing the subject master data.\n\nRoles: admin\n\nAuth: Bearer access token required\n\nBody schema: CreateSubjectOfferingRequest\n\nNote: [NEW] Subject offerings are the official semester-aware layer for subject availability.",
+            "url": {
+              "raw": "{{baseUrl}}/academic-structure/subject-offerings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "academic-structure",
+                "subject-offerings"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subjectId\": \"1\",\n  \"semesterId\": \"1\",\n  \"isActive\": true\n}"
+            }
+          }
+        },
+        {
+          "name": "[NEW] Get Subject Offering",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "description": "Purpose: Return one subject offering by id.\n\nRoles: admin\n\nAuth: Bearer access token required",
+            "url": {
+              "raw": "{{baseUrl}}/academic-structure/subject-offerings/{{subjectOfferingId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "academic-structure",
+                "subject-offerings",
+                "{{subjectOfferingId}}"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "[NEW] Update Subject Offering",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "Purpose: Update a subject offering activation state. This round only supports isActive changes.\n\nRoles: admin\n\nAuth: Bearer access token required\n\nBody schema: UpdateSubjectOfferingRequest",
+            "url": {
+              "raw": "{{baseUrl}}/academic-structure/subject-offerings/{{subjectOfferingId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "academic-structure",
+                "subject-offerings",
+                "{{subjectOfferingId}}"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isActive\": false\n}"
+            }
+          }
+        },
+        {
           "name": "List Subjects",
           "request": {
             "method": "GET",
@@ -996,7 +1140,7 @@
                 "value": "application/json"
               }
             ],
-            "description": "Purpose: Create a subject under a grade level.\n\nRoles: admin\n\nAuth: Bearer access token required\n\nBody schema: CreateSubjectRequest",
+            "description": "Purpose: Create a subject under a grade level. Subjects remain grade-level master data and do not accept semesterId.\n\nRoles: admin\n\nAuth: Bearer access token required\n\nBody schema: CreateSubjectRequest\n\nNote: Use subject-offerings to link a subject into one or more semesters without changing the subject master record.",
             "url": {
               "raw": "{{baseUrl}}/academic-structure/subjects",
               "host": [
@@ -1533,17 +1677,17 @@
                 },
                 {
                   "key": "sessionDate",
-                  "value": "2026-03-26",
+                  "value": "2026-03-27",
                   "description": "Filter by exact session date."
                 },
                 {
                   "key": "dateFrom",
-                  "value": "2026-03-26",
+                  "value": "2026-03-27",
                   "description": "Filter from session date."
                 },
                 {
                   "key": "dateTo",
-                  "value": "2026-03-26",
+                  "value": "2026-03-27",
                   "description": "Filter to session date."
                 }
               ]
@@ -1564,7 +1708,7 @@
                 "value": "application/json"
               }
             ],
-            "description": "Purpose: Create an attendance session for a class and subject.\n\nRoles: admin, teacher\n\nAuth: Bearer access token required\n\nBody schema: CreateAttendanceSessionRequest",
+            "description": "Purpose: Create an attendance session for a class and subject.\n\nRoles: admin, teacher\n\nAuth: Bearer access token required\n\nBody schema: CreateAttendanceSessionRequest\n\nNote: The selected subjectId must have an active subject offering for the selected semesterId.",
             "url": {
               "raw": "{{baseUrl}}/attendance/sessions",
               "host": [
@@ -1578,7 +1722,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"classId\": \"1\",\n  \"subjectId\": \"1\",\n  \"academicYearId\": \"1\",\n  \"semesterId\": \"1\",\n  \"sessionDate\": \"2026-03-26\",\n  \"periodNo\": 1,\n  \"title\": \"حصة الرياضيات\",\n  \"notes\": \"اختبار سريع\",\n  \"teacherId\": \"3\"\n}"
+              "raw": "{\n  \"classId\": \"1\",\n  \"subjectId\": \"1\",\n  \"academicYearId\": \"1\",\n  \"semesterId\": \"1\",\n  \"sessionDate\": \"2026-03-27\",\n  \"periodNo\": 1,\n  \"title\": \"حصة الرياضيات\",\n  \"notes\": \"اختبار سريع\",\n  \"teacherId\": \"3\"\n}"
             }
           }
         },
@@ -1719,17 +1863,17 @@
                 },
                 {
                   "key": "assessmentDate",
-                  "value": "2026-03-26",
+                  "value": "2026-03-27",
                   "description": "Filter by exact assessment date."
                 },
                 {
                   "key": "dateFrom",
-                  "value": "2026-03-26",
+                  "value": "2026-03-27",
                   "description": "Filter from assessment date."
                 },
                 {
                   "key": "dateTo",
-                  "value": "2026-03-26",
+                  "value": "2026-03-27",
                   "description": "Filter to assessment date."
                 },
                 {
@@ -1755,7 +1899,7 @@
                 "value": "application/json"
               }
             ],
-            "description": "Purpose: Create an assessment. Teachers may omit teacherId and rely on the authenticated teacher profile.\n\nRoles: admin, teacher\n\nAuth: Bearer access token required\n\nBody schema: CreateAssessmentRequest",
+            "description": "Purpose: Create an assessment. Teachers may omit teacherId and rely on the authenticated teacher profile.\n\nRoles: admin, teacher\n\nAuth: Bearer access token required\n\nBody schema: CreateAssessmentRequest\n\nNote: The selected subjectId must have an active subject offering for the selected semesterId.",
             "url": {
               "raw": "{{baseUrl}}/assessments",
               "host": [
@@ -1768,7 +1912,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"assessmentTypeId\": \"1\",\n  \"classId\": \"1\",\n  \"subjectId\": \"1\",\n  \"teacherId\": \"3\",\n  \"academicYearId\": \"1\",\n  \"semesterId\": \"1\",\n  \"title\": \"اختبار قصير 2\",\n  \"description\": \"الوحدة الثانية\",\n  \"maxScore\": 20,\n  \"weight\": 10,\n  \"assessmentDate\": \"2026-03-26\",\n  \"isPublished\": true\n}"
+              "raw": "{\n  \"assessmentTypeId\": \"1\",\n  \"classId\": \"1\",\n  \"subjectId\": \"1\",\n  \"teacherId\": \"3\",\n  \"academicYearId\": \"1\",\n  \"semesterId\": \"1\",\n  \"title\": \"اختبار قصير 2\",\n  \"description\": \"الوحدة الثانية\",\n  \"maxScore\": 20,\n  \"weight\": 10,\n  \"assessmentDate\": \"2026-03-27\",\n  \"isPublished\": true\n}"
             }
           }
         },
@@ -2083,17 +2227,17 @@
                 },
                 {
                   "key": "behaviorDate",
-                  "value": "2026-03-26",
+                  "value": "2026-03-27",
                   "description": "Filter by exact behavior date."
                 },
                 {
                   "key": "dateFrom",
-                  "value": "2026-03-26",
+                  "value": "2026-03-27",
                   "description": "Filter from behavior date."
                 },
                 {
                   "key": "dateTo",
-                  "value": "2026-03-26",
+                  "value": "2026-03-27",
                   "description": "Filter to behavior date."
                 }
               ]
@@ -2128,7 +2272,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"studentId\": \"1\",\n  \"behaviorCategoryId\": \"1\",\n  \"academicYearId\": \"1\",\n  \"semesterId\": \"1\",\n  \"description\": \"تأخر عن الطابور\",\n  \"severity\": 3,\n  \"behaviorDate\": \"2026-03-26\",\n  \"teacherId\": \"3\"\n}"
+              "raw": "{\n  \"studentId\": \"1\",\n  \"behaviorCategoryId\": \"1\",\n  \"academicYearId\": \"1\",\n  \"semesterId\": \"1\",\n  \"description\": \"تأخر عن الطابور\",\n  \"severity\": 3,\n  \"behaviorDate\": \"2026-03-27\",\n  \"teacherId\": \"3\"\n}"
             }
           }
         },
@@ -2250,7 +2394,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"studentId\": \"1\",\n  \"routeId\": \"1\",\n  \"stopId\": \"1\",\n  \"startDate\": \"2026-03-26\",\n  \"endDate\": null\n}"
+              "raw": "{\n  \"studentId\": \"1\",\n  \"routeId\": \"1\",\n  \"stopId\": \"1\",\n  \"startDate\": \"2026-03-27\",\n  \"endDate\": null\n}"
             }
           }
         },
@@ -2284,7 +2428,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"endDate\": \"2026-03-26\"\n}"
+              "raw": "{\n  \"endDate\": \"2026-03-27\"\n}"
             }
           }
         },
@@ -2370,7 +2514,7 @@
           }
         },
         {
-          "name": "[NEW] List Route Assignments",
+          "name": "List Route Assignments",
           "request": {
             "method": "GET",
             "header": [
@@ -2394,7 +2538,7 @@
           }
         },
         {
-          "name": "[NEW] Create Route Assignment",
+          "name": "Create Route Assignment",
           "request": {
             "method": "POST",
             "header": [
@@ -2421,12 +2565,12 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"busId\": \"1\",\n  \"routeId\": \"1\",\n  \"startDate\": \"2026-03-26\",\n  \"endDate\": null\n}"
+              "raw": "{\n  \"busId\": \"1\",\n  \"routeId\": \"1\",\n  \"startDate\": \"2026-03-27\",\n  \"endDate\": null\n}"
             }
           }
         },
         {
-          "name": "[NEW] Deactivate Route Assignment",
+          "name": "Deactivate Route Assignment",
           "request": {
             "method": "PATCH",
             "header": [
@@ -2455,12 +2599,12 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"endDate\": \"2026-03-26\"\n}"
+              "raw": "{\n  \"endDate\": \"2026-03-27\"\n}"
             }
           }
         },
         {
-          "name": "[NEW] List My Route Assignments",
+          "name": "List My Route Assignments",
           "request": {
             "method": "GET",
             "header": [
@@ -2601,7 +2745,7 @@
           }
         },
         {
-          "name": "[NEW] Delete Student Home Location",
+          "name": "Delete Student Home Location",
           "request": {
             "method": "DELETE",
             "header": [
@@ -2627,7 +2771,7 @@
           }
         },
         {
-          "name": "[NEW] Get Student Home Location",
+          "name": "Get Student Home Location",
           "request": {
             "method": "GET",
             "header": [
@@ -2653,7 +2797,7 @@
           }
         },
         {
-          "name": "[NEW] Save Student Home Location",
+          "name": "Save Student Home Location",
           "request": {
             "method": "PUT",
             "header": [
@@ -2749,17 +2893,17 @@
                 },
                 {
                   "key": "tripDate",
-                  "value": "2026-03-26",
+                  "value": "2026-03-27",
                   "description": "Filter by exact trip date."
                 },
                 {
                   "key": "dateFrom",
-                  "value": "2026-03-26",
+                  "value": "2026-03-27",
                   "description": "Filter from trip date."
                 },
                 {
                   "key": "dateTo",
-                  "value": "2026-03-26",
+                  "value": "2026-03-27",
                   "description": "Filter to trip date."
                 }
               ]
@@ -2794,7 +2938,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"busId\": \"1\",\n  \"routeId\": \"1\",\n  \"tripDate\": \"2026-03-26\",\n  \"tripType\": \"pickup\"\n}"
+              "raw": "{\n  \"busId\": \"1\",\n  \"routeId\": \"1\",\n  \"tripDate\": \"2026-03-27\",\n  \"tripType\": \"pickup\"\n}"
             }
           }
         },
@@ -2970,7 +3114,7 @@
           }
         },
         {
-          "name": "[NEW] Get Trip Student Roster",
+          "name": "Get Trip Student Roster",
           "request": {
             "method": "GET",
             "header": [
@@ -3007,7 +3151,7 @@
           }
         },
         {
-          "name": "[NEW] Ensure Daily Trip",
+          "name": "Ensure Daily Trip",
           "request": {
             "method": "POST",
             "header": [
@@ -3035,7 +3179,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"routeAssignmentId\": \"1\",\n  \"tripDate\": \"2026-03-26\",\n  \"tripType\": \"pickup\"\n}"
+              "raw": "{\n  \"routeAssignmentId\": \"1\",\n  \"tripDate\": \"2026-03-27\",\n  \"tripType\": \"pickup\"\n}"
             }
           }
         }
@@ -3448,7 +3592,7 @@
           }
         },
         {
-          "name": "[NEW] List Available Recipients",
+          "name": "List Available Recipients",
           "request": {
             "method": "GET",
             "header": [
@@ -3565,22 +3709,22 @@
                 },
                 {
                   "key": "assignedDate",
-                  "value": "2026-03-26",
+                  "value": "2026-03-27",
                   "description": "Filter by exact assigned date."
                 },
                 {
                   "key": "dueDate",
-                  "value": "2026-03-26",
+                  "value": "2026-03-27",
                   "description": "Filter by exact due date."
                 },
                 {
                   "key": "dateFrom",
-                  "value": "2026-03-26",
+                  "value": "2026-03-27",
                   "description": "Filter from date range."
                 },
                 {
                   "key": "dateTo",
-                  "value": "2026-03-26",
+                  "value": "2026-03-27",
                   "description": "Filter to date range."
                 }
               ]
@@ -3601,7 +3745,7 @@
                 "value": "application/json"
               }
             ],
-            "description": "Purpose: Create homework for a class and subject. Teachers may omit teacherId and rely on the authenticated teacher profile.\n\nRoles: admin, teacher\n\nAuth: Bearer access token required\n\nBody schema: CreateHomeworkRequest",
+            "description": "Purpose: Create homework for a class and subject. Teachers may omit teacherId and rely on the authenticated teacher profile.\n\nRoles: admin, teacher\n\nAuth: Bearer access token required\n\nBody schema: CreateHomeworkRequest\n\nNote: The selected subjectId must have an active subject offering for the selected semesterId.",
             "url": {
               "raw": "{{baseUrl}}/homework",
               "host": [
@@ -3614,7 +3758,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"teacherId\": \"3\",\n  \"classId\": \"1\",\n  \"subjectId\": \"1\",\n  \"academicYearId\": \"1\",\n  \"semesterId\": \"1\",\n  \"title\": \"واجب الرياضيات 2\",\n  \"description\": \"حل الصفحات 12-14\",\n  \"assignedDate\": \"2026-03-26\",\n  \"dueDate\": \"2026-03-28\"\n}"
+              "raw": "{\n  \"teacherId\": \"3\",\n  \"classId\": \"1\",\n  \"subjectId\": \"1\",\n  \"academicYearId\": \"1\",\n  \"semesterId\": \"1\",\n  \"title\": \"واجب الرياضيات 2\",\n  \"description\": \"حل الصفحات 12-14\",\n  \"assignedDate\": \"2026-03-27\",\n  \"dueDate\": \"2026-03-28\"\n}"
             }
           }
         },
@@ -3671,7 +3815,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"records\": [\n    {\n      \"studentId\": \"1\",\n      \"status\": \"submitted\",\n      \"submittedAt\": \"2026-03-26\",\n      \"notes\": \"تم التسليم\"\n    },\n    {\n      \"studentId\": \"2\",\n      \"status\": \"late\",\n      \"submittedAt\": \"2026-03-26\",\n      \"notes\": \"تسليم متأخر\"\n    }\n  ]\n}"
+              "raw": "{\n  \"records\": [\n    {\n      \"studentId\": \"1\",\n      \"status\": \"submitted\",\n      \"submittedAt\": \"2026-03-27\",\n      \"notes\": \"تم التسليم\"\n    },\n    {\n      \"studentId\": \"2\",\n      \"status\": \"late\",\n      \"submittedAt\": \"2026-03-27\",\n      \"notes\": \"تسليم متأخر\"\n    }\n  ]\n}"
             }
           }
         },

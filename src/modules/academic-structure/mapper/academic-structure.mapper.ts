@@ -6,6 +6,8 @@ import type {
   GradeLevelResponseDto,
   GradeLevelSummaryDto,
   SemesterResponseDto,
+  SubjectOfferingResponseDto,
+  SubjectOfferingSemesterSummaryDto,
   SubjectResponseDto,
   SubjectSummaryDto,
   SupervisorAssignmentResponseDto,
@@ -17,6 +19,7 @@ import type {
   ClassRow,
   GradeLevelRow,
   SemesterRow,
+  SubjectOfferingRow,
   SubjectRow,
   SupervisorAssignmentRow,
   TeacherAssignmentRow
@@ -127,6 +130,38 @@ export const toSubjectResponseDto = (row: SubjectRow): SubjectResponseDto => ({
   code: row.code,
   isActive: row.isActive,
   gradeLevel: toGradeLevelSummary(row.gradeLevelId, row.gradeLevelName, row.gradeLevelOrder),
+  createdAt: row.createdAt.toISOString(),
+  updatedAt: row.updatedAt.toISOString()
+});
+
+const toSubjectOfferingSemesterSummaryDto = (
+  row: SubjectOfferingRow
+): SubjectOfferingSemesterSummaryDto => ({
+  id: row.semesterId,
+  name: row.semesterName,
+  startDate: toDateOnly(row.semesterStartDate),
+  endDate: toDateOnly(row.semesterEndDate),
+  isActive: row.semesterIsActive,
+  academicYear: toAcademicYearSummary(row.academicYearId, row.academicYearName)
+});
+
+export const toSubjectOfferingResponseDto = (
+  row: SubjectOfferingRow
+): SubjectOfferingResponseDto => ({
+  id: row.id,
+  isActive: row.isActive,
+  subject: {
+    id: row.subjectId,
+    name: row.subjectName,
+    code: row.subjectCode,
+    isActive: row.subjectIsActive,
+    gradeLevel: toGradeLevelSummary(
+      row.subjectGradeLevelId,
+      row.subjectGradeLevelName,
+      row.subjectGradeLevelOrder
+    )
+  },
+  semester: toSubjectOfferingSemesterSummaryDto(row),
   createdAt: row.createdAt.toISOString(),
   updatedAt: row.updatedAt.toISOString()
 });

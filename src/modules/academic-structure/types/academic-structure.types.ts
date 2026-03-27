@@ -54,6 +54,27 @@ export interface SubjectRow {
   updatedAt: Date;
 }
 
+export interface SubjectOfferingRow {
+  id: string;
+  isActive: boolean;
+  subjectId: string;
+  subjectName: string;
+  subjectCode: string | null;
+  subjectIsActive: boolean;
+  subjectGradeLevelId: string;
+  subjectGradeLevelName: string;
+  subjectGradeLevelOrder: number;
+  semesterId: string;
+  semesterName: string;
+  semesterStartDate: Date;
+  semesterEndDate: Date;
+  semesterIsActive: boolean;
+  academicYearId: string;
+  academicYearName: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export interface TeacherSummaryRow {
   teacherId: string;
   teacherUserId: string;
@@ -163,6 +184,24 @@ export interface SubjectWriteInput {
   gradeLevelId: string;
   code: string | null;
   isActive: boolean;
+}
+
+export interface SubjectOfferingWriteInput {
+  subjectId: string;
+  semesterId: string;
+  isActive: boolean;
+}
+
+export interface SubjectOfferingUpdateInput {
+  isActive?: boolean;
+}
+
+export interface SubjectOfferingFilters {
+  academicYearId?: string;
+  semesterId?: string;
+  gradeLevelId?: string;
+  subjectId?: string;
+  isActive?: boolean;
 }
 
 export interface TeacherAssignmentWriteInput {

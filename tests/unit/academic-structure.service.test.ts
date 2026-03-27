@@ -7,6 +7,7 @@ import type { AcademicStructureRepository } from "../../src/modules/academic-str
 import type {
   AcademicYearRow,
   ClassRow,
+  SubjectOfferingRow,
   SubjectRow
 } from "../../src/modules/academic-structure/types/academic-structure.types";
 
@@ -47,6 +48,27 @@ const subjectRow: SubjectRow = {
   updatedAt: new Date("2026-03-13T10:00:00.000Z")
 };
 
+const subjectOfferingRow: SubjectOfferingRow = {
+  id: "20",
+  isActive: true,
+  subjectId: "7",
+  subjectName: "Science",
+  subjectCode: "SCI-G2",
+  subjectIsActive: true,
+  subjectGradeLevelId: "2",
+  subjectGradeLevelName: "Grade 2",
+  subjectGradeLevelOrder: 2,
+  semesterId: "1",
+  semesterName: "Semester 1",
+  semesterStartDate: new Date("2025-09-01T00:00:00.000Z"),
+  semesterEndDate: new Date("2026-01-31T00:00:00.000Z"),
+  semesterIsActive: true,
+  academicYearId: "1",
+  academicYearName: "2025-2026",
+  createdAt: new Date("2026-03-27T10:00:00.000Z"),
+  updatedAt: new Date("2026-03-27T10:00:00.000Z")
+};
+
 describe("AcademicStructureService", () => {
   const repositoryMock = {
     listAcademicYears: vi.fn(),
@@ -67,6 +89,11 @@ describe("AcademicStructureService", () => {
     listSubjects: vi.fn(),
     findSubjectById: vi.fn(),
     createSubject: vi.fn(),
+    listSubjectOfferings: vi.fn(),
+    findSubjectOfferingById: vi.fn(),
+    findSubjectOfferingBySubjectAndSemester: vi.fn(),
+    createSubjectOffering: vi.fn(),
+    updateSubjectOffering: vi.fn(),
     findTeacherById: vi.fn(),
     findSupervisorById: vi.fn(),
     createTeacherAssignment: vi.fn(),
@@ -154,5 +181,61 @@ describe("AcademicStructureService", () => {
         academicYearId: "1"
       })
     ).rejects.toBeInstanceOf(ValidationError);
+  });
+
+  it("creates and lists subject offerings without changing the subject contract", async () => {
+    vi.mocked(repositoryMock.findSubjectById).mockResolvedValue(subjectRow);
+    vi.mocked(repositoryMock.findSemesterById).mockResolvedValue({
+      id: "1",
+      academicYearId: "1",
+      academicYearName: "2025-2026",
+      name: "Semester 1",
+      startDate: new Date("2025-09-01T00:00:00.000Z"),
+      endDate: new Date("2026-01-31T00:00:00.000Z"),
+      isActive: true,
+      createdAt: new Date("2026-03-13T10:00:00.000Z"),
+      updatedAt: new Date("2026-03-13T10:00:00.000Z")
+    });
+    vi.mocked(repositoryMock.createSubjectOffering).mockResolvedValue("20");
+    vi.mocked(repositoryMock.findSubjectOfferingById).mockResolvedValue(subjectOfferingRow);
+    vi.mocked(repositoryMock.listSubjectOfferings).mockResolvedValue([subjectOfferingRow]);
+
+    const createResponse = await academicStructureService.createSubjectOffering({
+      subjectId: "7",
+      semesterId: "1",
+      isActive: true
+    });
+    const listResponse = await academicStructureService.listSubjectOfferings({
+      semesterId: "1"
+    });
+
+    expect(createResponse.id).toBe("20");
+    expect(createResponse.subject.id).toBe("7");
+    expect(createResponse.semester.id).toBe("1");
+    expect(listResponse).toHaveLength(1);
+    expect(repositoryMock.createSubject).not.toHaveBeenCalled();
+  });
+
+  it("updates subject offering activation state", async () => {
+    vi.mocked(repositoryMock.findSubjectOfferingById)
+      .mockResolvedValueOnce(subjectOfferingRow)
+      .mockResolvedValueOnce({
+        ...subjectOfferingRow,
+        isActive: false,
+        updatedAt: new Date("2026-03-27T12:00:00.000Z")
+      });
+    vi.mocked(repositoryMock.updateSubjectOffering).mockResolvedValue(undefined);
+
+    const response = await academicStructureService.updateSubjectOffering("20", {
+      isActive: false
+    });
+
+    expect(response.isActive).toBe(false);
+    expect(repositoryMock.updateSubjectOffering).toHaveBeenCalledWith(
+      "20",
+      {
+        isActive: false
+      }
+    );
   });
 });

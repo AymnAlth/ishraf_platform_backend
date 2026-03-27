@@ -91,6 +91,18 @@ const assertSubjectBelongsToClassGradeLevel = (
   }
 };
 
+const assertSubjectOfferedInSemester = (isOffered: boolean): void => {
+  if (!isOffered) {
+    throw new ValidationError("Subject is not offered in the selected semester", [
+      {
+        field: "subjectId",
+        code: "SUBJECT_NOT_OFFERED_IN_SEMESTER",
+        message: "Subject is not offered in the selected semester"
+      }
+    ]);
+  }
+};
+
 const assertAdminTeacherId = (teacherId?: string): string => {
   if (!teacherId) {
     throw new ValidationError("Teacher is required", [
@@ -183,6 +195,12 @@ export class HomeworkService {
     assertClassBelongsToAcademicYear(classRow, academicYear.id);
     assertSemesterBelongsToAcademicYear(semester, academicYear.id);
     assertSubjectBelongsToClassGradeLevel(subjectRow, classRow);
+    assertSubjectOfferedInSemester(
+      await this.homeworkRepository.hasActiveSubjectOffering(
+        payload.subjectId,
+        payload.semesterId
+      )
+    );
 
     const teacherId =
       actor.role === "teacher"
@@ -362,3 +380,5 @@ export class HomeworkService {
     }
   }
 }
+
+

@@ -21,6 +21,7 @@ export const databaseTables = {
   gradeLevels: `${databaseConfig.schema}.grade_levels`,
   classes: `${databaseConfig.schema}.classes`,
   subjects: `${databaseConfig.schema}.subjects`,
+  subjectOfferings: `${databaseConfig.schema}.subject_offerings`,
   teacherClasses: `${databaseConfig.schema}.teacher_classes`,
   supervisorClasses: `${databaseConfig.schema}.supervisor_classes`,
   students: `${databaseConfig.schema}.students`,

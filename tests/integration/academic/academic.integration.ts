@@ -122,6 +122,56 @@ export const registerAcademicIntegrationTests = (
       expect(getClassResponse.body.data.gradeLevel.name).toBe("Kindergarten");
     });
 
+    it("creates, lists, fetches, and updates subject offerings", async () => {
+      const { accessToken } = await context.loginAsAdmin();
+
+      const subjectResponse = await request(context.app)
+        .post("/api/v1/academic-structure/subjects")
+        .set("Authorization", `Bearer ${accessToken}`)
+        .send({
+          name: "Quran",
+          gradeLevelId: "1",
+          code: "QUR-G1"
+        });
+
+      const createOfferingResponse = await request(context.app)
+        .post("/api/v1/academic-structure/subject-offerings")
+        .set("Authorization", `Bearer ${accessToken}`)
+        .send({
+          subjectId: subjectResponse.body.data.id,
+          semesterId: "1",
+          isActive: true
+        });
+
+      const listResponse = await request(context.app)
+        .get("/api/v1/academic-structure/subject-offerings")
+        .query({
+          semesterId: "1",
+          subjectId: subjectResponse.body.data.id
+        })
+        .set("Authorization", `Bearer ${accessToken}`);
+
+      const getResponse = await request(context.app)
+        .get(`/api/v1/academic-structure/subject-offerings/${createOfferingResponse.body.data.id}`)
+        .set("Authorization", `Bearer ${accessToken}`);
+
+      const updateResponse = await request(context.app)
+        .patch(`/api/v1/academic-structure/subject-offerings/${createOfferingResponse.body.data.id}`)
+        .set("Authorization", `Bearer ${accessToken}`)
+        .send({
+          isActive: false
+        });
+
+      expect(createOfferingResponse.status).toBe(201);
+      expect(createOfferingResponse.body.data.subject.id).toBe(subjectResponse.body.data.id);
+      expect(createOfferingResponse.body.data.semester.id).toBe("1");
+      expect(listResponse.status).toBe(200);
+      expect(listResponse.body.data).toHaveLength(1);
+      expect(getResponse.status).toBe(200);
+      expect(updateResponse.status).toBe(200);
+      expect(updateResponse.body.data.isActive).toBe(false);
+    });
+
     it("creates teacher assignments and rejects grade-level mismatches", async () => {
       const { accessToken } = await context.loginAsAdmin();
 

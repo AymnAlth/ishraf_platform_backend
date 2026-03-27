@@ -352,5 +352,41 @@ export const registerAssessmentsIntegrationTests = (
         "One or more students do not belong to the assessment class"
       );
     });
+
+    it("rejects assessment creation when the subject is not offered in the selected semester", async () => {
+      const { accessToken } = await context.loginAsAdmin();
+
+      const createSubjectResponse = await request(context.app)
+        .post("/api/v1/academic-structure/subjects")
+        .set("Authorization", `Bearer ${accessToken}`)
+        .send({
+          name: "Unscheduled Math",
+          gradeLevelId: "1",
+          code: "MATH-NO-OFFER"
+        });
+
+      const subjectId = createSubjectResponse.body.data.id as string;
+      await context.seedTeacherAssignment("1", "1", subjectId, "1");
+
+      const createAssessmentResponse = await request(context.app)
+        .post("/api/v1/assessments")
+        .set("Authorization", `Bearer ${accessToken}`)
+        .send({
+          assessmentTypeId: "1",
+          classId: "1",
+          subjectId,
+          teacherId: "1",
+          academicYearId: "1",
+          semesterId: "2",
+          title: "No Offering Assessment",
+          maxScore: 30,
+          assessmentDate: "2026-03-07"
+        });
+
+      expect(createAssessmentResponse.status).toBe(400);
+      expect(createAssessmentResponse.body.message).toBe(
+        "Subject is not offered in the selected semester"
+      );
+    });
   });
 };

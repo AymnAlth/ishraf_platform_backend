@@ -15,7 +15,7 @@
 
 | من | يعتمد على | السبب |
 | --- | --- | --- |
-| Teacher App | Admin Dashboard master data | يحتاج teachers/classes/subjects/students/assignments صحيحة |
+| Teacher App | Admin Dashboard master data | يحتاج teachers/classes/subjects/subject-offerings/students/assignments صحيحة |
 | Parent App | Admin Dashboard + Daily Operations | يحتاج parent linkage + student data + reports + homework + transport assignment |
 | Supervisor App | Admin Dashboard + Daily Operations | يحتاج supervisor assignments + attendance/behavior/reporting data |
 | Driver App | Admin Dashboard transport setup | يحتاج buses/routes/stops/assignments/trips |

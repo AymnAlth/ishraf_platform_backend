@@ -125,6 +125,7 @@ describe("AttendanceService", () => {
     findSubjectById: vi.fn(),
     findAcademicYearById: vi.fn(),
     findSemesterById: vi.fn(),
+    hasActiveSubjectOffering: vi.fn(),
     hasTeacherAssignment: vi.fn(),
     hasSupervisorAssignment: vi.fn(),
     createAttendanceSession: vi.fn(),
@@ -174,6 +175,7 @@ describe("AttendanceService", () => {
       name: "2025-2026"
     });
     vi.mocked(repositoryMock.findSemesterById).mockResolvedValue(semesterRow());
+    vi.mocked(repositoryMock.hasActiveSubjectOffering).mockResolvedValue(true);
     vi.mocked(repositoryMock.findTeacherById).mockResolvedValue(teacherProfile());
     vi.mocked(repositoryMock.hasTeacherAssignment).mockResolvedValue(true);
     vi.mocked(repositoryMock.createAttendanceSession).mockResolvedValue("10");
@@ -266,6 +268,39 @@ describe("AttendanceService", () => {
         }
       )
     ).rejects.toBeInstanceOf(ValidationError);
+  });
+
+  it("rejects creating a session when the subject is not offered in the selected semester", async () => {
+    vi.mocked(repositoryMock.findClassById).mockResolvedValue(classRow());
+    vi.mocked(repositoryMock.findSubjectById).mockResolvedValue(subjectRow());
+    vi.mocked(repositoryMock.findAcademicYearById).mockResolvedValue({
+      id: "1",
+      name: "2025-2026"
+    });
+    vi.mocked(repositoryMock.findSemesterById).mockResolvedValue(semesterRow());
+    vi.mocked(repositoryMock.hasActiveSubjectOffering).mockResolvedValue(false);
+
+    await expect(
+      attendanceService.createSession(
+        {
+          userId: "1001",
+          role: "admin",
+          email: "admin@example.com",
+          isActive: true
+        },
+        {
+          classId: "1",
+          subjectId: "1",
+          teacherId: "1",
+          academicYearId: "1",
+          semesterId: "2",
+          sessionDate: "2026-02-16",
+          periodNo: 1
+        }
+      )
+    ).rejects.toMatchObject({
+      message: "Subject is not offered in the selected semester"
+    });
   });
 
   it("rejects attendance payloads that do not match the full active roster", async () => {

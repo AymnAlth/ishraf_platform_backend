@@ -104,6 +104,18 @@ const assertSubjectBelongsToClassGradeLevel = (
   }
 };
 
+const assertSubjectOfferedInSemester = (isOffered: boolean): void => {
+  if (!isOffered) {
+    throw new ValidationError("Subject is not offered in the selected semester", [
+      {
+        field: "subjectId",
+        code: "SUBJECT_NOT_OFFERED_IN_SEMESTER",
+        message: "Subject is not offered in the selected semester"
+      }
+    ]);
+  }
+};
+
 const assertAdminTeacherId = (teacherId?: string): string => {
   if (!teacherId) {
     throw new ValidationError("Teacher is required", [
@@ -236,6 +248,12 @@ export class AssessmentsService {
     assertClassBelongsToAcademicYear(classRow, academicYear.id);
     assertSemesterBelongsToAcademicYear(semester, academicYear.id);
     assertSubjectBelongsToClassGradeLevel(subjectRow, classRow);
+    assertSubjectOfferedInSemester(
+      await this.assessmentsRepository.hasActiveSubjectOffering(
+        payload.subjectId,
+        payload.semesterId
+      )
+    );
 
     let teacherId: string;
 

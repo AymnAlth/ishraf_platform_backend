@@ -14,6 +14,10 @@ import type {
   SemesterRow,
   SemesterUpdateInput,
   SemesterWriteInput,
+  SubjectOfferingFilters,
+  SubjectOfferingRow,
+  SubjectOfferingUpdateInput,
+  SubjectOfferingWriteInput,
   SubjectRow,
   SubjectWriteInput,
   SupervisorAssignmentRow,
@@ -103,6 +107,33 @@ const subjectSelect = `
     s.updated_at AS "updatedAt"
   FROM ${databaseTables.subjects} s
   JOIN ${databaseTables.gradeLevels} gl ON gl.id = s.grade_level_id
+`;
+
+const subjectOfferingSelect = `
+  SELECT
+    so.id,
+    so.is_active AS "isActive",
+    so.subject_id AS "subjectId",
+    subj.name AS "subjectName",
+    subj.code AS "subjectCode",
+    subj.is_active AS "subjectIsActive",
+    gl.id AS "subjectGradeLevelId",
+    gl.name AS "subjectGradeLevelName",
+    gl.level_order AS "subjectGradeLevelOrder",
+    so.semester_id AS "semesterId",
+    sem.name AS "semesterName",
+    sem.start_date AS "semesterStartDate",
+    sem.end_date AS "semesterEndDate",
+    sem.is_active AS "semesterIsActive",
+    ay.id AS "academicYearId",
+    ay.name AS "academicYearName",
+    so.created_at AS "createdAt",
+    so.updated_at AS "updatedAt"
+  FROM ${databaseTables.subjectOfferings} so
+  JOIN ${databaseTables.subjects} subj ON subj.id = so.subject_id
+  JOIN ${databaseTables.gradeLevels} gl ON gl.id = subj.grade_level_id
+  JOIN ${databaseTables.semesters} sem ON sem.id = so.semester_id
+  JOIN ${databaseTables.academicYears} ay ON ay.id = sem.academic_year_id
 `;
 
 const teacherAssignmentSelect = `
@@ -473,6 +504,133 @@ export class AcademicStructureRepository {
     );
 
     return result.rows[0].id;
+  }
+
+  async listSubjectOfferings(
+    filters: SubjectOfferingFilters = {},
+    queryable: Queryable = db
+  ): Promise<SubjectOfferingRow[]> {
+    const conditions: string[] = [];
+    const values: unknown[] = [];
+
+    const addCondition = (template: string, value: unknown): void => {
+      values.push(value);
+      conditions.push(template.replace("?", `$${values.length}`));
+    };
+
+    if (filters.academicYearId) {
+      addCondition("sem.academic_year_id = ?", filters.academicYearId);
+    }
+
+    if (filters.semesterId) {
+      addCondition("so.semester_id = ?", filters.semesterId);
+    }
+
+    if (filters.gradeLevelId) {
+      addCondition("subj.grade_level_id = ?", filters.gradeLevelId);
+    }
+
+    if (filters.subjectId) {
+      addCondition("so.subject_id = ?", filters.subjectId);
+    }
+
+    if (filters.isActive !== undefined) {
+      addCondition("so.is_active = ?", filters.isActive);
+    }
+
+    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+    const result = await queryable.query<SubjectOfferingRow>(
+      `
+        ${subjectOfferingSelect}
+        ${whereClause}
+        ORDER BY
+          ay.start_date DESC,
+          gl.level_order ASC,
+          subj.name ASC,
+          sem.start_date ASC,
+          so.id ASC
+      `,
+      values
+    );
+
+    return result.rows;
+  }
+
+  async findSubjectOfferingById(
+    id: string,
+    queryable: Queryable = db
+  ): Promise<SubjectOfferingRow | null> {
+    const result = await queryable.query<SubjectOfferingRow>(
+      `
+        ${subjectOfferingSelect}
+        WHERE so.id = $1
+        LIMIT 1
+      `,
+      [id]
+    );
+
+    return mapSingleRow(result.rows);
+  }
+
+  async findSubjectOfferingBySubjectAndSemester(
+    subjectId: string,
+    semesterId: string,
+    queryable: Queryable = db
+  ): Promise<SubjectOfferingRow | null> {
+    const result = await queryable.query<SubjectOfferingRow>(
+      `
+        ${subjectOfferingSelect}
+        WHERE so.subject_id = $1
+          AND so.semester_id = $2
+        LIMIT 1
+      `,
+      [subjectId, semesterId]
+    );
+
+    return mapSingleRow(result.rows);
+  }
+
+  async createSubjectOffering(
+    input: SubjectOfferingWriteInput,
+    queryable: Queryable = db
+  ): Promise<string> {
+    const result = await queryable.query<{ id: string }>(
+      `
+        INSERT INTO ${databaseTables.subjectOfferings} (
+          subject_id,
+          semester_id,
+          is_active
+        )
+        VALUES ($1, $2, $3)
+        RETURNING id
+      `,
+      [input.subjectId, input.semesterId, input.isActive]
+    );
+
+    return result.rows[0].id;
+  }
+
+  async updateSubjectOffering(
+    id: string,
+    input: SubjectOfferingUpdateInput,
+    queryable: Queryable = db
+  ): Promise<void> {
+    const { assignments, values } = buildAssignments({
+      is_active: input.isActive
+    });
+
+    if (assignments.length === 0) {
+      return;
+    }
+
+    await queryable.query(
+      `
+        UPDATE ${databaseTables.subjectOfferings}
+        SET ${assignments.join(", ")}
+        WHERE id = $1
+      `,
+      [id, ...values]
+    );
   }
 
   async findTeacherById(

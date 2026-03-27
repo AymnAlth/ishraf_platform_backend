@@ -6,16 +6,20 @@ import type {
   AcademicYearResponseDto,
   ClassRequestDto,
   ClassResponseDto,
+  CreateSubjectOfferingRequestDto,
   GradeLevelRequestDto,
   GradeLevelResponseDto,
+  ListSubjectOfferingsQueryDto,
   SemesterRequestDto,
   SemesterResponseDto,
+  SubjectOfferingResponseDto,
   SubjectRequestDto,
   SubjectResponseDto,
   SupervisorAssignmentRequestDto,
   SupervisorAssignmentResponseDto,
   TeacherAssignmentRequestDto,
   TeacherAssignmentResponseDto,
+  UpdateSubjectOfferingRequestDto,
   UpdateAcademicYearRequestDto,
   UpdateSemesterRequestDto
 } from "../dto/academic-structure.dto";
@@ -24,6 +28,7 @@ import {
   toClassResponseDto,
   toGradeLevelResponseDto,
   toSemesterResponseDto,
+  toSubjectOfferingResponseDto,
   toSubjectResponseDto,
   toSupervisorAssignmentResponseDto,
   toTeacherAssignmentResponseDto
@@ -422,6 +427,69 @@ export class AcademicStructureService {
     );
 
     return toSubjectResponseDto(row);
+  }
+
+  async createSubjectOffering(
+    payload: CreateSubjectOfferingRequestDto
+  ): Promise<SubjectOfferingResponseDto> {
+    assertFound(
+      await this.academicStructureRepository.findSubjectById(payload.subjectId),
+      "Subject"
+    );
+    assertFound(
+      await this.academicStructureRepository.findSemesterById(payload.semesterId),
+      "Semester"
+    );
+
+    const id = await this.academicStructureRepository.createSubjectOffering({
+      subjectId: payload.subjectId,
+      semesterId: payload.semesterId,
+      isActive: payload.isActive ?? true
+    });
+    const row = assertFound(
+      await this.academicStructureRepository.findSubjectOfferingById(id),
+      "Subject offering"
+    );
+
+    return toSubjectOfferingResponseDto(row);
+  }
+
+  async listSubjectOfferings(
+    filters: ListSubjectOfferingsQueryDto
+  ): Promise<SubjectOfferingResponseDto[]> {
+    const rows = await this.academicStructureRepository.listSubjectOfferings(filters);
+
+    return rows.map((row) => toSubjectOfferingResponseDto(row));
+  }
+
+  async getSubjectOfferingById(id: string): Promise<SubjectOfferingResponseDto> {
+    const row = assertFound(
+      await this.academicStructureRepository.findSubjectOfferingById(id),
+      "Subject offering"
+    );
+
+    return toSubjectOfferingResponseDto(row);
+  }
+
+  async updateSubjectOffering(
+    id: string,
+    payload: UpdateSubjectOfferingRequestDto
+  ): Promise<SubjectOfferingResponseDto> {
+    assertFound(
+      await this.academicStructureRepository.findSubjectOfferingById(id),
+      "Subject offering"
+    );
+
+    await this.academicStructureRepository.updateSubjectOffering(id, {
+      isActive: payload.isActive
+    });
+
+    const row = assertFound(
+      await this.academicStructureRepository.findSubjectOfferingById(id),
+      "Subject offering"
+    );
+
+    return toSubjectOfferingResponseDto(row);
   }
 
   async createTeacherAssignment(
