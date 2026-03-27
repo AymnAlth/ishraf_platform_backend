@@ -845,7 +845,7 @@
         "additionalProperties": true,
         "example": {
           "plateNumber": "SEED-1004",
-          "driverId": "30",
+          "driverId": "1004",
           "capacity": 45,
           "status": "active"
         }

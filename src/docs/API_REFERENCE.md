@@ -1476,6 +1476,10 @@ Authorization: Bearer <accessToken>
 - المسار الموصى به للفرونت: استخدم دائمًا `users.id` القادم من `/users?role=parent`، والباك سيحوّله داخليًا إلى `parents.id` الصحيح قبل الحفظ.
 - `subjects` تبقى master data على مستوى `gradeLevel` فقط.
   - التوفر داخل فصل محدد يتم عبر `subject-offerings`.
+- في `POST /transport/buses`:
+  - أرسلوا `driverId` على أنه `users.id` القادم من `GET /users?role=driver`
+  - لا حاجة لاستخراج `driverProfileId`
+  - الباك ما زال يقبل `drivers.id` أيضًا للتوافق الخلفي
 - في المسارات التشغيلية التالية:
   - `POST /attendance/sessions`
   - `POST /assessments`
@@ -1980,6 +1984,36 @@ It includes:
 - `trip` = تشغيل يومي فعلي
 - `student assignment` = ربط الطالب بنقطة الوقوف
 - `home location` = معلومة مرجعية وليست مصدر تشغيل مباشر
+
+#### POST `/transport/buses`
+
+Purpose: create a bus and optionally assign a driver.
+
+Roles:
+- `admin`
+
+Body:
+
+```json
+{
+  "plateNumber": "SEED-BUS-NEW",
+  "driverId": "1004",
+  "capacity": 45,
+  "status": "active"
+}
+```
+
+Rules:
+- `driverId` is optional
+- when `driverId` is sent, the backend accepts:
+  - the `users.id` returned by `GET /users?role=driver`
+  - or the legacy `drivers.id`
+- the recommended frontend contract is:
+  - fetch drivers from `/users?role=driver`
+  - send the selected `user.id` directly to `POST /transport/buses`
+- there is no need to extract or store `driverProfileId` in the admin UI
+- if the provided id does not map to a driver account or driver profile, the endpoint returns:
+  - `Driver not found`
 
 #### POST `/transport/route-assignments`
 

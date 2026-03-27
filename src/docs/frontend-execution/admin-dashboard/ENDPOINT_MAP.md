@@ -103,7 +103,7 @@
 
 | Method + Path | Purpose | Used In | Role | Required Auth | Important Request Fields | Important Response Fields | Frontend Notes / Constraints | Source Reference |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `POST /transport/buses` | create bus | buses form | `admin` | Bearer | `plateNumber`, `driverId?`, `capacity`, `status?` | created bus | duplicate plate -> `409` | `API_REFERENCE.md`, `src/modules/transport/routes/transport.routes.ts` |
+| `POST /transport/buses` | create bus | buses form | `admin` | Bearer | `plateNumber`, `driverId?`, `capacity`, `status?` | created bus | send `driverId` as the selected driver `users.id` from `/users?role=driver`; legacy `drivers.id` still works; duplicate plate -> `409` | `API_REFERENCE.md`, `src/modules/transport/routes/transport.routes.ts` |
 | `GET /transport/buses` | list buses | buses list | `admin` | Bearer | none | buses list | master data | `API_REFERENCE.md`, `src/modules/transport/routes/transport.routes.ts` |
 | `POST /transport/routes` | create route | routes form | `admin` | Bearer | `routeName`, `startPoint`, `endPoint`, `estimatedDurationMinutes?`, `isActive?` | created route | unique route naming | `API_REFERENCE.md`, `src/modules/transport/routes/transport.routes.ts` |
 | `GET /transport/routes` | list routes | routes list | `admin` | Bearer | none | routes list | selector source | `API_REFERENCE.md`, `src/modules/transport/routes/transport.routes.ts` |

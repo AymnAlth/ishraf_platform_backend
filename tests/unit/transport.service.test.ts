@@ -301,6 +301,60 @@ describe("TransportService", () => {
     expect(repositoryMock.createBus).toHaveBeenCalledOnce();
   });
 
+  it("creates buses when admin sends the driver user id instead of the driver profile id", async () => {
+    vi.mocked(repositoryMock.findDriverById).mockResolvedValue(null);
+    vi.mocked(repositoryMock.findDriverProfileByUserId).mockResolvedValue(driverRow());
+    vi.mocked(repositoryMock.createBus).mockResolvedValue("1");
+    vi.mocked(repositoryMock.findBusById).mockResolvedValue(busRow());
+
+    const response = await transportService.createBus(
+      {
+        userId: "1001",
+        role: "admin",
+        email: "admin@example.com",
+        isActive: true
+      },
+      {
+        plateNumber: "BUS-002",
+        driverId: "1004",
+        capacity: 35
+      }
+    );
+
+    expect(response.id).toBe("1");
+    expect(repositoryMock.findDriverProfileByUserId).toHaveBeenCalledWith("1004");
+    expect(repositoryMock.createBus).toHaveBeenCalledWith(
+      expect.objectContaining({
+        driverId: "1"
+      }),
+      expect.anything()
+    );
+  });
+
+  it("rejects bus creation when the provided id does not belong to a driver profile or driver user", async () => {
+    vi.mocked(repositoryMock.findDriverById).mockResolvedValue(null);
+    vi.mocked(repositoryMock.findDriverProfileByUserId).mockResolvedValue(null);
+
+    await expect(
+      transportService.createBus(
+        {
+          userId: "1001",
+          role: "admin",
+          email: "admin@example.com",
+          isActive: true
+        },
+        {
+          plateNumber: "BUS-003",
+          driverId: "99999",
+          capacity: 30
+        }
+      )
+    ).rejects.toMatchObject({
+      message: "Driver not found",
+      statusCode: 404
+    });
+  });
+
   it("rejects non-admin access to static transport management", async () => {
     await expect(
       transportService.listBuses({

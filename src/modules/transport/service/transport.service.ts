@@ -193,15 +193,15 @@ export class TransportService {
   ): Promise<TransportBusResponseDto> {
     assertAdmin(authUser);
 
-    if (payload.driverId) {
-      assertFound(await this.transportRepository.findDriverById(payload.driverId), "Driver");
-    }
+    const resolvedDriverId = payload.driverId
+      ? await this.resolveBusDriverId(payload.driverId)
+      : undefined;
 
     const bus = await db.withTransaction(async (client) => {
       const busId = await this.transportRepository.createBus(
         {
           plateNumber: payload.plateNumber,
-          driverId: payload.driverId,
+          driverId: resolvedDriverId,
           capacity: payload.capacity,
           status: payload.status ?? "active"
         },
@@ -212,6 +212,18 @@ export class TransportService {
     });
 
     return toBusResponseDto(bus);
+  }
+
+  private async resolveBusDriverId(driverId: string): Promise<string> {
+    const driverByProfileId = await this.transportRepository.findDriverById(driverId);
+
+    if (driverByProfileId) {
+      return driverByProfileId.driverId;
+    }
+
+    const driverByUserId = await this.transportRepository.findDriverProfileByUserId(driverId);
+
+    return assertFound(driverByUserId, "Driver").driverId;
   }
 
   async listBuses(authUser: AuthenticatedUser): Promise<TransportBusResponseDto[]> {

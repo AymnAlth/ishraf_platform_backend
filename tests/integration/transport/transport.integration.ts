@@ -37,6 +37,34 @@ export const registerTransportIntegrationTests = (
       expect(driverStaticResponse.status).toBe(403);
     });
 
+    it("accepts the driver user id for bus creation while preserving legacy driver profile ids", async () => {
+      const adminLogin = await context.loginAsAdmin();
+
+      const createWithUserIdResponse = await context.createBus(adminLogin.accessToken, {
+        plateNumber: "BUS-USER-ID",
+        driverId: "1004"
+      });
+      const createWithProfileIdResponse = await context.createBus(adminLogin.accessToken, {
+        plateNumber: "BUS-PROFILE-ID",
+        driverId: "1"
+      });
+      const createWithNonDriverUserResponse = await context.createBus(adminLogin.accessToken, {
+        plateNumber: "BUS-NON-DRIVER",
+        driverId: "1001"
+      });
+
+      expect(createWithUserIdResponse.status).toBe(201);
+      expect(createWithUserIdResponse.body.data.driver.userId).toBe("1004");
+      expect(createWithUserIdResponse.body.data.driver.driverId).toBe("1");
+
+      expect(createWithProfileIdResponse.status).toBe(201);
+      expect(createWithProfileIdResponse.body.data.driver.userId).toBe("1004");
+      expect(createWithProfileIdResponse.body.data.driver.driverId).toBe("1");
+
+      expect(createWithNonDriverUserResponse.status).toBe(404);
+      expect(createWithNonDriverUserResponse.body.message).toBe("Driver not found");
+    });
+
     it("creates active transport assignments, blocks duplicates, and allows reassignment after deactivation", async () => {
       const adminLogin = await context.loginAsAdmin();
 

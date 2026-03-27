@@ -14,6 +14,7 @@ import { api, getTestApp } from "./app-helper";
 import {
   createAdditionalParentAccount as createAdditionalParentAccountInDb,
   createAdditionalTeacher as createAdditionalTeacherInDb,
+  SEEDED_DRIVER,
   seedSupervisorAssignment as seedSupervisorAssignmentInDb,
   seedTeacherAssignment as seedTeacherAssignmentInDb
 } from "../setup/seed-test-data";
@@ -193,7 +194,7 @@ export const createIntegrationTestContext = (pool: Pool): IntegrationTestContext
       .set("Authorization", `Bearer ${accessToken}`)
       .send({
         plateNumber: overrides.plateNumber ?? "BUS-001",
-        driverId: overrides.driverId ?? "1",
+        driverId: overrides.driverId ?? SEEDED_DRIVER.id,
         capacity: overrides.capacity ?? 40,
         status: overrides.status ?? "active"
       }),

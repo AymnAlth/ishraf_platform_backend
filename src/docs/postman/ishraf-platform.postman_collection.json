@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Ishraf Platform Backend API",
-    "_postman_id": "a888ea71-f200-43b4-9eea-4e640441388e",
+    "_postman_id": "753f6e27-650e-407e-a268-2aee4f76fa6d",
     "description": "Full Postman collection covering every live backend endpoint.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
@@ -2495,7 +2495,7 @@
                 "value": "application/json"
               }
             ],
-            "description": "Purpose: Create a bus and optionally assign a driver profile.\n\nRoles: admin\n\nAuth: Bearer access token required\n\nBody schema: CreateBusRequest",
+            "description": "Purpose: Create a bus and optionally assign a driver. The request accepts the driver user id from /users?role=driver or the legacy driver profile id.\n\nRoles: admin\n\nAuth: Bearer access token required\n\nBody schema: CreateBusRequest\n\nNote: Frontend should send the driver user id returned by GET /users?role=driver. The backend resolves it internally to the stored driver profile id.\n\nNote: Legacy integrations may still send the driver profile id directly.",
             "url": {
               "raw": "{{baseUrl}}/transport/buses",
               "host": [
@@ -2509,7 +2509,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"plateNumber\": \"SEED-1004\",\n  \"driverId\": \"30\",\n  \"capacity\": 45,\n  \"status\": \"active\"\n}"
+              "raw": "{\n  \"plateNumber\": \"SEED-1004\",\n  \"driverId\": \"1004\",\n  \"capacity\": 45,\n  \"status\": \"active\"\n}"
             }
           }
         },

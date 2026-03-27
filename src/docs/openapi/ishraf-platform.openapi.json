@@ -895,7 +895,7 @@
         "additionalProperties": true,
         "example": {
           "plateNumber": "SEED-1004",
-          "driverId": "30",
+          "driverId": "1004",
           "capacity": 45,
           "status": "active"
         }
@@ -11503,7 +11503,7 @@
           "Transport"
         ],
         "summary": "Create Bus",
-        "description": "Create a bus and optionally assign a driver profile.\n\nAllowed roles: admin.",
+        "description": "Create a bus and optionally assign a driver. The request accepts the driver user id from /users?role=driver or the legacy driver profile id.\n\nAllowed roles: admin.\n\nNote: Frontend should send the driver user id returned by GET /users?role=driver. The backend resolves it internally to the stored driver profile id.\n\nNote: Legacy integrations may still send the driver profile id directly.",
         "x-allowed-roles": [
           "admin"
         ],
@@ -11627,7 +11627,7 @@
               },
               "example": {
                 "plateNumber": "SEED-1004",
-                "driverId": "30",
+                "driverId": "1004",
                 "capacity": 45,
                 "status": "active"
               }
