@@ -637,7 +637,7 @@
         ],
         "additionalProperties": false,
         "example": {
-          "teacherId": "3",
+          "teacherId": "1002",
           "classId": "1",
           "subjectId": "1",
           "academicYearId": "1"
@@ -669,7 +669,7 @@
         ],
         "additionalProperties": false,
         "example": {
-          "supervisorId": "4",
+          "supervisorId": "1005",
           "classId": "1",
           "academicYearId": "1"
         }
@@ -730,7 +730,7 @@
           "assessmentTypeId": "1",
           "classId": "1",
           "subjectId": "1",
-          "teacherId": "3",
+          "teacherId": "1002",
           "academicYearId": "1",
           "semesterId": "1",
           "title": "اختبار قصير 2",
@@ -779,7 +779,7 @@
           "periodNo": 1,
           "title": "حصة الرياضيات",
           "notes": "اختبار سريع",
-          "teacherId": "3"
+          "teacherId": "1002"
         }
       },
       "SaveAttendanceRecordsRequest": {
@@ -829,7 +829,7 @@
           "description": "تأخر عن الطابور",
           "severity": 3,
           "behaviorDate": "2026-03-27",
-          "teacherId": "3"
+          "teacherId": "1002"
         }
       },
       "UpdateBehaviorRecordRequest": {
@@ -989,7 +989,7 @@
         "type": "object",
         "additionalProperties": true,
         "example": {
-          "teacherId": "3",
+          "teacherId": "1002",
           "classId": "1",
           "subjectId": "1",
           "academicYearId": "1",

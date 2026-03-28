@@ -59,7 +59,7 @@ export const registerAssessmentsIntegrationTests = (
           assessmentTypeId: "1",
           classId: "2",
           subjectId: "4",
-          teacherId: secondTeacher.teacherId,
+          teacherId: secondTeacher.userId,
           academicYearId: "1",
           semesterId: "2",
           title: "Admin Science Exam",
@@ -100,6 +100,12 @@ export const registerAssessmentsIntegrationTests = (
           "Authorization",
           `Bearer ${secondTeacherLogin.body.data.tokens.accessToken as string}`
         );
+      const adminFilteredByTeacherUserId = await request(context.app)
+        .get("/api/v1/assessments")
+        .query({
+          teacherId: secondTeacher.userId
+        })
+        .set("Authorization", `Bearer ${adminLogin.accessToken}`);
 
       expect(adminCreateResponse.status).toBe(201);
       expect(teacherCreateResponse.status).toBe(201);
@@ -119,6 +125,11 @@ export const registerAssessmentsIntegrationTests = (
       expect(secondTeacherListResponse.status).toBe(200);
       expect(secondTeacherListResponse.body.data.items).toHaveLength(1);
       expect(secondTeacherListResponse.body.data.items[0].title).toBe("Admin Science Exam");
+      expect(adminFilteredByTeacherUserId.status).toBe(200);
+      expect(adminFilteredByTeacherUserId.body.data.items).toHaveLength(1);
+      expect(adminFilteredByTeacherUserId.body.data.items[0].teacher.teacherId).toBe(
+        secondTeacher.teacherId
+      );
     });
 
     it("returns a full active roster for assessment scores and supports partial score upserts", async () => {

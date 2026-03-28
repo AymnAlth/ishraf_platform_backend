@@ -159,12 +159,16 @@ describe("AssessmentsService", () => {
     findStudentAssessmentById: vi.fn(),
     updateStudentAssessment: vi.fn()
   };
+  const profileResolutionServiceMock = {
+    requireTeacherProfileIdentifier: vi.fn()
+  };
 
   let assessmentsService: AssessmentsService;
 
   beforeEach(() => {
     assessmentsService = new AssessmentsService(
-      repositoryMock as unknown as AssessmentsRepository
+      repositoryMock as unknown as AssessmentsRepository,
+      profileResolutionServiceMock as never
     );
 
     vi.restoreAllMocks();
@@ -178,9 +182,10 @@ describe("AssessmentsService", () => {
     });
 
     Object.values(repositoryMock).forEach((mockFn) => mockFn.mockReset());
+    Object.values(profileResolutionServiceMock).forEach((mockFn) => mockFn.mockReset());
   });
 
-  it("creates an assessment for an assigned admin-selected teacher", async () => {
+  it("creates an assessment for an assigned admin-selected teacher user id", async () => {
     vi.mocked(repositoryMock.findAssessmentTypeById).mockResolvedValue(assessmentTypeRow());
     vi.mocked(repositoryMock.findClassById).mockResolvedValue(classRow());
     vi.mocked(repositoryMock.findSubjectById).mockResolvedValue(subjectRow());
@@ -190,7 +195,16 @@ describe("AssessmentsService", () => {
     });
     vi.mocked(repositoryMock.findSemesterById).mockResolvedValue(semesterRow());
     vi.mocked(repositoryMock.hasActiveSubjectOffering).mockResolvedValue(true);
-    vi.mocked(repositoryMock.findTeacherById).mockResolvedValue(teacherProfile());
+    vi.mocked(profileResolutionServiceMock.requireTeacherProfileIdentifier).mockResolvedValue({
+      teacherId: "1",
+      userId: "1002",
+      fullName: "Sara Teacher",
+      email: "teacher@example.com",
+      phone: "700000003",
+      specialization: null,
+      qualification: null,
+      hireDate: null
+    });
     vi.mocked(repositoryMock.hasTeacherAssignment).mockResolvedValue(true);
     vi.mocked(repositoryMock.createAssessment).mockResolvedValue("10");
     vi.mocked(repositoryMock.findAssessmentById).mockResolvedValue(assessmentRow());
@@ -202,14 +216,14 @@ describe("AssessmentsService", () => {
         email: "admin@example.com",
         isActive: true
       },
-      {
-        assessmentTypeId: "1",
-        classId: "1",
-        subjectId: "1",
-        teacherId: "1",
-        academicYearId: "1",
-        semesterId: "2",
-        title: "Monthly Exam",
+        {
+          assessmentTypeId: "1",
+          classId: "1",
+          subjectId: "1",
+          teacherId: "1002",
+          academicYearId: "1",
+          semesterId: "2",
+          title: "Monthly Exam",
         maxScore: 100,
         weight: 10,
         assessmentDate: "2026-03-01"
@@ -218,6 +232,47 @@ describe("AssessmentsService", () => {
 
     expect(response.assessment.id).toBe("10");
     expect(repositoryMock.createAssessment).toHaveBeenCalledOnce();
+  });
+
+  it("normalizes teacher user ids in assessment list filters", async () => {
+    vi.mocked(profileResolutionServiceMock.requireTeacherProfileIdentifier).mockResolvedValue({
+      teacherId: "1",
+      userId: "1002",
+      fullName: "Sara Teacher",
+      email: "teacher@example.com",
+      phone: "700000003",
+      specialization: null,
+      qualification: null,
+      hireDate: null
+    });
+    vi.mocked(repositoryMock.listAssessments).mockResolvedValue({
+      rows: [assessmentRow()],
+      totalItems: 1
+    });
+
+    const response = await assessmentsService.listAssessments(
+      {
+        userId: "1001",
+        role: "admin",
+        email: "admin@example.com",
+        isActive: true
+      },
+      {
+        page: 1,
+        limit: 20,
+        sortBy: "assessmentDate",
+        sortOrder: "desc",
+        teacherId: "1002"
+      }
+    );
+
+    expect(response.items).toHaveLength(1);
+    expect(repositoryMock.listAssessments).toHaveBeenCalledWith(
+      expect.objectContaining({
+        teacherId: "1"
+      }),
+      {}
+    );
   });
 
   it("rejects teachers that send teacherId in create assessment payloads", async () => {

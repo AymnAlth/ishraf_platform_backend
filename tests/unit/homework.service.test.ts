@@ -99,7 +99,8 @@ describe("HomeworkService", () => {
 
   const profileResolutionServiceMock = {
     requireTeacherProfile: vi.fn(),
-    requireParentProfile: vi.fn()
+    requireParentProfile: vi.fn(),
+    requireTeacherProfileIdentifier: vi.fn()
   };
 
   const ownershipServiceMock = {
@@ -131,7 +132,7 @@ describe("HomeworkService", () => {
     Object.values(ownershipServiceMock).forEach((mockFn) => mockFn.mockReset());
   });
 
-  it("creates homework when the subject is offered in the selected semester", async () => {
+  it("creates homework when the subject is offered in the selected semester for an admin-selected teacher user id", async () => {
     vi.mocked(repositoryMock.findClassById).mockResolvedValue(classRow());
     vi.mocked(repositoryMock.findSubjectById).mockResolvedValue(subjectRow());
     vi.mocked(repositoryMock.findAcademicYearById).mockResolvedValue({
@@ -140,7 +141,16 @@ describe("HomeworkService", () => {
     });
     vi.mocked(repositoryMock.findSemesterById).mockResolvedValue(semesterRow());
     vi.mocked(repositoryMock.hasActiveSubjectOffering).mockResolvedValue(true);
-    vi.mocked(repositoryMock.findTeacherById).mockResolvedValue(teacherRow());
+    vi.mocked(profileResolutionServiceMock.requireTeacherProfileIdentifier).mockResolvedValue({
+      teacherId: "1",
+      userId: "1002",
+      fullName: "Sara Teacher",
+      email: "teacher@example.com",
+      phone: "700000003",
+      specialization: null,
+      qualification: null,
+      hireDate: null
+    });
     vi.mocked(ownershipServiceMock.assertTeacherAssignedToClassYear).mockResolvedValue(undefined);
     vi.mocked(repositoryMock.createHomework).mockResolvedValue("10");
     vi.mocked(repositoryMock.findHomeworkById).mockResolvedValue(homeworkRow());
@@ -153,7 +163,7 @@ describe("HomeworkService", () => {
         isActive: true
       },
       {
-        teacherId: "1",
+        teacherId: "1002",
         classId: "1",
         subjectId: "1",
         academicYearId: "1",
@@ -167,6 +177,47 @@ describe("HomeworkService", () => {
 
     expect(response.id).toBe("10");
     expect(repositoryMock.createHomework).toHaveBeenCalledOnce();
+  });
+
+  it("normalizes teacher user ids in homework list filters", async () => {
+    vi.mocked(profileResolutionServiceMock.requireTeacherProfileIdentifier).mockResolvedValue({
+      teacherId: "1",
+      userId: "1002",
+      fullName: "Sara Teacher",
+      email: "teacher@example.com",
+      phone: "700000003",
+      specialization: null,
+      qualification: null,
+      hireDate: null
+    });
+    vi.mocked(repositoryMock.listHomework).mockResolvedValue({
+      rows: [homeworkRow()],
+      totalItems: 1
+    });
+
+    const response = await homeworkService.listHomework(
+      {
+        userId: "1001",
+        role: "admin",
+        email: "admin@example.com",
+        isActive: true
+      },
+      {
+        page: 1,
+        limit: 20,
+        sortBy: "dueDate",
+        sortOrder: "desc",
+        teacherId: "1002"
+      }
+    );
+
+    expect(response.items).toHaveLength(1);
+    expect(repositoryMock.listHomework).toHaveBeenCalledWith(
+      expect.objectContaining({
+        teacherId: "1"
+      }),
+      {}
+    );
   });
 
   it("rejects homework creation when the subject is not offered in the selected semester", async () => {

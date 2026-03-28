@@ -179,7 +179,7 @@ export const registerAcademicIntegrationTests = (
         .post("/api/v1/academic-structure/teacher-assignments")
         .set("Authorization", `Bearer ${accessToken}`)
         .send({
-          teacherId: "1",
+          teacherId: AUTH_TEST_FIXTURES.activePhoneUser.id,
           classId: "1",
           subjectId: "1",
           academicYearId: "1"
@@ -193,9 +193,18 @@ export const registerAcademicIntegrationTests = (
         .post("/api/v1/academic-structure/teacher-assignments")
         .set("Authorization", `Bearer ${accessToken}`)
         .send({
-          teacherId: "1",
+          teacherId: AUTH_TEST_FIXTURES.activePhoneUser.id,
           classId: "1",
           subjectId: "4",
+          academicYearId: "1"
+        });
+      const invalidTeacherResponse = await request(context.app)
+        .post("/api/v1/academic-structure/teacher-assignments")
+        .set("Authorization", `Bearer ${accessToken}`)
+        .send({
+          teacherId: AUTH_TEST_FIXTURES.activeEmailUser.id,
+          classId: "1",
+          subjectId: "1",
           academicYearId: "1"
         });
 
@@ -206,6 +215,7 @@ export const registerAcademicIntegrationTests = (
       expect(listResponse.status).toBe(200);
       expect(listResponse.body.data).toHaveLength(1);
       expect(mismatchResponse.status).toBe(400);
+      expect(invalidTeacherResponse.status).toBe(404);
     });
 
     it("creates supervisor assignments and lists them with joined data", async () => {
@@ -215,7 +225,7 @@ export const registerAcademicIntegrationTests = (
         .post("/api/v1/academic-structure/supervisor-assignments")
         .set("Authorization", `Bearer ${accessToken}`)
         .send({
-          supervisorId: "1",
+          supervisorId: SEEDED_SUPERVISOR.id,
           classId: "1",
           academicYearId: "1"
         });
@@ -223,11 +233,20 @@ export const registerAcademicIntegrationTests = (
       const listResponse = await request(context.app)
         .get("/api/v1/academic-structure/supervisor-assignments")
         .set("Authorization", `Bearer ${accessToken}`);
+      const invalidSupervisorResponse = await request(context.app)
+        .post("/api/v1/academic-structure/supervisor-assignments")
+        .set("Authorization", `Bearer ${accessToken}`)
+        .send({
+          supervisorId: AUTH_TEST_FIXTURES.activePhoneUser.id,
+          classId: "1",
+          academicYearId: "1"
+        });
 
       expect(createResponse.status).toBe(201);
       expect(createResponse.body.data.supervisor.fullName).toBe(SEEDED_SUPERVISOR.fullName);
       expect(listResponse.status).toBe(200);
       expect(listResponse.body.data).toHaveLength(1);
+      expect(invalidSupervisorResponse.status).toBe(404);
     });
   });
 };

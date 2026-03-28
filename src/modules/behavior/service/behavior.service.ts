@@ -262,15 +262,16 @@ export class BehaviorService {
     filters: ListBehaviorRecordsQueryDto
   ): Promise<PaginatedData<BehaviorRecordResponseDto>> {
     const actor = await this.resolveActor(authUser);
+    const normalizedFilters = await this.normalizeFilters(filters);
     const { rows, totalItems } = await this.behaviorRepository.listBehaviorRecords(
-      filters,
+      normalizedFilters,
       this.toRepositoryScope(actor)
     );
 
     return toPaginatedData(
       rows.map((row) => toBehaviorRecordResponseDto(row)),
-      filters.page,
-      filters.limit,
+      normalizedFilters.page,
+      normalizedFilters.limit,
       totalItems
     );
   }
@@ -495,29 +496,31 @@ export class BehaviorService {
     const selectedActor = assertSingleAdminActor(payload.teacherId, payload.supervisorId);
 
     if (selectedActor.teacherId) {
-      assertFound(
-        await this.behaviorRepository.findTeacherById(selectedActor.teacherId),
-        "Teacher"
-      );
+      const teacherId = await this.resolveTeacherIdentifier(selectedActor.teacherId);
 
       await this.assertTeacherAssignment(
-        selectedActor.teacherId,
+        teacherId,
         student.classId,
         academicYearId
       );
+
+      return {
+        teacherId
+      };
     }
 
     if (selectedActor.supervisorId) {
-      assertFound(
-        await this.behaviorRepository.findSupervisorById(selectedActor.supervisorId),
-        "Supervisor"
-      );
+      const supervisorId = await this.resolveSupervisorIdentifier(selectedActor.supervisorId);
 
       await this.assertSupervisorAssignment(
-        selectedActor.supervisorId,
+        supervisorId,
         student.classId,
         academicYearId
       );
+
+      return {
+        supervisorId
+      };
     }
 
     return selectedActor;
@@ -647,5 +650,43 @@ export class BehaviorService {
         "Supervisor is not assigned to the student's class for the academic year"
       );
     }
+  }
+
+  private async normalizeFilters(
+    filters: ListBehaviorRecordsQueryDto
+  ): Promise<ListBehaviorRecordsQueryDto> {
+    let normalizedFilters = filters;
+
+    if (filters.teacherId !== undefined) {
+      normalizedFilters = {
+        ...normalizedFilters,
+        teacherId: await this.resolveTeacherIdentifier(filters.teacherId)
+      };
+    }
+
+    if (filters.supervisorId !== undefined) {
+      normalizedFilters = {
+        ...normalizedFilters,
+        supervisorId: await this.resolveSupervisorIdentifier(filters.supervisorId)
+      };
+    }
+
+    return normalizedFilters;
+  }
+
+  private async resolveTeacherIdentifier(identifier: string): Promise<string> {
+    const teacher = await this.profileResolutionService.requireTeacherProfileIdentifier(
+      identifier
+    );
+
+    return teacher.teacherId;
+  }
+
+  private async resolveSupervisorIdentifier(identifier: string): Promise<string> {
+    const supervisor = await this.profileResolutionService.requireSupervisorProfileIdentifier(
+      identifier
+    );
+
+    return supervisor.supervisorId;
   }
 }

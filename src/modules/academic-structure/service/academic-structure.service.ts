@@ -1,5 +1,6 @@
 import { NotFoundError } from "../../../common/errors/not-found-error";
 import { ValidationError } from "../../../common/errors/validation-error";
+import { ProfileResolutionService } from "../../../common/services/profile-resolution.service";
 import { db } from "../../../database/db";
 import type {
   AcademicYearRequestDto,
@@ -136,7 +137,8 @@ const assertSupervisorAssignmentCompatibility = (
 
 export class AcademicStructureService {
   constructor(
-    private readonly academicStructureRepository: AcademicStructureRepository
+    private readonly academicStructureRepository: AcademicStructureRepository,
+    private readonly profileResolutionService: ProfileResolutionService = new ProfileResolutionService()
   ) {}
 
   async createAcademicYear(
@@ -495,13 +497,13 @@ export class AcademicStructureService {
   async createTeacherAssignment(
     payload: TeacherAssignmentRequestDto
   ): Promise<TeacherAssignmentResponseDto> {
+    const teacher = await this.profileResolutionService.requireTeacherProfileIdentifier(
+      payload.teacherId
+    );
+
     assertFound(
       await this.academicStructureRepository.findAcademicYearById(payload.academicYearId),
       "Academic year"
-    );
-    assertFound(
-      await this.academicStructureRepository.findTeacherById(payload.teacherId),
-      "Teacher"
     );
     const classRow = assertFound(
       await this.academicStructureRepository.findClassById(payload.classId),
@@ -515,7 +517,7 @@ export class AcademicStructureService {
     assertTeacherAssignmentCompatibility(classRow, subjectRow, payload.academicYearId);
 
     const id = await this.academicStructureRepository.createTeacherAssignment({
-      teacherId: payload.teacherId,
+      teacherId: teacher.teacherId,
       classId: payload.classId,
       subjectId: payload.subjectId,
       academicYearId: payload.academicYearId
@@ -537,13 +539,13 @@ export class AcademicStructureService {
   async createSupervisorAssignment(
     payload: SupervisorAssignmentRequestDto
   ): Promise<SupervisorAssignmentResponseDto> {
+    const supervisor = await this.profileResolutionService.requireSupervisorProfileIdentifier(
+      payload.supervisorId
+    );
+
     assertFound(
       await this.academicStructureRepository.findAcademicYearById(payload.academicYearId),
       "Academic year"
-    );
-    assertFound(
-      await this.academicStructureRepository.findSupervisorById(payload.supervisorId),
-      "Supervisor"
     );
     const classRow = assertFound(
       await this.academicStructureRepository.findClassById(payload.classId),
@@ -553,7 +555,7 @@ export class AcademicStructureService {
     assertSupervisorAssignmentCompatibility(classRow, payload.academicYearId);
 
     const id = await this.academicStructureRepository.createSupervisorAssignment({
-      supervisorId: payload.supervisorId,
+      supervisorId: supervisor.supervisorId,
       classId: payload.classId,
       academicYearId: payload.academicYearId
     });

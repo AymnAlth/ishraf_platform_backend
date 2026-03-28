@@ -108,6 +108,10 @@ describe("BehaviorService", () => {
     updateBehaviorRecord: vi.fn(),
     findStudentBehaviorSummary: vi.fn()
   };
+  const profileResolutionServiceMock = {
+    requireTeacherProfileIdentifier: vi.fn(),
+    requireSupervisorProfileIdentifier: vi.fn()
+  };
 
   let behaviorService: BehaviorService;
   const automationMock = {
@@ -120,7 +124,7 @@ describe("BehaviorService", () => {
   beforeEach(() => {
     behaviorService = new BehaviorService(
       repositoryMock as unknown as BehaviorRepository,
-      undefined,
+      profileResolutionServiceMock as never,
       undefined,
       automationMock as unknown as AutomationPort
     );
@@ -136,6 +140,7 @@ describe("BehaviorService", () => {
     });
 
     Object.values(repositoryMock).forEach((mockFn) => mockFn.mockReset());
+    Object.values(profileResolutionServiceMock).forEach((mockFn) => mockFn.mockReset());
     Object.values(automationMock).forEach((mockFn) => mockFn.mockReset());
   });
 
@@ -228,6 +233,110 @@ describe("BehaviorService", () => {
         }
       )
     ).rejects.toBeInstanceOf(ValidationError);
+  });
+
+  it("normalizes teacher user ids for admin-created behavior records", async () => {
+    vi.mocked(repositoryMock.findStudentBehaviorReferenceById).mockResolvedValue(studentRow());
+    vi.mocked(repositoryMock.findBehaviorCategoryById).mockResolvedValue(categoryRow());
+    vi.mocked(repositoryMock.findAcademicYearById).mockResolvedValue({
+      id: "1",
+      name: "2025-2026"
+    });
+    vi.mocked(repositoryMock.findSemesterById).mockResolvedValue({
+      id: "2",
+      name: "Semester 2",
+      academicYearId: "1"
+    });
+    vi.mocked(profileResolutionServiceMock.requireTeacherProfileIdentifier).mockResolvedValue({
+      teacherId: "1",
+      userId: "1002",
+      fullName: "Sara Teacher",
+      email: "teacher@example.com",
+      phone: "700000003",
+      specialization: null,
+      qualification: null,
+      hireDate: null
+    });
+    vi.mocked(repositoryMock.hasTeacherBehaviorAssignment).mockResolvedValue(true);
+    vi.mocked(repositoryMock.createBehaviorRecord).mockResolvedValue("10");
+    vi.mocked(repositoryMock.findBehaviorRecordById).mockResolvedValue(behaviorRecordRow());
+
+    const response = await behaviorService.createRecord(
+      {
+        userId: "1001",
+        role: "admin",
+        email: "admin@example.com",
+        isActive: true
+      },
+      {
+        studentId: "1",
+        behaviorCategoryId: "5",
+        academicYearId: "1",
+        semesterId: "2",
+        teacherId: "1002",
+        behaviorDate: "2026-03-10"
+      }
+    );
+
+    expect(response.id).toBe("10");
+    expect(repositoryMock.createBehaviorRecord).toHaveBeenCalledWith(
+      expect.objectContaining({
+        teacherId: "1",
+        supervisorId: undefined
+      }),
+      expect.anything()
+    );
+  });
+
+  it("normalizes teacher and supervisor user ids in behavior list filters", async () => {
+    vi.mocked(profileResolutionServiceMock.requireTeacherProfileIdentifier).mockResolvedValue({
+      teacherId: "1",
+      userId: "1002",
+      fullName: "Sara Teacher",
+      email: "teacher@example.com",
+      phone: "700000003",
+      specialization: null,
+      qualification: null,
+      hireDate: null
+    });
+    vi.mocked(profileResolutionServiceMock.requireSupervisorProfileIdentifier).mockResolvedValue({
+      supervisorId: "1",
+      userId: "1005",
+      fullName: "Mona Supervisor",
+      email: "supervisor@example.com",
+      phone: "700000005",
+      department: null
+    });
+    vi.mocked(repositoryMock.listBehaviorRecords).mockResolvedValue({
+      rows: [behaviorRecordRow()],
+      totalItems: 1
+    });
+
+    const response = await behaviorService.listRecords(
+      {
+        userId: "1001",
+        role: "admin",
+        email: "admin@example.com",
+        isActive: true
+      },
+      {
+        page: 1,
+        limit: 20,
+        sortBy: "behaviorDate",
+        sortOrder: "desc",
+        teacherId: "1002",
+        supervisorId: "1005"
+      }
+    );
+
+    expect(response.items).toHaveLength(1);
+    expect(repositoryMock.listBehaviorRecords).toHaveBeenCalledWith(
+      expect.objectContaining({
+        teacherId: "1",
+        supervisorId: "1"
+      }),
+      {}
+    );
   });
 
   it("rejects non-admin actor ids and unauthorized record access", async () => {

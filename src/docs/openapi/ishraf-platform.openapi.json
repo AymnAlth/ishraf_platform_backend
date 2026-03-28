@@ -687,7 +687,7 @@
         ],
         "additionalProperties": false,
         "example": {
-          "teacherId": "3",
+          "teacherId": "1002",
           "classId": "1",
           "subjectId": "1",
           "academicYearId": "1"
@@ -719,7 +719,7 @@
         ],
         "additionalProperties": false,
         "example": {
-          "supervisorId": "4",
+          "supervisorId": "1005",
           "classId": "1",
           "academicYearId": "1"
         }
@@ -780,7 +780,7 @@
           "assessmentTypeId": "1",
           "classId": "1",
           "subjectId": "1",
-          "teacherId": "3",
+          "teacherId": "1002",
           "academicYearId": "1",
           "semesterId": "1",
           "title": "اختبار قصير 2",
@@ -829,7 +829,7 @@
           "periodNo": 1,
           "title": "حصة الرياضيات",
           "notes": "اختبار سريع",
-          "teacherId": "3"
+          "teacherId": "1002"
         }
       },
       "SaveAttendanceRecordsRequest": {
@@ -879,7 +879,7 @@
           "description": "تأخر عن الطابور",
           "severity": 3,
           "behaviorDate": "2026-03-27",
-          "teacherId": "3"
+          "teacherId": "1002"
         }
       },
       "UpdateBehaviorRecordRequest": {
@@ -1039,7 +1039,7 @@
         "type": "object",
         "additionalProperties": true,
         "example": {
-          "teacherId": "3",
+          "teacherId": "1002",
           "classId": "1",
           "subjectId": "1",
           "academicYearId": "1",
@@ -5739,7 +5739,7 @@
           "Academic Structure"
         ],
         "summary": "Create Supervisor Assignment",
-        "description": "Assign a supervisor to a class for an academic year.\n\nAllowed roles: admin.",
+        "description": "Assign a supervisor to a class for an academic year. supervisorId accepts the supervisor user id from /users?role=supervisor or the legacy supervisor profile id.\n\nAllowed roles: admin.\n\nNote: Frontend should send the supervisor user id returned by GET /users?role=supervisor. The backend resolves it internally to the stored supervisor profile id.\n\nNote: Legacy integrations may still send the supervisor profile id directly.\n\nNote: If the same value matches a supervisor user id and a different supervisor profile id, the backend rejects the request with SUPERVISOR_ID_AMBIGUOUS instead of guessing.",
         "x-allowed-roles": [
           "admin"
         ],
@@ -5856,7 +5856,7 @@
                 "$ref": "#/components/schemas/CreateSupervisorAssignmentRequest"
               },
               "example": {
-                "supervisorId": "4",
+                "supervisorId": "1005",
                 "classId": "1",
                 "academicYearId": "1"
               }
@@ -5970,7 +5970,7 @@
           "Academic Structure"
         ],
         "summary": "Create Teacher Assignment",
-        "description": "Assign a teacher to a class and subject for an academic year.\n\nAllowed roles: admin.",
+        "description": "Assign a teacher to a class and subject for an academic year. teacherId accepts the teacher user id from /users?role=teacher or the legacy teacher profile id.\n\nAllowed roles: admin.\n\nNote: Frontend should send the teacher user id returned by GET /users?role=teacher. The backend resolves it internally to the stored teacher profile id.\n\nNote: Legacy integrations may still send the teacher profile id directly.\n\nNote: If the same value matches a teacher user id and a different teacher profile id, the backend rejects the request with TEACHER_ID_AMBIGUOUS instead of guessing.",
         "x-allowed-roles": [
           "admin"
         ],
@@ -6087,7 +6087,7 @@
                 "$ref": "#/components/schemas/CreateTeacherAssignmentRequest"
               },
               "example": {
-                "teacherId": "3",
+                "teacherId": "1002",
                 "classId": "1",
                 "subjectId": "1",
                 "academicYearId": "1"
@@ -7632,7 +7632,7 @@
           "Attendance"
         ],
         "summary": "List Attendance Sessions",
-        "description": "List attendance sessions with pagination. There is no root /attendance endpoint.\n\nAllowed roles: admin, teacher, supervisor.\n\nNote: Empty collections return 200 with items=[] and pagination metadata.",
+        "description": "List attendance sessions with pagination. There is no root /attendance endpoint.\n\nAllowed roles: admin, teacher, supervisor.\n\nNote: Empty collections return 200 with items=[] and pagination metadata.\n\nNote: teacherId filter accepts the teacher user id returned by GET /users?role=teacher or the legacy teacher profile id. Prefer the user id in admin frontend flows.",
         "x-allowed-roles": [
           "admin",
           "teacher",
@@ -7862,7 +7862,7 @@
               "pattern": "^[0-9]+$",
               "example": "1"
             },
-            "description": "Filter by teacher profile id."
+            "description": "Filter by teacher identifier. Accepts the teacher user id from /users?role=teacher or the legacy teacher profile id."
           },
           {
             "name": "academicYearId",
@@ -7926,7 +7926,7 @@
           "Attendance"
         ],
         "summary": "Create Attendance Session",
-        "description": "Create an attendance session for a class and subject.\n\nAllowed roles: admin, teacher.\n\nNote: The selected subjectId must have an active subject offering for the selected semesterId.",
+        "description": "Create an attendance session for a class and subject. Admin teacherId accepts the teacher user id from /users?role=teacher or the legacy teacher profile id.\n\nAllowed roles: admin, teacher.\n\nNote: The selected subjectId must have an active subject offering for the selected semesterId.\n\nNote: Admin frontend flows should send teacherId as the teacher user id returned by GET /users?role=teacher.",
         "x-allowed-roles": [
           "admin",
           "teacher"
@@ -8058,7 +8058,7 @@
                 "periodNo": 1,
                 "title": "حصة الرياضيات",
                 "notes": "اختبار سريع",
-                "teacherId": "3"
+                "teacherId": "1002"
               }
             }
           }
@@ -8410,7 +8410,7 @@
           "Assessments"
         ],
         "summary": "List Assessments",
-        "description": "List assessments with pagination and filters.\n\nAllowed roles: admin, teacher.",
+        "description": "List assessments with pagination and filters.\n\nAllowed roles: admin, teacher.\n\nNote: teacherId filter accepts the teacher user id returned by GET /users?role=teacher or the legacy teacher profile id. Prefer the user id in admin frontend flows.",
         "x-allowed-roles": [
           "admin",
           "teacher"
@@ -8650,7 +8650,7 @@
               "pattern": "^[0-9]+$",
               "example": "1"
             },
-            "description": "Filter by teacher profile id."
+            "description": "Filter by teacher identifier. Accepts the teacher user id from /users?role=teacher or the legacy teacher profile id."
           },
           {
             "name": "academicYearId",
@@ -8724,7 +8724,7 @@
           "Assessments"
         ],
         "summary": "Create Assessment",
-        "description": "Create an assessment. Teachers may omit teacherId and rely on the authenticated teacher profile.\n\nAllowed roles: admin, teacher.\n\nNote: The selected subjectId must have an active subject offering for the selected semesterId.",
+        "description": "Create an assessment. Teachers may omit teacherId and rely on the authenticated teacher profile. Admin teacherId accepts the teacher user id from /users?role=teacher or the legacy teacher profile id.\n\nAllowed roles: admin, teacher.\n\nNote: The selected subjectId must have an active subject offering for the selected semesterId.\n\nNote: Admin frontend flows should send teacherId as the teacher user id returned by GET /users?role=teacher.",
         "x-allowed-roles": [
           "admin",
           "teacher"
@@ -8851,7 +8851,7 @@
                 "assessmentTypeId": "1",
                 "classId": "1",
                 "subjectId": "1",
-                "teacherId": "3",
+                "teacherId": "1002",
                 "academicYearId": "1",
                 "semesterId": "1",
                 "title": "اختبار قصير 2",
@@ -10013,7 +10013,7 @@
           "Behavior"
         ],
         "summary": "List Behavior Records",
-        "description": "List behavior records with pagination and filters.\n\nAllowed roles: admin, teacher, supervisor.",
+        "description": "List behavior records with pagination and filters.\n\nAllowed roles: admin, teacher, supervisor.\n\nNote: teacherId and supervisorId filters accept the corresponding user ids returned by GET /users or the legacy profile ids. Prefer user ids in admin frontend flows.",
         "x-allowed-roles": [
           "admin",
           "teacher",
@@ -10273,7 +10273,7 @@
               "pattern": "^[0-9]+$",
               "example": "1"
             },
-            "description": "Filter by teacher profile id."
+            "description": "Filter by teacher identifier. Accepts the teacher user id from /users?role=teacher or the legacy teacher profile id."
           },
           {
             "name": "supervisorId",
@@ -10284,7 +10284,7 @@
               "pattern": "^[0-9]+$",
               "example": "1"
             },
-            "description": "Filter by supervisor profile id."
+            "description": "Filter by supervisor identifier. Accepts the supervisor user id from /users?role=supervisor or the legacy supervisor profile id."
           },
           {
             "name": "behaviorDate",
@@ -10326,7 +10326,7 @@
           "Behavior"
         ],
         "summary": "Create Behavior Record",
-        "description": "Create a behavior record for one student.\n\nAllowed roles: admin, teacher, supervisor.\n\nSide effects: Negative behavior categories trigger parent notifications through the internal automation service.",
+        "description": "Create a behavior record for one student. teacherId and supervisorId accept the matching user ids from /users or the legacy profile ids.\n\nAllowed roles: admin, teacher, supervisor.\n\nNote: Admin frontend flows should send teacherId or supervisorId as the selected account user id from GET /users?role=teacher|supervisor.\n\nNote: Legacy integrations may still send teacher/supervisor profile ids directly.\n\nSide effects: Negative behavior categories trigger parent notifications through the internal automation service.",
         "x-allowed-roles": [
           "admin",
           "teacher",
@@ -10456,7 +10456,7 @@
                 "description": "تأخر عن الطابور",
                 "severity": 3,
                 "behaviorDate": "2026-03-27",
-                "teacherId": "3"
+                "teacherId": "1002"
               }
             }
           }
@@ -17164,7 +17164,7 @@
           "Homework"
         ],
         "summary": "List Homework",
-        "description": "List homework with pagination and academic filters.\n\nAllowed roles: admin, teacher.\n\nDerived data: Homework lists are enriched by SQL views such as vw_homework_details.",
+        "description": "List homework with pagination and academic filters.\n\nAllowed roles: admin, teacher.\n\nNote: teacherId filter accepts the teacher user id returned by GET /users?role=teacher or the legacy teacher profile id. Prefer the user id in admin frontend flows.\n\nDerived data: Homework lists are enriched by SQL views such as vw_homework_details.",
         "x-allowed-roles": [
           "admin",
           "teacher"
@@ -17391,7 +17391,7 @@
               "pattern": "^[0-9]+$",
               "example": "1"
             },
-            "description": "Filter by teacher profile id."
+            "description": "Filter by teacher identifier. Accepts the teacher user id from /users?role=teacher or the legacy teacher profile id."
           },
           {
             "name": "academicYearId",
@@ -17466,7 +17466,7 @@
           "Homework"
         ],
         "summary": "Create Homework",
-        "description": "Create homework for a class and subject. Teachers may omit teacherId and rely on the authenticated teacher profile.\n\nAllowed roles: admin, teacher.\n\nNote: The selected subjectId must have an active subject offering for the selected semesterId.",
+        "description": "Create homework for a class and subject. Teachers may omit teacherId and rely on the authenticated teacher profile. Admin teacherId accepts the teacher user id from /users?role=teacher or the legacy teacher profile id.\n\nAllowed roles: admin, teacher.\n\nNote: The selected subjectId must have an active subject offering for the selected semesterId.\n\nNote: Admin frontend flows should send teacherId as the teacher user id returned by GET /users?role=teacher.",
         "x-allowed-roles": [
           "admin",
           "teacher"
@@ -17587,7 +17587,7 @@
                 "$ref": "#/components/schemas/CreateHomeworkRequest"
               },
               "example": {
-                "teacherId": "3",
+                "teacherId": "1002",
                 "classId": "1",
                 "subjectId": "1",
                 "academicYearId": "1",

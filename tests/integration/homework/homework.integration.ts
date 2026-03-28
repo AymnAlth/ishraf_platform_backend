@@ -1,6 +1,7 @@
 import request from "supertest";
 import { describe, expect, it } from "vitest";
 
+import { AUTH_TEST_FIXTURES } from "../../fixtures/auth.fixture";
 import type { IntegrationTestContext } from "../../helpers/integration-context";
 
 export const registerHomeworkIntegrationTests = (
@@ -70,7 +71,7 @@ export const registerHomeworkIntegrationTests = (
         .post("/api/v1/homework")
         .set("Authorization", `Bearer ${adminLogin.accessToken}`)
         .send({
-          teacherId: "1",
+          teacherId: AUTH_TEST_FIXTURES.activePhoneUser.id,
           classId: "1",
           subjectId: "1",
           academicYearId: "1",
@@ -99,12 +100,24 @@ export const registerHomeworkIntegrationTests = (
       const unrelatedStudentResponse = await request(context.app)
         .get("/api/v1/homework/students/2")
         .set("Authorization", `Bearer ${parentAccessToken}`);
+      const adminFilteredByTeacherUserId = await request(context.app)
+        .get("/api/v1/homework")
+        .query({
+          page: 1,
+          limit: 20,
+          sortBy: "dueDate",
+          sortOrder: "desc",
+          teacherId: AUTH_TEST_FIXTURES.activePhoneUser.id
+        })
+        .set("Authorization", `Bearer ${adminLogin.accessToken}`);
 
       expect(createResponse.status).toBe(201);
       expect(linkedStudentResponse.status).toBe(200);
       expect(linkedStudentResponse.body.data.student.id).toBe("1");
       expect(linkedStudentResponse.body.data.items).toHaveLength(1);
       expect(unrelatedStudentResponse.status).toBe(403);
+      expect(adminFilteredByTeacherUserId.status).toBe(200);
+      expect(adminFilteredByTeacherUserId.body.data.items).toHaveLength(1);
     });
 
     it("rejects homework submissions for students outside the homework class", async () => {

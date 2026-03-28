@@ -18,7 +18,7 @@ export const registerAttendanceIntegrationTests = (
         .send({
           classId: "1",
           subjectId: "1",
-          teacherId: "1",
+          teacherId: AUTH_TEST_FIXTURES.activePhoneUser.id,
           academicYearId: "1",
           semesterId: "2",
           sessionDate: "2026-02-16",
@@ -120,6 +120,12 @@ export const registerAttendanceIntegrationTests = (
           classId: "2"
         })
         .set("Authorization", `Bearer ${adminLogin.accessToken}`);
+      const adminFilteredByTeacherUserId = await request(context.app)
+        .get("/api/v1/attendance/sessions")
+        .query({
+          teacherId: secondTeacher.userId
+        })
+        .set("Authorization", `Bearer ${adminLogin.accessToken}`);
 
       expect(teacherList.status).toBe(200);
       expect(teacherList.body.data.items).toHaveLength(1);
@@ -138,6 +144,11 @@ export const registerAttendanceIntegrationTests = (
       expect(adminFilteredList.status).toBe(200);
       expect(adminFilteredList.body.data.items).toHaveLength(1);
       expect(adminFilteredList.body.data.items[0].teacher.teacherId).toBe(
+        secondTeacher.teacherId
+      );
+      expect(adminFilteredByTeacherUserId.status).toBe(200);
+      expect(adminFilteredByTeacherUserId.body.data.items).toHaveLength(1);
+      expect(adminFilteredByTeacherUserId.body.data.items[0].teacher.teacherId).toBe(
         secondTeacher.teacherId
       );
     });

@@ -1,6 +1,7 @@
 import type { QueryResultRow } from "pg";
 
 import { NotFoundError } from "../errors/not-found-error";
+import { ValidationError } from "../errors/validation-error";
 import type { Queryable } from "../interfaces/queryable.interface";
 import type {
   DriverProfile,
@@ -12,6 +13,13 @@ import { databaseTables } from "../../config/database";
 import { db } from "../../database/db";
 
 const mapSingleRow = <T extends QueryResultRow>(rows: T[]): T | null => rows[0] ?? null;
+
+type FlexibleProfileResolverOptions<T> = {
+  field: string;
+  label: string;
+  ambiguousCode: string;
+  getProfileId: (profile: T) => string;
+};
 
 const parentProfileSelect = `
   SELECT
@@ -73,6 +81,36 @@ const assertProfile = <T>(profile: T | null, label: string): T => {
   return profile;
 };
 
+const resolveFlexibleProfileIdentifier = <T>(
+  byProfileId: T | null,
+  byUserId: T | null,
+  options: FlexibleProfileResolverOptions<T>
+): T | null => {
+  if (!byProfileId && !byUserId) {
+    return null;
+  }
+
+  if (!byProfileId) {
+    return byUserId;
+  }
+
+  if (!byUserId) {
+    return byProfileId;
+  }
+
+  if (options.getProfileId(byProfileId) === options.getProfileId(byUserId)) {
+    return byProfileId;
+  }
+
+  throw new ValidationError(`${options.field} is ambiguous`, [
+    {
+      field: options.field,
+      code: options.ambiguousCode,
+      message: `${options.field} matches both a ${options.label.toLowerCase()} user id and a different ${options.label.toLowerCase()} profile id`
+    }
+  ]);
+};
+
 export class ProfileResolutionService {
   async findParentProfileByUserId(
     userId: string,
@@ -106,6 +144,22 @@ export class ProfileResolutionService {
     return mapSingleRow(result.rows);
   }
 
+  async findTeacherProfileById(
+    teacherId: string,
+    queryable: Queryable = db
+  ): Promise<TeacherProfile | null> {
+    const result = await queryable.query<TeacherProfile>(
+      `
+        ${teacherProfileSelect}
+        WHERE t.id = $1
+        LIMIT 1
+      `,
+      [teacherId]
+    );
+
+    return mapSingleRow(result.rows);
+  }
+
   async findSupervisorProfileByUserId(
     userId: string,
     queryable: Queryable = db
@@ -117,6 +171,22 @@ export class ProfileResolutionService {
         LIMIT 1
       `,
       [userId]
+    );
+
+    return mapSingleRow(result.rows);
+  }
+
+  async findSupervisorProfileById(
+    supervisorId: string,
+    queryable: Queryable = db
+  ): Promise<SupervisorProfile | null> {
+    const result = await queryable.query<SupervisorProfile>(
+      `
+        ${supervisorProfileSelect}
+        WHERE s.id = $1
+        LIMIT 1
+      `,
+      [supervisorId]
     );
 
     return mapSingleRow(result.rows);
@@ -170,5 +240,67 @@ export class ProfileResolutionService {
     queryable: Queryable = db
   ): Promise<DriverProfile> {
     return assertProfile(await this.findDriverProfileByUserId(userId, queryable), "Driver profile");
+  }
+
+  async resolveTeacherProfileIdentifier(
+    identifier: string,
+    queryable: Queryable = db,
+    field = "teacherId"
+  ): Promise<TeacherProfile | null> {
+    const [teacherByProfileId, teacherByUserId] = await Promise.all([
+      this.findTeacherProfileById(identifier, queryable),
+      this.findTeacherProfileByUserId(identifier, queryable)
+    ]);
+
+    return resolveFlexibleProfileIdentifier(teacherByProfileId, teacherByUserId, {
+      field,
+      label: "Teacher",
+      ambiguousCode: "TEACHER_ID_AMBIGUOUS",
+      getProfileId: (profile) => profile.teacherId
+    });
+  }
+
+  async requireTeacherProfileIdentifier(
+    identifier: string,
+    queryable: Queryable = db,
+    field = "teacherId"
+  ): Promise<TeacherProfile> {
+    return assertProfile(
+      await this.resolveTeacherProfileIdentifier(identifier, queryable, field),
+      "Teacher"
+    );
+  }
+
+  async resolveSupervisorProfileIdentifier(
+    identifier: string,
+    queryable: Queryable = db,
+    field = "supervisorId"
+  ): Promise<SupervisorProfile | null> {
+    const [supervisorByProfileId, supervisorByUserId] = await Promise.all([
+      this.findSupervisorProfileById(identifier, queryable),
+      this.findSupervisorProfileByUserId(identifier, queryable)
+    ]);
+
+    return resolveFlexibleProfileIdentifier(
+      supervisorByProfileId,
+      supervisorByUserId,
+      {
+        field,
+        label: "Supervisor",
+        ambiguousCode: "SUPERVISOR_ID_AMBIGUOUS",
+        getProfileId: (profile) => profile.supervisorId
+      }
+    );
+  }
+
+  async requireSupervisorProfileIdentifier(
+    identifier: string,
+    queryable: Queryable = db,
+    field = "supervisorId"
+  ): Promise<SupervisorProfile> {
+    return assertProfile(
+      await this.resolveSupervisorProfileIdentifier(identifier, queryable, field),
+      "Supervisor"
+    );
   }
 }

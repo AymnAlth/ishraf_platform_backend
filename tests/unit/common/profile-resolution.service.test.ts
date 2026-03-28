@@ -9,6 +9,15 @@ const createQueryable = (rows: unknown[]): Queryable & { query: ReturnType<typeo
   })
 });
 
+const createQueryableSequence = (
+  rowsSequence: unknown[][]
+): Queryable & { query: ReturnType<typeof vi.fn> } => ({
+  query: vi
+    .fn()
+    .mockImplementationOnce(async () => ({ rows: rowsSequence[0] ?? [] }))
+    .mockImplementationOnce(async () => ({ rows: rowsSequence[1] ?? [] }))
+});
+
 describe("ProfileResolutionService", () => {
   const service = new ProfileResolutionService();
 
@@ -160,6 +169,72 @@ describe("ProfileResolutionService", () => {
         code: "NOT_FOUND"
       });
     });
+
+    it("resolves teacher identifiers from either the teacher profile id or teacher user id", async () => {
+      const teacherProfile = {
+        teacherId: "7",
+        userId: "1002",
+        fullName: "Teacher Name",
+        email: "teacher@example.com",
+        phone: "700000001",
+        specialization: "Mathematics",
+        qualification: "Bachelor",
+        hireDate: "2025-09-01"
+      };
+
+      const userIdQueryable = createQueryableSequence([[teacherProfile], []]);
+      const profileIdQueryable = createQueryableSequence([[], [teacherProfile]]);
+
+      await expect(
+        service.requireTeacherProfileIdentifier("1002", userIdQueryable)
+      ).resolves.toEqual(teacherProfile);
+      await expect(
+        service.requireTeacherProfileIdentifier("7", profileIdQueryable)
+      ).resolves.toEqual(teacherProfile);
+    });
+
+    it("rejects ambiguous teacher identifiers instead of resolving the wrong profile", async () => {
+      const queryable = createQueryableSequence([
+        [
+          {
+            teacherId: "9",
+            userId: "3",
+            fullName: "Teacher A",
+            email: "teacher-a@example.com",
+            phone: "700000001",
+            specialization: "Math",
+            qualification: "Bachelor",
+            hireDate: "2025-09-01"
+          }
+        ],
+        [
+          {
+            teacherId: "3",
+            userId: "99",
+            fullName: "Teacher B",
+            email: "teacher-b@example.com",
+            phone: "700000002",
+            specialization: "Science",
+            qualification: "Bachelor",
+            hireDate: "2025-09-01"
+          }
+        ]
+      ]);
+
+      await expect(
+        service.requireTeacherProfileIdentifier("3", queryable)
+      ).rejects.toMatchObject({
+        message: "teacherId is ambiguous",
+        statusCode: 400,
+        code: "VALIDATION_ERROR",
+        details: expect.arrayContaining([
+          expect.objectContaining({
+            field: "teacherId",
+            code: "TEACHER_ID_AMBIGUOUS"
+          })
+        ])
+      });
+    });
   });
 
   describe("supervisor profiles", () => {
@@ -226,6 +301,66 @@ describe("ProfileResolutionService", () => {
         message: "Supervisor profile not found",
         statusCode: 404,
         code: "NOT_FOUND"
+      });
+    });
+
+    it("resolves supervisor identifiers from either the supervisor profile id or supervisor user id", async () => {
+      const supervisorProfile = {
+        supervisorId: "6",
+        userId: "1005",
+        fullName: "Supervisor Name",
+        email: "supervisor@example.com",
+        phone: "700000011",
+        department: "Academic Affairs"
+      };
+
+      const userIdQueryable = createQueryableSequence([[supervisorProfile], []]);
+      const profileIdQueryable = createQueryableSequence([[], [supervisorProfile]]);
+
+      await expect(
+        service.requireSupervisorProfileIdentifier("1005", userIdQueryable)
+      ).resolves.toEqual(supervisorProfile);
+      await expect(
+        service.requireSupervisorProfileIdentifier("6", profileIdQueryable)
+      ).resolves.toEqual(supervisorProfile);
+    });
+
+    it("rejects ambiguous supervisor identifiers instead of resolving the wrong profile", async () => {
+      const queryable = createQueryableSequence([
+        [
+          {
+            supervisorId: "8",
+            userId: "5",
+            fullName: "Supervisor A",
+            email: "supervisor-a@example.com",
+            phone: "700000011",
+            department: "Academic Affairs"
+          }
+        ],
+        [
+          {
+            supervisorId: "5",
+            userId: "88",
+            fullName: "Supervisor B",
+            email: "supervisor-b@example.com",
+            phone: "700000012",
+            department: "Operations"
+          }
+        ]
+      ]);
+
+      await expect(
+        service.requireSupervisorProfileIdentifier("5", queryable)
+      ).rejects.toMatchObject({
+        message: "supervisorId is ambiguous",
+        statusCode: 400,
+        code: "VALIDATION_ERROR",
+        details: expect.arrayContaining([
+          expect.objectContaining({
+            field: "supervisorId",
+            code: "SUPERVISOR_ID_AMBIGUOUS"
+          })
+        ])
       });
     });
   });

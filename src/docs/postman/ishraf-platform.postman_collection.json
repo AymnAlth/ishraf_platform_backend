@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Ishraf Platform Backend API",
-    "_postman_id": "753f6e27-650e-407e-a268-2aee4f76fa6d",
+    "_postman_id": "a49f4a55-ba8c-4c82-b0dd-a8ffe6b9ea3d",
     "description": "Full Postman collection covering every live backend endpoint.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
@@ -1221,7 +1221,7 @@
                 "value": "application/json"
               }
             ],
-            "description": "Purpose: Assign a supervisor to a class for an academic year.\n\nRoles: admin\n\nAuth: Bearer access token required\n\nBody schema: CreateSupervisorAssignmentRequest",
+            "description": "Purpose: Assign a supervisor to a class for an academic year. supervisorId accepts the supervisor user id from /users?role=supervisor or the legacy supervisor profile id.\n\nRoles: admin\n\nAuth: Bearer access token required\n\nBody schema: CreateSupervisorAssignmentRequest\n\nNote: Frontend should send the supervisor user id returned by GET /users?role=supervisor. The backend resolves it internally to the stored supervisor profile id.\n\nNote: Legacy integrations may still send the supervisor profile id directly.\n\nNote: If the same value matches a supervisor user id and a different supervisor profile id, the backend rejects the request with SUPERVISOR_ID_AMBIGUOUS instead of guessing.",
             "url": {
               "raw": "{{baseUrl}}/academic-structure/supervisor-assignments",
               "host": [
@@ -1235,7 +1235,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"supervisorId\": \"4\",\n  \"classId\": \"1\",\n  \"academicYearId\": \"1\"\n}"
+              "raw": "{\n  \"supervisorId\": \"1005\",\n  \"classId\": \"1\",\n  \"academicYearId\": \"1\"\n}"
             }
           }
         },
@@ -1277,7 +1277,7 @@
                 "value": "application/json"
               }
             ],
-            "description": "Purpose: Assign a teacher to a class and subject for an academic year.\n\nRoles: admin\n\nAuth: Bearer access token required\n\nBody schema: CreateTeacherAssignmentRequest",
+            "description": "Purpose: Assign a teacher to a class and subject for an academic year. teacherId accepts the teacher user id from /users?role=teacher or the legacy teacher profile id.\n\nRoles: admin\n\nAuth: Bearer access token required\n\nBody schema: CreateTeacherAssignmentRequest\n\nNote: Frontend should send the teacher user id returned by GET /users?role=teacher. The backend resolves it internally to the stored teacher profile id.\n\nNote: Legacy integrations may still send the teacher profile id directly.\n\nNote: If the same value matches a teacher user id and a different teacher profile id, the backend rejects the request with TEACHER_ID_AMBIGUOUS instead of guessing.",
             "url": {
               "raw": "{{baseUrl}}/academic-structure/teacher-assignments",
               "host": [
@@ -1291,7 +1291,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"teacherId\": \"3\",\n  \"classId\": \"1\",\n  \"subjectId\": \"1\",\n  \"academicYearId\": \"1\"\n}"
+              "raw": "{\n  \"teacherId\": \"1002\",\n  \"classId\": \"1\",\n  \"subjectId\": \"1\",\n  \"academicYearId\": \"1\"\n}"
             }
           }
         }
@@ -1619,7 +1619,7 @@
                 "value": "Bearer {{accessToken}}"
               }
             ],
-            "description": "Purpose: List attendance sessions with pagination. There is no root /attendance endpoint.\n\nRoles: admin, teacher, supervisor\n\nAuth: Bearer access token required\n\nQuery params: page, limit, sortBy, sortOrder, classId, subjectId, teacherId, academicYearId, semesterId, sessionDate, dateFrom, dateTo\n\nNote: Empty collections return 200 with items=[] and pagination metadata.",
+            "description": "Purpose: List attendance sessions with pagination. There is no root /attendance endpoint.\n\nRoles: admin, teacher, supervisor\n\nAuth: Bearer access token required\n\nQuery params: page, limit, sortBy, sortOrder, classId, subjectId, teacherId, academicYearId, semesterId, sessionDate, dateFrom, dateTo\n\nNote: Empty collections return 200 with items=[] and pagination metadata.\n\nNote: teacherId filter accepts the teacher user id returned by GET /users?role=teacher or the legacy teacher profile id. Prefer the user id in admin frontend flows.",
             "url": {
               "raw": "{{baseUrl}}/attendance/sessions",
               "host": [
@@ -1663,7 +1663,7 @@
                 {
                   "key": "teacherId",
                   "value": "1",
-                  "description": "Filter by teacher profile id."
+                  "description": "Filter by teacher identifier. Accepts the teacher user id from /users?role=teacher or the legacy teacher profile id."
                 },
                 {
                   "key": "academicYearId",
@@ -1708,7 +1708,7 @@
                 "value": "application/json"
               }
             ],
-            "description": "Purpose: Create an attendance session for a class and subject.\n\nRoles: admin, teacher\n\nAuth: Bearer access token required\n\nBody schema: CreateAttendanceSessionRequest\n\nNote: The selected subjectId must have an active subject offering for the selected semesterId.",
+            "description": "Purpose: Create an attendance session for a class and subject. Admin teacherId accepts the teacher user id from /users?role=teacher or the legacy teacher profile id.\n\nRoles: admin, teacher\n\nAuth: Bearer access token required\n\nBody schema: CreateAttendanceSessionRequest\n\nNote: The selected subjectId must have an active subject offering for the selected semesterId.\n\nNote: Admin frontend flows should send teacherId as the teacher user id returned by GET /users?role=teacher.",
             "url": {
               "raw": "{{baseUrl}}/attendance/sessions",
               "host": [
@@ -1722,7 +1722,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"classId\": \"1\",\n  \"subjectId\": \"1\",\n  \"academicYearId\": \"1\",\n  \"semesterId\": \"1\",\n  \"sessionDate\": \"2026-03-27\",\n  \"periodNo\": 1,\n  \"title\": \"حصة الرياضيات\",\n  \"notes\": \"اختبار سريع\",\n  \"teacherId\": \"3\"\n}"
+              "raw": "{\n  \"classId\": \"1\",\n  \"subjectId\": \"1\",\n  \"academicYearId\": \"1\",\n  \"semesterId\": \"1\",\n  \"sessionDate\": \"2026-03-27\",\n  \"periodNo\": 1,\n  \"title\": \"حصة الرياضيات\",\n  \"notes\": \"اختبار سريع\",\n  \"teacherId\": \"1002\"\n}"
             }
           }
         },
@@ -1801,7 +1801,7 @@
                 "value": "Bearer {{accessToken}}"
               }
             ],
-            "description": "Purpose: List assessments with pagination and filters.\n\nRoles: admin, teacher\n\nAuth: Bearer access token required\n\nQuery params: page, limit, sortBy, sortOrder, assessmentTypeId, classId, subjectId, teacherId, academicYearId, semesterId, assessmentDate, dateFrom, dateTo, isPublished",
+            "description": "Purpose: List assessments with pagination and filters.\n\nRoles: admin, teacher\n\nAuth: Bearer access token required\n\nQuery params: page, limit, sortBy, sortOrder, assessmentTypeId, classId, subjectId, teacherId, academicYearId, semesterId, assessmentDate, dateFrom, dateTo, isPublished\n\nNote: teacherId filter accepts the teacher user id returned by GET /users?role=teacher or the legacy teacher profile id. Prefer the user id in admin frontend flows.",
             "url": {
               "raw": "{{baseUrl}}/assessments",
               "host": [
@@ -1849,7 +1849,7 @@
                 {
                   "key": "teacherId",
                   "value": "1",
-                  "description": "Filter by teacher profile id."
+                  "description": "Filter by teacher identifier. Accepts the teacher user id from /users?role=teacher or the legacy teacher profile id."
                 },
                 {
                   "key": "academicYearId",
@@ -1899,7 +1899,7 @@
                 "value": "application/json"
               }
             ],
-            "description": "Purpose: Create an assessment. Teachers may omit teacherId and rely on the authenticated teacher profile.\n\nRoles: admin, teacher\n\nAuth: Bearer access token required\n\nBody schema: CreateAssessmentRequest\n\nNote: The selected subjectId must have an active subject offering for the selected semesterId.",
+            "description": "Purpose: Create an assessment. Teachers may omit teacherId and rely on the authenticated teacher profile. Admin teacherId accepts the teacher user id from /users?role=teacher or the legacy teacher profile id.\n\nRoles: admin, teacher\n\nAuth: Bearer access token required\n\nBody schema: CreateAssessmentRequest\n\nNote: The selected subjectId must have an active subject offering for the selected semesterId.\n\nNote: Admin frontend flows should send teacherId as the teacher user id returned by GET /users?role=teacher.",
             "url": {
               "raw": "{{baseUrl}}/assessments",
               "host": [
@@ -1912,7 +1912,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"assessmentTypeId\": \"1\",\n  \"classId\": \"1\",\n  \"subjectId\": \"1\",\n  \"teacherId\": \"3\",\n  \"academicYearId\": \"1\",\n  \"semesterId\": \"1\",\n  \"title\": \"اختبار قصير 2\",\n  \"description\": \"الوحدة الثانية\",\n  \"maxScore\": 20,\n  \"weight\": 10,\n  \"assessmentDate\": \"2026-03-27\",\n  \"isPublished\": true\n}"
+              "raw": "{\n  \"assessmentTypeId\": \"1\",\n  \"classId\": \"1\",\n  \"subjectId\": \"1\",\n  \"teacherId\": \"1002\",\n  \"academicYearId\": \"1\",\n  \"semesterId\": \"1\",\n  \"title\": \"اختبار قصير 2\",\n  \"description\": \"الوحدة الثانية\",\n  \"maxScore\": 20,\n  \"weight\": 10,\n  \"assessmentDate\": \"2026-03-27\",\n  \"isPublished\": true\n}"
             }
           }
         },
@@ -2159,7 +2159,7 @@
                 "value": "Bearer {{accessToken}}"
               }
             ],
-            "description": "Purpose: List behavior records with pagination and filters.\n\nRoles: admin, teacher, supervisor\n\nAuth: Bearer access token required\n\nQuery params: page, limit, sortBy, sortOrder, studentId, behaviorCategoryId, behaviorType, academicYearId, semesterId, teacherId, supervisorId, behaviorDate, dateFrom, dateTo",
+            "description": "Purpose: List behavior records with pagination and filters.\n\nRoles: admin, teacher, supervisor\n\nAuth: Bearer access token required\n\nQuery params: page, limit, sortBy, sortOrder, studentId, behaviorCategoryId, behaviorType, academicYearId, semesterId, teacherId, supervisorId, behaviorDate, dateFrom, dateTo\n\nNote: teacherId and supervisorId filters accept the corresponding user ids returned by GET /users or the legacy profile ids. Prefer user ids in admin frontend flows.",
             "url": {
               "raw": "{{baseUrl}}/behavior/records",
               "host": [
@@ -2218,12 +2218,12 @@
                 {
                   "key": "teacherId",
                   "value": "1",
-                  "description": "Filter by teacher profile id."
+                  "description": "Filter by teacher identifier. Accepts the teacher user id from /users?role=teacher or the legacy teacher profile id."
                 },
                 {
                   "key": "supervisorId",
                   "value": "1",
-                  "description": "Filter by supervisor profile id."
+                  "description": "Filter by supervisor identifier. Accepts the supervisor user id from /users?role=supervisor or the legacy supervisor profile id."
                 },
                 {
                   "key": "behaviorDate",
@@ -2258,7 +2258,7 @@
                 "value": "application/json"
               }
             ],
-            "description": "Purpose: Create a behavior record for one student.\n\nRoles: admin, teacher, supervisor\n\nAuth: Bearer access token required\n\nBody schema: CreateBehaviorRecordRequest\n\nSide effects: Negative behavior categories trigger parent notifications through the internal automation service.",
+            "description": "Purpose: Create a behavior record for one student. teacherId and supervisorId accept the matching user ids from /users or the legacy profile ids.\n\nRoles: admin, teacher, supervisor\n\nAuth: Bearer access token required\n\nBody schema: CreateBehaviorRecordRequest\n\nNote: Admin frontend flows should send teacherId or supervisorId as the selected account user id from GET /users?role=teacher|supervisor.\n\nNote: Legacy integrations may still send teacher/supervisor profile ids directly.\n\nSide effects: Negative behavior categories trigger parent notifications through the internal automation service.",
             "url": {
               "raw": "{{baseUrl}}/behavior/records",
               "host": [
@@ -2272,7 +2272,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"studentId\": \"1\",\n  \"behaviorCategoryId\": \"1\",\n  \"academicYearId\": \"1\",\n  \"semesterId\": \"1\",\n  \"description\": \"تأخر عن الطابور\",\n  \"severity\": 3,\n  \"behaviorDate\": \"2026-03-27\",\n  \"teacherId\": \"3\"\n}"
+              "raw": "{\n  \"studentId\": \"1\",\n  \"behaviorCategoryId\": \"1\",\n  \"academicYearId\": \"1\",\n  \"semesterId\": \"1\",\n  \"description\": \"تأخر عن الطابور\",\n  \"severity\": 3,\n  \"behaviorDate\": \"2026-03-27\",\n  \"teacherId\": \"1002\"\n}"
             }
           }
         },
@@ -3652,7 +3652,7 @@
                 "value": "Bearer {{accessToken}}"
               }
             ],
-            "description": "Purpose: List homework with pagination and academic filters.\n\nRoles: admin, teacher\n\nAuth: Bearer access token required\n\nQuery params: page, limit, sortBy, sortOrder, classId, subjectId, teacherId, academicYearId, semesterId, assignedDate, dueDate, dateFrom, dateTo\n\nDerived data: Homework lists are enriched by SQL views such as vw_homework_details.",
+            "description": "Purpose: List homework with pagination and academic filters.\n\nRoles: admin, teacher\n\nAuth: Bearer access token required\n\nQuery params: page, limit, sortBy, sortOrder, classId, subjectId, teacherId, academicYearId, semesterId, assignedDate, dueDate, dateFrom, dateTo\n\nNote: teacherId filter accepts the teacher user id returned by GET /users?role=teacher or the legacy teacher profile id. Prefer the user id in admin frontend flows.\n\nDerived data: Homework lists are enriched by SQL views such as vw_homework_details.",
             "url": {
               "raw": "{{baseUrl}}/homework",
               "host": [
@@ -3695,7 +3695,7 @@
                 {
                   "key": "teacherId",
                   "value": "1",
-                  "description": "Filter by teacher profile id."
+                  "description": "Filter by teacher identifier. Accepts the teacher user id from /users?role=teacher or the legacy teacher profile id."
                 },
                 {
                   "key": "academicYearId",
@@ -3745,7 +3745,7 @@
                 "value": "application/json"
               }
             ],
-            "description": "Purpose: Create homework for a class and subject. Teachers may omit teacherId and rely on the authenticated teacher profile.\n\nRoles: admin, teacher\n\nAuth: Bearer access token required\n\nBody schema: CreateHomeworkRequest\n\nNote: The selected subjectId must have an active subject offering for the selected semesterId.",
+            "description": "Purpose: Create homework for a class and subject. Teachers may omit teacherId and rely on the authenticated teacher profile. Admin teacherId accepts the teacher user id from /users?role=teacher or the legacy teacher profile id.\n\nRoles: admin, teacher\n\nAuth: Bearer access token required\n\nBody schema: CreateHomeworkRequest\n\nNote: The selected subjectId must have an active subject offering for the selected semesterId.\n\nNote: Admin frontend flows should send teacherId as the teacher user id returned by GET /users?role=teacher.",
             "url": {
               "raw": "{{baseUrl}}/homework",
               "host": [
@@ -3758,7 +3758,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"teacherId\": \"3\",\n  \"classId\": \"1\",\n  \"subjectId\": \"1\",\n  \"academicYearId\": \"1\",\n  \"semesterId\": \"1\",\n  \"title\": \"واجب الرياضيات 2\",\n  \"description\": \"حل الصفحات 12-14\",\n  \"assignedDate\": \"2026-03-27\",\n  \"dueDate\": \"2026-03-28\"\n}"
+              "raw": "{\n  \"teacherId\": \"1002\",\n  \"classId\": \"1\",\n  \"subjectId\": \"1\",\n  \"academicYearId\": \"1\",\n  \"semesterId\": \"1\",\n  \"title\": \"واجب الرياضيات 2\",\n  \"description\": \"حل الصفحات 12-14\",\n  \"assignedDate\": \"2026-03-27\",\n  \"dueDate\": \"2026-03-28\"\n}"
             }
           }
         },

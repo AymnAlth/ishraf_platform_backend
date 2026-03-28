@@ -221,9 +221,9 @@ export class AttendanceService {
     );
 
     const teacherId =
-      actor.role === "teacher" ? actor.teacher.teacherId : assertAdminTeacherId(payload.teacherId);
-
-    assertFound(await this.attendanceRepository.findTeacherById(teacherId), "Teacher");
+      actor.role === "teacher"
+        ? actor.teacher.teacherId
+        : await this.resolveTeacherIdentifier(assertAdminTeacherId(payload.teacherId));
 
     await this.assertTeacherAssignment(
       teacherId,
@@ -262,15 +262,22 @@ export class AttendanceService {
     filters: ListAttendanceSessionsQueryDto
   ): Promise<PaginatedData<AttendanceSessionListItemResponseDto>> {
     const actor = await this.resolveActor(authUser);
+    const normalizedFilters =
+      filters.teacherId === undefined
+        ? filters
+        : {
+            ...filters,
+            teacherId: await this.resolveTeacherIdentifier(filters.teacherId)
+          };
     const rows = await this.attendanceRepository.listAttendanceSessions(
-      filters,
+      normalizedFilters,
       this.toRepositoryScope(actor)
     );
 
     return toPaginatedData(
       rows.rows.map((row) => toAttendanceSessionListItemResponseDto(row)),
-      filters.page,
-      filters.limit,
+      normalizedFilters.page,
+      normalizedFilters.limit,
       rows.totalItems
     );
   }
@@ -556,5 +563,13 @@ export class AttendanceService {
     if (!hasAssignment) {
       throw new ForbiddenError("You do not have permission to access this attendance session");
     }
+  }
+
+  private async resolveTeacherIdentifier(identifier: string): Promise<string> {
+    const teacher = await this.profileResolutionService.requireTeacherProfileIdentifier(
+      identifier
+    );
+
+    return teacher.teacherId;
   }
 }

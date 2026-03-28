@@ -1,7 +1,9 @@
 import request from "supertest";
 import { describe, expect, it } from "vitest";
 
+import { AUTH_TEST_FIXTURES } from "../../fixtures/auth.fixture";
 import type { IntegrationTestContext } from "../../helpers/integration-context";
+import { SEEDED_SUPERVISOR } from "../../setup/seed-test-data";
 
 export const registerBehaviorIntegrationTests = (
   context: IntegrationTestContext
@@ -87,7 +89,7 @@ export const registerBehaviorIntegrationTests = (
           behaviorCategoryId: "6",
           academicYearId: "1",
           semesterId: "2",
-          supervisorId: "1",
+          supervisorId: SEEDED_SUPERVISOR.id,
           behaviorDate: "2026-03-12",
           severity: 4,
           description: "Repeated disruption"
@@ -145,6 +147,12 @@ export const registerBehaviorIntegrationTests = (
           behaviorType: "positive"
         })
         .set("Authorization", `Bearer ${adminLogin.accessToken}`);
+      const adminFilteredByTeacherUserId = await request(context.app)
+        .get("/api/v1/behavior/records")
+        .query({
+          teacherId: AUTH_TEST_FIXTURES.activePhoneUser.id
+        })
+        .set("Authorization", `Bearer ${adminLogin.accessToken}`);
       const teacherOwnDetailResponse = await request(context.app)
         .get(`/api/v1/behavior/records/${teacherRecord.body.data.id}`)
         .set("Authorization", `Bearer ${teacherLogin.accessToken}`);
@@ -169,6 +177,9 @@ export const registerBehaviorIntegrationTests = (
       expect(adminFilteredResponse.body.data.items[0].category.behaviorType).toBe(
         "positive"
       );
+      expect(adminFilteredByTeacherUserId.status).toBe(200);
+      expect(adminFilteredByTeacherUserId.body.data.items).toHaveLength(1);
+      expect(adminFilteredByTeacherUserId.body.data.items[0].actor.id).toBe("1");
       expect(teacherOwnDetailResponse.status).toBe(200);
       expect(teacherForbiddenDetailResponse.status).toBe(403);
     });
@@ -292,8 +303,8 @@ export const registerBehaviorIntegrationTests = (
           behaviorCategoryId: "5",
           academicYearId: "1",
           semesterId: "2",
-          teacherId: "1",
-          supervisorId: "1",
+          teacherId: AUTH_TEST_FIXTURES.activePhoneUser.id,
+          supervisorId: SEEDED_SUPERVISOR.id,
           behaviorDate: "2026-03-18"
         });
       const invalidSeverityResponse = await request(context.app)
@@ -304,7 +315,7 @@ export const registerBehaviorIntegrationTests = (
           behaviorCategoryId: "5",
           academicYearId: "1",
           semesterId: "2",
-          teacherId: "1",
+          teacherId: AUTH_TEST_FIXTURES.activePhoneUser.id,
           behaviorDate: "2026-03-18",
           severity: 6
         });
@@ -316,7 +327,18 @@ export const registerBehaviorIntegrationTests = (
           behaviorCategoryId: "5",
           academicYearId: "1",
           semesterId: "3",
-          teacherId: "1",
+          teacherId: AUTH_TEST_FIXTURES.activePhoneUser.id,
+          behaviorDate: "2026-03-18"
+        });
+      const invalidTeacherResponse = await request(context.app)
+        .post("/api/v1/behavior/records")
+        .set("Authorization", `Bearer ${adminLogin.accessToken}`)
+        .send({
+          studentId: "1",
+          behaviorCategoryId: "5",
+          academicYearId: "1",
+          semesterId: "2",
+          teacherId: AUTH_TEST_FIXTURES.activeEmailUser.id,
           behaviorDate: "2026-03-18"
         });
 
@@ -326,6 +348,7 @@ export const registerBehaviorIntegrationTests = (
       expect(bothActorsResponse.status).toBe(400);
       expect(invalidSeverityResponse.status).toBe(400);
       expect(semesterMismatchResponse.status).toBe(400);
+      expect(invalidTeacherResponse.status).toBe(404);
       expect(semesterMismatchResponse.body.message).toBe(
         "Semester must belong to the selected academic year"
       );

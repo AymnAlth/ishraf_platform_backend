@@ -261,10 +261,8 @@ export class AssessmentsService {
       assertTeacherCannotSendTeacherId(payload.teacherId);
       teacherId = actor.teacher.teacherId;
     } else {
-      teacherId = assertAdminTeacherId(payload.teacherId);
+      teacherId = await this.resolveTeacherIdentifier(assertAdminTeacherId(payload.teacherId));
     }
-
-    assertFound(await this.assessmentsRepository.findTeacherById(teacherId), "Teacher");
 
     await this.assertTeacherAssignment(
       teacherId,
@@ -306,15 +304,22 @@ export class AssessmentsService {
     filters: ListAssessmentsQueryDto
   ): Promise<PaginatedData<AssessmentListItemResponseDto>> {
     const actor = await this.resolveActor(authUser);
+    const normalizedFilters =
+      filters.teacherId === undefined
+        ? filters
+        : {
+            ...filters,
+            teacherId: await this.resolveTeacherIdentifier(filters.teacherId)
+          };
     const { rows, totalItems } = await this.assessmentsRepository.listAssessments(
-      filters,
+      normalizedFilters,
       this.toRepositoryScope(actor)
     );
 
     return toPaginatedData(
       rows.map((row) => toAssessmentListItemResponseDto(row)),
-      filters.page,
-      filters.limit,
+      normalizedFilters.page,
+      normalizedFilters.limit,
       totalItems
     );
   }
@@ -526,5 +531,13 @@ export class AssessmentsService {
         "Teacher is not assigned to the selected class and subject for the academic year"
       );
     }
+  }
+
+  private async resolveTeacherIdentifier(identifier: string): Promise<string> {
+    const teacher = await this.profileResolutionService.requireTeacherProfileIdentifier(
+      identifier
+    );
+
+    return teacher.teacherId;
   }
 }

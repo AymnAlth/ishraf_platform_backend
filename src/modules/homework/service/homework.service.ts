@@ -205,9 +205,7 @@ export class HomeworkService {
     const teacherId =
       actor.role === "teacher"
         ? (assertTeacherCannotSendTeacherId(payload.teacherId), actor.teacher.teacherId)
-        : assertAdminTeacherId(payload.teacherId);
-
-    assertFound(await this.homeworkRepository.findTeacherById(teacherId), "Teacher");
+        : await this.resolveTeacherIdentifier(assertAdminTeacherId(payload.teacherId));
     await this.ownershipService.assertTeacherAssignedToClassYear(
       teacherId,
       payload.classId,
@@ -245,15 +243,22 @@ export class HomeworkService {
     filters: ListHomeworkQueryDto
   ): Promise<PaginatedData<HomeworkListItemResponseDto>> {
     const actor = await this.resolveManageActor(authUser);
+    const normalizedFilters =
+      filters.teacherId === undefined
+        ? filters
+        : {
+            ...filters,
+            teacherId: await this.resolveTeacherIdentifier(filters.teacherId)
+          };
     const { rows, totalItems } = await this.homeworkRepository.listHomework(
-      filters,
+      normalizedFilters,
       actor.role === "teacher" ? { teacherId: actor.teacher.teacherId } : {}
     );
 
     return toPaginatedData(
       rows.map((row) => toHomeworkListItemResponseDto(row)),
-      filters.page,
-      filters.limit,
+      normalizedFilters.page,
+      normalizedFilters.limit,
       totalItems
     );
   }
@@ -379,6 +384,15 @@ export class HomeworkService {
         throw new ForbiddenError("You do not have permission to access student homework");
     }
   }
+
+  private async resolveTeacherIdentifier(identifier: string): Promise<string> {
+    const teacher = await this.profileResolutionService.requireTeacherProfileIdentifier(
+      identifier
+    );
+
+    return teacher.teacherId;
+  }
 }
+
 
 

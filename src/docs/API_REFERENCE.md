@@ -1230,14 +1230,18 @@ Content-Type: application/json
 
 ```json
 {
-  "teacherId": "1",
+  "teacherId": "1002",
   "classId": "1",
   "subjectId": "1",
   "academicYearId": "1"
 }
 ```
 
-مهم: `teacherId` هنا هو معرّف جدول `teachers.id` وليس `users.id`.
+مهم: `teacherId` هنا يقبل الآن:
+- `users.id` القادم من `GET /users?role=teacher`
+- أو `teachers.id` legacy للتوافق الخلفي
+
+المسار الموصى به للفرونت الإداري: استخدم دائمًا `users.id` القادم من Users API، والباك سيحوّله داخليًا إلى `teachers.id` الصحيح قبل الحفظ.
 
 ```json
 {
@@ -1350,13 +1354,17 @@ Content-Type: application/json
 
 ```json
 {
-  "supervisorId": "1",
+  "supervisorId": "1005",
   "classId": "1",
   "academicYearId": "1"
 }
 ```
 
-مهم: `supervisorId` هنا هو معرّف جدول `supervisors.id` وليس `users.id`.
+مهم: `supervisorId` هنا يقبل الآن:
+- `users.id` القادم من `GET /users?role=supervisor`
+- أو `supervisors.id` legacy للتوافق الخلفي
+
+المسار الموصى به للفرونت الإداري: استخدم دائمًا `users.id` القادم من Users API، والباك سيحوّله داخليًا إلى `supervisors.id` الصحيح قبل الحفظ.
 
 ```json
 {
@@ -1457,6 +1465,10 @@ Authorization: Bearer <accessToken>
   - `newPassword` أقصر من 8
   - `semester` خارج حدود `academic_year`
   - `teacher assignment` بين `class` و`subject` غير متوافقين
+  - `teacherId` يطابق `users.id` لمعلم و`teachers.id` لمعلم آخر مختلف
+    - `TEACHER_ID_AMBIGUOUS`
+  - `supervisorId` يطابق `users.id` لمشرف و`supervisors.id` لمشرف آخر مختلف
+    - `SUPERVISOR_ID_AMBIGUOUS`
 
 ## Important Notes For Frontend Developers
 
@@ -1465,8 +1477,13 @@ Authorization: Bearer <accessToken>
 - Users وAcademic Structure حاليًا `admin-only`.
 - `PATCH /users/:id` لا يغير `role` ولا `password`.
 - `PATCH /users/:id/status` يعطّل refresh tokens مباشرة، لكن access token الحالي يبقى صالحًا حتى انتهاء صلاحيته القصيرة.
-- `teacherId` و`supervisorId` في assignment endpoints هما profile ids من جدولي `teachers` و`supervisors`، وليس user ids.
-- Users API الحالية لا تعيد profile table ids بعد، لذلك إذا احتجت أول assignment جديد فستحتاج هذه المعرفات من قاعدة البيانات أو من بيانات موجودة مسبقًا.
+- `teacherId` و`supervisorId` في assignment endpoints وفي admin create/list filters للموديولات التشغيلية تقبل الآن:
+  - `users.id` القادم من `GET /users?role=teacher|supervisor`
+  - أو `teachers.id` / `supervisors.id` legacy للتوافق الخلفي
+- المسار الموصى به للفرونت الإداري: استخدم دائمًا `users.id` القادم من Users API.
+- إذا طابقت نفس القيمة رقم `users.id` لأحدهم و`profile id` لشخص مختلف، فلن يختار الباك أحدهما بصمت؛ سيعيد:
+  - `400 Validation Error`
+  - `TEACHER_ID_AMBIGUOUS` أو `SUPERVISOR_ID_AMBIGUOUS`
 - في student-parent endpoints التالية:
   - `POST /students/:id/parents`
   - `PATCH /students/:studentId/parents/:parentId/primary`
@@ -1604,6 +1621,8 @@ Roles:
 Rules:
 - `teacher` cannot send `teacherId`
 - `admin` must send `teacherId`
+  - preferred value: teacher `users.id` from `GET /users?role=teacher`
+  - legacy support: `teachers.id` still works
 - the teacher must be assigned to `class + subject + academicYear`
 - the selected `semester` must belong to the selected `academicYear`
 - the selected subject must belong to the grade level of the selected class
@@ -1631,6 +1650,10 @@ Supported filters:
 - `limit`
 - `sortBy = dueDate | assignedDate | createdAt | title`
 - `sortOrder = asc | desc`
+
+Filter note:
+- `teacherId` here accepts the teacher `users.id` from `GET /users?role=teacher` or the legacy `teachers.id`.
+- the recommended admin frontend path is still to send the teacher `users.id`.
 
 #### GET `/homework/:id`
 
