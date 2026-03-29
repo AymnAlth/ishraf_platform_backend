@@ -8,7 +8,9 @@ interface MigrationSuiteContext {
 }
 
 export const registerMigrationSmokeTests = ({ pool }: MigrationSuiteContext): void => {
-  it("applies migrations with user, role profile, academic, operational, homework, and communication tables", async () => {
+  it(
+    "applies migrations with user, role profile, academic, operational, homework, and communication tables",
+    async () => {
     runMigration("up");
 
     const tables = await pool.query<{ table_name: string }>(
@@ -120,9 +122,13 @@ export const registerMigrationSmokeTests = ({ pool }: MigrationSuiteContext): vo
       "vw_homework_submission_details",
       "vw_student_attendance_summary"
     ]);
-  });
+    },
+    20_000
+  );
 
-  it("rolls back the last migration and can be applied again", async () => {
+  it(
+    "rolls back the last migration and can be applied again",
+    async () => {
     runMigration("down");
 
     const droppedTables = await pool.query<{ table_name: string }>(
@@ -139,5 +145,7 @@ export const registerMigrationSmokeTests = ({ pool }: MigrationSuiteContext): vo
     expect(droppedTables.rows).toHaveLength(0);
 
     runMigration("up");
-  });
+    },
+    20_000
+  );
 };

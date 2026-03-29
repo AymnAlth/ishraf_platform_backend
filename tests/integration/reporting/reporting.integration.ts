@@ -2,6 +2,8 @@ import request from "supertest";
 import { describe, expect, it } from "vitest";
 
 import { hashPassword } from "../../../src/common/utils/password.util";
+import { AUTH_TEST_FIXTURES } from "../../fixtures/auth.fixture";
+import { SEEDED_SUPERVISOR } from "../../setup/seed-test-data";
 import type { IntegrationTestContext } from "../../helpers/integration-context";
 
 export const registerReportingIntegrationTests = (
@@ -189,6 +191,104 @@ export const registerReportingIntegrationTests = (
       expect(dashboardResponse.body.data.unreadNotifications).toBe(1);
     });
 
+    it("allows admin preview of a parent dashboard and linked child reporting surfaces by parent user id", async () => {
+      const adminLogin = await context.loginAsAdmin();
+      const parentAccount = await context.createAdditionalParentAccount();
+
+      await request(context.app)
+        .post("/api/v1/students/1/parents")
+        .set("Authorization", `Bearer ${adminLogin.accessToken}`)
+        .send({
+          parentId: parentAccount.userId,
+          relationType: "mother",
+          isPrimary: false
+        });
+
+      await context.createNotification(adminLogin.accessToken, {
+        userId: parentAccount.userId,
+        title: "Preview Notice",
+        message: "Preview monitoring is available",
+        notificationType: "system"
+      });
+
+      const dashboardResponse = await request(context.app)
+        .get(`/api/v1/reporting/admin-preview/parents/${parentAccount.userId}/dashboard`)
+        .set("Authorization", `Bearer ${adminLogin.accessToken}`);
+      const profileResponse = await request(context.app)
+        .get(
+          `/api/v1/reporting/admin-preview/parents/${parentAccount.userId}/students/1/profile`
+        )
+        .set("Authorization", `Bearer ${adminLogin.accessToken}`);
+      const attendanceResponse = await request(context.app)
+        .get(
+          `/api/v1/reporting/admin-preview/parents/${parentAccount.userId}/students/1/reports/attendance-summary`
+        )
+        .set("Authorization", `Bearer ${adminLogin.accessToken}`);
+      const assessmentResponse = await request(context.app)
+        .get(
+          `/api/v1/reporting/admin-preview/parents/${parentAccount.userId}/students/1/reports/assessment-summary`
+        )
+        .set("Authorization", `Bearer ${adminLogin.accessToken}`);
+      const behaviorResponse = await request(context.app)
+        .get(
+          `/api/v1/reporting/admin-preview/parents/${parentAccount.userId}/students/1/reports/behavior-summary`
+        )
+        .set("Authorization", `Bearer ${adminLogin.accessToken}`);
+      const transportResponse = await request(context.app)
+        .get(
+          `/api/v1/reporting/admin-preview/parents/${parentAccount.userId}/students/1/transport/live-status`
+        )
+        .set("Authorization", `Bearer ${adminLogin.accessToken}`);
+
+      expect(dashboardResponse.status).toBe(200);
+      expect(dashboardResponse.body.data.parent.userId).toBe(parentAccount.userId);
+      expect(dashboardResponse.body.data.children).toHaveLength(1);
+      expect(dashboardResponse.body.data.children[0].student.id).toBe("1");
+      expect(dashboardResponse.body.data.latestNotifications).toHaveLength(1);
+      expect(profileResponse.status).toBe(200);
+      expect(profileResponse.body.data.student.id).toBe("1");
+      expect(attendanceResponse.status).toBe(200);
+      expect(assessmentResponse.status).toBe(200);
+      expect(behaviorResponse.status).toBe(200);
+      expect(transportResponse.status).toBe(200);
+      expect(transportResponse.body.data.student.id).toBe("1");
+    });
+
+    it("returns admin preview parent errors for unrelated children and allows empty dashboards", async () => {
+      const adminLogin = await context.loginAsAdmin();
+      const linkedParent = await context.createAdditionalParentAccount({
+        email: "linked-parent@example.com",
+        phone: "01000000016"
+      });
+      const emptyParent = await context.createAdditionalParentAccount({
+        email: "empty-parent@example.com",
+        phone: "01000000017"
+      });
+
+      await request(context.app)
+        .post("/api/v1/students/1/parents")
+        .set("Authorization", `Bearer ${adminLogin.accessToken}`)
+        .send({
+          parentId: linkedParent.userId,
+          relationType: "mother",
+          isPrimary: false
+        });
+
+      const unrelatedChildResponse = await request(context.app)
+        .get(
+          `/api/v1/reporting/admin-preview/parents/${linkedParent.userId}/students/2/profile`
+        )
+        .set("Authorization", `Bearer ${adminLogin.accessToken}`);
+      const emptyDashboardResponse = await request(context.app)
+        .get(`/api/v1/reporting/admin-preview/parents/${emptyParent.userId}/dashboard`)
+        .set("Authorization", `Bearer ${adminLogin.accessToken}`);
+
+      expect(unrelatedChildResponse.status).toBe(404);
+      expect(unrelatedChildResponse.body.message).toBe("Student not linked to parent");
+      expect(emptyDashboardResponse.status).toBe(200);
+      expect(emptyDashboardResponse.body.data.children).toEqual([]);
+    });
+
     it("returns the teacher dashboard with assignments and recent operational activity", async () => {
       await context.seedTeacherAssignment();
       const teacherLogin = await context.loginAsTeacher();
@@ -268,6 +368,49 @@ export const registerReportingIntegrationTests = (
       expect(dashboardResponse.body.data.assignments).toHaveLength(1);
       expect(dashboardResponse.body.data.studentSummaries.length).toBeGreaterThan(0);
       expect(dashboardResponse.body.data.recentBehaviorRecords).toHaveLength(1);
+    });
+
+    it("returns admin preview teacher and supervisor dashboards by user id and blocks invalid callers", async () => {
+      await context.seedTeacherAssignment();
+      await context.seedSupervisorAssignment();
+      const adminLogin = await context.loginAsAdmin();
+      const teacherLogin = await context.loginAsTeacher();
+
+      const teacherPreviewResponse = await request(context.app)
+        .get(
+          `/api/v1/reporting/admin-preview/teachers/${AUTH_TEST_FIXTURES.activePhoneUser.id}/dashboard`
+        )
+        .set("Authorization", `Bearer ${adminLogin.accessToken}`);
+      const supervisorPreviewResponse = await request(context.app)
+        .get(
+          `/api/v1/reporting/admin-preview/supervisors/${SEEDED_SUPERVISOR.id}/dashboard`
+        )
+        .set("Authorization", `Bearer ${adminLogin.accessToken}`);
+      const invalidTeacherResponse = await request(context.app)
+        .get(`/api/v1/reporting/admin-preview/teachers/${SEEDED_SUPERVISOR.id}/dashboard`)
+        .set("Authorization", `Bearer ${adminLogin.accessToken}`);
+      const invalidSupervisorResponse = await request(context.app)
+        .get(
+          `/api/v1/reporting/admin-preview/supervisors/${AUTH_TEST_FIXTURES.activePhoneUser.id}/dashboard`
+        )
+        .set("Authorization", `Bearer ${adminLogin.accessToken}`);
+      const nonAdminResponse = await request(context.app)
+        .get(
+          `/api/v1/reporting/admin-preview/teachers/${AUTH_TEST_FIXTURES.activePhoneUser.id}/dashboard`
+        )
+        .set("Authorization", `Bearer ${teacherLogin.accessToken}`);
+
+      expect(teacherPreviewResponse.status).toBe(200);
+      expect(teacherPreviewResponse.body.data.teacher.userId).toBe(
+        AUTH_TEST_FIXTURES.activePhoneUser.id
+      );
+      expect(supervisorPreviewResponse.status).toBe(200);
+      expect(supervisorPreviewResponse.body.data.supervisor.userId).toBe(SEEDED_SUPERVISOR.id);
+      expect(invalidTeacherResponse.status).toBe(404);
+      expect(invalidTeacherResponse.body.message).toBe("Teacher not found");
+      expect(invalidSupervisorResponse.status).toBe(404);
+      expect(invalidSupervisorResponse.body.message).toBe("Supervisor not found");
+      expect(nonAdminResponse.status).toBe(403);
     });
 
     it("returns admin dashboard data and live transport summaries for admin and driver", async () => {

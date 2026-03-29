@@ -8,8 +8,8 @@
   - `src/docs/openapi/ishraf-platform.openapi.json`
   - `src/docs/postman/ishraf-platform.postman_collection.json`
 - حالة التغطية الحالية:
-  - `OpenAPI = 123/123`
-  - `Postman = 123/123`
+  - `OpenAPI = 131/131`
+  - `Postman = 131/131`
 - هذا الملف يشرح العقود البشرية وقواعد الاستخدام والـ endpoints الأكثر أهمية للفرق، ويجب أن يبقى منسجمًا مع الكود و`OpenAPI/Postman` دون أن يحاول أن يكون clone حرفيًا لكل schema سطرًا بسطر.
 
 الملفات الجاهزة للاستخدام:
@@ -1997,6 +1997,69 @@ It includes:
 - active trip if present
 - latest location if present
 - latest trip events for the student
+
+### Admin Preview / Monitoring Additions
+
+هذه الإضافات هي الـ canonical backend surfaces الخاصة بـ admin monitoring داخل لوحة الإدارة.
+
+القواعد الثابتة هنا:
+- كلها `admin-only`
+- كلها `read-only`
+- لا يوجد فيها impersonation
+- جميع المعرّفات في الـ path هي `users.id` فقط
+- parent child preview يعيد `404 Student not linked to parent` إذا لم يكن الطالب مرتبطًا فعليًا بذلك parent
+- عندما يكون الكيان صحيحًا لكن لا توجد بيانات تشغيلية بعد، تبقى الاستجابات `200` مع payload zero-safe أو arrays فارغة حسب العقد الحالي
+
+#### GET `/reporting/admin-preview/parents/:parentUserId/dashboard`
+
+Purpose: return the same parent dashboard shape, لكن بشكل admin-safe preview يبدأ من `parent users.id`.
+
+Rules:
+- `parentUserId` هنا هو `users.id` القادم من `/users?role=parent`
+- إذا لم يكن الـ user موجودًا أو لا يملك parent profile:
+  - `404 Parent not found`
+
+#### GET `/reporting/admin-preview/parents/:parentUserId/students/:studentId/profile`
+#### GET `/reporting/admin-preview/parents/:parentUserId/students/:studentId/reports/attendance-summary`
+#### GET `/reporting/admin-preview/parents/:parentUserId/students/:studentId/reports/assessment-summary`
+#### GET `/reporting/admin-preview/parents/:parentUserId/students/:studentId/reports/behavior-summary`
+#### GET `/reporting/admin-preview/parents/:parentUserId/students/:studentId/transport/live-status`
+
+Purpose: return the same parent-owned child profile/report/live-status surfaces، ولكن داخل preview إداري آمن يبدأ من parent first.
+
+Rules:
+- `parentUserId` = parent `users.id`
+- `studentId` = نفس المعرّف المستخدم في `/students/:id`
+- إذا لم يكن `studentId` تابعًا لذلك parent:
+  - `404 Student not linked to parent`
+- shapes مطابقة للعقود الحالية التالية:
+  - `GET /reporting/dashboards/parent/me/students/:studentId/profile`
+  - `GET /reporting/dashboards/parent/me/students/:studentId/reports/attendance-summary`
+  - `GET /reporting/dashboards/parent/me/students/:studentId/reports/assessment-summary`
+  - `GET /reporting/dashboards/parent/me/students/:studentId/reports/behavior-summary`
+  - `GET /reporting/transport/parent/me/students/:studentId/live-status`
+
+#### GET `/reporting/admin-preview/teachers/:teacherUserId/dashboard`
+
+Purpose: return the same teacher dashboard shape, لكن بشكل admin-safe preview يبدأ من `teacher users.id`.
+
+Rules:
+- `teacherUserId` هنا هو `users.id` القادم من `/users?role=teacher`
+- إذا لم يكن الـ user موجودًا أو لا يملك teacher profile:
+  - `404 Teacher not found`
+- shape مطابقة لـ:
+  - `GET /reporting/dashboards/teacher/me`
+
+#### GET `/reporting/admin-preview/supervisors/:supervisorUserId/dashboard`
+
+Purpose: return the same supervisor dashboard shape, لكن بشكل admin-safe preview يبدأ من `supervisor users.id`.
+
+Rules:
+- `supervisorUserId` هنا هو `users.id` القادم من `/users?role=supervisor`
+- إذا لم يكن الـ user موجودًا أو لا يملك supervisor profile:
+  - `404 Supervisor not found`
+- shape مطابقة لـ:
+  - `GET /reporting/dashboards/supervisor/me`
 
 ### Transport Alignment Additions
 

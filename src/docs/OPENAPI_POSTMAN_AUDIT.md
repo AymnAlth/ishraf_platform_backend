@@ -1,15 +1,15 @@
 # OpenAPI / Postman Audit
 
 - Audit date: 2026-03-27
-- Runtime endpoint count: 123
-- Runtime changes during this reconciliation: 4 new endpoint(s)
+- Runtime endpoint count: 131
+- Runtime changes during this reconciliation: 8 new endpoint(s)
 
 ## Coverage Summary
 
 | Artifact | Before | After |
 | --- | --- | --- |
-| Master OpenAPI | 123/123 | 123/123 |
-| Master Postman | 123/123 | 123/123 |
+| Master OpenAPI | 123/131 | 131/131 |
+| Master Postman | 123/131 | 131/131 |
 | Auth OpenAPI | 7/7 | 7/7 |
 | Auth Postman | 7/7 | 7/7 |
 
@@ -28,18 +28,29 @@
 | Transport | 26 | 26/26 | 26/26 | 26/26 | 26/26 |
 | Communication | 12 | 12/12 | 12/12 | 12/12 | 12/12 |
 | Homework | 5 | 5/5 | 5/5 | 5/5 | 5/5 |
-| Reporting | 14 | 14/14 | 14/14 | 14/14 | 14/14 |
+| Reporting | 22 | 14/22 | 14/22 | 22/22 | 22/22 |
 
 ## [NEW] Runtime Endpoints Added In This Pass
 
-- `POST /academic-structure/subject-offerings`
-- `GET /academic-structure/subject-offerings`
-- `GET /academic-structure/subject-offerings/:id`
-- `PATCH /academic-structure/subject-offerings/:id`
+- `GET /reporting/admin-preview/parents/:parentUserId/dashboard`
+- `GET /reporting/admin-preview/parents/:parentUserId/students/:studentId/profile`
+- `GET /reporting/admin-preview/parents/:parentUserId/students/:studentId/reports/attendance-summary`
+- `GET /reporting/admin-preview/parents/:parentUserId/students/:studentId/reports/assessment-summary`
+- `GET /reporting/admin-preview/parents/:parentUserId/students/:studentId/reports/behavior-summary`
+- `GET /reporting/admin-preview/parents/:parentUserId/students/:studentId/transport/live-status`
+- `GET /reporting/admin-preview/teachers/:teacherUserId/dashboard`
+- `GET /reporting/admin-preview/supervisors/:supervisorUserId/dashboard`
 
 ## Runtime Endpoints Missing From Master OpenAPI Before This Update
 
-- none
+- `GET /reporting/admin-preview/parents/:parentUserId/dashboard`
+- `GET /reporting/admin-preview/parents/:parentUserId/students/:studentId/profile`
+- `GET /reporting/admin-preview/parents/:parentUserId/students/:studentId/reports/assessment-summary`
+- `GET /reporting/admin-preview/parents/:parentUserId/students/:studentId/reports/attendance-summary`
+- `GET /reporting/admin-preview/parents/:parentUserId/students/:studentId/reports/behavior-summary`
+- `GET /reporting/admin-preview/parents/:parentUserId/students/:studentId/transport/live-status`
+- `GET /reporting/admin-preview/supervisors/:supervisorUserId/dashboard`
+- `GET /reporting/admin-preview/teachers/:teacherUserId/dashboard`
 
 ## Views, Events, Targets Alignment
 
@@ -88,4 +99,4 @@
 - `/health` and `/health/ready` now use root-level servers instead of inheriting `/api/v1`.
 - The auth subset now covers all 7 live auth routes, including forgot-password and reset-password.
 - IDs in the auth subset were normalized to numeric-string ids instead of UUID assumptions.
-- The new subject-offering endpoints are marked with `[NEW]` inside OpenAPI and Postman so admin frontend teams can spot the semester-aware academic change quickly.
+- The new admin-preview monitoring endpoints are marked with `[NEW]`-style audit visibility through this report and are documented as admin-only, read-only, and `users.id`-based surfaces.

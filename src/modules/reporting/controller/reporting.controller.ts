@@ -2,7 +2,13 @@ import type { Request, Response } from "express";
 
 import { buildSuccessResponse } from "../../../common/base/http-response";
 import type { AuthenticatedUser } from "../../../common/types/auth.types";
-import type { ReportingStudentIdParamsDto } from "../dto/reporting.dto";
+import type {
+  ReportingParentPreviewParamsDto,
+  ReportingParentPreviewStudentParamsDto,
+  ReportingStudentIdParamsDto,
+  ReportingSupervisorPreviewParamsDto,
+  ReportingTeacherPreviewParamsDto
+} from "../dto/reporting.dto";
 import type { ReportingService } from "../service/reporting.service";
 
 const assertAuthUser = (req: Request): AuthenticatedUser => req.authUser as AuthenticatedUser;
@@ -50,6 +56,112 @@ export class ReportingController {
     res
       .status(200)
       .json(buildSuccessResponse("Student behavior summary fetched successfully", response));
+  }
+
+  async getAdminPreviewParentDashboard(req: Request, res: Response): Promise<void> {
+    const params = req.validated?.params as ReportingParentPreviewParamsDto;
+    const response = await this.reportingService.getAdminPreviewParentDashboard(
+      assertAuthUser(req),
+      params.parentUserId
+    );
+    res
+      .status(200)
+      .json(buildSuccessResponse("Admin preview parent dashboard fetched successfully", response));
+  }
+
+  async getAdminPreviewParentStudentProfile(req: Request, res: Response): Promise<void> {
+    const params = req.validated?.params as ReportingParentPreviewStudentParamsDto;
+    const response = await this.reportingService.getAdminPreviewParentStudentProfile(
+      assertAuthUser(req),
+      params.parentUserId,
+      params.studentId
+    );
+    res
+      .status(200)
+      .json(buildSuccessResponse("Admin preview child profile fetched successfully", response));
+  }
+
+  async getAdminPreviewParentStudentAttendanceReport(
+    req: Request,
+    res: Response
+  ): Promise<void> {
+    const params = req.validated?.params as ReportingParentPreviewStudentParamsDto;
+    const response = await this.reportingService.getAdminPreviewParentStudentAttendanceReport(
+      assertAuthUser(req),
+      params.parentUserId,
+      params.studentId
+    );
+    res.status(200).json(
+      buildSuccessResponse("Admin preview child attendance summary fetched successfully", response)
+    );
+  }
+
+  async getAdminPreviewParentStudentAssessmentReport(
+    req: Request,
+    res: Response
+  ): Promise<void> {
+    const params = req.validated?.params as ReportingParentPreviewStudentParamsDto;
+    const response = await this.reportingService.getAdminPreviewParentStudentAssessmentReport(
+      assertAuthUser(req),
+      params.parentUserId,
+      params.studentId
+    );
+    res.status(200).json(
+      buildSuccessResponse("Admin preview child assessment summary fetched successfully", response)
+    );
+  }
+
+  async getAdminPreviewParentStudentBehaviorReport(
+    req: Request,
+    res: Response
+  ): Promise<void> {
+    const params = req.validated?.params as ReportingParentPreviewStudentParamsDto;
+    const response = await this.reportingService.getAdminPreviewParentStudentBehaviorReport(
+      assertAuthUser(req),
+      params.parentUserId,
+      params.studentId
+    );
+    res.status(200).json(
+      buildSuccessResponse("Admin preview child behavior summary fetched successfully", response)
+    );
+  }
+
+  async getAdminPreviewParentTransportLiveStatus(req: Request, res: Response): Promise<void> {
+    const params = req.validated?.params as ReportingParentPreviewStudentParamsDto;
+    const response = await this.reportingService.getAdminPreviewParentTransportLiveStatus(
+      assertAuthUser(req),
+      params.parentUserId,
+      params.studentId
+    );
+
+    res.status(200).json(
+      buildSuccessResponse(
+        "Admin preview child transport live status fetched successfully",
+        response
+      )
+    );
+  }
+
+  async getAdminPreviewTeacherDashboard(req: Request, res: Response): Promise<void> {
+    const params = req.validated?.params as ReportingTeacherPreviewParamsDto;
+    const response = await this.reportingService.getAdminPreviewTeacherDashboard(
+      assertAuthUser(req),
+      params.teacherUserId
+    );
+    res
+      .status(200)
+      .json(buildSuccessResponse("Admin preview teacher dashboard fetched successfully", response));
+  }
+
+  async getAdminPreviewSupervisorDashboard(req: Request, res: Response): Promise<void> {
+    const params = req.validated?.params as ReportingSupervisorPreviewParamsDto;
+    const response = await this.reportingService.getAdminPreviewSupervisorDashboard(
+      assertAuthUser(req),
+      params.supervisorUserId
+    );
+    res.status(200).json(
+      buildSuccessResponse("Admin preview supervisor dashboard fetched successfully", response)
+    );
   }
 
   async getParentStudentProfile(req: Request, res: Response): Promise<void> {

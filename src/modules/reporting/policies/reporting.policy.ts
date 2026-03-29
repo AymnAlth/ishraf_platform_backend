@@ -6,6 +6,7 @@ import {
 
 export const reportingPolicies = {
   studentReports: [authenticate, requireActiveUser, authorize("admin", "teacher", "supervisor")] as const,
+  adminPreview: [authenticate, requireActiveUser, authorize("admin")] as const,
   parentDashboard: [authenticate, requireActiveUser, authorize("parent")] as const,
   parentStudentReports: [authenticate, requireActiveUser, authorize("parent")] as const,
   parentTransport: [authenticate, requireActiveUser, authorize("parent")] as const,

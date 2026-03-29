@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Ishraf Platform Auth API",
-    "_postman_id": "74e9b5be-e0e6-4b3b-b2e6-34d80de300a2",
+    "_postman_id": "38bf5da7-32b6-4795-a2ca-10eb8c60b141",
     "description": "Auth-only Postman subset synchronized with the full collection.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
@@ -69,6 +69,18 @@
     {
       "key": "studentId",
       "value": "1"
+    },
+    {
+      "key": "parentUserId",
+      "value": "1003"
+    },
+    {
+      "key": "teacherUserId",
+      "value": "1002"
+    },
+    {
+      "key": "supervisorUserId",
+      "value": "1005"
     },
     {
       "key": "parentId",

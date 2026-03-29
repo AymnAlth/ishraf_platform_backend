@@ -18104,6 +18104,1639 @@
         ]
       }
     },
+    "/reporting/admin-preview/parents/{parentUserId}/dashboard": {
+      "get": {
+        "tags": [
+          "Reporting"
+        ],
+        "summary": "Get Admin Preview Parent Dashboard",
+        "description": "Return the canonical parent dashboard surface for admin monitoring, starting from the selected parent user account.\n\nAllowed roles: admin.\n\nNote: Admin-only, read-only preview surface.\n\nNote: Path identifiers are users.id values, not parent profile ids.\n\nNote: This is the preferred backend surface for parent-first monitoring and role parity previews.",
+        "x-allowed-roles": [
+          "admin"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "const": true
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/GenericObject"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                },
+                "example": {
+                  "success": true,
+                  "message": "Get Admin Preview Parent Dashboard completed successfully",
+                  "data": {
+                    "parent": {
+                      "parentId": "10",
+                      "userId": "1003",
+                      "fullName": "ولي أمر تجريبي",
+                      "email": "parent@example.com",
+                      "phone": "770000010",
+                      "address": "Sanaa",
+                      "relationType": "father"
+                    },
+                    "children": [
+                      {
+                        "student": {
+                          "id": "1",
+                          "academicNo": "SEED-STU-001",
+                          "fullName": "طالب تجريبي 1"
+                        },
+                        "attendanceSummary": {
+                          "totalSessions": 10,
+                          "presentCount": 8,
+                          "absentCount": 1,
+                          "lateCount": 1,
+                          "excusedCount": 0,
+                          "attendancePercentage": 80
+                        },
+                        "behaviorSummary": {
+                          "totalBehaviorRecords": 1,
+                          "positiveCount": 0,
+                          "negativeCount": 1,
+                          "negativeSeverityTotal": 3
+                        },
+                        "assessmentSummary": {
+                          "totalAssessments": 3,
+                          "totalScore": 51,
+                          "totalMaxScore": 60,
+                          "overallPercentage": 85,
+                          "subjects": []
+                        }
+                      }
+                    ],
+                    "latestNotifications": [
+                      {
+                        "id": "1",
+                        "title": "[Seed] Attendance alert",
+                        "message": "تم تسجيل غياب الطالب",
+                        "notificationType": "attendance_absent",
+                        "referenceType": "attendance",
+                        "referenceId": "1",
+                        "isRead": false,
+                        "createdAt": "2026-03-27T12:00:00.000Z",
+                        "readAt": null
+                      }
+                    ],
+                    "unreadNotifications": 1
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Validation failed",
+                  "errors": [
+                    {
+                      "field": "fieldName",
+                      "code": "invalid_type",
+                      "message": "Validation error example"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication is missing or expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Unauthorized",
+                  "errors": [
+                    {
+                      "code": "UNAUTHORIZED",
+                      "message": "Authentication is required"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated but not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Forbidden",
+                  "errors": [
+                    {
+                      "code": "FORBIDDEN",
+                      "message": "You do not have permission to access this resource"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Primary resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Not Found",
+                  "errors": [
+                    {
+                      "code": "NOT_FOUND",
+                      "message": "Requested resource was not found"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "parentUserId",
+            "in": "path",
+            "required": true,
+            "description": "Parent user numeric string identifier from /users?role=parent.",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9]+$",
+              "example": "1"
+            }
+          }
+        ]
+      }
+    },
+    "/reporting/admin-preview/parents/{parentUserId}/students/{studentId}/profile": {
+      "get": {
+        "tags": [
+          "Reporting"
+        ],
+        "summary": "Get Admin Preview Parent Child Profile",
+        "description": "Return the canonical child profile payload under one selected parent user for admin monitoring.\n\nAllowed roles: admin.\n\nNote: Admin-only, read-only preview surface.\n\nNote: Requires the selected child to be linked to the selected parent or returns 404 Student not linked to parent.\n\nNote: Path identifiers are users.id for the parent and students.id for the child.",
+        "x-allowed-roles": [
+          "admin"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "const": true
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/GenericObject"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                },
+                "example": {
+                  "success": true,
+                  "message": "Get Admin Preview Parent Child Profile completed successfully",
+                  "data": {
+                    "student": {
+                      "id": "1",
+                      "academicNo": "SEED-STU-001",
+                      "fullName": "طالب تجريبي 1",
+                      "dateOfBirth": "2016-09-01",
+                      "gender": "male",
+                      "status": "active",
+                      "enrollmentDate": "2025-09-01",
+                      "currentClass": {
+                        "id": "1",
+                        "className": "A",
+                        "section": "A",
+                        "gradeLevel": {
+                          "id": "1",
+                          "name": "الصف الأول"
+                        },
+                        "academicYear": {
+                          "id": "1",
+                          "name": "2025-2026"
+                        }
+                      }
+                    },
+                    "parents": [
+                      {
+                        "linkId": "1",
+                        "parentId": "10",
+                        "userId": "1003",
+                        "fullName": "ولي أمر تجريبي",
+                        "email": "parent@example.com",
+                        "phone": "770000010",
+                        "relationType": "father",
+                        "isPrimary": true,
+                        "address": "Sanaa"
+                      }
+                    ],
+                    "attendanceSummary": {
+                      "totalSessions": 10,
+                      "presentCount": 8,
+                      "absentCount": 1,
+                      "lateCount": 1,
+                      "excusedCount": 0,
+                      "attendancePercentage": 80
+                    },
+                    "assessmentSummary": {
+                      "totalAssessments": 3,
+                      "totalScore": 51,
+                      "totalMaxScore": 60,
+                      "overallPercentage": 85,
+                      "subjects": [
+                        {
+                          "subject": {
+                            "id": "1",
+                            "name": "الرياضيات"
+                          },
+                          "totalAssessments": 3,
+                          "totalScore": 51,
+                          "totalMaxScore": 60,
+                          "overallPercentage": 85
+                        }
+                      ]
+                    },
+                    "behaviorSummary": {
+                      "totalBehaviorRecords": 1,
+                      "positiveCount": 0,
+                      "negativeCount": 1,
+                      "negativeSeverityTotal": 3
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Validation failed",
+                  "errors": [
+                    {
+                      "field": "fieldName",
+                      "code": "invalid_type",
+                      "message": "Validation error example"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication is missing or expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Unauthorized",
+                  "errors": [
+                    {
+                      "code": "UNAUTHORIZED",
+                      "message": "Authentication is required"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated but not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Forbidden",
+                  "errors": [
+                    {
+                      "code": "FORBIDDEN",
+                      "message": "You do not have permission to access this resource"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Primary resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Not Found",
+                  "errors": [
+                    {
+                      "code": "NOT_FOUND",
+                      "message": "Requested resource was not found"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "parentUserId",
+            "in": "path",
+            "required": true,
+            "description": "Parent user numeric string identifier from /users?role=parent.",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9]+$",
+              "example": "1"
+            }
+          },
+          {
+            "name": "studentId",
+            "in": "path",
+            "required": true,
+            "description": "Student numeric string identifier. This is the same id used by /students/:id.",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9]+$",
+              "example": "1"
+            }
+          }
+        ]
+      }
+    },
+    "/reporting/admin-preview/parents/{parentUserId}/students/{studentId}/reports/assessment-summary": {
+      "get": {
+        "tags": [
+          "Reporting"
+        ],
+        "summary": "Get Admin Preview Parent Child Assessment Summary",
+        "description": "Return the canonical child assessment summary under one selected parent user for admin monitoring.\n\nAllowed roles: admin.\n\nNote: Admin-only, read-only preview surface.\n\nNote: Requires parent-child linkage or returns 404 Student not linked to parent.\n\nNote: Use assessmentSummary.subjects[] rather than items[].",
+        "x-allowed-roles": [
+          "admin"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "const": true
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/GenericObject"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                },
+                "example": {
+                  "success": true,
+                  "message": "Get Admin Preview Parent Child Assessment Summary completed successfully",
+                  "data": {
+                    "student": {
+                      "id": "1",
+                      "academicNo": "SEED-STU-001",
+                      "fullName": "طالب تجريبي 1"
+                    },
+                    "assessmentSummary": {
+                      "totalAssessments": 3,
+                      "totalScore": 51,
+                      "totalMaxScore": 60,
+                      "overallPercentage": 85,
+                      "subjects": [
+                        {
+                          "subject": {
+                            "id": "1",
+                            "name": "الرياضيات"
+                          },
+                          "totalAssessments": 3,
+                          "totalScore": 51,
+                          "totalMaxScore": 60,
+                          "overallPercentage": 85
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Validation failed",
+                  "errors": [
+                    {
+                      "field": "fieldName",
+                      "code": "invalid_type",
+                      "message": "Validation error example"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication is missing or expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Unauthorized",
+                  "errors": [
+                    {
+                      "code": "UNAUTHORIZED",
+                      "message": "Authentication is required"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated but not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Forbidden",
+                  "errors": [
+                    {
+                      "code": "FORBIDDEN",
+                      "message": "You do not have permission to access this resource"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Primary resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Not Found",
+                  "errors": [
+                    {
+                      "code": "NOT_FOUND",
+                      "message": "Requested resource was not found"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "parentUserId",
+            "in": "path",
+            "required": true,
+            "description": "Parent user numeric string identifier from /users?role=parent.",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9]+$",
+              "example": "1"
+            }
+          },
+          {
+            "name": "studentId",
+            "in": "path",
+            "required": true,
+            "description": "Student numeric string identifier. This is the same id used by /students/:id.",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9]+$",
+              "example": "1"
+            }
+          }
+        ]
+      }
+    },
+    "/reporting/admin-preview/parents/{parentUserId}/students/{studentId}/reports/attendance-summary": {
+      "get": {
+        "tags": [
+          "Reporting"
+        ],
+        "summary": "Get Admin Preview Parent Child Attendance Summary",
+        "description": "Return the canonical child attendance summary under one selected parent user for admin monitoring.\n\nAllowed roles: admin.\n\nNote: Admin-only, read-only preview surface.\n\nNote: Requires parent-child linkage or returns 404 Student not linked to parent.\n\nNote: No data yet returns 200 with zero-safe totals.",
+        "x-allowed-roles": [
+          "admin"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "const": true
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/GenericObject"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                },
+                "example": {
+                  "success": true,
+                  "message": "Get Admin Preview Parent Child Attendance Summary completed successfully",
+                  "data": {
+                    "student": {
+                      "id": "1",
+                      "academicNo": "SEED-STU-001",
+                      "fullName": "طالب تجريبي 1"
+                    },
+                    "attendanceSummary": {
+                      "totalSessions": 10,
+                      "presentCount": 8,
+                      "absentCount": 1,
+                      "lateCount": 1,
+                      "excusedCount": 0,
+                      "attendancePercentage": 80
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Validation failed",
+                  "errors": [
+                    {
+                      "field": "fieldName",
+                      "code": "invalid_type",
+                      "message": "Validation error example"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication is missing or expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Unauthorized",
+                  "errors": [
+                    {
+                      "code": "UNAUTHORIZED",
+                      "message": "Authentication is required"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated but not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Forbidden",
+                  "errors": [
+                    {
+                      "code": "FORBIDDEN",
+                      "message": "You do not have permission to access this resource"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Primary resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Not Found",
+                  "errors": [
+                    {
+                      "code": "NOT_FOUND",
+                      "message": "Requested resource was not found"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "parentUserId",
+            "in": "path",
+            "required": true,
+            "description": "Parent user numeric string identifier from /users?role=parent.",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9]+$",
+              "example": "1"
+            }
+          },
+          {
+            "name": "studentId",
+            "in": "path",
+            "required": true,
+            "description": "Student numeric string identifier. This is the same id used by /students/:id.",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9]+$",
+              "example": "1"
+            }
+          }
+        ]
+      }
+    },
+    "/reporting/admin-preview/parents/{parentUserId}/students/{studentId}/reports/behavior-summary": {
+      "get": {
+        "tags": [
+          "Reporting"
+        ],
+        "summary": "Get Admin Preview Parent Child Behavior Summary",
+        "description": "Return the canonical child behavior summary under one selected parent user for admin monitoring.\n\nAllowed roles: admin.\n\nNote: Admin-only, read-only preview surface.\n\nNote: Requires parent-child linkage or returns 404 Student not linked to parent.\n\nNote: Use /behavior/students/:studentId/records for the detailed timeline outside this summary view.",
+        "x-allowed-roles": [
+          "admin"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "const": true
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/GenericObject"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                },
+                "example": {
+                  "success": true,
+                  "message": "Get Admin Preview Parent Child Behavior Summary completed successfully",
+                  "data": {
+                    "student": {
+                      "id": "1",
+                      "academicNo": "SEED-STU-001",
+                      "fullName": "طالب تجريبي 1"
+                    },
+                    "behaviorSummary": {
+                      "totalBehaviorRecords": 1,
+                      "positiveCount": 0,
+                      "negativeCount": 1,
+                      "negativeSeverityTotal": 3
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Validation failed",
+                  "errors": [
+                    {
+                      "field": "fieldName",
+                      "code": "invalid_type",
+                      "message": "Validation error example"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication is missing or expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Unauthorized",
+                  "errors": [
+                    {
+                      "code": "UNAUTHORIZED",
+                      "message": "Authentication is required"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated but not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Forbidden",
+                  "errors": [
+                    {
+                      "code": "FORBIDDEN",
+                      "message": "You do not have permission to access this resource"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Primary resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Not Found",
+                  "errors": [
+                    {
+                      "code": "NOT_FOUND",
+                      "message": "Requested resource was not found"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "parentUserId",
+            "in": "path",
+            "required": true,
+            "description": "Parent user numeric string identifier from /users?role=parent.",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9]+$",
+              "example": "1"
+            }
+          },
+          {
+            "name": "studentId",
+            "in": "path",
+            "required": true,
+            "description": "Student numeric string identifier. This is the same id used by /students/:id.",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9]+$",
+              "example": "1"
+            }
+          }
+        ]
+      }
+    },
+    "/reporting/admin-preview/parents/{parentUserId}/students/{studentId}/transport/live-status": {
+      "get": {
+        "tags": [
+          "Reporting"
+        ],
+        "summary": "Get Admin Preview Parent Child Transport Live Status",
+        "description": "Return the canonical parent transport live-status surface for one linked child under a selected parent user.\n\nAllowed roles: admin.\n\nNote: Admin-only, read-only preview surface.\n\nNote: Requires parent-child linkage or returns 404 Student not linked to parent.\n\nNote: Wave 1 is polling-based and does not include Firebase or ETA.\n\nDerived data: This response is view-backed and combines active assignment, active trip live status, latest location, and recent event projections.",
+        "x-allowed-roles": [
+          "admin"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "const": true
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/GenericObject"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                },
+                "example": {
+                  "success": true,
+                  "message": "Get Admin Preview Parent Child Transport Live Status completed successfully",
+                  "data": {
+                    "student": {
+                      "id": "1",
+                      "academicNo": "SEED-STU-001",
+                      "fullName": "طالب تجريبي 1"
+                    },
+                    "assignment": {
+                      "assignmentId": "1",
+                      "route": {
+                        "routeId": "1",
+                        "routeName": "SEED Route 1"
+                      },
+                      "stop": {
+                        "stopId": "1",
+                        "stopName": "Stop 1"
+                      },
+                      "startDate": "2026-03-27",
+                      "endDate": null,
+                      "isActive": true
+                    },
+                    "activeTrip": {
+                      "tripId": "1",
+                      "tripDate": "2026-03-27",
+                      "tripType": "pickup",
+                      "tripStatus": "started",
+                      "bus": {
+                        "busId": "1",
+                        "plateNumber": "SEED-1001"
+                      },
+                      "driver": {
+                        "driverId": "30",
+                        "fullName": "Seed Driver 01"
+                      },
+                      "latestLocation": {
+                        "latitude": 15.3694,
+                        "longitude": 44.191,
+                        "recordedAt": "2026-03-27T12:00:00.000Z"
+                      },
+                      "latestEvents": [
+                        {
+                          "tripStudentEventId": "1",
+                          "student": {
+                            "studentId": "1",
+                            "academicNo": "SEED-STU-001",
+                            "fullName": "طالب تجريبي 1"
+                          },
+                          "eventType": "boarded",
+                          "eventTime": "2026-03-27T12:00:00.000Z",
+                          "stop": {
+                            "stopId": "1",
+                            "stopName": "Stop 1"
+                          },
+                          "notes": null
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Validation failed",
+                  "errors": [
+                    {
+                      "field": "fieldName",
+                      "code": "invalid_type",
+                      "message": "Validation error example"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication is missing or expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Unauthorized",
+                  "errors": [
+                    {
+                      "code": "UNAUTHORIZED",
+                      "message": "Authentication is required"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated but not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Forbidden",
+                  "errors": [
+                    {
+                      "code": "FORBIDDEN",
+                      "message": "You do not have permission to access this resource"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Primary resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Not Found",
+                  "errors": [
+                    {
+                      "code": "NOT_FOUND",
+                      "message": "Requested resource was not found"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "parentUserId",
+            "in": "path",
+            "required": true,
+            "description": "Parent user numeric string identifier from /users?role=parent.",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9]+$",
+              "example": "1"
+            }
+          },
+          {
+            "name": "studentId",
+            "in": "path",
+            "required": true,
+            "description": "Student numeric string identifier. This is the same id used by /students/:id.",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9]+$",
+              "example": "1"
+            }
+          }
+        ]
+      }
+    },
+    "/reporting/admin-preview/supervisors/{supervisorUserId}/dashboard": {
+      "get": {
+        "tags": [
+          "Reporting"
+        ],
+        "summary": "Get Admin Preview Supervisor Dashboard",
+        "description": "Return the canonical supervisor dashboard surface for admin monitoring, starting from the selected supervisor user account.\n\nAllowed roles: admin.\n\nNote: Admin-only, read-only preview surface.\n\nNote: Path identifier is the supervisor users.id from /users?role=supervisor.\n\nNote: Use this instead of reconstructing supervisor dashboard parity from multiple admin endpoints.",
+        "x-allowed-roles": [
+          "admin"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "const": true
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/GenericObject"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                },
+                "example": {
+                  "success": true,
+                  "message": "Get Admin Preview Supervisor Dashboard completed successfully",
+                  "data": {
+                    "supervisor": {
+                      "supervisorId": "1",
+                      "userId": "1005",
+                      "fullName": "Supervisor User",
+                      "email": "supervisor@example.com",
+                      "phone": "700000005",
+                      "department": "Student Affairs"
+                    },
+                    "assignments": [
+                      {
+                        "supervisorClassId": "1",
+                        "class": {
+                          "id": "1",
+                          "className": "A",
+                          "section": "A",
+                          "gradeLevel": {
+                            "id": "1",
+                            "name": "الصف الأول"
+                          },
+                          "academicYear": {
+                            "id": "1",
+                            "name": "2025-2026"
+                          }
+                        },
+                        "academicYear": {
+                          "id": "1",
+                          "name": "2025-2026"
+                        },
+                        "createdAt": "2026-03-27T12:00:00.000Z"
+                      }
+                    ],
+                    "studentSummaries": [
+                      {
+                        "student": {
+                          "id": "1",
+                          "academicNo": "SEED-STU-001",
+                          "fullName": "طالب تجريبي 1"
+                        },
+                        "attendanceSummary": {
+                          "totalSessions": 10,
+                          "presentCount": 8,
+                          "absentCount": 1,
+                          "lateCount": 1,
+                          "excusedCount": 0,
+                          "attendancePercentage": 80
+                        },
+                        "behaviorSummary": {
+                          "totalBehaviorRecords": 1,
+                          "positiveCount": 0,
+                          "negativeCount": 1,
+                          "negativeSeverityTotal": 3
+                        },
+                        "assessmentSummary": {
+                          "totalAssessments": 3,
+                          "totalScore": 51,
+                          "totalMaxScore": 60,
+                          "overallPercentage": 85,
+                          "subjects": []
+                        }
+                      }
+                    ],
+                    "recentBehaviorRecords": [
+                      {
+                        "id": "1",
+                        "student": {
+                          "id": "1",
+                          "academicNo": "SEED-STU-001",
+                          "fullName": "طالب تجريبي 1"
+                        },
+                        "category": {
+                          "id": "5",
+                          "code": "LATENESS",
+                          "name": "Lateness",
+                          "behaviorType": "negative"
+                        },
+                        "description": "Late arrival",
+                        "severity": 2,
+                        "behaviorDate": "2026-03-27",
+                        "createdAt": "2026-03-27T12:00:00.000Z"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Validation failed",
+                  "errors": [
+                    {
+                      "field": "fieldName",
+                      "code": "invalid_type",
+                      "message": "Validation error example"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication is missing or expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Unauthorized",
+                  "errors": [
+                    {
+                      "code": "UNAUTHORIZED",
+                      "message": "Authentication is required"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated but not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Forbidden",
+                  "errors": [
+                    {
+                      "code": "FORBIDDEN",
+                      "message": "You do not have permission to access this resource"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Primary resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Not Found",
+                  "errors": [
+                    {
+                      "code": "NOT_FOUND",
+                      "message": "Requested resource was not found"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "supervisorUserId",
+            "in": "path",
+            "required": true,
+            "description": "Supervisor user numeric string identifier from /users?role=supervisor.",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9]+$",
+              "example": "1"
+            }
+          }
+        ]
+      }
+    },
+    "/reporting/admin-preview/teachers/{teacherUserId}/dashboard": {
+      "get": {
+        "tags": [
+          "Reporting"
+        ],
+        "summary": "Get Admin Preview Teacher Dashboard",
+        "description": "Return the canonical teacher dashboard surface for admin monitoring, starting from the selected teacher user account.\n\nAllowed roles: admin.\n\nNote: Admin-only, read-only preview surface.\n\nNote: Path identifier is the teacher users.id from /users?role=teacher.\n\nNote: Use this instead of reconstructing teacher dashboard parity from multiple admin endpoints.",
+        "x-allowed-roles": [
+          "admin"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "const": true
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/GenericObject"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                },
+                "example": {
+                  "success": true,
+                  "message": "Get Admin Preview Teacher Dashboard completed successfully",
+                  "data": {
+                    "teacher": {
+                      "teacherId": "1",
+                      "userId": "1002",
+                      "fullName": "Teacher User",
+                      "email": "teacher@example.com",
+                      "phone": "700000002",
+                      "specialization": "Science",
+                      "qualification": "Bachelor",
+                      "hireDate": "2025-09-01"
+                    },
+                    "assignments": [
+                      {
+                        "teacherClassId": "1",
+                        "class": {
+                          "id": "1",
+                          "className": "A",
+                          "section": "A",
+                          "gradeLevel": {
+                            "id": "1",
+                            "name": "الصف الأول"
+                          },
+                          "academicYear": {
+                            "id": "1",
+                            "name": "2025-2026"
+                          }
+                        },
+                        "subject": {
+                          "id": "1",
+                          "name": "الرياضيات",
+                          "code": "MATH-1"
+                        },
+                        "academicYear": {
+                          "id": "1",
+                          "name": "2025-2026"
+                        },
+                        "createdAt": "2026-03-27T12:00:00.000Z"
+                      }
+                    ],
+                    "recentAttendanceSessions": [
+                      {
+                        "id": "1",
+                        "sessionDate": "2026-03-27",
+                        "periodNo": 1,
+                        "title": "Morning Attendance",
+                        "class": {
+                          "id": "1",
+                          "className": "A",
+                          "section": "A"
+                        },
+                        "subject": {
+                          "id": "1",
+                          "name": "الرياضيات"
+                        },
+                        "counts": {
+                          "presentCount": 8,
+                          "absentCount": 1,
+                          "lateCount": 1,
+                          "excusedCount": 0,
+                          "recordedCount": 10,
+                          "expectedCount": 10
+                        }
+                      }
+                    ],
+                    "recentAssessments": [
+                      {
+                        "id": "1",
+                        "title": "اختبار قصير 1",
+                        "assessmentDate": "2026-03-27",
+                        "assessmentType": {
+                          "id": "1",
+                          "code": "quiz",
+                          "name": "Quiz"
+                        },
+                        "class": {
+                          "id": "1",
+                          "className": "A",
+                          "section": "A",
+                          "gradeLevel": {
+                            "id": "1",
+                            "name": "الصف الأول"
+                          }
+                        },
+                        "subject": {
+                          "id": "1",
+                          "name": "الرياضيات",
+                          "code": "MATH-1"
+                        },
+                        "summary": {
+                          "gradedCount": 10,
+                          "expectedCount": 10,
+                          "averageScore": 17,
+                          "averagePercentage": 85
+                        }
+                      }
+                    ],
+                    "recentBehaviorRecords": [
+                      {
+                        "id": "1",
+                        "student": {
+                          "id": "1",
+                          "academicNo": "SEED-STU-001",
+                          "fullName": "طالب تجريبي 1"
+                        },
+                        "category": {
+                          "id": "1",
+                          "code": "RESPECT",
+                          "name": "Respect",
+                          "behaviorType": "positive"
+                        },
+                        "description": "Strong participation",
+                        "severity": 1,
+                        "behaviorDate": "2026-03-27",
+                        "createdAt": "2026-03-27T12:00:00.000Z"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Validation failed",
+                  "errors": [
+                    {
+                      "field": "fieldName",
+                      "code": "invalid_type",
+                      "message": "Validation error example"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication is missing or expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Unauthorized",
+                  "errors": [
+                    {
+                      "code": "UNAUTHORIZED",
+                      "message": "Authentication is required"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated but not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Forbidden",
+                  "errors": [
+                    {
+                      "code": "FORBIDDEN",
+                      "message": "You do not have permission to access this resource"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Primary resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Not Found",
+                  "errors": [
+                    {
+                      "code": "NOT_FOUND",
+                      "message": "Requested resource was not found"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "teacherUserId",
+            "in": "path",
+            "required": true,
+            "description": "Teacher user numeric string identifier from /users?role=teacher.",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9]+$",
+              "example": "1"
+            }
+          }
+        ]
+      }
+    },
     "/reporting/dashboards/admin/me": {
       "get": {
         "tags": [
@@ -18253,24 +19886,59 @@
                   "success": true,
                   "message": "Get Parent Dashboard completed successfully",
                   "data": {
+                    "parent": {
+                      "parentId": "10",
+                      "userId": "1003",
+                      "fullName": "ولي أمر تجريبي",
+                      "email": "parent@example.com",
+                      "phone": "770000010",
+                      "address": "Sanaa",
+                      "relationType": "father"
+                    },
                     "children": [
                       {
-                        "studentId": "1",
-                        "fullName": "طالب تجريبي 1"
+                        "student": {
+                          "id": "1",
+                          "academicNo": "SEED-STU-001",
+                          "fullName": "طالب تجريبي 1"
+                        },
+                        "attendanceSummary": {
+                          "totalSessions": 10,
+                          "presentCount": 8,
+                          "absentCount": 1,
+                          "lateCount": 1,
+                          "excusedCount": 0,
+                          "attendancePercentage": 80
+                        },
+                        "behaviorSummary": {
+                          "totalBehaviorRecords": 1,
+                          "positiveCount": 0,
+                          "negativeCount": 1,
+                          "negativeSeverityTotal": 3
+                        },
+                        "assessmentSummary": {
+                          "totalAssessments": 3,
+                          "totalScore": 51,
+                          "totalMaxScore": 60,
+                          "overallPercentage": 85,
+                          "subjects": []
+                        }
                       }
                     ],
                     "latestNotifications": [
                       {
                         "id": "1",
-                        "title": "[Seed] Attendance alert"
+                        "title": "[Seed] Attendance alert",
+                        "message": "تم تسجيل غياب الطالب",
+                        "notificationType": "attendance_absent",
+                        "referenceType": "attendance",
+                        "referenceId": "1",
+                        "isRead": false,
+                        "createdAt": "2026-03-27T12:00:00.000Z",
+                        "readAt": null
                       }
                     ],
-                    "activeAnnouncements": [
-                      {
-                        "id": "1",
-                        "title": "[Seed] School Notice"
-                      }
-                    ]
+                    "unreadNotifications": 1
                   }
                 }
               }
@@ -18365,33 +20033,67 @@
                     "student": {
                       "id": "1",
                       "academicNo": "SEED-STU-001",
-                      "fullName": "طالب تجريبي 1"
+                      "fullName": "طالب تجريبي 1",
+                      "dateOfBirth": "2016-09-01",
+                      "gender": "male",
+                      "status": "active",
+                      "enrollmentDate": "2025-09-01",
+                      "currentClass": {
+                        "id": "1",
+                        "className": "A",
+                        "section": "A",
+                        "gradeLevel": {
+                          "id": "1",
+                          "name": "الصف الأول"
+                        },
+                        "academicYear": {
+                          "id": "1",
+                          "name": "2025-2026"
+                        }
+                      }
                     },
                     "parents": [
                       {
+                        "linkId": "1",
                         "parentId": "10",
+                        "userId": "1003",
                         "fullName": "ولي أمر تجريبي",
-                        "relationType": "father"
+                        "email": "parent@example.com",
+                        "phone": "770000010",
+                        "relationType": "father",
+                        "isPrimary": true,
+                        "address": "Sanaa"
                       }
                     ],
                     "attendanceSummary": {
                       "totalSessions": 10,
+                      "presentCount": 8,
                       "absentCount": 1,
-                      "attendanceRate": 80
+                      "lateCount": 1,
+                      "excusedCount": 0,
+                      "attendancePercentage": 80
                     },
                     "assessmentSummary": {
-                      "overall": {
-                        "assessmentsCount": 3
-                      },
+                      "totalAssessments": 3,
+                      "totalScore": 51,
+                      "totalMaxScore": 60,
+                      "overallPercentage": 85,
                       "subjects": [
                         {
-                          "subjectId": "1",
-                          "subjectName": "الرياضيات"
+                          "subject": {
+                            "id": "1",
+                            "name": "الرياضيات"
+                          },
+                          "totalAssessments": 3,
+                          "totalScore": 51,
+                          "totalMaxScore": 60,
+                          "overallPercentage": 85
                         }
                       ]
                     },
                     "behaviorSummary": {
                       "totalBehaviorRecords": 1,
+                      "positiveCount": 0,
                       "negativeCount": 1,
                       "negativeSeverityTotal": 3
                     }
@@ -18546,13 +20248,20 @@
                       "fullName": "طالب تجريبي 1"
                     },
                     "assessmentSummary": {
-                      "overall": {
-                        "assessmentsCount": 3
-                      },
+                      "totalAssessments": 3,
+                      "totalScore": 51,
+                      "totalMaxScore": 60,
+                      "overallPercentage": 85,
                       "subjects": [
                         {
-                          "subjectId": "1",
-                          "subjectName": "الرياضيات"
+                          "subject": {
+                            "id": "1",
+                            "name": "الرياضيات"
+                          },
+                          "totalAssessments": 3,
+                          "totalScore": 51,
+                          "totalMaxScore": 60,
+                          "overallPercentage": 85
                         }
                       ]
                     }
@@ -18708,8 +20417,11 @@
                     },
                     "attendanceSummary": {
                       "totalSessions": 10,
+                      "presentCount": 8,
                       "absentCount": 1,
-                      "attendanceRate": 80
+                      "lateCount": 1,
+                      "excusedCount": 0,
+                      "attendancePercentage": 80
                     }
                   }
                 }
@@ -18863,6 +20575,7 @@
                     },
                     "behaviorSummary": {
                       "totalBehaviorRecords": 1,
+                      "positiveCount": 0,
                       "negativeCount": 1,
                       "negativeSeverityTotal": 3
                     }
@@ -19011,16 +20724,85 @@
                   "success": true,
                   "message": "Get Supervisor Dashboard completed successfully",
                   "data": {
-                    "assignedClasses": [
+                    "supervisor": {
+                      "supervisorId": "1",
+                      "userId": "1005",
+                      "fullName": "Supervisor User",
+                      "email": "supervisor@example.com",
+                      "phone": "700000005",
+                      "department": "Student Affairs"
+                    },
+                    "assignments": [
                       {
-                        "classId": "1",
-                        "className": "الصف الأول"
+                        "supervisorClassId": "1",
+                        "class": {
+                          "id": "1",
+                          "className": "A",
+                          "section": "A",
+                          "gradeLevel": {
+                            "id": "1",
+                            "name": "الصف الأول"
+                          },
+                          "academicYear": {
+                            "id": "1",
+                            "name": "2025-2026"
+                          }
+                        },
+                        "academicYear": {
+                          "id": "1",
+                          "name": "2025-2026"
+                        },
+                        "createdAt": "2026-03-27T12:00:00.000Z"
+                      }
+                    ],
+                    "studentSummaries": [
+                      {
+                        "student": {
+                          "id": "1",
+                          "academicNo": "SEED-STU-001",
+                          "fullName": "طالب تجريبي 1"
+                        },
+                        "attendanceSummary": {
+                          "totalSessions": 10,
+                          "presentCount": 8,
+                          "absentCount": 1,
+                          "lateCount": 1,
+                          "excusedCount": 0,
+                          "attendancePercentage": 80
+                        },
+                        "behaviorSummary": {
+                          "totalBehaviorRecords": 1,
+                          "positiveCount": 0,
+                          "negativeCount": 1,
+                          "negativeSeverityTotal": 3
+                        },
+                        "assessmentSummary": {
+                          "totalAssessments": 3,
+                          "totalScore": 51,
+                          "totalMaxScore": 60,
+                          "overallPercentage": 85,
+                          "subjects": []
+                        }
                       }
                     ],
                     "recentBehaviorRecords": [
                       {
                         "id": "1",
-                        "studentFullName": "طالب تجريبي 1"
+                        "student": {
+                          "id": "1",
+                          "academicNo": "SEED-STU-001",
+                          "fullName": "طالب تجريبي 1"
+                        },
+                        "category": {
+                          "id": "5",
+                          "code": "LATENESS",
+                          "name": "Lateness",
+                          "behaviorType": "negative"
+                        },
+                        "description": "Late arrival",
+                        "severity": 2,
+                        "behaviorDate": "2026-03-27",
+                        "createdAt": "2026-03-27T12:00:00.000Z"
                       }
                     ]
                   }
@@ -19114,23 +20896,119 @@
                   "success": true,
                   "message": "Get Teacher Dashboard completed successfully",
                   "data": {
+                    "teacher": {
+                      "teacherId": "1",
+                      "userId": "1002",
+                      "fullName": "Teacher User",
+                      "email": "teacher@example.com",
+                      "phone": "700000002",
+                      "specialization": "Science",
+                      "qualification": "Bachelor",
+                      "hireDate": "2025-09-01"
+                    },
                     "assignments": [
                       {
-                        "classId": "1",
-                        "className": "الصف الأول",
-                        "subjectId": "1"
+                        "teacherClassId": "1",
+                        "class": {
+                          "id": "1",
+                          "className": "A",
+                          "section": "A",
+                          "gradeLevel": {
+                            "id": "1",
+                            "name": "الصف الأول"
+                          },
+                          "academicYear": {
+                            "id": "1",
+                            "name": "2025-2026"
+                          }
+                        },
+                        "subject": {
+                          "id": "1",
+                          "name": "الرياضيات",
+                          "code": "MATH-1"
+                        },
+                        "academicYear": {
+                          "id": "1",
+                          "name": "2025-2026"
+                        },
+                        "createdAt": "2026-03-27T12:00:00.000Z"
                       }
                     ],
                     "recentAttendanceSessions": [
                       {
                         "id": "1",
-                        "sessionDate": "2026-03-27"
+                        "sessionDate": "2026-03-27",
+                        "periodNo": 1,
+                        "title": "Morning Attendance",
+                        "class": {
+                          "id": "1",
+                          "className": "A",
+                          "section": "A"
+                        },
+                        "subject": {
+                          "id": "1",
+                          "name": "الرياضيات"
+                        },
+                        "counts": {
+                          "presentCount": 8,
+                          "absentCount": 1,
+                          "lateCount": 1,
+                          "excusedCount": 0,
+                          "recordedCount": 10,
+                          "expectedCount": 10
+                        }
                       }
                     ],
                     "recentAssessments": [
                       {
                         "id": "1",
-                        "title": "اختبار قصير 1"
+                        "title": "اختبار قصير 1",
+                        "assessmentDate": "2026-03-27",
+                        "assessmentType": {
+                          "id": "1",
+                          "code": "quiz",
+                          "name": "Quiz"
+                        },
+                        "class": {
+                          "id": "1",
+                          "className": "A",
+                          "section": "A",
+                          "gradeLevel": {
+                            "id": "1",
+                            "name": "الصف الأول"
+                          }
+                        },
+                        "subject": {
+                          "id": "1",
+                          "name": "الرياضيات",
+                          "code": "MATH-1"
+                        },
+                        "summary": {
+                          "gradedCount": 10,
+                          "expectedCount": 10,
+                          "averageScore": 17,
+                          "averagePercentage": 85
+                        }
+                      }
+                    ],
+                    "recentBehaviorRecords": [
+                      {
+                        "id": "1",
+                        "student": {
+                          "id": "1",
+                          "academicNo": "SEED-STU-001",
+                          "fullName": "طالب تجريبي 1"
+                        },
+                        "category": {
+                          "id": "1",
+                          "code": "RESPECT",
+                          "name": "Respect",
+                          "behaviorType": "positive"
+                        },
+                        "description": "Strong participation",
+                        "severity": 1,
+                        "behaviorDate": "2026-03-27",
+                        "createdAt": "2026-03-27T12:00:00.000Z"
                       }
                     ]
                   }
@@ -19229,33 +21107,67 @@
                     "student": {
                       "id": "1",
                       "academicNo": "SEED-STU-001",
-                      "fullName": "طالب تجريبي 1"
+                      "fullName": "طالب تجريبي 1",
+                      "dateOfBirth": "2016-09-01",
+                      "gender": "male",
+                      "status": "active",
+                      "enrollmentDate": "2025-09-01",
+                      "currentClass": {
+                        "id": "1",
+                        "className": "A",
+                        "section": "A",
+                        "gradeLevel": {
+                          "id": "1",
+                          "name": "الصف الأول"
+                        },
+                        "academicYear": {
+                          "id": "1",
+                          "name": "2025-2026"
+                        }
+                      }
                     },
                     "parents": [
                       {
+                        "linkId": "1",
                         "parentId": "10",
+                        "userId": "1003",
                         "fullName": "ولي أمر تجريبي",
-                        "relationType": "father"
+                        "email": "parent@example.com",
+                        "phone": "770000010",
+                        "relationType": "father",
+                        "isPrimary": true,
+                        "address": "Sanaa"
                       }
                     ],
                     "attendanceSummary": {
                       "totalSessions": 10,
+                      "presentCount": 8,
                       "absentCount": 1,
-                      "attendanceRate": 80
+                      "lateCount": 1,
+                      "excusedCount": 0,
+                      "attendancePercentage": 80
                     },
                     "assessmentSummary": {
-                      "overall": {
-                        "assessmentsCount": 3
-                      },
+                      "totalAssessments": 3,
+                      "totalScore": 51,
+                      "totalMaxScore": 60,
+                      "overallPercentage": 85,
                       "subjects": [
                         {
-                          "subjectId": "1",
-                          "subjectName": "الرياضيات"
+                          "subject": {
+                            "id": "1",
+                            "name": "الرياضيات"
+                          },
+                          "totalAssessments": 3,
+                          "totalScore": 51,
+                          "totalMaxScore": 60,
+                          "overallPercentage": 85
                         }
                       ]
                     },
                     "behaviorSummary": {
                       "totalBehaviorRecords": 1,
+                      "positiveCount": 0,
                       "negativeCount": 1,
                       "negativeSeverityTotal": 3
                     }
@@ -19412,13 +21324,20 @@
                       "fullName": "طالب تجريبي 1"
                     },
                     "assessmentSummary": {
-                      "overall": {
-                        "assessmentsCount": 3
-                      },
+                      "totalAssessments": 3,
+                      "totalScore": 51,
+                      "totalMaxScore": 60,
+                      "overallPercentage": 85,
                       "subjects": [
                         {
-                          "subjectId": "1",
-                          "subjectName": "الرياضيات"
+                          "subject": {
+                            "id": "1",
+                            "name": "الرياضيات"
+                          },
+                          "totalAssessments": 3,
+                          "totalScore": 51,
+                          "totalMaxScore": 60,
+                          "overallPercentage": 85
                         }
                       ]
                     }
@@ -19576,8 +21495,11 @@
                     },
                     "attendanceSummary": {
                       "totalSessions": 10,
+                      "presentCount": 8,
                       "absentCount": 1,
-                      "attendanceRate": 80
+                      "lateCount": 1,
+                      "excusedCount": 0,
+                      "attendancePercentage": 80
                     }
                   }
                 }
@@ -19733,6 +21655,7 @@
                     },
                     "behaviorSummary": {
                       "totalBehaviorRecords": 1,
+                      "positiveCount": 0,
                       "negativeCount": 1,
                       "negativeSeverityTotal": 3
                     }
@@ -19883,29 +21806,59 @@
                   "data": {
                     "student": {
                       "id": "1",
+                      "academicNo": "SEED-STU-001",
                       "fullName": "طالب تجريبي 1"
                     },
                     "assignment": {
-                      "routeId": "1",
-                      "routeName": "SEED Route 1",
-                      "stopId": "1"
+                      "assignmentId": "1",
+                      "route": {
+                        "routeId": "1",
+                        "routeName": "SEED Route 1"
+                      },
+                      "stop": {
+                        "stopId": "1",
+                        "stopName": "Stop 1"
+                      },
+                      "startDate": "2026-03-27",
+                      "endDate": null,
+                      "isActive": true
                     },
-                    "trip": {
-                      "id": "1",
+                    "activeTrip": {
+                      "tripId": "1",
+                      "tripDate": "2026-03-27",
+                      "tripType": "pickup",
                       "tripStatus": "started",
-                      "tripDate": "2026-03-27"
-                    },
-                    "latestLocation": {
-                      "latitude": 15.3694,
-                      "longitude": 44.191,
-                      "recordedAt": "2026-03-27T12:00:00.000Z"
-                    },
-                    "recentEvents": [
-                      {
-                        "eventType": "boarded",
-                        "eventTime": "2026-03-27T12:00:00.000Z"
-                      }
-                    ]
+                      "bus": {
+                        "busId": "1",
+                        "plateNumber": "SEED-1001"
+                      },
+                      "driver": {
+                        "driverId": "30",
+                        "fullName": "Seed Driver 01"
+                      },
+                      "latestLocation": {
+                        "latitude": 15.3694,
+                        "longitude": 44.191,
+                        "recordedAt": "2026-03-27T12:00:00.000Z"
+                      },
+                      "latestEvents": [
+                        {
+                          "tripStudentEventId": "1",
+                          "student": {
+                            "studentId": "1",
+                            "academicNo": "SEED-STU-001",
+                            "fullName": "طالب تجريبي 1"
+                          },
+                          "eventType": "boarded",
+                          "eventTime": "2026-03-27T12:00:00.000Z",
+                          "stop": {
+                            "stopId": "1",
+                            "stopName": "Stop 1"
+                          },
+                          "notes": null
+                        }
+                      ]
+                    }
                   }
                 }
               }

@@ -559,37 +559,381 @@ const examples = {
     records: []
   },
   studentProfileReport: {
-    student: { id: "1", academicNo: "SEED-STU-001", fullName: "طالب تجريبي 1" },
-    parents: [{ parentId: "10", fullName: "ولي أمر تجريبي", relationType: "father" }],
-    attendanceSummary: { totalSessions: 10, absentCount: 1, attendanceRate: 80 },
-    assessmentSummary: { overall: { assessmentsCount: 3 }, subjects: [{ subjectId: "1", subjectName: "الرياضيات" }] },
-    behaviorSummary: { totalBehaviorRecords: 1, negativeCount: 1, negativeSeverityTotal: 3 }
+    student: {
+      id: "1",
+      academicNo: "SEED-STU-001",
+      fullName: "طالب تجريبي 1",
+      dateOfBirth: "2016-09-01",
+      gender: "male",
+      status: "active",
+      enrollmentDate: "2025-09-01",
+      currentClass: {
+        id: "1",
+        className: "A",
+        section: "A",
+        gradeLevel: {
+          id: "1",
+          name: "الصف الأول"
+        },
+        academicYear: {
+          id: "1",
+          name: "2025-2026"
+        }
+      }
+    },
+    parents: [
+      {
+        linkId: "1",
+        parentId: "10",
+        userId: "1003",
+        fullName: "ولي أمر تجريبي",
+        email: "parent@example.com",
+        phone: "770000010",
+        relationType: "father",
+        isPrimary: true,
+        address: "Sanaa"
+      }
+    ],
+    attendanceSummary: {
+      totalSessions: 10,
+      presentCount: 8,
+      absentCount: 1,
+      lateCount: 1,
+      excusedCount: 0,
+      attendancePercentage: 80
+    },
+    assessmentSummary: {
+      totalAssessments: 3,
+      totalScore: 51,
+      totalMaxScore: 60,
+      overallPercentage: 85,
+      subjects: [
+        {
+          subject: {
+            id: "1",
+            name: "الرياضيات"
+          },
+          totalAssessments: 3,
+          totalScore: 51,
+          totalMaxScore: 60,
+          overallPercentage: 85
+        }
+      ]
+    },
+    behaviorSummary: {
+      totalBehaviorRecords: 1,
+      positiveCount: 0,
+      negativeCount: 1,
+      negativeSeverityTotal: 3
+    }
   },
   attendanceSummaryReport: {
-    student: { id: "1", academicNo: "SEED-STU-001", fullName: "طالب تجريبي 1" },
-    attendanceSummary: { totalSessions: 10, absentCount: 1, attendanceRate: 80 }
+    student: {
+      id: "1",
+      academicNo: "SEED-STU-001",
+      fullName: "طالب تجريبي 1"
+    },
+    attendanceSummary: {
+      totalSessions: 10,
+      presentCount: 8,
+      absentCount: 1,
+      lateCount: 1,
+      excusedCount: 0,
+      attendancePercentage: 80
+    }
   },
   assessmentSummaryReport: {
-    student: { id: "1", academicNo: "SEED-STU-001", fullName: "طالب تجريبي 1" },
-    assessmentSummary: { overall: { assessmentsCount: 3 }, subjects: [{ subjectId: "1", subjectName: "الرياضيات" }] }
+    student: {
+      id: "1",
+      academicNo: "SEED-STU-001",
+      fullName: "طالب تجريبي 1"
+    },
+    assessmentSummary: {
+      totalAssessments: 3,
+      totalScore: 51,
+      totalMaxScore: 60,
+      overallPercentage: 85,
+      subjects: [
+        {
+          subject: {
+            id: "1",
+            name: "الرياضيات"
+          },
+          totalAssessments: 3,
+          totalScore: 51,
+          totalMaxScore: 60,
+          overallPercentage: 85
+        }
+      ]
+    }
   },
   behaviorSummaryReport: {
-    student: { id: "1", academicNo: "SEED-STU-001", fullName: "طالب تجريبي 1" },
-    behaviorSummary: { totalBehaviorRecords: 1, negativeCount: 1, negativeSeverityTotal: 3 }
+    student: {
+      id: "1",
+      academicNo: "SEED-STU-001",
+      fullName: "طالب تجريبي 1"
+    },
+    behaviorSummary: {
+      totalBehaviorRecords: 1,
+      positiveCount: 0,
+      negativeCount: 1,
+      negativeSeverityTotal: 3
+    }
   },
   parentDashboard: {
-    children: [{ studentId: "1", fullName: "طالب تجريبي 1" }],
-    latestNotifications: [{ id: "1", title: "[Seed] Attendance alert" }],
-    activeAnnouncements: [{ id: "1", title: "[Seed] School Notice" }]
+    parent: {
+      parentId: "10",
+      userId: "1003",
+      fullName: "ولي أمر تجريبي",
+      email: "parent@example.com",
+      phone: "770000010",
+      address: "Sanaa",
+      relationType: "father"
+    },
+    children: [
+      {
+        student: {
+          id: "1",
+          academicNo: "SEED-STU-001",
+          fullName: "طالب تجريبي 1"
+        },
+        attendanceSummary: {
+          totalSessions: 10,
+          presentCount: 8,
+          absentCount: 1,
+          lateCount: 1,
+          excusedCount: 0,
+          attendancePercentage: 80
+        },
+        behaviorSummary: {
+          totalBehaviorRecords: 1,
+          positiveCount: 0,
+          negativeCount: 1,
+          negativeSeverityTotal: 3
+        },
+        assessmentSummary: {
+          totalAssessments: 3,
+          totalScore: 51,
+          totalMaxScore: 60,
+          overallPercentage: 85,
+          subjects: []
+        }
+      }
+    ],
+    latestNotifications: [
+      {
+        id: "1",
+        title: "[Seed] Attendance alert",
+        message: "تم تسجيل غياب الطالب",
+        notificationType: "attendance_absent",
+        referenceType: "attendance",
+        referenceId: "1",
+        isRead: false,
+        createdAt: NOW,
+        readAt: null
+      }
+    ],
+    unreadNotifications: 1
   },
   teacherDashboard: {
-    assignments: [{ classId: "1", className: "الصف الأول", subjectId: "1" }],
-    recentAttendanceSessions: [{ id: "1", sessionDate: TODAY }],
-    recentAssessments: [{ id: "1", title: "اختبار قصير 1" }]
+    teacher: {
+      teacherId: "1",
+      userId: "1002",
+      fullName: "Teacher User",
+      email: "teacher@example.com",
+      phone: "700000002",
+      specialization: "Science",
+      qualification: "Bachelor",
+      hireDate: "2025-09-01"
+    },
+    assignments: [
+      {
+        teacherClassId: "1",
+        class: {
+          id: "1",
+          className: "A",
+          section: "A",
+          gradeLevel: {
+            id: "1",
+            name: "الصف الأول"
+          },
+          academicYear: {
+            id: "1",
+            name: "2025-2026"
+          }
+        },
+        subject: {
+          id: "1",
+          name: "الرياضيات",
+          code: "MATH-1"
+        },
+        academicYear: {
+          id: "1",
+          name: "2025-2026"
+        },
+        createdAt: NOW
+      }
+    ],
+    recentAttendanceSessions: [
+      {
+        id: "1",
+        sessionDate: TODAY,
+        periodNo: 1,
+        title: "Morning Attendance",
+        class: {
+          id: "1",
+          className: "A",
+          section: "A"
+        },
+        subject: {
+          id: "1",
+          name: "الرياضيات"
+        },
+        counts: {
+          presentCount: 8,
+          absentCount: 1,
+          lateCount: 1,
+          excusedCount: 0,
+          recordedCount: 10,
+          expectedCount: 10
+        }
+      }
+    ],
+    recentAssessments: [
+      {
+        id: "1",
+        title: "اختبار قصير 1",
+        assessmentDate: TODAY,
+        assessmentType: {
+          id: "1",
+          code: "quiz",
+          name: "Quiz"
+        },
+        class: {
+          id: "1",
+          className: "A",
+          section: "A",
+          gradeLevel: {
+            id: "1",
+            name: "الصف الأول"
+          }
+        },
+        subject: {
+          id: "1",
+          name: "الرياضيات",
+          code: "MATH-1"
+        },
+        summary: {
+          gradedCount: 10,
+          expectedCount: 10,
+          averageScore: 17,
+          averagePercentage: 85
+        }
+      }
+    ],
+    recentBehaviorRecords: [
+      {
+        id: "1",
+        student: {
+          id: "1",
+          academicNo: "SEED-STU-001",
+          fullName: "طالب تجريبي 1"
+        },
+        category: {
+          id: "1",
+          code: "RESPECT",
+          name: "Respect",
+          behaviorType: "positive"
+        },
+        description: "Strong participation",
+        severity: 1,
+        behaviorDate: TODAY,
+        createdAt: NOW
+      }
+    ]
   },
   supervisorDashboard: {
-    assignedClasses: [{ classId: "1", className: "الصف الأول" }],
-    recentBehaviorRecords: [{ id: "1", studentFullName: "طالب تجريبي 1" }]
+    supervisor: {
+      supervisorId: "1",
+      userId: "1005",
+      fullName: "Supervisor User",
+      email: "supervisor@example.com",
+      phone: "700000005",
+      department: "Student Affairs"
+    },
+    assignments: [
+      {
+        supervisorClassId: "1",
+        class: {
+          id: "1",
+          className: "A",
+          section: "A",
+          gradeLevel: {
+            id: "1",
+            name: "الصف الأول"
+          },
+          academicYear: {
+            id: "1",
+            name: "2025-2026"
+          }
+        },
+        academicYear: {
+          id: "1",
+          name: "2025-2026"
+        },
+        createdAt: NOW
+      }
+    ],
+    studentSummaries: [
+      {
+        student: {
+          id: "1",
+          academicNo: "SEED-STU-001",
+          fullName: "طالب تجريبي 1"
+        },
+        attendanceSummary: {
+          totalSessions: 10,
+          presentCount: 8,
+          absentCount: 1,
+          lateCount: 1,
+          excusedCount: 0,
+          attendancePercentage: 80
+        },
+        behaviorSummary: {
+          totalBehaviorRecords: 1,
+          positiveCount: 0,
+          negativeCount: 1,
+          negativeSeverityTotal: 3
+        },
+        assessmentSummary: {
+          totalAssessments: 3,
+          totalScore: 51,
+          totalMaxScore: 60,
+          overallPercentage: 85,
+          subjects: []
+        }
+      }
+    ],
+    recentBehaviorRecords: [
+      {
+        id: "1",
+        student: {
+          id: "1",
+          academicNo: "SEED-STU-001",
+          fullName: "طالب تجريبي 1"
+        },
+        category: {
+          id: "5",
+          code: "LATENESS",
+          name: "Lateness",
+          behaviorType: "negative"
+        },
+        description: "Late arrival",
+        severity: 2,
+        behaviorDate: TODAY,
+        createdAt: NOW
+      }
+    ]
   },
   adminDashboard: {
     summary: { totalUsers: 15, totalStudents: 9, activeTrips: 1, unreadNotifications: 2 },
@@ -601,11 +945,61 @@ const examples = {
     activeTrips: [{ id: "1", routeName: "SEED Route 1", tripStatus: "started" }]
   },
   parentTransportLiveStatus: {
-    student: { id: "1", fullName: "طالب تجريبي 1" },
-    assignment: { routeId: "1", routeName: "SEED Route 1", stopId: "1" },
-    trip: { id: "1", tripStatus: "started", tripDate: TODAY },
-    latestLocation: { latitude: 15.3694, longitude: 44.191, recordedAt: NOW },
-    recentEvents: [{ eventType: "boarded", eventTime: NOW }]
+    student: {
+      id: "1",
+      academicNo: "SEED-STU-001",
+      fullName: "طالب تجريبي 1"
+    },
+    assignment: {
+      assignmentId: "1",
+      route: {
+        routeId: "1",
+        routeName: "SEED Route 1"
+      },
+      stop: {
+        stopId: "1",
+        stopName: "Stop 1"
+      },
+      startDate: TODAY,
+      endDate: null,
+      isActive: true
+    },
+    activeTrip: {
+      tripId: "1",
+      tripDate: TODAY,
+      tripType: "pickup",
+      tripStatus: "started",
+      bus: {
+        busId: "1",
+        plateNumber: "SEED-1001"
+      },
+      driver: {
+        driverId: "30",
+        fullName: "Seed Driver 01"
+      },
+      latestLocation: {
+        latitude: 15.3694,
+        longitude: 44.191,
+        recordedAt: NOW
+      },
+      latestEvents: [
+        {
+          tripStudentEventId: "1",
+          student: {
+            studentId: "1",
+            academicNo: "SEED-STU-001",
+            fullName: "طالب تجريبي 1"
+          },
+          eventType: "boarded",
+          eventTime: NOW,
+          stop: {
+            stopId: "1",
+            stopName: "Stop 1"
+          },
+          notes: null
+        }
+      ]
+    }
   }
 };
 
@@ -1128,6 +1522,9 @@ function paginatedQuery(sortValues, extras = [], defaultSort = sortValues[0], de
 
 function pathParamDescription(routePath, paramName) {
   if (paramName === "studentId") return "Student numeric string identifier. This is the same id used by /students/:id.";
+  if (paramName === "parentUserId") return "Parent user numeric string identifier from /users?role=parent.";
+  if (paramName === "teacherUserId") return "Teacher user numeric string identifier from /users?role=teacher.";
+  if (paramName === "supervisorUserId") return "Supervisor user numeric string identifier from /users?role=supervisor.";
   if (paramName === "studentAssessmentId") return "Student assessment score numeric string identifier.";
   if (paramName === "attendanceId") return "Attendance record numeric string identifier.";
   if (paramName === "academicYearId") return "Academic year numeric string identifier.";
@@ -1354,6 +1751,14 @@ endpoints.push(
   makeEndpoint({ m: "GET", p: "/reporting/students/:studentId/reports/attendance-summary", t: "Reporting", s: "Get Student Attendance Summary", u: "Return the student attendance summary used in charts and cards.", r: ["admin", "teacher", "supervisor"], e: "attendanceSummaryReport", status: 200, notes: ["No data yet returns 200 with zero-safe totals, not 404."], derived: "Derived from summary views such as vw_student_attendance_summary." }),
   makeEndpoint({ m: "GET", p: "/reporting/students/:studentId/reports/assessment-summary", t: "Reporting", s: "Get Student Assessment Summary", u: "Return the student assessment summary. Use assessmentSummary.subjects[] rather than items[].", r: ["admin", "teacher", "supervisor"], e: "assessmentSummaryReport", status: 200, notes: ["No data yet returns 200 with zero-safe overall metrics and an empty subjects array."], derived: "Derived from summary views such as vw_student_assessment_summary." }),
   makeEndpoint({ m: "GET", p: "/reporting/students/:studentId/reports/behavior-summary", t: "Reporting", s: "Get Student Behavior Summary", u: "Return the student behavior summary. Use /behavior/students/:studentId/records for the detailed timeline.", r: ["admin", "teacher", "supervisor"], e: "behaviorSummaryReport", status: 200, notes: ["No data yet returns 200 with zero-safe totals, not 404."], derived: "Derived from summary views such as vw_student_behavior_summary." }),
+  makeEndpoint({ m: "GET", p: "/reporting/admin-preview/parents/:parentUserId/dashboard", t: "Reporting", s: "Get Admin Preview Parent Dashboard", u: "Return the canonical parent dashboard surface for admin monitoring, starting from the selected parent user account.", r: ["admin"], e: "parentDashboard", status: 200, notes: ["Admin-only, read-only preview surface.", "Path identifiers are users.id values, not parent profile ids.", "This is the preferred backend surface for parent-first monitoring and role parity previews."] }),
+  makeEndpoint({ m: "GET", p: "/reporting/admin-preview/parents/:parentUserId/students/:studentId/profile", t: "Reporting", s: "Get Admin Preview Parent Child Profile", u: "Return the canonical child profile payload under one selected parent user for admin monitoring.", r: ["admin"], e: "studentProfileReport", status: 200, notes: ["Admin-only, read-only preview surface.", "Requires the selected child to be linked to the selected parent or returns 404 Student not linked to parent.", "Path identifiers are users.id for the parent and students.id for the child."] }),
+  makeEndpoint({ m: "GET", p: "/reporting/admin-preview/parents/:parentUserId/students/:studentId/reports/attendance-summary", t: "Reporting", s: "Get Admin Preview Parent Child Attendance Summary", u: "Return the canonical child attendance summary under one selected parent user for admin monitoring.", r: ["admin"], e: "attendanceSummaryReport", status: 200, notes: ["Admin-only, read-only preview surface.", "Requires parent-child linkage or returns 404 Student not linked to parent.", "No data yet returns 200 with zero-safe totals."] }),
+  makeEndpoint({ m: "GET", p: "/reporting/admin-preview/parents/:parentUserId/students/:studentId/reports/assessment-summary", t: "Reporting", s: "Get Admin Preview Parent Child Assessment Summary", u: "Return the canonical child assessment summary under one selected parent user for admin monitoring.", r: ["admin"], e: "assessmentSummaryReport", status: 200, notes: ["Admin-only, read-only preview surface.", "Requires parent-child linkage or returns 404 Student not linked to parent.", "Use assessmentSummary.subjects[] rather than items[]."] }),
+  makeEndpoint({ m: "GET", p: "/reporting/admin-preview/parents/:parentUserId/students/:studentId/reports/behavior-summary", t: "Reporting", s: "Get Admin Preview Parent Child Behavior Summary", u: "Return the canonical child behavior summary under one selected parent user for admin monitoring.", r: ["admin"], e: "behaviorSummaryReport", status: 200, notes: ["Admin-only, read-only preview surface.", "Requires parent-child linkage or returns 404 Student not linked to parent.", "Use /behavior/students/:studentId/records for the detailed timeline outside this summary view."] }),
+  makeEndpoint({ m: "GET", p: "/reporting/admin-preview/parents/:parentUserId/students/:studentId/transport/live-status", t: "Reporting", s: "Get Admin Preview Parent Child Transport Live Status", u: "Return the canonical parent transport live-status surface for one linked child under a selected parent user.", r: ["admin"], e: "parentTransportLiveStatus", status: 200, notes: ["Admin-only, read-only preview surface.", "Requires parent-child linkage or returns 404 Student not linked to parent.", "Wave 1 is polling-based and does not include Firebase or ETA."], derived: "This response is view-backed and combines active assignment, active trip live status, latest location, and recent event projections." }),
+  makeEndpoint({ m: "GET", p: "/reporting/admin-preview/teachers/:teacherUserId/dashboard", t: "Reporting", s: "Get Admin Preview Teacher Dashboard", u: "Return the canonical teacher dashboard surface for admin monitoring, starting from the selected teacher user account.", r: ["admin"], e: "teacherDashboard", status: 200, notes: ["Admin-only, read-only preview surface.", "Path identifier is the teacher users.id from /users?role=teacher.", "Use this instead of reconstructing teacher dashboard parity from multiple admin endpoints."] }),
+  makeEndpoint({ m: "GET", p: "/reporting/admin-preview/supervisors/:supervisorUserId/dashboard", t: "Reporting", s: "Get Admin Preview Supervisor Dashboard", u: "Return the canonical supervisor dashboard surface for admin monitoring, starting from the selected supervisor user account.", r: ["admin"], e: "supervisorDashboard", status: 200, notes: ["Admin-only, read-only preview surface.", "Path identifier is the supervisor users.id from /users?role=supervisor.", "Use this instead of reconstructing supervisor dashboard parity from multiple admin endpoints."] }),
   makeEndpoint({ m: "GET", p: "/reporting/dashboards/parent/me", t: "Reporting", s: "Get Parent Dashboard", u: "Return the parent dashboard summary surface.", r: ["parent"], e: "parentDashboard", status: 200 }),
   makeEndpoint({ m: "GET", p: "/reporting/dashboards/parent/me/students/:studentId/profile", t: "Reporting", s: "Get Parent Child Profile", u: "Return the child profile payload for the authenticated parent.", r: ["parent"], e: "studentProfileReport", status: 200 }),
   makeEndpoint({ m: "GET", p: "/reporting/dashboards/parent/me/students/:studentId/reports/attendance-summary", t: "Reporting", s: "Get Parent Child Attendance Summary", u: "Return the child attendance summary for the authenticated parent.", r: ["parent"], e: "attendanceSummaryReport", status: 200 }),
@@ -1555,6 +1960,9 @@ function buildCollection(name, description, subset) {
       { key: "subjectId", value: "1" },
       { key: "subjectOfferingId", value: "1" },
       { key: "studentId", value: "1" },
+      { key: "parentUserId", value: "1003" },
+      { key: "teacherUserId", value: "1002" },
+      { key: "supervisorUserId", value: "1005" },
       { key: "parentId", value: "1003" },
       { key: "assessmentId", value: "1" },
       { key: "studentAssessmentId", value: "1" },
@@ -1645,12 +2053,16 @@ const missingBefore = baseline.masterOpenApi.missing.length > 0
   ? baseline.masterOpenApi.missing.map((route) => `- \`${route.method} ${route.path}\``).join("\n")
   : "- none";
 const newRuntimeEndpoints = [
-  "POST /academic-structure/subject-offerings",
-  "GET /academic-structure/subject-offerings",
-  "GET /academic-structure/subject-offerings/:id",
-  "PATCH /academic-structure/subject-offerings/:id"
+  "GET /reporting/admin-preview/parents/:parentUserId/dashboard",
+  "GET /reporting/admin-preview/parents/:parentUserId/students/:studentId/profile",
+  "GET /reporting/admin-preview/parents/:parentUserId/students/:studentId/reports/attendance-summary",
+  "GET /reporting/admin-preview/parents/:parentUserId/students/:studentId/reports/assessment-summary",
+  "GET /reporting/admin-preview/parents/:parentUserId/students/:studentId/reports/behavior-summary",
+  "GET /reporting/admin-preview/parents/:parentUserId/students/:studentId/transport/live-status",
+  "GET /reporting/admin-preview/teachers/:teacherUserId/dashboard",
+  "GET /reporting/admin-preview/supervisors/:supervisorUserId/dashboard"
 ];
-const audit = `# OpenAPI / Postman Audit\n\n- Audit date: ${TODAY}\n- Runtime endpoint count: ${actualRoutes.length}\n- Runtime changes during this reconciliation: ${newRuntimeEndpoints.length > 0 ? `${newRuntimeEndpoints.length} new endpoint(s)` : "none"}\n\n## Coverage Summary\n\n| Artifact | Before | After |\n| --- | --- | --- |\n| Master OpenAPI | ${baseline.masterOpenApi.covered.length}/${actualRoutes.length} | ${final.masterOpenApi.covered.length}/${actualRoutes.length} |\n| Master Postman | ${baseline.masterPostman.covered.length}/${actualRoutes.length} | ${final.masterPostman.covered.length}/${actualRoutes.length} |\n| Auth OpenAPI | ${baseline.authOpenApi.covered.length}/7 | ${final.authOpenApi.covered.length}/7 |\n| Auth Postman | ${baseline.authPostman.covered.length}/7 | ${final.authPostman.covered.length}/7 |\n\n## Per-Module Coverage\n\n| Module | Actual | OpenAPI Before | Postman Before | OpenAPI After | Postman After |\n| --- | --- | --- | --- | --- | --- |\n${moduleTable}\n\n## [NEW] Runtime Endpoints Added In This Pass\n\n${newRuntimeEndpoints.map((route) => `- \`${route}\``).join("\n")}\n\n## Runtime Endpoints Missing From Master OpenAPI Before This Update\n\n${missingBefore}\n\n## Views, Events, Targets Alignment\n\n### SQL Views Referenced\n${viewNames.map((name) => `- \`${name}\``).join("\n")}\n\n### Automation Events Documented\n${automationEvents.map((name) => `- \`${name}\``).join("\n")}\n\n### Target / Event Fields Documented\n${targetFields.map((name) => `- \`${name}\``).join("\n")}\n\n## Reconciliation Notes\n\n- \`/health\` and \`/health/ready\` now use root-level servers instead of inheriting \`/api/v1\`.\n- The auth subset now covers all 7 live auth routes, including forgot-password and reset-password.\n- IDs in the auth subset were normalized to numeric-string ids instead of UUID assumptions.\n- The new subject-offering endpoints are marked with \`[NEW]\` inside OpenAPI and Postman so admin frontend teams can spot the semester-aware academic change quickly.\n`;
+const audit = `# OpenAPI / Postman Audit\n\n- Audit date: ${TODAY}\n- Runtime endpoint count: ${actualRoutes.length}\n- Runtime changes during this reconciliation: ${newRuntimeEndpoints.length > 0 ? `${newRuntimeEndpoints.length} new endpoint(s)` : "none"}\n\n## Coverage Summary\n\n| Artifact | Before | After |\n| --- | --- | --- |\n| Master OpenAPI | ${baseline.masterOpenApi.covered.length}/${actualRoutes.length} | ${final.masterOpenApi.covered.length}/${actualRoutes.length} |\n| Master Postman | ${baseline.masterPostman.covered.length}/${actualRoutes.length} | ${final.masterPostman.covered.length}/${actualRoutes.length} |\n| Auth OpenAPI | ${baseline.authOpenApi.covered.length}/7 | ${final.authOpenApi.covered.length}/7 |\n| Auth Postman | ${baseline.authPostman.covered.length}/7 | ${final.authPostman.covered.length}/7 |\n\n## Per-Module Coverage\n\n| Module | Actual | OpenAPI Before | Postman Before | OpenAPI After | Postman After |\n| --- | --- | --- | --- | --- | --- |\n${moduleTable}\n\n## [NEW] Runtime Endpoints Added In This Pass\n\n${newRuntimeEndpoints.map((route) => `- \`${route}\``).join("\n")}\n\n## Runtime Endpoints Missing From Master OpenAPI Before This Update\n\n${missingBefore}\n\n## Views, Events, Targets Alignment\n\n### SQL Views Referenced\n${viewNames.map((name) => `- \`${name}\``).join("\n")}\n\n### Automation Events Documented\n${automationEvents.map((name) => `- \`${name}\``).join("\n")}\n\n### Target / Event Fields Documented\n${targetFields.map((name) => `- \`${name}\``).join("\n")}\n\n## Reconciliation Notes\n\n- \`/health\` and \`/health/ready\` now use root-level servers instead of inheriting \`/api/v1\`.\n- The auth subset now covers all 7 live auth routes, including forgot-password and reset-password.\n- IDs in the auth subset were normalized to numeric-string ids instead of UUID assumptions.\n- The new admin-preview monitoring endpoints are marked with \`[NEW]\`-style audit visibility through this report and are documented as admin-only, read-only, and \`users.id\`-based surfaces.\n`;
 fs.writeFileSync(auditPath, audit);
 console.log(`Master OpenAPI: ${final.masterOpenApi.covered.length}/${actualRoutes.length}`);
 console.log(`Master Postman: ${final.masterPostman.covered.length}/${actualRoutes.length}`);

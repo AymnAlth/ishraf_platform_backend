@@ -3,7 +3,11 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ForbiddenError } from "../../src/common/errors/forbidden-error";
 import { NotFoundError } from "../../src/common/errors/not-found-error";
 import type { OwnershipService } from "../../src/common/services/ownership.service";
-import type { ParentProfile, TeacherProfile } from "../../src/common/types/profile.types";
+import type {
+  ParentProfile,
+  SupervisorProfile,
+  TeacherProfile
+} from "../../src/common/types/profile.types";
 import { ReportingService } from "../../src/modules/reporting/service/reporting.service";
 import type { ReportingRepository } from "../../src/modules/reporting/repository/reporting.repository";
 import type { ActivePeriodRow, ReportingStudentRow } from "../../src/modules/reporting/types/reporting.types";
@@ -63,6 +67,18 @@ const teacherProfile = (
   ...overrides
 });
 
+const supervisorProfile = (
+  overrides: Partial<SupervisorProfile> = {}
+): SupervisorProfile => ({
+  supervisorId: "1",
+  userId: "1005",
+  fullName: "Supervisor User",
+  email: "supervisor@example.com",
+  phone: "700000005",
+  department: "Student Affairs",
+  ...overrides
+});
+
 describe("ReportingService", () => {
   const repositoryMock = {
     findActivePeriod: vi.fn(),
@@ -78,11 +94,17 @@ describe("ReportingService", () => {
     listRecentTeacherAttendanceSessions: vi.fn(),
     listRecentTeacherAssessments: vi.fn(),
     listRecentTeacherBehaviorRecords: vi.fn(),
+    listSupervisorAssignments: vi.fn(),
+    listStudentsForSupervisor: vi.fn(),
+    listRecentSupervisorBehaviorRecords: vi.fn(),
     findAdminDashboardSummary: vi.fn(),
     listRecentStudents: vi.fn(),
     listRecentAnnouncements: vi.fn(),
     listActiveTrips: vi.fn(),
-    listLatestTripEventsByTripIds: vi.fn()
+    listLatestTripEventsByTripIds: vi.fn(),
+    findActiveStudentTransportAssignmentByStudentId: vi.fn(),
+    findActiveTripByRouteId: vi.fn(),
+    listLatestTripEventsByTripIdForStudent: vi.fn()
   };
 
   const profileResolutionServiceMock = {
@@ -243,6 +265,131 @@ describe("ReportingService", () => {
         isActive: true
       })
     ).rejects.toBeInstanceOf(NotFoundError);
+  });
+
+  it("builds admin preview parent dashboard using parent user id and linked children", async () => {
+    vi.mocked(profileResolutionServiceMock.findParentProfileByUserId).mockResolvedValue(
+      parentProfile({ userId: "2001" })
+    );
+    vi.mocked(repositoryMock.listChildrenForParent).mockResolvedValue([studentRow()]);
+    vi.mocked(repositoryMock.findStudentAttendanceSummary).mockResolvedValue(null);
+    vi.mocked(repositoryMock.listStudentAssessmentSummaries).mockResolvedValue([]);
+    vi.mocked(repositoryMock.findStudentBehaviorSummary).mockResolvedValue(null);
+    vi.mocked(repositoryMock.listLatestNotificationsByUserId).mockResolvedValue([]);
+    vi.mocked(repositoryMock.findNotificationSummaryByUserId).mockResolvedValue({
+      totalNotifications: "0",
+      unreadNotifications: "0"
+    });
+
+    const response = await reportingService.getAdminPreviewParentDashboard(
+      {
+        userId: "1001",
+        role: "admin",
+        email: "admin@example.com",
+        isActive: true
+      },
+      "2001"
+    );
+
+    expect(profileResolutionServiceMock.findParentProfileByUserId).toHaveBeenCalledWith("2001");
+    expect(repositoryMock.listChildrenForParent).toHaveBeenCalledWith("1");
+    expect(repositoryMock.listLatestNotificationsByUserId).toHaveBeenCalledWith("2001", 5);
+    expect(response.parent.userId).toBe("2001");
+    expect(response.children).toHaveLength(1);
+  });
+
+  it("returns a parent-link-specific 404 for admin preview child requests", async () => {
+    vi.mocked(profileResolutionServiceMock.findParentProfileByUserId).mockResolvedValue(
+      parentProfile({ userId: "2001" })
+    );
+    vi.mocked(repositoryMock.listChildrenForParent).mockResolvedValue([studentRow({ studentId: "1" })]);
+
+    await expect(
+      reportingService.getAdminPreviewParentStudentProfile(
+        {
+          userId: "1001",
+          role: "admin",
+          email: "admin@example.com",
+          isActive: true
+        },
+        "2001",
+        "9"
+      )
+    ).rejects.toMatchObject({
+      message: "Student not linked to parent"
+    });
+  });
+
+  it("builds admin preview teacher dashboard using teacher user id", async () => {
+    vi.mocked(profileResolutionServiceMock.findTeacherProfileByUserId).mockResolvedValue(
+      teacherProfile({ userId: "3001" })
+    );
+    vi.mocked(repositoryMock.listTeacherAssignments).mockResolvedValue([]);
+    vi.mocked(repositoryMock.listRecentTeacherAttendanceSessions).mockResolvedValue([]);
+    vi.mocked(repositoryMock.listRecentTeacherAssessments).mockResolvedValue([]);
+    vi.mocked(repositoryMock.listRecentTeacherBehaviorRecords).mockResolvedValue([]);
+
+    const response = await reportingService.getAdminPreviewTeacherDashboard(
+      {
+        userId: "1001",
+        role: "admin",
+        email: "admin@example.com",
+        isActive: true
+      },
+      "3001"
+    );
+
+    expect(profileResolutionServiceMock.findTeacherProfileByUserId).toHaveBeenCalledWith("3001");
+    expect(response.teacher.userId).toBe("3001");
+  });
+
+  it("builds admin preview supervisor dashboard using supervisor user id", async () => {
+    vi.mocked(profileResolutionServiceMock.findSupervisorProfileByUserId).mockResolvedValue(
+      supervisorProfile({ userId: "4001" })
+    );
+    vi.mocked(repositoryMock.listSupervisorAssignments).mockResolvedValue([]);
+    vi.mocked(repositoryMock.listStudentsForSupervisor).mockResolvedValue([]);
+    vi.mocked(repositoryMock.listRecentSupervisorBehaviorRecords).mockResolvedValue([]);
+
+    const response = await reportingService.getAdminPreviewSupervisorDashboard(
+      {
+        userId: "1001",
+        role: "admin",
+        email: "admin@example.com",
+        isActive: true
+      },
+      "4001"
+    );
+
+    expect(profileResolutionServiceMock.findSupervisorProfileByUserId).toHaveBeenCalledWith(
+      "4001"
+    );
+    expect(response.supervisor.userId).toBe("4001");
+  });
+
+  it("returns zero-safe transport preview when a linked student has no active assignment", async () => {
+    vi.mocked(profileResolutionServiceMock.findParentProfileByUserId).mockResolvedValue(
+      parentProfile({ userId: "2001" })
+    );
+    vi.mocked(repositoryMock.listChildrenForParent).mockResolvedValue([studentRow()]);
+    vi.mocked(repositoryMock.findActiveStudentTransportAssignmentByStudentId).mockResolvedValue(
+      null
+    );
+
+    const response = await reportingService.getAdminPreviewParentTransportLiveStatus(
+      {
+        userId: "1001",
+        role: "admin",
+        email: "admin@example.com",
+        isActive: true
+      },
+      "2001",
+      "1"
+    );
+
+    expect(response.assignment).toBeNull();
+    expect(response.activeTrip).toBeNull();
+    expect(response.student.id).toBe("1");
   });
 });
 

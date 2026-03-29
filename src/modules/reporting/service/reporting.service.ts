@@ -39,6 +39,11 @@ import type {
   ActivePeriodRow,
   ReportingStudentRow
 } from "../types/reporting.types";
+import type {
+  ParentProfile,
+  SupervisorProfile,
+  TeacherProfile
+} from "../../../common/types/profile.types";
 
 const RECENT_LIMIT = 5;
 const TRIP_EVENT_LIMIT = 5;
@@ -65,33 +70,7 @@ export class ReportingService {
     studentId: string
   ): Promise<ReportingStudentProfileResponseDto> {
     const { activePeriod, student } = await this.getAccessibleStudentForStaff(authUser, studentId);
-
-    const [parents, attendanceSummary, assessmentSummary, behaviorSummary] = await Promise.all([
-      this.reportingRepository.listStudentParents(studentId),
-      this.reportingRepository.findStudentAttendanceSummary(
-        studentId,
-        activePeriod.academicYearId,
-        activePeriod.semesterId
-      ),
-      this.reportingRepository.listStudentAssessmentSummaries(
-        studentId,
-        activePeriod.academicYearId,
-        activePeriod.semesterId
-      ),
-      this.reportingRepository.findStudentBehaviorSummary(
-        studentId,
-        activePeriod.academicYearId,
-        activePeriod.semesterId
-      )
-    ]);
-
-    return toStudentProfileResponseDto(
-      student,
-      parents,
-      attendanceSummary,
-      behaviorSummary,
-      assessmentSummary
-    );
+    return this.buildStudentProfileResponse(activePeriod, student);
   }
 
   async getStudentAttendanceReport(
@@ -99,14 +78,7 @@ export class ReportingService {
     studentId: string
   ): Promise<ReportingStudentAttendanceReportResponseDto> {
     const { activePeriod, student } = await this.getAccessibleStudentForStaff(authUser, studentId);
-
-    const summary = await this.reportingRepository.findStudentAttendanceSummary(
-      studentId,
-      activePeriod.academicYearId,
-      activePeriod.semesterId
-    );
-
-    return toStudentAttendanceReportResponseDto(student, summary);
+    return this.buildStudentAttendanceReportResponse(activePeriod, student);
   }
 
   async getStudentAssessmentReport(
@@ -114,14 +86,7 @@ export class ReportingService {
     studentId: string
   ): Promise<ReportingStudentAssessmentReportResponseDto> {
     const { activePeriod, student } = await this.getAccessibleStudentForStaff(authUser, studentId);
-
-    const summaryRows = await this.reportingRepository.listStudentAssessmentSummaries(
-      studentId,
-      activePeriod.academicYearId,
-      activePeriod.semesterId
-    );
-
-    return toStudentAssessmentReportResponseDto(student, summaryRows);
+    return this.buildStudentAssessmentReportResponse(activePeriod, student);
   }
 
   async getStudentBehaviorReport(
@@ -129,14 +94,7 @@ export class ReportingService {
     studentId: string
   ): Promise<ReportingStudentBehaviorReportResponseDto> {
     const { activePeriod, student } = await this.getAccessibleStudentForStaff(authUser, studentId);
-
-    const summary = await this.reportingRepository.findStudentBehaviorSummary(
-      studentId,
-      activePeriod.academicYearId,
-      activePeriod.semesterId
-    );
-
-    return toStudentBehaviorReportResponseDto(student, summary);
+    return this.buildStudentBehaviorReportResponse(activePeriod, student);
   }
 
   async getParentStudentProfile(
@@ -144,21 +102,235 @@ export class ReportingService {
     studentId: string
   ): Promise<ReportingStudentProfileResponseDto> {
     const { activePeriod, student } = await this.getAccessibleStudentForParent(authUser, studentId);
+    return this.buildStudentProfileResponse(activePeriod, student);
+  }
 
+  async getParentStudentAttendanceReport(
+    authUser: AuthenticatedUser,
+    studentId: string
+  ): Promise<ReportingStudentAttendanceReportResponseDto> {
+    const { activePeriod, student } = await this.getAccessibleStudentForParent(authUser, studentId);
+    return this.buildStudentAttendanceReportResponse(activePeriod, student);
+  }
+
+  async getParentStudentAssessmentReport(
+    authUser: AuthenticatedUser,
+    studentId: string
+  ): Promise<ReportingStudentAssessmentReportResponseDto> {
+    const { activePeriod, student } = await this.getAccessibleStudentForParent(authUser, studentId);
+    return this.buildStudentAssessmentReportResponse(activePeriod, student);
+  }
+
+  async getParentStudentBehaviorReport(
+    authUser: AuthenticatedUser,
+    studentId: string
+  ): Promise<ReportingStudentBehaviorReportResponseDto> {
+    const { activePeriod, student } = await this.getAccessibleStudentForParent(authUser, studentId);
+    return this.buildStudentBehaviorReportResponse(activePeriod, student);
+  }
+
+  async getAdminPreviewParentDashboard(
+    authUser: AuthenticatedUser,
+    parentUserId: string
+  ): Promise<ReportingParentDashboardResponseDto> {
+    this.assertRole(authUser, "admin");
+    const activePeriod = await this.requireActivePeriod();
+    const parent = await this.requireParentProfileByUserId(parentUserId, "Parent");
+
+    return this.buildParentDashboardResponse(activePeriod, parent, parentUserId);
+  }
+
+  async getAdminPreviewParentStudentProfile(
+    authUser: AuthenticatedUser,
+    parentUserId: string,
+    studentId: string
+  ): Promise<ReportingStudentProfileResponseDto> {
+    this.assertRole(authUser, "admin");
+    const activePeriod = await this.requireActivePeriod();
+    const student = await this.getLinkedStudentForAdminPreviewParent(parentUserId, studentId);
+
+    return this.buildStudentProfileResponse(activePeriod, student);
+  }
+
+  async getAdminPreviewParentStudentAttendanceReport(
+    authUser: AuthenticatedUser,
+    parentUserId: string,
+    studentId: string
+  ): Promise<ReportingStudentAttendanceReportResponseDto> {
+    this.assertRole(authUser, "admin");
+    const activePeriod = await this.requireActivePeriod();
+    const student = await this.getLinkedStudentForAdminPreviewParent(parentUserId, studentId);
+
+    return this.buildStudentAttendanceReportResponse(activePeriod, student);
+  }
+
+  async getAdminPreviewParentStudentAssessmentReport(
+    authUser: AuthenticatedUser,
+    parentUserId: string,
+    studentId: string
+  ): Promise<ReportingStudentAssessmentReportResponseDto> {
+    this.assertRole(authUser, "admin");
+    const activePeriod = await this.requireActivePeriod();
+    const student = await this.getLinkedStudentForAdminPreviewParent(parentUserId, studentId);
+
+    return this.buildStudentAssessmentReportResponse(activePeriod, student);
+  }
+
+  async getAdminPreviewParentStudentBehaviorReport(
+    authUser: AuthenticatedUser,
+    parentUserId: string,
+    studentId: string
+  ): Promise<ReportingStudentBehaviorReportResponseDto> {
+    this.assertRole(authUser, "admin");
+    const activePeriod = await this.requireActivePeriod();
+    const student = await this.getLinkedStudentForAdminPreviewParent(parentUserId, studentId);
+
+    return this.buildStudentBehaviorReportResponse(activePeriod, student);
+  }
+
+  async getAdminPreviewParentTransportLiveStatus(
+    authUser: AuthenticatedUser,
+    parentUserId: string,
+    studentId: string
+  ): Promise<ReportingParentTransportLiveStatusResponseDto> {
+    this.assertRole(authUser, "admin");
+    const student = await this.getLinkedStudentForAdminPreviewParent(parentUserId, studentId);
+
+    return this.buildParentTransportLiveStatusResponse(student);
+  }
+
+  async getAdminPreviewTeacherDashboard(
+    authUser: AuthenticatedUser,
+    teacherUserId: string
+  ): Promise<ReportingTeacherDashboardResponseDto> {
+    this.assertRole(authUser, "admin");
+    const activePeriod = await this.requireActivePeriod();
+    const teacher = await this.requireTeacherProfileByUserId(teacherUserId, "Teacher");
+
+    return this.buildTeacherDashboardResponse(activePeriod, teacher);
+  }
+
+  async getAdminPreviewSupervisorDashboard(
+    authUser: AuthenticatedUser,
+    supervisorUserId: string
+  ): Promise<ReportingSupervisorDashboardResponseDto> {
+    this.assertRole(authUser, "admin");
+    const activePeriod = await this.requireActivePeriod();
+    const supervisor = await this.requireSupervisorProfileByUserId(
+      supervisorUserId,
+      "Supervisor"
+    );
+
+    return this.buildSupervisorDashboardResponse(activePeriod, supervisor);
+  }
+
+  async getParentDashboard(
+    authUser: AuthenticatedUser
+  ): Promise<ReportingParentDashboardResponseDto> {
+    const activePeriod = await this.requireActivePeriod();
+    const parent = await this.requireParentProfileByUserId(authUser.userId, "Parent profile");
+
+    return this.buildParentDashboardResponse(activePeriod, parent, authUser.userId);
+  }
+
+  async getTeacherDashboard(
+    authUser: AuthenticatedUser
+  ): Promise<ReportingTeacherDashboardResponseDto> {
+    const activePeriod = await this.requireActivePeriod();
+    const teacher = await this.requireTeacherProfileByUserId(authUser.userId, "Teacher profile");
+
+    return this.buildTeacherDashboardResponse(activePeriod, teacher);
+  }
+
+  async getSupervisorDashboard(
+    authUser: AuthenticatedUser
+  ): Promise<ReportingSupervisorDashboardResponseDto> {
+    const activePeriod = await this.requireActivePeriod();
+    const supervisor = await this.requireSupervisorProfileByUserId(
+      authUser.userId,
+      "Supervisor profile"
+    );
+
+    return this.buildSupervisorDashboardResponse(activePeriod, supervisor);
+  }
+
+  async getAdminDashboard(
+    authUser: AuthenticatedUser
+  ): Promise<ReportingAdminDashboardResponseDto> {
+    this.assertRole(authUser, "admin");
+    await this.requireActivePeriod();
+
+    const [summary, recentStudents, recentAnnouncements, activeTrips] = await Promise.all([
+      this.reportingRepository.findAdminDashboardSummary(),
+      this.reportingRepository.listRecentStudents(RECENT_LIMIT),
+      this.reportingRepository.listRecentAnnouncements(RECENT_LIMIT),
+      this.reportingRepository.listActiveTrips({}, RECENT_LIMIT)
+    ]);
+
+    const tripDtos = await this.buildTransportTripDtos(activeTrips);
+
+    return toAdminDashboardResponseDto(
+      assertFound(summary, "Admin dashboard summary"),
+      recentStudents,
+      recentAnnouncements,
+      tripDtos
+    );
+  }
+
+  async getTransportSummary(
+    authUser: AuthenticatedUser
+  ): Promise<ReportingTransportSummaryResponseDto> {
+    if (!["admin", "driver"].includes(authUser.role)) {
+      throw new ForbiddenError("You do not have permission to access transport reporting");
+    }
+
+    if (authUser.role === "driver") {
+      const driver = assertFound(
+        await this.profileResolutionService.findDriverProfileByUserId(authUser.userId),
+        "Driver profile"
+      );
+      const activeTrips = await this.reportingRepository.listActiveTrips({
+        driverId: driver.driverId
+      });
+      const tripDtos = await this.buildTransportTripDtos(activeTrips);
+
+      return toTransportSummaryResponseDto(tripDtos);
+    }
+
+    await this.requireActivePeriod();
+
+    const activeTrips = await this.reportingRepository.listActiveTrips();
+    const tripDtos = await this.buildTransportTripDtos(activeTrips);
+
+    return toTransportSummaryResponseDto(tripDtos);
+  }
+
+  async getParentTransportLiveStatus(
+    authUser: AuthenticatedUser,
+    studentId: string
+  ): Promise<ReportingParentTransportLiveStatusResponseDto> {
+    const student = await this.getAccessibleStudentForParentOnly(authUser, studentId);
+    return this.buildParentTransportLiveStatusResponse(student);
+  }
+
+  private async buildStudentProfileResponse(
+    activePeriod: ActivePeriodRow,
+    student: ReportingStudentRow
+  ): Promise<ReportingStudentProfileResponseDto> {
     const [parents, attendanceSummary, assessmentSummary, behaviorSummary] = await Promise.all([
-      this.reportingRepository.listStudentParents(studentId),
+      this.reportingRepository.listStudentParents(student.studentId),
       this.reportingRepository.findStudentAttendanceSummary(
-        studentId,
+        student.studentId,
         activePeriod.academicYearId,
         activePeriod.semesterId
       ),
       this.reportingRepository.listStudentAssessmentSummaries(
-        studentId,
+        student.studentId,
         activePeriod.academicYearId,
         activePeriod.semesterId
       ),
       this.reportingRepository.findStudentBehaviorSummary(
-        studentId,
+        student.studentId,
         activePeriod.academicYearId,
         activePeriod.semesterId
       )
@@ -173,13 +345,12 @@ export class ReportingService {
     );
   }
 
-  async getParentStudentAttendanceReport(
-    authUser: AuthenticatedUser,
-    studentId: string
+  private async buildStudentAttendanceReportResponse(
+    activePeriod: ActivePeriodRow,
+    student: ReportingStudentRow
   ): Promise<ReportingStudentAttendanceReportResponseDto> {
-    const { activePeriod, student } = await this.getAccessibleStudentForParent(authUser, studentId);
     const summary = await this.reportingRepository.findStudentAttendanceSummary(
-      studentId,
+      student.studentId,
       activePeriod.academicYearId,
       activePeriod.semesterId
     );
@@ -187,13 +358,12 @@ export class ReportingService {
     return toStudentAttendanceReportResponseDto(student, summary);
   }
 
-  async getParentStudentAssessmentReport(
-    authUser: AuthenticatedUser,
-    studentId: string
+  private async buildStudentAssessmentReportResponse(
+    activePeriod: ActivePeriodRow,
+    student: ReportingStudentRow
   ): Promise<ReportingStudentAssessmentReportResponseDto> {
-    const { activePeriod, student } = await this.getAccessibleStudentForParent(authUser, studentId);
     const summaryRows = await this.reportingRepository.listStudentAssessmentSummaries(
-      studentId,
+      student.studentId,
       activePeriod.academicYearId,
       activePeriod.semesterId
     );
@@ -201,13 +371,12 @@ export class ReportingService {
     return toStudentAssessmentReportResponseDto(student, summaryRows);
   }
 
-  async getParentStudentBehaviorReport(
-    authUser: AuthenticatedUser,
-    studentId: string
+  private async buildStudentBehaviorReportResponse(
+    activePeriod: ActivePeriodRow,
+    student: ReportingStudentRow
   ): Promise<ReportingStudentBehaviorReportResponseDto> {
-    const { activePeriod, student } = await this.getAccessibleStudentForParent(authUser, studentId);
     const summary = await this.reportingRepository.findStudentBehaviorSummary(
-      studentId,
+      student.studentId,
       activePeriod.academicYearId,
       activePeriod.semesterId
     );
@@ -215,14 +384,11 @@ export class ReportingService {
     return toStudentBehaviorReportResponseDto(student, summary);
   }
 
-  async getParentDashboard(
-    authUser: AuthenticatedUser
+  private async buildParentDashboardResponse(
+    activePeriod: ActivePeriodRow,
+    parent: ParentProfile,
+    parentUserId: string
   ): Promise<ReportingParentDashboardResponseDto> {
-    const activePeriod = await this.requireActivePeriod();
-    const parent = assertFound(
-      await this.profileResolutionService.findParentProfileByUserId(authUser.userId),
-      "Parent profile"
-    );
     const children = await this.reportingRepository.listChildrenForParent(parent.parentId);
 
     const childDtos = await Promise.all(
@@ -250,8 +416,8 @@ export class ReportingService {
     );
 
     const [notifications, notificationSummary] = await Promise.all([
-      this.reportingRepository.listLatestNotificationsByUserId(authUser.userId, RECENT_LIMIT),
-      this.reportingRepository.findNotificationSummaryByUserId(authUser.userId)
+      this.reportingRepository.listLatestNotificationsByUserId(parentUserId, RECENT_LIMIT),
+      this.reportingRepository.findNotificationSummaryByUserId(parentUserId)
     ]);
 
     return toParentDashboardResponseDto(
@@ -262,15 +428,10 @@ export class ReportingService {
     );
   }
 
-  async getTeacherDashboard(
-    authUser: AuthenticatedUser
+  private async buildTeacherDashboardResponse(
+    activePeriod: ActivePeriodRow,
+    teacher: TeacherProfile
   ): Promise<ReportingTeacherDashboardResponseDto> {
-    const activePeriod = await this.requireActivePeriod();
-    const teacher = assertFound(
-      await this.profileResolutionService.findTeacherProfileByUserId(authUser.userId),
-      "Teacher profile"
-    );
-
     const [assignments, recentAttendanceSessions, recentAssessments, recentBehaviorRecords] =
       await Promise.all([
         this.reportingRepository.listTeacherAssignments(
@@ -306,15 +467,10 @@ export class ReportingService {
     );
   }
 
-  async getSupervisorDashboard(
-    authUser: AuthenticatedUser
+  private async buildSupervisorDashboardResponse(
+    activePeriod: ActivePeriodRow,
+    supervisor: SupervisorProfile
   ): Promise<ReportingSupervisorDashboardResponseDto> {
-    const activePeriod = await this.requireActivePeriod();
-    const supervisor = assertFound(
-      await this.profileResolutionService.findSupervisorProfileByUserId(authUser.userId),
-      "Supervisor profile"
-    );
-
     const [assignments, students, recentBehaviorRecords] = await Promise.all([
       this.reportingRepository.listSupervisorAssignments(
         supervisor.supervisorId,
@@ -398,64 +554,11 @@ export class ReportingService {
     };
   }
 
-  async getAdminDashboard(
-    authUser: AuthenticatedUser
-  ): Promise<ReportingAdminDashboardResponseDto> {
-    this.assertRole(authUser, "admin");
-    await this.requireActivePeriod();
-
-    const [summary, recentStudents, recentAnnouncements, activeTrips] = await Promise.all([
-      this.reportingRepository.findAdminDashboardSummary(),
-      this.reportingRepository.listRecentStudents(RECENT_LIMIT),
-      this.reportingRepository.listRecentAnnouncements(RECENT_LIMIT),
-      this.reportingRepository.listActiveTrips({}, RECENT_LIMIT)
-    ]);
-
-    const tripDtos = await this.buildTransportTripDtos(activeTrips);
-
-    return toAdminDashboardResponseDto(
-      assertFound(summary, "Admin dashboard summary"),
-      recentStudents,
-      recentAnnouncements,
-      tripDtos
-    );
-  }
-
-  async getTransportSummary(
-    authUser: AuthenticatedUser
-  ): Promise<ReportingTransportSummaryResponseDto> {
-    if (!["admin", "driver"].includes(authUser.role)) {
-      throw new ForbiddenError("You do not have permission to access transport reporting");
-    }
-
-    if (authUser.role === "driver") {
-      const driver = assertFound(
-        await this.profileResolutionService.findDriverProfileByUserId(authUser.userId),
-        "Driver profile"
-      );
-      const activeTrips = await this.reportingRepository.listActiveTrips({
-        driverId: driver.driverId
-      });
-      const tripDtos = await this.buildTransportTripDtos(activeTrips);
-
-      return toTransportSummaryResponseDto(tripDtos);
-    }
-
-    await this.requireActivePeriod();
-
-    const activeTrips = await this.reportingRepository.listActiveTrips();
-    const tripDtos = await this.buildTransportTripDtos(activeTrips);
-
-    return toTransportSummaryResponseDto(tripDtos);
-  }
-
-  async getParentTransportLiveStatus(
-    authUser: AuthenticatedUser,
-    studentId: string
+  private async buildParentTransportLiveStatusResponse(
+    student: ReportingStudentRow
   ): Promise<ReportingParentTransportLiveStatusResponseDto> {
-    const student = await this.getAccessibleStudentForParentOnly(authUser, studentId);
     const assignment = await this.reportingRepository.findActiveStudentTransportAssignmentByStudentId(
-      studentId
+      student.studentId
     );
 
     if (!assignment) {
@@ -491,7 +594,7 @@ export class ReportingService {
 
     const latestEvents = await this.reportingRepository.listLatestTripEventsByTripIdForStudent(
       activeTrip.tripId,
-      studentId,
+      student.studentId,
       TRIP_EVENT_LIMIT
     );
 
@@ -535,6 +638,51 @@ export class ReportingService {
         latestEvents: latestEvents.map((event) => toTripEventDto(event))
       }
     };
+  }
+
+  private async requireParentProfileByUserId(
+    parentUserId: string,
+    label: string
+  ): Promise<ParentProfile> {
+    return assertFound(
+      await this.profileResolutionService.findParentProfileByUserId(parentUserId),
+      label
+    );
+  }
+
+  private async requireTeacherProfileByUserId(
+    teacherUserId: string,
+    label: string
+  ): Promise<TeacherProfile> {
+    return assertFound(
+      await this.profileResolutionService.findTeacherProfileByUserId(teacherUserId),
+      label
+    );
+  }
+
+  private async requireSupervisorProfileByUserId(
+    supervisorUserId: string,
+    label: string
+  ): Promise<SupervisorProfile> {
+    return assertFound(
+      await this.profileResolutionService.findSupervisorProfileByUserId(supervisorUserId),
+      label
+    );
+  }
+
+  private async getLinkedStudentForAdminPreviewParent(
+    parentUserId: string,
+    studentId: string
+  ): Promise<ReportingStudentRow> {
+    const parent = await this.requireParentProfileByUserId(parentUserId, "Parent");
+    const children = await this.reportingRepository.listChildrenForParent(parent.parentId);
+    const student = children.find((child) => child.studentId === studentId);
+
+    if (!student) {
+      throw new NotFoundError("Student not linked to parent");
+    }
+
+    return student;
   }
 
   private async requireActivePeriod(): Promise<ActivePeriodRow> {

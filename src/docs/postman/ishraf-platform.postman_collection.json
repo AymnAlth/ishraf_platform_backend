@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Ishraf Platform Backend API",
-    "_postman_id": "a49f4a55-ba8c-4c82-b0dd-a8ffe6b9ea3d",
+    "_postman_id": "a2c23cc4-abbc-42ad-9ec1-8198250edf7a",
     "description": "Full Postman collection covering every live backend endpoint.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
@@ -69,6 +69,18 @@
     {
       "key": "studentId",
       "value": "1"
+    },
+    {
+      "key": "parentUserId",
+      "value": "1003"
+    },
+    {
+      "key": "teacherUserId",
+      "value": "1002"
+    },
+    {
+      "key": "supervisorUserId",
+      "value": "1005"
     },
     {
       "key": "parentId",
@@ -3850,6 +3862,236 @@
       "name": "Reporting",
       "description": "Role dashboards, student-scoped reports, transport summaries, and parent live-status endpoints.",
       "item": [
+        {
+          "name": "Get Admin Preview Parent Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "description": "Purpose: Return the canonical parent dashboard surface for admin monitoring, starting from the selected parent user account.\n\nRoles: admin\n\nAuth: Bearer access token required\n\nNote: Admin-only, read-only preview surface.\n\nNote: Path identifiers are users.id values, not parent profile ids.\n\nNote: This is the preferred backend surface for parent-first monitoring and role parity previews.",
+            "url": {
+              "raw": "{{baseUrl}}/reporting/admin-preview/parents/{{parentUserId}}/dashboard",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reporting",
+                "admin-preview",
+                "parents",
+                "{{parentUserId}}",
+                "dashboard"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Get Admin Preview Parent Child Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "description": "Purpose: Return the canonical child profile payload under one selected parent user for admin monitoring.\n\nRoles: admin\n\nAuth: Bearer access token required\n\nNote: Admin-only, read-only preview surface.\n\nNote: Requires the selected child to be linked to the selected parent or returns 404 Student not linked to parent.\n\nNote: Path identifiers are users.id for the parent and students.id for the child.",
+            "url": {
+              "raw": "{{baseUrl}}/reporting/admin-preview/parents/{{parentUserId}}/students/{{studentId}}/profile",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reporting",
+                "admin-preview",
+                "parents",
+                "{{parentUserId}}",
+                "students",
+                "{{studentId}}",
+                "profile"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Get Admin Preview Parent Child Assessment Summary",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "description": "Purpose: Return the canonical child assessment summary under one selected parent user for admin monitoring.\n\nRoles: admin\n\nAuth: Bearer access token required\n\nNote: Admin-only, read-only preview surface.\n\nNote: Requires parent-child linkage or returns 404 Student not linked to parent.\n\nNote: Use assessmentSummary.subjects[] rather than items[].",
+            "url": {
+              "raw": "{{baseUrl}}/reporting/admin-preview/parents/{{parentUserId}}/students/{{studentId}}/reports/assessment-summary",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reporting",
+                "admin-preview",
+                "parents",
+                "{{parentUserId}}",
+                "students",
+                "{{studentId}}",
+                "reports",
+                "assessment-summary"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Get Admin Preview Parent Child Attendance Summary",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "description": "Purpose: Return the canonical child attendance summary under one selected parent user for admin monitoring.\n\nRoles: admin\n\nAuth: Bearer access token required\n\nNote: Admin-only, read-only preview surface.\n\nNote: Requires parent-child linkage or returns 404 Student not linked to parent.\n\nNote: No data yet returns 200 with zero-safe totals.",
+            "url": {
+              "raw": "{{baseUrl}}/reporting/admin-preview/parents/{{parentUserId}}/students/{{studentId}}/reports/attendance-summary",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reporting",
+                "admin-preview",
+                "parents",
+                "{{parentUserId}}",
+                "students",
+                "{{studentId}}",
+                "reports",
+                "attendance-summary"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Get Admin Preview Parent Child Behavior Summary",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "description": "Purpose: Return the canonical child behavior summary under one selected parent user for admin monitoring.\n\nRoles: admin\n\nAuth: Bearer access token required\n\nNote: Admin-only, read-only preview surface.\n\nNote: Requires parent-child linkage or returns 404 Student not linked to parent.\n\nNote: Use /behavior/students/:studentId/records for the detailed timeline outside this summary view.",
+            "url": {
+              "raw": "{{baseUrl}}/reporting/admin-preview/parents/{{parentUserId}}/students/{{studentId}}/reports/behavior-summary",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reporting",
+                "admin-preview",
+                "parents",
+                "{{parentUserId}}",
+                "students",
+                "{{studentId}}",
+                "reports",
+                "behavior-summary"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Get Admin Preview Parent Child Transport Live Status",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "description": "Purpose: Return the canonical parent transport live-status surface for one linked child under a selected parent user.\n\nRoles: admin\n\nAuth: Bearer access token required\n\nNote: Admin-only, read-only preview surface.\n\nNote: Requires parent-child linkage or returns 404 Student not linked to parent.\n\nNote: Wave 1 is polling-based and does not include Firebase or ETA.\n\nDerived data: This response is view-backed and combines active assignment, active trip live status, latest location, and recent event projections.",
+            "url": {
+              "raw": "{{baseUrl}}/reporting/admin-preview/parents/{{parentUserId}}/students/{{studentId}}/transport/live-status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reporting",
+                "admin-preview",
+                "parents",
+                "{{parentUserId}}",
+                "students",
+                "{{studentId}}",
+                "transport",
+                "live-status"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Get Admin Preview Supervisor Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "description": "Purpose: Return the canonical supervisor dashboard surface for admin monitoring, starting from the selected supervisor user account.\n\nRoles: admin\n\nAuth: Bearer access token required\n\nNote: Admin-only, read-only preview surface.\n\nNote: Path identifier is the supervisor users.id from /users?role=supervisor.\n\nNote: Use this instead of reconstructing supervisor dashboard parity from multiple admin endpoints.",
+            "url": {
+              "raw": "{{baseUrl}}/reporting/admin-preview/supervisors/{{supervisorUserId}}/dashboard",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reporting",
+                "admin-preview",
+                "supervisors",
+                "{{supervisorUserId}}",
+                "dashboard"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Get Admin Preview Teacher Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "description": "Purpose: Return the canonical teacher dashboard surface for admin monitoring, starting from the selected teacher user account.\n\nRoles: admin\n\nAuth: Bearer access token required\n\nNote: Admin-only, read-only preview surface.\n\nNote: Path identifier is the teacher users.id from /users?role=teacher.\n\nNote: Use this instead of reconstructing teacher dashboard parity from multiple admin endpoints.",
+            "url": {
+              "raw": "{{baseUrl}}/reporting/admin-preview/teachers/{{teacherUserId}}/dashboard",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reporting",
+                "admin-preview",
+                "teachers",
+                "{{teacherUserId}}",
+                "dashboard"
+              ],
+              "query": []
+            }
+          }
+        },
         {
           "name": "Get Admin Dashboard",
           "request": {

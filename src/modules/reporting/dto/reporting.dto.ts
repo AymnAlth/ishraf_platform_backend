@@ -325,6 +325,23 @@ export interface ReportingStudentIdParamsDto {
   studentId: string;
 }
 
+export interface ReportingParentPreviewParamsDto {
+  parentUserId: string;
+}
+
+export interface ReportingParentPreviewStudentParamsDto {
+  parentUserId: string;
+  studentId: string;
+}
+
+export interface ReportingTeacherPreviewParamsDto {
+  teacherUserId: string;
+}
+
+export interface ReportingSupervisorPreviewParamsDto {
+  supervisorUserId: string;
+}
+
 export interface ReportingSupervisorDto {
   supervisorId: string;
   userId: string;

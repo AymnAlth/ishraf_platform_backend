@@ -4,7 +4,13 @@ import { validateRequest } from "../../../common/middlewares/validation.middlewa
 import { asyncHandler } from "../../../common/utils/async-handler";
 import type { ReportingController } from "../controller/reporting.controller";
 import { reportingPolicies } from "../policies/reporting.policy";
-import { studentIdParamsSchema } from "../validator/reporting.validator";
+import {
+  parentPreviewParamsSchema,
+  parentPreviewStudentParamsSchema,
+  studentIdParamsSchema,
+  supervisorPreviewParamsSchema,
+  teacherPreviewParamsSchema
+} from "../validator/reporting.validator";
 
 export const createReportingRouter = (controller: ReportingController): Router => {
   const router = Router();
@@ -35,6 +41,62 @@ export const createReportingRouter = (controller: ReportingController): Router =
     ...reportingPolicies.studentReports,
     validateRequest({ params: studentIdParamsSchema }),
     asyncHandler((req, res) => controller.getStudentBehaviorReport(req, res))
+  );
+
+  router.get(
+    "/admin-preview/parents/:parentUserId/dashboard",
+    ...reportingPolicies.adminPreview,
+    validateRequest({ params: parentPreviewParamsSchema }),
+    asyncHandler((req, res) => controller.getAdminPreviewParentDashboard(req, res))
+  );
+
+  router.get(
+    "/admin-preview/parents/:parentUserId/students/:studentId/profile",
+    ...reportingPolicies.adminPreview,
+    validateRequest({ params: parentPreviewStudentParamsSchema }),
+    asyncHandler((req, res) => controller.getAdminPreviewParentStudentProfile(req, res))
+  );
+
+  router.get(
+    "/admin-preview/parents/:parentUserId/students/:studentId/reports/attendance-summary",
+    ...reportingPolicies.adminPreview,
+    validateRequest({ params: parentPreviewStudentParamsSchema }),
+    asyncHandler((req, res) => controller.getAdminPreviewParentStudentAttendanceReport(req, res))
+  );
+
+  router.get(
+    "/admin-preview/parents/:parentUserId/students/:studentId/reports/assessment-summary",
+    ...reportingPolicies.adminPreview,
+    validateRequest({ params: parentPreviewStudentParamsSchema }),
+    asyncHandler((req, res) => controller.getAdminPreviewParentStudentAssessmentReport(req, res))
+  );
+
+  router.get(
+    "/admin-preview/parents/:parentUserId/students/:studentId/reports/behavior-summary",
+    ...reportingPolicies.adminPreview,
+    validateRequest({ params: parentPreviewStudentParamsSchema }),
+    asyncHandler((req, res) => controller.getAdminPreviewParentStudentBehaviorReport(req, res))
+  );
+
+  router.get(
+    "/admin-preview/parents/:parentUserId/students/:studentId/transport/live-status",
+    ...reportingPolicies.adminPreview,
+    validateRequest({ params: parentPreviewStudentParamsSchema }),
+    asyncHandler((req, res) => controller.getAdminPreviewParentTransportLiveStatus(req, res))
+  );
+
+  router.get(
+    "/admin-preview/teachers/:teacherUserId/dashboard",
+    ...reportingPolicies.adminPreview,
+    validateRequest({ params: teacherPreviewParamsSchema }),
+    asyncHandler((req, res) => controller.getAdminPreviewTeacherDashboard(req, res))
+  );
+
+  router.get(
+    "/admin-preview/supervisors/:supervisorUserId/dashboard",
+    ...reportingPolicies.adminPreview,
+    validateRequest({ params: supervisorPreviewParamsSchema }),
+    asyncHandler((req, res) => controller.getAdminPreviewSupervisorDashboard(req, res))
   );
 
   router.get(
