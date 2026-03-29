@@ -12,8 +12,8 @@ const API_SERVER_URL = "https://ishraf-platform-backend-staging.onrender.com/api
 const ROOT_SERVER_URL = "https://ishraf-platform-backend-staging.onrender.com";
 const LOCAL_API_SERVER_URL = "http://localhost:4000/api/v1";
 const LOCAL_ROOT_SERVER_URL = "http://localhost:4000";
-const TODAY = "2026-03-27";
-const NOW = "2026-03-27T12:00:00.000Z";
+const TODAY = "2026-03-30";
+const NOW = "2026-03-30T12:00:00.000Z";
 
 const ROOT_SERVERS = [
   { url: ROOT_SERVER_URL, description: "Hosted staging on Render" },
@@ -520,8 +520,16 @@ const examples = {
     title: "[Seed] School Notice",
     content: "إعلان تجريبي للواجهات",
     targetRole: null,
+    targetRoles: [],
     publishedAt: NOW,
     expiresAt: "2026-04-01T00:00:00.000Z"
+  },
+  bulkDelivery: {
+    resolvedRecipients: 3,
+    duplicatesRemoved: 1,
+    successCount: 3,
+    failedCount: 0,
+    failedTargets: []
   },
   notification: {
     id: "1",
@@ -1483,8 +1491,10 @@ function addSchema(name, schema) {
   ["CreateTripStudentEventRequest", { studentId: "1", eventType: "dropped_off", stopId: "1", notes: "تم النزول بنجاح" }],
   ["SaveStudentHomeLocationRequest", { addressLabel: "Student Home 1", addressText: "Nearby the local market", latitude: 15.3701, longitude: 44.1921, status: "approved", notes: null }],
   ["SendMessageRequest", { receiverUserId: "20", messageBody: "رسالة مباشرة تجريبية" }],
-  ["CreateAnnouncementRequest", { title: "[Seed] New notice", content: "إعلان موجّه لأولياء الأمور", targetRole: "parent", expiresAt: "2026-04-01T00:00:00.000Z" }],
+  ["SendBulkMessageRequest", { receiverUserIds: ["20"], targetRoles: ["teacher", "supervisor"], messageBody: "رسالة جماعية منسوخة كرسائل فردية" }],
+  ["CreateAnnouncementRequest", { title: "[Seed] New notice", content: "إعلان موجّه للمعلمين والمشرفين", targetRoles: ["teacher", "supervisor"], expiresAt: "2026-04-01T00:00:00.000Z" }],
   ["CreateNotificationRequest", { userId: "20", title: "إشعار يدوي", message: "رسالة إشعار يدوية", notificationType: "manual", referenceType: null, referenceId: null }],
+  ["CreateBulkNotificationRequest", { userIds: ["20"], targetRoles: ["parent"], title: "إشعار جماعي", message: "هذا الإشعار يصل كملاحظات فردية", notificationType: "manual", referenceType: null, referenceId: null }],
   ["CreateHomeworkRequest", { teacherId: "1002", classId: "1", subjectId: "1", academicYearId: "1", semesterId: "1", title: "واجب الرياضيات 2", description: "حل الصفحات 12-14", assignedDate: TODAY, dueDate: "2026-03-28" }],
   ["SaveHomeworkSubmissionsRequest", { records: [{ studentId: "1", status: "submitted", submittedAt: TODAY, notes: "تم التسليم" }, { studentId: "2", status: "late", submittedAt: TODAY, notes: "تسليم متأخر" }] }]
 ].forEach(([name, example]) => {
@@ -1732,14 +1742,16 @@ endpoints.push(
 endpoints.push(
   makeEndpoint({ m: "GET", p: "/communication/recipients", t: "Communication", s: "List Available Recipients", u: "Return the active users that the authenticated caller can currently message. v1 mirrors the current messaging policy: any active user except self.", r: ["admin", "parent", "teacher", "supervisor", "driver"], q: recipientsQuery, kind: "paginated", e: "recipient", status: 200, notes: ["The response is scope-limited to active users and excludes the authenticated user.", "Empty result sets return 200 with items=[]."] }),
   makeEndpoint({ m: "POST", p: "/communication/messages", t: "Communication", s: "Send Message", u: "Send a direct message to another active user.", r: ["admin", "parent", "teacher", "supervisor", "driver"], b: "SendMessageRequest", e: "message" }),
+  makeEndpoint({ m: "POST", p: "/communication/messages/bulk", t: "Communication", s: "[NEW] Send Bulk Messages", u: "Create admin-only multi-target direct messages as individual one-to-one copies. The endpoint is all-or-nothing and uses the same audience rules as /communication/recipients.", r: ["admin"], b: "SendBulkMessageRequest", e: "bulkDelivery", status: 201, notes: ["[NEW] Direct multi-target delivery creates individual copies inside messages; it does not create a group thread.", "[NEW] At least one of receiverUserIds[] or targetRoles[] is required.", "[NEW] Explicit self-targeting is rejected.", "[NEW] If resolved audience is empty or explicit user ids are outside the available-recipient surface, the request fails with 400."], derived: "Audience resolution reuses the same active-user and self-exclusion policy exposed by GET /communication/recipients." }),
   makeEndpoint({ m: "GET", p: "/communication/messages/inbox", t: "Communication", s: "List Inbox", u: "List inbox messages for the authenticated user with unreadCount metadata.", r: ["admin", "parent", "teacher", "supervisor", "driver"], q: inboxQuery, kind: "paginated", e: "message", status: 200 }),
   makeEndpoint({ m: "GET", p: "/communication/messages/sent", t: "Communication", s: "List Sent Messages", u: "List sent messages for the authenticated user.", r: ["admin", "parent", "teacher", "supervisor", "driver"], q: sentQuery, kind: "paginated", e: "message", status: 200 }),
   makeEndpoint({ m: "GET", p: "/communication/messages/conversations/:otherUserId", t: "Communication", s: "Get Conversation", u: "List a direct conversation thread with another user. The default sort is ascending by sentAt.", r: ["admin", "parent", "teacher", "supervisor", "driver"], q: conversationQuery, kind: "paginated", e: "message", status: 200 }),
   makeEndpoint({ m: "PATCH", p: "/communication/messages/:messageId/read", t: "Communication", s: "Mark Message Read", u: "Mark one received message as read.", r: ["admin", "parent", "teacher", "supervisor", "driver"], e: "message", status: 200 }),
-  makeEndpoint({ m: "POST", p: "/communication/announcements", t: "Communication", s: "Create Announcement", u: "Create an announcement. targetRole narrows the feed; null targets all active users.", b: "CreateAnnouncementRequest", e: "announcement" }),
+  makeEndpoint({ m: "POST", p: "/communication/announcements", t: "Communication", s: "Create Announcement", u: "Create an admin announcement targeted to all users, one role, or multiple roles. targetRole remains legacy; targetRoles[] is the new multi-role contract.", b: "CreateAnnouncementRequest", e: "announcement", notes: ["Announcements support roles/all only. Person-targeted announcements are not supported.", "Do not send targetRole and targetRoles together.", "If neither targetRole nor targetRoles is provided, the announcement targets all active roles."] }),
   makeEndpoint({ m: "GET", p: "/communication/announcements", t: "Communication", s: "List All Announcements", u: "List all announcements, including expired ones, for admin management.", kind: "array", e: "announcement", status: 200 }),
-  makeEndpoint({ m: "GET", p: "/communication/announcements/active", t: "Communication", s: "List Active Announcements", u: "Return the active announcement feed visible to the authenticated role.", r: ["admin", "parent", "teacher", "supervisor", "driver"], kind: "array", e: "announcement", status: 200, derived: "The feed uses SQL views such as vw_active_announcements and targetRole filtering." }),
+  makeEndpoint({ m: "GET", p: "/communication/announcements/active", t: "Communication", s: "List Active Announcements", u: "Return the active announcement feed visible to the authenticated role.", r: ["admin", "parent", "teacher", "supervisor", "driver"], kind: "array", e: "announcement", status: 200, derived: "The feed uses SQL views such as vw_active_announcements and filters by targetRoles[] when present; an empty targetRoles array means all roles." }),
   makeEndpoint({ m: "POST", p: "/communication/notifications", t: "Communication", s: "Create Notification", u: "Create a manual notification for one user. notificationType is free-form and can coexist with automation-generated values.", b: "CreateNotificationRequest", e: "notification" }),
+  makeEndpoint({ m: "POST", p: "/communication/notifications/bulk", t: "Communication", s: "[NEW] Create Bulk Notifications", u: "Create admin-only multi-target notifications in one all-or-nothing transaction with an authoritative delivery summary.", r: ["admin"], b: "CreateBulkNotificationRequest", e: "bulkDelivery", status: 201, notes: ["[NEW] At least one of userIds[] or targetRoles[] is required.", "[NEW] Audience resolution reuses the same available-recipient rules as GET /communication/recipients.", "[NEW] The response returns delivery summary metadata rather than the full notification list."] }),
   makeEndpoint({ m: "GET", p: "/communication/notifications/me", t: "Communication", s: "List My Notifications", u: "List notifications for the authenticated user with unreadCount metadata.", r: ["admin", "parent", "teacher", "supervisor", "driver"], q: notificationsQuery, kind: "paginated", e: "notification", status: 200, derived: "Notification lists rely on views such as vw_notification_details and vw_user_notification_summary." }),
   makeEndpoint({ m: "PATCH", p: "/communication/notifications/:notificationId/read", t: "Communication", s: "Mark Notification Read", u: "Mark one notification as read.", r: ["admin", "parent", "teacher", "supervisor", "driver"], e: "notification", status: 200 }),
   makeEndpoint({ m: "POST", p: "/homework", t: "Homework", s: "Create Homework", u: "Create homework for a class and subject. Teachers may omit teacherId and rely on the authenticated teacher profile. Admin teacherId accepts the teacher user id from /users?role=teacher or the legacy teacher profile id.", r: ["admin", "teacher"], b: "CreateHomeworkRequest", e: "homework", notes: ["The selected subjectId must have an active subject offering for the selected semesterId.", "Admin frontend flows should send teacherId as the teacher user id returned by GET /users?role=teacher."] }),
@@ -2040,7 +2052,7 @@ const afterPostmanByModule = coverageByModule(actualRoutes, collectPostmanRoutes
 const migrationContent = fs.readFileSync(path.join(root, "src", "database", "migrations", "1730000000000_init_auth_schema.js"), "utf8");
 const viewNames = Array.from(new Set(migrationContent.match(/vw_[a-z_]+/g) ?? [])).sort();
 const automationEvents = ["attendance_absent", "behavior_negative", "transport_trip_started", "transport_student_dropped_off"];
-const targetFields = ["communication.announcements.targetRole", "communication.notifications.notificationType", "behavior.categories.behaviorType", "transport.trip-events.eventType"];
+const targetFields = ["communication.announcements.targetRole", "communication.announcements.targetRoles", "communication.notifications.notificationType", "behavior.categories.behaviorType", "transport.trip-events.eventType"];
 
 const moduleOrder = ["health", "auth", "users", "academic-structure", "students", "attendance", "assessments", "behavior", "transport", "communication", "homework", "reporting"];
 const moduleTable = moduleOrder.map((key) => {
@@ -2060,9 +2072,11 @@ const newRuntimeEndpoints = [
   "GET /reporting/admin-preview/parents/:parentUserId/students/:studentId/reports/behavior-summary",
   "GET /reporting/admin-preview/parents/:parentUserId/students/:studentId/transport/live-status",
   "GET /reporting/admin-preview/teachers/:teacherUserId/dashboard",
-  "GET /reporting/admin-preview/supervisors/:supervisorUserId/dashboard"
+  "GET /reporting/admin-preview/supervisors/:supervisorUserId/dashboard",
+  "POST /communication/messages/bulk",
+  "POST /communication/notifications/bulk"
 ];
-const audit = `# OpenAPI / Postman Audit\n\n- Audit date: ${TODAY}\n- Runtime endpoint count: ${actualRoutes.length}\n- Runtime changes during this reconciliation: ${newRuntimeEndpoints.length > 0 ? `${newRuntimeEndpoints.length} new endpoint(s)` : "none"}\n\n## Coverage Summary\n\n| Artifact | Before | After |\n| --- | --- | --- |\n| Master OpenAPI | ${baseline.masterOpenApi.covered.length}/${actualRoutes.length} | ${final.masterOpenApi.covered.length}/${actualRoutes.length} |\n| Master Postman | ${baseline.masterPostman.covered.length}/${actualRoutes.length} | ${final.masterPostman.covered.length}/${actualRoutes.length} |\n| Auth OpenAPI | ${baseline.authOpenApi.covered.length}/7 | ${final.authOpenApi.covered.length}/7 |\n| Auth Postman | ${baseline.authPostman.covered.length}/7 | ${final.authPostman.covered.length}/7 |\n\n## Per-Module Coverage\n\n| Module | Actual | OpenAPI Before | Postman Before | OpenAPI After | Postman After |\n| --- | --- | --- | --- | --- | --- |\n${moduleTable}\n\n## [NEW] Runtime Endpoints Added In This Pass\n\n${newRuntimeEndpoints.map((route) => `- \`${route}\``).join("\n")}\n\n## Runtime Endpoints Missing From Master OpenAPI Before This Update\n\n${missingBefore}\n\n## Views, Events, Targets Alignment\n\n### SQL Views Referenced\n${viewNames.map((name) => `- \`${name}\``).join("\n")}\n\n### Automation Events Documented\n${automationEvents.map((name) => `- \`${name}\``).join("\n")}\n\n### Target / Event Fields Documented\n${targetFields.map((name) => `- \`${name}\``).join("\n")}\n\n## Reconciliation Notes\n\n- \`/health\` and \`/health/ready\` now use root-level servers instead of inheriting \`/api/v1\`.\n- The auth subset now covers all 7 live auth routes, including forgot-password and reset-password.\n- IDs in the auth subset were normalized to numeric-string ids instead of UUID assumptions.\n- The new admin-preview monitoring endpoints are marked with \`[NEW]\`-style audit visibility through this report and are documented as admin-only, read-only, and \`users.id\`-based surfaces.\n`;
+const audit = `# OpenAPI / Postman Audit\n\n- Audit date: ${TODAY}\n- Runtime endpoint count: ${actualRoutes.length}\n- Runtime changes during this reconciliation: ${newRuntimeEndpoints.length > 0 ? `${newRuntimeEndpoints.length} new endpoint(s)` : "none"}\n\n## Coverage Summary\n\n| Artifact | Before | After |\n| --- | --- | --- |\n| Master OpenAPI | ${baseline.masterOpenApi.covered.length}/${actualRoutes.length} | ${final.masterOpenApi.covered.length}/${actualRoutes.length} |\n| Master Postman | ${baseline.masterPostman.covered.length}/${actualRoutes.length} | ${final.masterPostman.covered.length}/${actualRoutes.length} |\n| Auth OpenAPI | ${baseline.authOpenApi.covered.length}/7 | ${final.authOpenApi.covered.length}/7 |\n| Auth Postman | ${baseline.authPostman.covered.length}/7 | ${final.authPostman.covered.length}/7 |\n\n## Per-Module Coverage\n\n| Module | Actual | OpenAPI Before | Postman Before | OpenAPI After | Postman After |\n| --- | --- | --- | --- | --- | --- |\n${moduleTable}\n\n## [NEW] Runtime Endpoints Added In This Pass\n\n${newRuntimeEndpoints.map((route) => `- \`${route}\``).join("\n")}\n\n## Runtime Endpoints Missing From Master OpenAPI Before This Update\n\n${missingBefore}\n\n## Views, Events, Targets Alignment\n\n### SQL Views Referenced\n${viewNames.map((name) => `- \`${name}\``).join("\n")}\n\n### Automation Events Documented\n${automationEvents.map((name) => `- \`${name}\``).join("\n")}\n\n### Target / Event Fields Documented\n${targetFields.map((name) => `- \`${name}\``).join("\n")}\n\n## Reconciliation Notes\n\n- \`/health\` and \`/health/ready\` now use root-level servers instead of inheriting \`/api/v1\`.\n- The auth subset now covers all 7 live auth routes, including forgot-password and reset-password.\n- IDs in the auth subset were normalized to numeric-string ids instead of UUID assumptions.\n- The new admin-preview monitoring endpoints are marked with \`[NEW]\`-style audit visibility through this report and are documented as admin-only, read-only, and \`users.id\`-based surfaces.\n- Communication Phase 2 is now documented with admin-only bulk message and bulk notification delivery, plus additive \`targetRoles[]\` support for announcements.\n`;
 fs.writeFileSync(auditPath, audit);
 console.log(`Master OpenAPI: ${final.masterOpenApi.covered.length}/${actualRoutes.length}`);
 console.log(`Master Postman: ${final.masterPostman.covered.length}/${actualRoutes.length}`);

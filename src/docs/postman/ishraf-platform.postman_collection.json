@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Ishraf Platform Backend API",
-    "_postman_id": "a2c23cc4-abbc-42ad-9ec1-8198250edf7a",
+    "_postman_id": "b2cec266-84a2-46db-b272-d4967182a3bb",
     "description": "Full Postman collection covering every live backend endpoint.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
@@ -1689,17 +1689,17 @@
                 },
                 {
                   "key": "sessionDate",
-                  "value": "2026-03-27",
+                  "value": "2026-03-30",
                   "description": "Filter by exact session date."
                 },
                 {
                   "key": "dateFrom",
-                  "value": "2026-03-27",
+                  "value": "2026-03-30",
                   "description": "Filter from session date."
                 },
                 {
                   "key": "dateTo",
-                  "value": "2026-03-27",
+                  "value": "2026-03-30",
                   "description": "Filter to session date."
                 }
               ]
@@ -1734,7 +1734,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"classId\": \"1\",\n  \"subjectId\": \"1\",\n  \"academicYearId\": \"1\",\n  \"semesterId\": \"1\",\n  \"sessionDate\": \"2026-03-27\",\n  \"periodNo\": 1,\n  \"title\": \"حصة الرياضيات\",\n  \"notes\": \"اختبار سريع\",\n  \"teacherId\": \"1002\"\n}"
+              "raw": "{\n  \"classId\": \"1\",\n  \"subjectId\": \"1\",\n  \"academicYearId\": \"1\",\n  \"semesterId\": \"1\",\n  \"sessionDate\": \"2026-03-30\",\n  \"periodNo\": 1,\n  \"title\": \"حصة الرياضيات\",\n  \"notes\": \"اختبار سريع\",\n  \"teacherId\": \"1002\"\n}"
             }
           }
         },
@@ -1875,17 +1875,17 @@
                 },
                 {
                   "key": "assessmentDate",
-                  "value": "2026-03-27",
+                  "value": "2026-03-30",
                   "description": "Filter by exact assessment date."
                 },
                 {
                   "key": "dateFrom",
-                  "value": "2026-03-27",
+                  "value": "2026-03-30",
                   "description": "Filter from assessment date."
                 },
                 {
                   "key": "dateTo",
-                  "value": "2026-03-27",
+                  "value": "2026-03-30",
                   "description": "Filter to assessment date."
                 },
                 {
@@ -1924,7 +1924,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"assessmentTypeId\": \"1\",\n  \"classId\": \"1\",\n  \"subjectId\": \"1\",\n  \"teacherId\": \"1002\",\n  \"academicYearId\": \"1\",\n  \"semesterId\": \"1\",\n  \"title\": \"اختبار قصير 2\",\n  \"description\": \"الوحدة الثانية\",\n  \"maxScore\": 20,\n  \"weight\": 10,\n  \"assessmentDate\": \"2026-03-27\",\n  \"isPublished\": true\n}"
+              "raw": "{\n  \"assessmentTypeId\": \"1\",\n  \"classId\": \"1\",\n  \"subjectId\": \"1\",\n  \"teacherId\": \"1002\",\n  \"academicYearId\": \"1\",\n  \"semesterId\": \"1\",\n  \"title\": \"اختبار قصير 2\",\n  \"description\": \"الوحدة الثانية\",\n  \"maxScore\": 20,\n  \"weight\": 10,\n  \"assessmentDate\": \"2026-03-30\",\n  \"isPublished\": true\n}"
             }
           }
         },
@@ -2239,17 +2239,17 @@
                 },
                 {
                   "key": "behaviorDate",
-                  "value": "2026-03-27",
+                  "value": "2026-03-30",
                   "description": "Filter by exact behavior date."
                 },
                 {
                   "key": "dateFrom",
-                  "value": "2026-03-27",
+                  "value": "2026-03-30",
                   "description": "Filter from behavior date."
                 },
                 {
                   "key": "dateTo",
-                  "value": "2026-03-27",
+                  "value": "2026-03-30",
                   "description": "Filter to behavior date."
                 }
               ]
@@ -2284,7 +2284,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"studentId\": \"1\",\n  \"behaviorCategoryId\": \"1\",\n  \"academicYearId\": \"1\",\n  \"semesterId\": \"1\",\n  \"description\": \"تأخر عن الطابور\",\n  \"severity\": 3,\n  \"behaviorDate\": \"2026-03-27\",\n  \"teacherId\": \"1002\"\n}"
+              "raw": "{\n  \"studentId\": \"1\",\n  \"behaviorCategoryId\": \"1\",\n  \"academicYearId\": \"1\",\n  \"semesterId\": \"1\",\n  \"description\": \"تأخر عن الطابور\",\n  \"severity\": 3,\n  \"behaviorDate\": \"2026-03-30\",\n  \"teacherId\": \"1002\"\n}"
             }
           }
         },
@@ -2406,7 +2406,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"studentId\": \"1\",\n  \"routeId\": \"1\",\n  \"stopId\": \"1\",\n  \"startDate\": \"2026-03-27\",\n  \"endDate\": null\n}"
+              "raw": "{\n  \"studentId\": \"1\",\n  \"routeId\": \"1\",\n  \"stopId\": \"1\",\n  \"startDate\": \"2026-03-30\",\n  \"endDate\": null\n}"
             }
           }
         },
@@ -2440,7 +2440,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"endDate\": \"2026-03-27\"\n}"
+              "raw": "{\n  \"endDate\": \"2026-03-30\"\n}"
             }
           }
         },
@@ -2577,7 +2577,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"busId\": \"1\",\n  \"routeId\": \"1\",\n  \"startDate\": \"2026-03-27\",\n  \"endDate\": null\n}"
+              "raw": "{\n  \"busId\": \"1\",\n  \"routeId\": \"1\",\n  \"startDate\": \"2026-03-30\",\n  \"endDate\": null\n}"
             }
           }
         },
@@ -2611,7 +2611,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"endDate\": \"2026-03-27\"\n}"
+              "raw": "{\n  \"endDate\": \"2026-03-30\"\n}"
             }
           }
         },
@@ -2905,17 +2905,17 @@
                 },
                 {
                   "key": "tripDate",
-                  "value": "2026-03-27",
+                  "value": "2026-03-30",
                   "description": "Filter by exact trip date."
                 },
                 {
                   "key": "dateFrom",
-                  "value": "2026-03-27",
+                  "value": "2026-03-30",
                   "description": "Filter from trip date."
                 },
                 {
                   "key": "dateTo",
-                  "value": "2026-03-27",
+                  "value": "2026-03-30",
                   "description": "Filter to trip date."
                 }
               ]
@@ -2950,7 +2950,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"busId\": \"1\",\n  \"routeId\": \"1\",\n  \"tripDate\": \"2026-03-27\",\n  \"tripType\": \"pickup\"\n}"
+              "raw": "{\n  \"busId\": \"1\",\n  \"routeId\": \"1\",\n  \"tripDate\": \"2026-03-30\",\n  \"tripType\": \"pickup\"\n}"
             }
           }
         },
@@ -3191,7 +3191,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"routeAssignmentId\": \"1\",\n  \"tripDate\": \"2026-03-27\",\n  \"tripType\": \"pickup\"\n}"
+              "raw": "{\n  \"routeAssignmentId\": \"1\",\n  \"tripDate\": \"2026-03-30\",\n  \"tripType\": \"pickup\"\n}"
             }
           }
         }
@@ -3239,7 +3239,7 @@
                 "value": "application/json"
               }
             ],
-            "description": "Purpose: Create an announcement. targetRole narrows the feed; null targets all active users.\n\nRoles: admin\n\nAuth: Bearer access token required\n\nBody schema: CreateAnnouncementRequest",
+            "description": "Purpose: Create an admin announcement targeted to all users, one role, or multiple roles. targetRole remains legacy; targetRoles[] is the new multi-role contract.\n\nRoles: admin\n\nAuth: Bearer access token required\n\nBody schema: CreateAnnouncementRequest\n\nNote: Announcements support roles/all only. Person-targeted announcements are not supported.\n\nNote: Do not send targetRole and targetRoles together.\n\nNote: If neither targetRole nor targetRoles is provided, the announcement targets all active roles.",
             "url": {
               "raw": "{{baseUrl}}/communication/announcements",
               "host": [
@@ -3253,7 +3253,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"title\": \"[Seed] New notice\",\n  \"content\": \"إعلان موجّه لأولياء الأمور\",\n  \"targetRole\": \"parent\",\n  \"expiresAt\": \"2026-04-01T00:00:00.000Z\"\n}"
+              "raw": "{\n  \"title\": \"[Seed] New notice\",\n  \"content\": \"إعلان موجّه للمعلمين والمشرفين\",\n  \"targetRoles\": [\n    \"teacher\",\n    \"supervisor\"\n  ],\n  \"expiresAt\": \"2026-04-01T00:00:00.000Z\"\n}"
             }
           }
         },
@@ -3267,7 +3267,7 @@
                 "value": "Bearer {{accessToken}}"
               }
             ],
-            "description": "Purpose: Return the active announcement feed visible to the authenticated role.\n\nRoles: admin, parent, teacher, supervisor, driver\n\nAuth: Bearer access token required\n\nDerived data: The feed uses SQL views such as vw_active_announcements and targetRole filtering.",
+            "description": "Purpose: Return the active announcement feed visible to the authenticated role.\n\nRoles: admin, parent, teacher, supervisor, driver\n\nAuth: Bearer access token required\n\nDerived data: The feed uses SQL views such as vw_active_announcements and filters by targetRoles[] when present; an empty targetRoles array means all roles.",
             "url": {
               "raw": "{{baseUrl}}/communication/announcements/active",
               "host": [
@@ -3337,6 +3337,39 @@
                 "read"
               ],
               "query": []
+            }
+          }
+        },
+        {
+          "name": "[NEW] Send Bulk Messages",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "Purpose: Create admin-only multi-target direct messages as individual one-to-one copies. The endpoint is all-or-nothing and uses the same audience rules as /communication/recipients.\n\nRoles: admin\n\nAuth: Bearer access token required\n\nBody schema: SendBulkMessageRequest\n\nNote: [NEW] Direct multi-target delivery creates individual copies inside messages; it does not create a group thread.\n\nNote: [NEW] At least one of receiverUserIds[] or targetRoles[] is required.\n\nNote: [NEW] Explicit self-targeting is rejected.\n\nNote: [NEW] If resolved audience is empty or explicit user ids are outside the available-recipient surface, the request fails with 400.\n\nDerived data: Audience resolution reuses the same active-user and self-exclusion policy exposed by GET /communication/recipients.",
+            "url": {
+              "raw": "{{baseUrl}}/communication/messages/bulk",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "communication",
+                "messages",
+                "bulk"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"receiverUserIds\": [\n    \"20\"\n  ],\n  \"targetRoles\": [\n    \"teacher\",\n    \"supervisor\"\n  ],\n  \"messageBody\": \"رسالة جماعية منسوخة كرسائل فردية\"\n}"
             }
           }
         },
@@ -3548,6 +3581,39 @@
           }
         },
         {
+          "name": "[NEW] Create Bulk Notifications",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "Purpose: Create admin-only multi-target notifications in one all-or-nothing transaction with an authoritative delivery summary.\n\nRoles: admin\n\nAuth: Bearer access token required\n\nBody schema: CreateBulkNotificationRequest\n\nNote: [NEW] At least one of userIds[] or targetRoles[] is required.\n\nNote: [NEW] Audience resolution reuses the same available-recipient rules as GET /communication/recipients.\n\nNote: [NEW] The response returns delivery summary metadata rather than the full notification list.",
+            "url": {
+              "raw": "{{baseUrl}}/communication/notifications/bulk",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "communication",
+                "notifications",
+                "bulk"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userIds\": [\n    \"20\"\n  ],\n  \"targetRoles\": [\n    \"parent\"\n  ],\n  \"title\": \"إشعار جماعي\",\n  \"message\": \"هذا الإشعار يصل كملاحظات فردية\",\n  \"notificationType\": \"manual\",\n  \"referenceType\": null,\n  \"referenceId\": null\n}"
+            }
+          }
+        },
+        {
           "name": "List My Notifications",
           "request": {
             "method": "GET",
@@ -3721,22 +3787,22 @@
                 },
                 {
                   "key": "assignedDate",
-                  "value": "2026-03-27",
+                  "value": "2026-03-30",
                   "description": "Filter by exact assigned date."
                 },
                 {
                   "key": "dueDate",
-                  "value": "2026-03-27",
+                  "value": "2026-03-30",
                   "description": "Filter by exact due date."
                 },
                 {
                   "key": "dateFrom",
-                  "value": "2026-03-27",
+                  "value": "2026-03-30",
                   "description": "Filter from date range."
                 },
                 {
                   "key": "dateTo",
-                  "value": "2026-03-27",
+                  "value": "2026-03-30",
                   "description": "Filter to date range."
                 }
               ]
@@ -3770,7 +3836,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"teacherId\": \"1002\",\n  \"classId\": \"1\",\n  \"subjectId\": \"1\",\n  \"academicYearId\": \"1\",\n  \"semesterId\": \"1\",\n  \"title\": \"واجب الرياضيات 2\",\n  \"description\": \"حل الصفحات 12-14\",\n  \"assignedDate\": \"2026-03-27\",\n  \"dueDate\": \"2026-03-28\"\n}"
+              "raw": "{\n  \"teacherId\": \"1002\",\n  \"classId\": \"1\",\n  \"subjectId\": \"1\",\n  \"academicYearId\": \"1\",\n  \"semesterId\": \"1\",\n  \"title\": \"واجب الرياضيات 2\",\n  \"description\": \"حل الصفحات 12-14\",\n  \"assignedDate\": \"2026-03-30\",\n  \"dueDate\": \"2026-03-28\"\n}"
             }
           }
         },
@@ -3827,7 +3893,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"records\": [\n    {\n      \"studentId\": \"1\",\n      \"status\": \"submitted\",\n      \"submittedAt\": \"2026-03-27\",\n      \"notes\": \"تم التسليم\"\n    },\n    {\n      \"studentId\": \"2\",\n      \"status\": \"late\",\n      \"submittedAt\": \"2026-03-27\",\n      \"notes\": \"تسليم متأخر\"\n    }\n  ]\n}"
+              "raw": "{\n  \"records\": [\n    {\n      \"studentId\": \"1\",\n      \"status\": \"submitted\",\n      \"submittedAt\": \"2026-03-30\",\n      \"notes\": \"تم التسليم\"\n    },\n    {\n      \"studentId\": \"2\",\n      \"status\": \"late\",\n      \"submittedAt\": \"2026-03-30\",\n      \"notes\": \"تسليم متأخر\"\n    }\n  ]\n}"
             }
           }
         },

@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 
 import { AUTH_TEST_FIXTURES } from "../../fixtures/auth.fixture";
 import type { IntegrationTestContext } from "../../helpers/integration-context";
-import { SEEDED_DRIVER } from "../../setup/seed-test-data";
+import { SEEDED_DRIVER, SEEDED_SUPERVISOR } from "../../setup/seed-test-data";
 
 export const registerCommunicationIntegrationTests = (
   context: IntegrationTestContext
@@ -88,6 +88,50 @@ export const registerCommunicationIntegrationTests = (
       expect(foreignReadResponse.status).toBe(404);
     });
 
+    it("allows admins to send bulk direct messages as individual copies", async () => {
+      const adminLogin = await context.loginAsAdmin();
+      const teacherLogin = await context.loginAsTeacher();
+      const supervisorLogin = await context.loginAsSupervisor();
+      const driverLogin = await context.loginAsDriver();
+
+      const bulkResponse = await request(context.app)
+        .post("/api/v1/communication/messages/bulk")
+        .set("Authorization", `Bearer ${adminLogin.accessToken}`)
+        .send({
+          receiverUserIds: [SEEDED_SUPERVISOR.id],
+          targetRoles: ["teacher", "driver"],
+          messageBody: "Operational update for today"
+        });
+      const teacherInbox = await request(context.app)
+        .get("/api/v1/communication/messages/inbox")
+        .set("Authorization", `Bearer ${teacherLogin.accessToken}`);
+      const supervisorInbox = await request(context.app)
+        .get("/api/v1/communication/messages/inbox")
+        .set("Authorization", `Bearer ${supervisorLogin.accessToken}`);
+      const driverInbox = await request(context.app)
+        .get("/api/v1/communication/messages/inbox")
+        .set("Authorization", `Bearer ${driverLogin.accessToken}`);
+
+      expect(bulkResponse.status).toBe(201);
+      expect(bulkResponse.body.data).toMatchObject({
+        resolvedRecipients: 3,
+        duplicatesRemoved: 0,
+        successCount: 3,
+        failedCount: 0
+      });
+      expect(teacherInbox.status).toBe(200);
+      expect(supervisorInbox.status).toBe(200);
+      expect(driverInbox.status).toBe(200);
+      expect(teacherInbox.body.data.messages).toHaveLength(1);
+      expect(supervisorInbox.body.data.messages).toHaveLength(1);
+      expect(driverInbox.body.data.messages).toHaveLength(1);
+      expect(teacherInbox.body.data.messages[0].messageBody).toBe("Operational update for today");
+      expect(supervisorInbox.body.data.messages[0].messageBody).toBe(
+        "Operational update for today"
+      );
+      expect(driverInbox.body.data.messages[0].messageBody).toBe("Operational update for today");
+    });
+
     it("creates announcements and filters active feeds by role and expiry", async () => {
       const adminLogin = await context.loginAsAdmin();
       const teacherLogin = await context.loginAsTeacher();
@@ -155,22 +199,71 @@ export const registerCommunicationIntegrationTests = (
       expect(driverFeedResponse.body.data).toHaveLength(2);
     });
 
+    it("supports multi-role announcements without changing all-users visibility", async () => {
+      const adminLogin = await context.loginAsAdmin();
+      const teacherLogin = await context.loginAsTeacher();
+      const driverLogin = await context.loginAsDriver();
+      const supervisorLogin = await context.loginAsSupervisor();
+
+      const multiRoleAnnouncement = await context.createAnnouncement(adminLogin.accessToken, {
+        title: "Shared notice",
+        content: "Teachers and drivers should review the updated roster",
+        targetRole: null,
+        targetRoles: ["teacher", "driver"]
+      });
+      const allUsersAnnouncement = await context.createAnnouncement(adminLogin.accessToken, {
+        title: "General notice",
+        content: "This is for everyone",
+        targetRole: null
+      });
+
+      const teacherFeedResponse = await request(context.app)
+        .get("/api/v1/communication/announcements/active")
+        .set("Authorization", `Bearer ${teacherLogin.accessToken}`);
+      const driverFeedResponse = await request(context.app)
+        .get("/api/v1/communication/announcements/active")
+        .set("Authorization", `Bearer ${driverLogin.accessToken}`);
+      const supervisorFeedResponse = await request(context.app)
+        .get("/api/v1/communication/announcements/active")
+        .set("Authorization", `Bearer ${supervisorLogin.accessToken}`);
+
+      expect(multiRoleAnnouncement.status).toBe(201);
+      expect(multiRoleAnnouncement.body.data.targetRole).toBeNull();
+      expect(multiRoleAnnouncement.body.data.targetRoles).toEqual(["driver", "teacher"]);
+      expect(allUsersAnnouncement.status).toBe(201);
+      expect(
+        teacherFeedResponse.body.data.some((item: { title: string }) => item.title === "Shared notice")
+      ).toBe(true);
+      expect(
+        driverFeedResponse.body.data.some((item: { title: string }) => item.title === "Shared notice")
+      ).toBe(true);
+      expect(
+        supervisorFeedResponse.body.data.some((item: { title: string }) => item.title === "Shared notice")
+      ).toBe(false);
+      expect(
+        teacherFeedResponse.body.data.some((item: { title: string }) => item.title === "General notice")
+      ).toBe(true);
+      expect(
+        driverFeedResponse.body.data.some((item: { title: string }) => item.title === "General notice")
+      ).toBe(true);
+      expect(
+        supervisorFeedResponse.body.data.some((item: { title: string }) => item.title === "General notice")
+      ).toBe(true);
+    });
+
     it("creates notifications, returns personal notification feeds, and protects read ownership", async () => {
       const adminLogin = await context.loginAsAdmin();
       const teacherLogin = await context.loginAsTeacher();
       const driverLogin = await context.loginAsDriver();
 
-      const createNotificationResponse = await context.createNotification(
-        adminLogin.accessToken,
-        {
-          userId: AUTH_TEST_FIXTURES.activePhoneUser.id,
-          title: "New announcement",
-          message: "Please review the new general announcement",
-          notificationType: "announcement",
-          referenceType: "announcement",
-          referenceId: "1"
-        }
-      );
+      const createNotificationResponse = await context.createNotification(adminLogin.accessToken, {
+        userId: AUTH_TEST_FIXTURES.activePhoneUser.id,
+        title: "New announcement",
+        message: "Please review the new general announcement",
+        notificationType: "announcement",
+        referenceType: "announcement",
+        referenceId: "1"
+      });
       const notificationId = createNotificationResponse.body.data.id as string;
 
       const listNotificationsResponse = await request(context.app)
@@ -202,6 +295,72 @@ export const registerCommunicationIntegrationTests = (
       expect(foreignReadResponse.status).toBe(404);
       expect(listAfterReadResponse.status).toBe(200);
       expect(listAfterReadResponse.body.data.unreadCount).toBe(0);
+    });
+
+    it("allows admins to send bulk notifications using mixed selectors", async () => {
+      const adminLogin = await context.loginAsAdmin();
+      const teacherLogin = await context.loginAsTeacher();
+      const supervisorLogin = await context.loginAsSupervisor();
+      const driverLogin = await context.loginAsDriver();
+
+      const bulkResponse = await request(context.app)
+        .post("/api/v1/communication/notifications/bulk")
+        .set("Authorization", `Bearer ${adminLogin.accessToken}`)
+        .send({
+          userIds: [SEEDED_SUPERVISOR.id],
+          targetRoles: ["teacher", "driver"],
+          title: "Operations reminder",
+          message: "Please check the updated plan",
+          notificationType: "operations"
+        });
+      const teacherNotifications = await request(context.app)
+        .get("/api/v1/communication/notifications/me")
+        .set("Authorization", `Bearer ${teacherLogin.accessToken}`);
+      const supervisorNotifications = await request(context.app)
+        .get("/api/v1/communication/notifications/me")
+        .set("Authorization", `Bearer ${supervisorLogin.accessToken}`);
+      const driverNotifications = await request(context.app)
+        .get("/api/v1/communication/notifications/me")
+        .set("Authorization", `Bearer ${driverLogin.accessToken}`);
+
+      expect(bulkResponse.status).toBe(201);
+      expect(bulkResponse.body.data).toMatchObject({
+        resolvedRecipients: 3,
+        successCount: 3,
+        failedCount: 0
+      });
+      expect(teacherNotifications.body.data.notifications).toHaveLength(1);
+      expect(supervisorNotifications.body.data.notifications).toHaveLength(1);
+      expect(driverNotifications.body.data.notifications).toHaveLength(1);
+      expect(teacherNotifications.body.data.notifications[0].notificationType).toBe("operations");
+      expect(supervisorNotifications.body.data.notifications[0].notificationType).toBe(
+        "operations"
+      );
+      expect(driverNotifications.body.data.notifications[0].notificationType).toBe("operations");
+    });
+
+    it("blocks non-admin users from the new bulk communication endpoints", async () => {
+      const teacherLogin = await context.loginAsTeacher();
+
+      const bulkMessagesResponse = await request(context.app)
+        .post("/api/v1/communication/messages/bulk")
+        .set("Authorization", `Bearer ${teacherLogin.accessToken}`)
+        .send({
+          receiverUserIds: [SEEDED_DRIVER.id],
+          messageBody: "Unauthorized attempt"
+        });
+      const bulkNotificationsResponse = await request(context.app)
+        .post("/api/v1/communication/notifications/bulk")
+        .set("Authorization", `Bearer ${teacherLogin.accessToken}`)
+        .send({
+          userIds: [SEEDED_DRIVER.id],
+          title: "Unauthorized attempt",
+          message: "Unauthorized attempt",
+          notificationType: "ops"
+        });
+
+      expect(bulkMessagesResponse.status).toBe(403);
+      expect(bulkNotificationsResponse.status).toBe(403);
     });
 
     it("lists available message recipients for the authenticated user with search and role filtering", async () => {

@@ -1,23 +1,28 @@
 import { ForbiddenError } from "../../../common/errors/forbidden-error";
 import { NotFoundError } from "../../../common/errors/not-found-error";
 import { ValidationError } from "../../../common/errors/validation-error";
+import type { Queryable } from "../../../common/interfaces/queryable.interface";
 import type { AuthenticatedUser } from "../../../common/types/auth.types";
 import type { PaginatedData } from "../../../common/types/pagination.types";
-import { DEFAULT_LIMIT, DEFAULT_PAGE } from "../../../common/utils/pagination.util";
-import { toPaginatedData } from "../../../common/utils/pagination.util";
+import { DEFAULT_LIMIT, DEFAULT_PAGE, toPaginatedData } from "../../../common/utils/pagination.util";
+import type { Role } from "../../../config/constants";
+import { db } from "../../../database/db";
 import type {
   AnnouncementResponseDto,
   AvailableRecipientResponseDto,
   AvailableRecipientsQueryDto,
+  CommunicationBulkDeliveryResponseDto,
   ConversationQueryDto,
   CreateAnnouncementRequestDto,
+  CreateBulkNotificationRequestDto,
   CreateNotificationRequestDto,
   InboxResponseDto,
   InboxQueryDto,
   MessageResponseDto,
   NotificationResponseDto,
-  NotificationsQueryDto,
   NotificationsListResponseDto,
+  NotificationsQueryDto,
+  SendBulkMessageRequestDto,
   SendMessageRequestDto,
   SentQueryDto
 } from "../dto/communication.dto";
@@ -30,6 +35,13 @@ import {
   toPaginatedNotificationsResponseDto
 } from "../mapper/communication.mapper";
 import type { CommunicationRepository } from "../repository/communication.repository";
+
+type CommunicationTransactionRunner = <T>(
+  callback: (queryable: Queryable) => Promise<T>
+) => Promise<T>;
+
+const defaultTransactionRunner: CommunicationTransactionRunner = async (callback) =>
+  db.withTransaction((client) => callback(client));
 
 const assertFound = <T>(entity: T | null, label: string): T => {
   if (!entity) {
@@ -63,6 +75,38 @@ const buildSelfConversationError = (): ValidationError =>
     }
   ]);
 
+const buildBulkSelfTargetingError = (): ValidationError =>
+  new ValidationError("Bulk messages cannot target the current user", [
+    {
+      field: "receiverUserIds",
+      code: "SELF_TARGETING_NOT_ALLOWED",
+      message: "Bulk messages cannot target the current user"
+    }
+  ]);
+
+const buildAudienceEmptyError = (
+  field: "receiverUserIds" | "userIds"
+): ValidationError =>
+  new ValidationError("Resolved audience is empty", [
+    {
+      field,
+      code: "AUDIENCE_EMPTY",
+      message: "Resolved audience is empty"
+    }
+  ]);
+
+const buildUnavailableAudienceError = (
+  field: "receiverUserIds" | "userIds",
+  userIds: string[]
+): ValidationError =>
+  new ValidationError("One or more selected users are not available for delivery", [
+    ...userIds.map((userId) => ({
+      field,
+      code: "TARGET_USER_NOT_AVAILABLE",
+      message: `User ${userId} is not available for delivery`
+    }))
+  ]);
+
 const normalizePaginatedRows = <T>(
   value: T[] | { rows: T[]; totalItems: number }
 ): { rows: T[]; totalItems: number } =>
@@ -72,6 +116,10 @@ const normalizePaginatedRows = <T>(
         totalItems: value.length
       }
     : value;
+
+const dedupeStrings = (values: string[] | undefined): string[] => [...new Set(values ?? [])];
+
+const dedupeRoles = (values: Role[] | undefined): Role[] => [...new Set(values ?? [])];
 
 const defaultInboxQuery = (): InboxQueryDto => ({
   page: DEFAULT_PAGE,
@@ -107,7 +155,65 @@ const defaultRecipientsQuery = (): AvailableRecipientsQueryDto => ({
 });
 
 export class CommunicationService {
-  constructor(private readonly communicationRepository: CommunicationRepository) {}
+  constructor(
+    private readonly communicationRepository: CommunicationRepository,
+    private readonly withTransaction: CommunicationTransactionRunner = defaultTransactionRunner
+  ) {}
+
+  private async resolveAudience(
+    authUser: AuthenticatedUser,
+    input: {
+      explicitUserIds?: string[];
+      targetRoles?: Role[];
+      explicitField: "receiverUserIds" | "userIds";
+      rejectSelfTargeting?: boolean;
+    },
+    queryable?: Queryable
+  ): Promise<{ recipientIds: string[]; duplicatesRemoved: number }> {
+    const explicitUserIds = dedupeStrings(input.explicitUserIds);
+    const targetRoles = dedupeRoles(input.targetRoles);
+
+    if (input.rejectSelfTargeting && explicitUserIds.includes(authUser.userId)) {
+      throw buildBulkSelfTargetingError();
+    }
+
+    const [resolvedExplicitUserIds, resolvedRoleUserIds] = await Promise.all([
+      explicitUserIds.length > 0
+        ? this.communicationRepository.listAvailableRecipientIdsByUserIds(
+            authUser.userId,
+            explicitUserIds,
+            queryable
+          )
+        : Promise.resolve([]),
+      targetRoles.length > 0
+        ? this.communicationRepository.listAvailableRecipientIdsByRoles(
+            authUser.userId,
+            targetRoles,
+            queryable
+          )
+        : Promise.resolve([])
+    ]);
+
+    const unavailableExplicitIds = explicitUserIds.filter(
+      (userId) => !resolvedExplicitUserIds.includes(userId)
+    );
+
+    if (unavailableExplicitIds.length > 0) {
+      throw buildUnavailableAudienceError(input.explicitField, unavailableExplicitIds);
+    }
+
+    const recipientIds = dedupeStrings([...resolvedExplicitUserIds, ...resolvedRoleUserIds]);
+
+    if (recipientIds.length === 0) {
+      throw buildAudienceEmptyError(input.explicitField);
+    }
+
+    return {
+      recipientIds,
+      duplicatesRemoved:
+        resolvedExplicitUserIds.length + resolvedRoleUserIds.length - recipientIds.length
+    };
+  }
 
   async listAvailableRecipients(
     authUser: AuthenticatedUser,
@@ -151,6 +257,39 @@ export class CommunicationService {
     return toMessageResponseDto(message);
   }
 
+  async sendBulkMessages(
+    authUser: AuthenticatedUser,
+    payload: SendBulkMessageRequestDto
+  ): Promise<CommunicationBulkDeliveryResponseDto> {
+    assertAdmin(authUser);
+
+    const audience = await this.resolveAudience(authUser, {
+      explicitUserIds: payload.receiverUserIds,
+      targetRoles: payload.targetRoles,
+      explicitField: "receiverUserIds",
+      rejectSelfTargeting: true
+    });
+
+    const successCount = await this.withTransaction((queryable) =>
+      this.communicationRepository.createMessagesBulk(
+        {
+          senderUserId: authUser.userId,
+          receiverUserIds: audience.recipientIds,
+          messageBody: payload.messageBody
+        },
+        queryable
+      )
+    );
+
+    return {
+      resolvedRecipients: audience.recipientIds.length,
+      duplicatesRemoved: audience.duplicatesRemoved,
+      successCount,
+      failedCount: 0,
+      failedTargets: []
+    };
+  }
+
   async listInbox(
     authUser: AuthenticatedUser,
     query: InboxQueryDto = defaultInboxQuery()
@@ -178,10 +317,7 @@ export class CommunicationService {
   ): Promise<PaginatedData<MessageResponseDto> | MessageResponseDto[]> {
     const normalizedQuery = query ?? defaultSentQuery();
     const { rows, totalItems } = normalizePaginatedRows(
-      await this.communicationRepository.listSentMessages(
-      authUser.userId,
-      normalizedQuery
-      )
+      await this.communicationRepository.listSentMessages(authUser.userId, normalizedQuery)
     );
     const items = rows.map((row) => toMessageResponseDto(row));
 
@@ -189,12 +325,7 @@ export class CommunicationService {
       return items;
     }
 
-    return toPaginatedData(
-      items,
-      normalizedQuery.page,
-      normalizedQuery.limit,
-      totalItems
-    );
+    return toPaginatedData(items, normalizedQuery.page, normalizedQuery.limit, totalItems);
   }
 
   async getConversation(
@@ -255,17 +386,34 @@ export class CommunicationService {
   ): Promise<AnnouncementResponseDto> {
     assertAdmin(authUser);
 
-    const announcementId = await this.communicationRepository.createAnnouncement({
-      createdBy: authUser.userId,
-      title: payload.title,
-      content: payload.content,
-      targetRole: payload.targetRole ?? null,
-      expiresAt: payload.expiresAt ?? null
-    });
-    const announcement = assertFound(
-      await this.communicationRepository.findAnnouncementById(announcementId),
-      "Announcement"
+    const normalizedTargetRoles = dedupeRoles(
+      payload.targetRoles ?? (payload.targetRole ? [payload.targetRole] : [])
     );
+    const legacyTargetRole = normalizedTargetRoles.length === 1 ? normalizedTargetRoles[0] : null;
+
+    const announcement = await this.withTransaction(async (queryable) => {
+      const announcementId = await this.communicationRepository.createAnnouncement(
+        {
+          createdBy: authUser.userId,
+          title: payload.title,
+          content: payload.content,
+          targetRole: legacyTargetRole,
+          expiresAt: payload.expiresAt ?? null
+        },
+        queryable
+      );
+
+      await this.communicationRepository.createAnnouncementTargetRoles(
+        announcementId,
+        normalizedTargetRoles,
+        queryable
+      );
+
+      return assertFound(
+        await this.communicationRepository.findAnnouncementById(announcementId, queryable),
+        "Announcement"
+      );
+    });
 
     return toAnnouncementResponseDto(announcement);
   }
@@ -308,6 +456,41 @@ export class CommunicationService {
     );
 
     return toNotificationResponseDto(notification);
+  }
+
+  async createBulkNotifications(
+    authUser: AuthenticatedUser,
+    payload: CreateBulkNotificationRequestDto
+  ): Promise<CommunicationBulkDeliveryResponseDto> {
+    assertAdmin(authUser);
+
+    const audience = await this.resolveAudience(authUser, {
+      explicitUserIds: payload.userIds,
+      targetRoles: payload.targetRoles,
+      explicitField: "userIds"
+    });
+
+    const successCount = await this.withTransaction((queryable) =>
+      this.communicationRepository.createNotificationsBulk(
+        {
+          userIds: audience.recipientIds,
+          title: payload.title,
+          message: payload.message,
+          notificationType: payload.notificationType,
+          referenceType: payload.referenceType ?? null,
+          referenceId: payload.referenceId ?? null
+        },
+        queryable
+      )
+    );
+
+    return {
+      resolvedRecipients: audience.recipientIds.length,
+      duplicatesRemoved: audience.duplicatesRemoved,
+      successCount,
+      failedCount: 0,
+      failedTargets: []
+    };
   }
 
   async listMyNotifications(

@@ -24,6 +24,12 @@ export interface SendMessageRequestDto {
   messageBody: string;
 }
 
+export interface SendBulkMessageRequestDto {
+  receiverUserIds?: string[];
+  targetRoles?: Role[];
+  messageBody: string;
+}
+
 export interface InboxQueryDto {
   page: number;
   limit: number;
@@ -89,6 +95,7 @@ export interface CreateAnnouncementRequestDto {
   title: string;
   content: string;
   targetRole?: Role | null;
+  targetRoles?: Role[];
   expiresAt?: string | null;
 }
 
@@ -97,6 +104,7 @@ export interface AnnouncementResponseDto {
   title: string;
   content: string;
   targetRole: Role | null;
+  targetRoles: Role[];
   publishedAt: string;
   expiresAt: string | null;
   createdBy: {
@@ -107,6 +115,16 @@ export interface AnnouncementResponseDto {
 
 export interface CreateNotificationRequestDto {
   userId: string;
+  title: string;
+  message: string;
+  notificationType: string;
+  referenceType?: string | null;
+  referenceId?: string | null;
+}
+
+export interface CreateBulkNotificationRequestDto {
+  userIds?: string[];
+  targetRoles?: Role[];
   title: string;
   message: string;
   notificationType: string;
@@ -146,4 +164,19 @@ export interface AvailableRecipientResponseDto {
   role: Role;
   phone: string | null;
   email: string | null;
+}
+
+export interface CommunicationBulkFailedTargetResponseDto {
+  userId?: string;
+  role?: Role;
+  code: string;
+  message: string;
+}
+
+export interface CommunicationBulkDeliveryResponseDto {
+  resolvedRecipients: number;
+  duplicatesRemoved: number;
+  successCount: number;
+  failedCount: number;
+  failedTargets: CommunicationBulkFailedTargetResponseDto[];
 }

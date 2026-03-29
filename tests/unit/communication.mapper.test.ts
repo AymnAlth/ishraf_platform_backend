@@ -32,6 +32,7 @@ const announcementRow = (
   title: "General notice",
   content: "School starts at 8 AM",
   targetRole: null,
+  targetRoles: [],
   publishedAt: new Date("2026-03-14T08:00:00.000Z"),
   expiresAt: null,
   createdBy: "1001",
@@ -70,11 +71,13 @@ describe("communication.mapper", () => {
   it("maps announcements", () => {
     const response = toAnnouncementResponseDto(
       announcementRow({
-        targetRole: "teacher"
+        targetRole: "teacher",
+        targetRoles: ["teacher"]
       })
     );
 
     expect(response.targetRole).toBe("teacher");
+    expect(response.targetRoles).toEqual(["teacher"]);
     expect(response.createdBy.fullName).toBe("Admin User");
   });
 

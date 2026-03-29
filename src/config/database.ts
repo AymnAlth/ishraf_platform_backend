@@ -48,6 +48,7 @@ export const databaseTables = {
   tripStudentEvents: `${databaseConfig.schema}.trip_student_events`,
   messages: `${databaseConfig.schema}.messages`,
   announcements: `${databaseConfig.schema}.announcements`,
+  announcementTargetRoles: `${databaseConfig.schema}.announcement_target_roles`,
   notifications: `${databaseConfig.schema}.notifications`
 } as const;
 

@@ -2317,7 +2317,7 @@ Success shape:
 ```json
 {
   "success": true,
-  "message": "Available recipients fetched successfully",
+  "message": "Available recipients returned successfully",
   "data": {
     "items": [
       {
@@ -2354,6 +2354,209 @@ Contract notes:
 - إذا لم توجد نتائج:
   - يعيد `200`
   - مع `items = []`
+
+#### POST `/communication/messages`
+
+Purpose: send one direct message to one active recipient.
+
+Roles:
+- `admin`
+- `parent`
+- `teacher`
+- `supervisor`
+- `driver`
+
+Body:
+
+```json
+{
+  "receiverUserId": "1005",
+  "messageBody": "رسالة مباشرة تجريبية"
+}
+```
+
+Notes:
+- هذه surface one-to-one فقط
+- لا يوجد group thread
+- لا ترسل الرسائل المتعددة عبر loops محلية في لوحة الإدارة بعد الآن إذا كان المطلوب multi-target
+
+#### POST `/communication/messages/bulk`
+
+Purpose: create admin-only multi-target direct messages as individual one-to-one copies.
+
+Roles:
+- `admin`
+
+Body:
+
+```json
+{
+  "receiverUserIds": ["1005"],
+  "targetRoles": ["teacher", "driver"],
+  "messageBody": "تحديث تشغيلي لليوم"
+}
+```
+
+Success shape:
+
+```json
+{
+  "success": true,
+  "message": "Bulk messages delivered successfully",
+  "data": {
+    "resolvedRecipients": 3,
+    "duplicatesRemoved": 1,
+    "successCount": 3,
+    "failedCount": 0,
+    "failedTargets": []
+  }
+}
+```
+
+Contract notes:
+- هذا endpoint `admin-only`
+- delivery semantics = `all-or-nothing`
+- audience تُحل بنفس قواعد `GET /communication/recipients`
+- واحد على الأقل من:
+  - `receiverUserIds[]`
+  - `targetRoles[]`
+  مطلوب
+- الـ backend يزيل التكرار by `userId`
+- كل رسالة تُنشأ كنسخة one-to-one مستقلة
+- لا يتم إنشاء group thread
+- self-targeting الصريح داخل `receiverUserIds[]` مرفوض
+- إذا كانت الـ audience النهائية فارغة:
+  - `400 Validation Error`
+  - code = `AUDIENCE_EMPTY`
+- إذا كان أي `userId` صريح خارج surface المستلمين المتاحين:
+  - `400 Validation Error`
+  - code = `TARGET_USER_NOT_AVAILABLE`
+
+#### POST `/communication/announcements`
+
+Purpose: create an admin announcement targeted to all users, one role, or multiple roles.
+
+Roles:
+- `admin`
+
+Body:
+
+```json
+{
+  "title": "إعلان تشغيلي",
+  "content": "هذا الإعلان مخصص للمعلمين والمشرفين",
+  "targetRoles": ["teacher", "supervisor"],
+  "expiresAt": "2026-04-01T00:00:00.000Z"
+}
+```
+
+Contract notes:
+- legacy field:
+  - `targetRole?: Role | null`
+- new field:
+  - `targetRoles?: Role[]`
+- لا ترسل:
+  - `targetRole`
+  - و`targetRoles`
+  معًا في نفس الطلب
+- omission لكليهما يعني:
+  - `all users`
+- announcements لا تدعم:
+  - `userIds[]`
+  - أو person-targeted delivery
+- `targetRole` يبقى موجودًا للتوافق الخلفي
+- `targetRoles[]` هي الصيغة الرسمية الجديدة للاستهداف متعدد الأدوار
+
+Response notes:
+- الاستجابة الآن تعيد:
+  - `targetRole`
+  - `targetRoles`
+- إذا كان الاستهداف single-role فقط:
+  - `targetRole = that role`
+  - `targetRoles = [that role]`
+- إذا كان الاستهداف multi-role:
+  - `targetRole = null`
+  - `targetRoles = [...]`
+- إذا كان الإعلان عامًا:
+  - `targetRole = null`
+  - `targetRoles = []`
+
+#### POST `/communication/notifications`
+
+Purpose: create one manual notification for one user.
+
+Roles:
+- `admin`
+
+Body:
+
+```json
+{
+  "userId": "1005",
+  "title": "إشعار يدوي",
+  "message": "يرجى مراجعة الخطة الجديدة",
+  "notificationType": "manual",
+  "referenceType": null,
+  "referenceId": null
+}
+```
+
+Notes:
+- single-target only
+- `notificationType` يبقى free-form
+
+#### POST `/communication/notifications/bulk`
+
+Purpose: create admin-only multi-target notifications with one authoritative delivery summary.
+
+Roles:
+- `admin`
+
+Body:
+
+```json
+{
+  "userIds": ["1005"],
+  "targetRoles": ["teacher", "driver"],
+  "title": "تذكير تشغيلي",
+  "message": "يرجى مراجعة الخطة المحدثة",
+  "notificationType": "operations",
+  "referenceType": null,
+  "referenceId": null
+}
+```
+
+Success shape:
+
+```json
+{
+  "success": true,
+  "message": "Bulk notifications delivered successfully",
+  "data": {
+    "resolvedRecipients": 3,
+    "duplicatesRemoved": 1,
+    "successCount": 3,
+    "failedCount": 0,
+    "failedTargets": []
+  }
+}
+```
+
+Contract notes:
+- هذا endpoint `admin-only`
+- delivery semantics = `all-or-nothing`
+- audience resolution تعتمد نفس قواعد `GET /communication/recipients`
+- واحد على الأقل من:
+  - `userIds[]`
+  - `targetRoles[]`
+  مطلوب
+- الـ backend يزيل التكرار by `userId`
+- إذا كانت الـ audience النهائية فارغة:
+  - `400 Validation Error`
+  - code = `AUDIENCE_EMPTY`
+- إذا احتوى `userIds[]` على مستخدمين غير متاحين لهذا surface:
+  - `400 Validation Error`
+  - code = `TARGET_USER_NOT_AVAILABLE`
 
 ### Wave 1 Deferred Items
 

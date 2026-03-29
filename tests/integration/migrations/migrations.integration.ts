@@ -55,6 +55,7 @@ export const registerMigrationSmokeTests = ({ pool }: MigrationSuiteContext): vo
             'trip_student_events',
             'messages',
             'announcements',
+            'announcement_target_roles',
             'notifications'
           )
       `
@@ -62,6 +63,7 @@ export const registerMigrationSmokeTests = ({ pool }: MigrationSuiteContext): vo
 
     expect(tables.rows.map((row) => row.table_name).sort()).toEqual([
       "academic_years",
+      "announcement_target_roles",
       "announcements",
       "assessment_types",
       "assessments",
@@ -137,7 +139,7 @@ export const registerMigrationSmokeTests = ({ pool }: MigrationSuiteContext): vo
         FROM information_schema.tables
         WHERE table_schema = 'public'
           AND table_name IN (
-            'subject_offerings'
+            'announcement_target_roles'
           )
       `
     );

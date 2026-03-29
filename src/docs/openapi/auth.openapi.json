@@ -32,12 +32,12 @@
       "DateString": {
         "type": "string",
         "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-        "example": "2026-03-27"
+        "example": "2026-03-30"
       },
       "DateTimeString": {
         "type": "string",
         "format": "date-time",
-        "example": "2026-03-27T12:00:00.000Z"
+        "example": "2026-03-30T12:00:00.000Z"
       },
       "GenericObject": {
         "type": "object",
@@ -346,12 +346,12 @@
           "startDate": {
             "type": "string",
             "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-            "example": "2026-03-27"
+            "example": "2026-03-30"
           },
           "endDate": {
             "type": "string",
             "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-            "example": "2026-03-27"
+            "example": "2026-03-30"
           },
           "isActive": {
             "type": "boolean"
@@ -381,12 +381,12 @@
           "startDate": {
             "type": "string",
             "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-            "example": "2026-03-27"
+            "example": "2026-03-30"
           },
           "endDate": {
             "type": "string",
             "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-            "example": "2026-03-27"
+            "example": "2026-03-30"
           },
           "isActive": {
             "type": "boolean"
@@ -408,12 +408,12 @@
           "startDate": {
             "type": "string",
             "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-            "example": "2026-03-27"
+            "example": "2026-03-30"
           },
           "endDate": {
             "type": "string",
             "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-            "example": "2026-03-27"
+            "example": "2026-03-30"
           },
           "isActive": {
             "type": "boolean"
@@ -443,12 +443,12 @@
           "startDate": {
             "type": "string",
             "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-            "example": "2026-03-27"
+            "example": "2026-03-30"
           },
           "endDate": {
             "type": "string",
             "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-            "example": "2026-03-27"
+            "example": "2026-03-30"
           },
           "isActive": {
             "type": "boolean"
@@ -737,7 +737,7 @@
           "description": "الوحدة الثانية",
           "maxScore": 20,
           "weight": 10,
-          "assessmentDate": "2026-03-27",
+          "assessmentDate": "2026-03-30",
           "isPublished": true
         }
       },
@@ -775,7 +775,7 @@
           "subjectId": "1",
           "academicYearId": "1",
           "semesterId": "1",
-          "sessionDate": "2026-03-27",
+          "sessionDate": "2026-03-30",
           "periodNo": 1,
           "title": "حصة الرياضيات",
           "notes": "اختبار سريع",
@@ -828,7 +828,7 @@
           "semesterId": "1",
           "description": "تأخر عن الطابور",
           "severity": 3,
-          "behaviorDate": "2026-03-27",
+          "behaviorDate": "2026-03-30",
           "teacherId": "1002"
         }
       },
@@ -878,7 +878,7 @@
           "studentId": "1",
           "routeId": "1",
           "stopId": "1",
-          "startDate": "2026-03-27",
+          "startDate": "2026-03-30",
           "endDate": null
         }
       },
@@ -886,7 +886,7 @@
         "type": "object",
         "additionalProperties": true,
         "example": {
-          "endDate": "2026-03-27"
+          "endDate": "2026-03-30"
         }
       },
       "CreateTransportRouteAssignmentRequest": {
@@ -895,7 +895,7 @@
         "example": {
           "busId": "1",
           "routeId": "1",
-          "startDate": "2026-03-27",
+          "startDate": "2026-03-30",
           "endDate": null
         }
       },
@@ -903,7 +903,7 @@
         "type": "object",
         "additionalProperties": true,
         "example": {
-          "endDate": "2026-03-27"
+          "endDate": "2026-03-30"
         }
       },
       "CreateTripRequest": {
@@ -912,7 +912,7 @@
         "example": {
           "busId": "1",
           "routeId": "1",
-          "tripDate": "2026-03-27",
+          "tripDate": "2026-03-30",
           "tripType": "pickup"
         }
       },
@@ -921,7 +921,7 @@
         "additionalProperties": true,
         "example": {
           "routeAssignmentId": "1",
-          "tripDate": "2026-03-27",
+          "tripDate": "2026-03-30",
           "tripType": "pickup"
         }
       },
@@ -963,13 +963,30 @@
           "messageBody": "رسالة مباشرة تجريبية"
         }
       },
+      "SendBulkMessageRequest": {
+        "type": "object",
+        "additionalProperties": true,
+        "example": {
+          "receiverUserIds": [
+            "20"
+          ],
+          "targetRoles": [
+            "teacher",
+            "supervisor"
+          ],
+          "messageBody": "رسالة جماعية منسوخة كرسائل فردية"
+        }
+      },
       "CreateAnnouncementRequest": {
         "type": "object",
         "additionalProperties": true,
         "example": {
           "title": "[Seed] New notice",
-          "content": "إعلان موجّه لأولياء الأمور",
-          "targetRole": "parent",
+          "content": "إعلان موجّه للمعلمين والمشرفين",
+          "targetRoles": [
+            "teacher",
+            "supervisor"
+          ],
           "expiresAt": "2026-04-01T00:00:00.000Z"
         }
       },
@@ -980,6 +997,23 @@
           "userId": "20",
           "title": "إشعار يدوي",
           "message": "رسالة إشعار يدوية",
+          "notificationType": "manual",
+          "referenceType": null,
+          "referenceId": null
+        }
+      },
+      "CreateBulkNotificationRequest": {
+        "type": "object",
+        "additionalProperties": true,
+        "example": {
+          "userIds": [
+            "20"
+          ],
+          "targetRoles": [
+            "parent"
+          ],
+          "title": "إشعار جماعي",
+          "message": "هذا الإشعار يصل كملاحظات فردية",
           "notificationType": "manual",
           "referenceType": null,
           "referenceId": null
@@ -996,7 +1030,7 @@
           "semesterId": "1",
           "title": "واجب الرياضيات 2",
           "description": "حل الصفحات 12-14",
-          "assignedDate": "2026-03-27",
+          "assignedDate": "2026-03-30",
           "dueDate": "2026-03-28"
         }
       },
@@ -1008,13 +1042,13 @@
             {
               "studentId": "1",
               "status": "submitted",
-              "submittedAt": "2026-03-27",
+              "submittedAt": "2026-03-30",
               "notes": "تم التسليم"
             },
             {
               "studentId": "2",
               "status": "late",
-              "submittedAt": "2026-03-27",
+              "submittedAt": "2026-03-30",
               "notes": "تسليم متأخر"
             }
           ]
@@ -1298,8 +1332,8 @@
                     "phone": "777000001",
                     "role": "admin",
                     "isActive": true,
-                    "createdAt": "2026-03-27T12:00:00.000Z",
-                    "updatedAt": "2026-03-27T12:00:00.000Z"
+                    "createdAt": "2026-03-30T12:00:00.000Z",
+                    "updatedAt": "2026-03-30T12:00:00.000Z"
                   }
                 }
               }
@@ -1490,8 +1524,8 @@
                     "phone": "777000001",
                     "role": "admin",
                     "isActive": true,
-                    "createdAt": "2026-03-27T12:00:00.000Z",
-                    "updatedAt": "2026-03-27T12:00:00.000Z"
+                    "createdAt": "2026-03-30T12:00:00.000Z",
+                    "updatedAt": "2026-03-30T12:00:00.000Z"
                   }
                 }
               }
@@ -1589,8 +1623,8 @@
                     "phone": "777000001",
                     "role": "admin",
                     "isActive": true,
-                    "createdAt": "2026-03-27T12:00:00.000Z",
-                    "updatedAt": "2026-03-27T12:00:00.000Z"
+                    "createdAt": "2026-03-30T12:00:00.000Z",
+                    "updatedAt": "2026-03-30T12:00:00.000Z"
                   }
                 }
               }

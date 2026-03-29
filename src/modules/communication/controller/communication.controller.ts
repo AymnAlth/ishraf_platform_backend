@@ -9,9 +9,11 @@ import type {
   CommunicationOtherUserIdParamsDto,
   ConversationQueryDto,
   CreateAnnouncementRequestDto,
+  CreateBulkNotificationRequestDto,
   CreateNotificationRequestDto,
   InboxQueryDto,
   NotificationsQueryDto,
+  SendBulkMessageRequestDto,
   SendMessageRequestDto,
   SentQueryDto
 } from "../dto/communication.dto";
@@ -37,6 +39,17 @@ export class CommunicationController {
     const payload = req.validated?.body as SendMessageRequestDto;
     const response = await this.communicationService.sendMessage(assertAuthUser(req), payload);
     res.status(201).json(buildSuccessResponse("Message sent successfully", response));
+  }
+
+  async sendBulkMessages(req: Request, res: Response): Promise<void> {
+    const payload = req.validated?.body as SendBulkMessageRequestDto;
+    const response = await this.communicationService.sendBulkMessages(
+      assertAuthUser(req),
+      payload
+    );
+    res
+      .status(201)
+      .json(buildSuccessResponse("Bulk messages delivered successfully", response));
   }
 
   async listInbox(req: Request, res: Response): Promise<void> {
@@ -99,6 +112,17 @@ export class CommunicationController {
       payload
     );
     res.status(201).json(buildSuccessResponse("Notification created successfully", response));
+  }
+
+  async createBulkNotifications(req: Request, res: Response): Promise<void> {
+    const payload = req.validated?.body as CreateBulkNotificationRequestDto;
+    const response = await this.communicationService.createBulkNotifications(
+      assertAuthUser(req),
+      payload
+    );
+    res
+      .status(201)
+      .json(buildSuccessResponse("Bulk notifications delivered successfully", response));
   }
 
   async listMyNotifications(req: Request, res: Response): Promise<void> {

@@ -82,12 +82,12 @@
       "DateString": {
         "type": "string",
         "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-        "example": "2026-03-27"
+        "example": "2026-03-30"
       },
       "DateTimeString": {
         "type": "string",
         "format": "date-time",
-        "example": "2026-03-27T12:00:00.000Z"
+        "example": "2026-03-30T12:00:00.000Z"
       },
       "GenericObject": {
         "type": "object",
@@ -396,12 +396,12 @@
           "startDate": {
             "type": "string",
             "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-            "example": "2026-03-27"
+            "example": "2026-03-30"
           },
           "endDate": {
             "type": "string",
             "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-            "example": "2026-03-27"
+            "example": "2026-03-30"
           },
           "isActive": {
             "type": "boolean"
@@ -431,12 +431,12 @@
           "startDate": {
             "type": "string",
             "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-            "example": "2026-03-27"
+            "example": "2026-03-30"
           },
           "endDate": {
             "type": "string",
             "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-            "example": "2026-03-27"
+            "example": "2026-03-30"
           },
           "isActive": {
             "type": "boolean"
@@ -458,12 +458,12 @@
           "startDate": {
             "type": "string",
             "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-            "example": "2026-03-27"
+            "example": "2026-03-30"
           },
           "endDate": {
             "type": "string",
             "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-            "example": "2026-03-27"
+            "example": "2026-03-30"
           },
           "isActive": {
             "type": "boolean"
@@ -493,12 +493,12 @@
           "startDate": {
             "type": "string",
             "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-            "example": "2026-03-27"
+            "example": "2026-03-30"
           },
           "endDate": {
             "type": "string",
             "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-            "example": "2026-03-27"
+            "example": "2026-03-30"
           },
           "isActive": {
             "type": "boolean"
@@ -787,7 +787,7 @@
           "description": "الوحدة الثانية",
           "maxScore": 20,
           "weight": 10,
-          "assessmentDate": "2026-03-27",
+          "assessmentDate": "2026-03-30",
           "isPublished": true
         }
       },
@@ -825,7 +825,7 @@
           "subjectId": "1",
           "academicYearId": "1",
           "semesterId": "1",
-          "sessionDate": "2026-03-27",
+          "sessionDate": "2026-03-30",
           "periodNo": 1,
           "title": "حصة الرياضيات",
           "notes": "اختبار سريع",
@@ -878,7 +878,7 @@
           "semesterId": "1",
           "description": "تأخر عن الطابور",
           "severity": 3,
-          "behaviorDate": "2026-03-27",
+          "behaviorDate": "2026-03-30",
           "teacherId": "1002"
         }
       },
@@ -928,7 +928,7 @@
           "studentId": "1",
           "routeId": "1",
           "stopId": "1",
-          "startDate": "2026-03-27",
+          "startDate": "2026-03-30",
           "endDate": null
         }
       },
@@ -936,7 +936,7 @@
         "type": "object",
         "additionalProperties": true,
         "example": {
-          "endDate": "2026-03-27"
+          "endDate": "2026-03-30"
         }
       },
       "CreateTransportRouteAssignmentRequest": {
@@ -945,7 +945,7 @@
         "example": {
           "busId": "1",
           "routeId": "1",
-          "startDate": "2026-03-27",
+          "startDate": "2026-03-30",
           "endDate": null
         }
       },
@@ -953,7 +953,7 @@
         "type": "object",
         "additionalProperties": true,
         "example": {
-          "endDate": "2026-03-27"
+          "endDate": "2026-03-30"
         }
       },
       "CreateTripRequest": {
@@ -962,7 +962,7 @@
         "example": {
           "busId": "1",
           "routeId": "1",
-          "tripDate": "2026-03-27",
+          "tripDate": "2026-03-30",
           "tripType": "pickup"
         }
       },
@@ -971,7 +971,7 @@
         "additionalProperties": true,
         "example": {
           "routeAssignmentId": "1",
-          "tripDate": "2026-03-27",
+          "tripDate": "2026-03-30",
           "tripType": "pickup"
         }
       },
@@ -1013,13 +1013,30 @@
           "messageBody": "رسالة مباشرة تجريبية"
         }
       },
+      "SendBulkMessageRequest": {
+        "type": "object",
+        "additionalProperties": true,
+        "example": {
+          "receiverUserIds": [
+            "20"
+          ],
+          "targetRoles": [
+            "teacher",
+            "supervisor"
+          ],
+          "messageBody": "رسالة جماعية منسوخة كرسائل فردية"
+        }
+      },
       "CreateAnnouncementRequest": {
         "type": "object",
         "additionalProperties": true,
         "example": {
           "title": "[Seed] New notice",
-          "content": "إعلان موجّه لأولياء الأمور",
-          "targetRole": "parent",
+          "content": "إعلان موجّه للمعلمين والمشرفين",
+          "targetRoles": [
+            "teacher",
+            "supervisor"
+          ],
           "expiresAt": "2026-04-01T00:00:00.000Z"
         }
       },
@@ -1030,6 +1047,23 @@
           "userId": "20",
           "title": "إشعار يدوي",
           "message": "رسالة إشعار يدوية",
+          "notificationType": "manual",
+          "referenceType": null,
+          "referenceId": null
+        }
+      },
+      "CreateBulkNotificationRequest": {
+        "type": "object",
+        "additionalProperties": true,
+        "example": {
+          "userIds": [
+            "20"
+          ],
+          "targetRoles": [
+            "parent"
+          ],
+          "title": "إشعار جماعي",
+          "message": "هذا الإشعار يصل كملاحظات فردية",
           "notificationType": "manual",
           "referenceType": null,
           "referenceId": null
@@ -1046,7 +1080,7 @@
           "semesterId": "1",
           "title": "واجب الرياضيات 2",
           "description": "حل الصفحات 12-14",
-          "assignedDate": "2026-03-27",
+          "assignedDate": "2026-03-30",
           "dueDate": "2026-03-28"
         }
       },
@@ -1058,13 +1092,13 @@
             {
               "studentId": "1",
               "status": "submitted",
-              "submittedAt": "2026-03-27",
+              "submittedAt": "2026-03-30",
               "notes": "تم التسليم"
             },
             {
               "studentId": "2",
               "status": "late",
-              "submittedAt": "2026-03-27",
+              "submittedAt": "2026-03-30",
               "notes": "تسليم متأخر"
             }
           ]
@@ -1484,8 +1518,8 @@
                     "phone": "777000001",
                     "role": "admin",
                     "isActive": true,
-                    "createdAt": "2026-03-27T12:00:00.000Z",
-                    "updatedAt": "2026-03-27T12:00:00.000Z"
+                    "createdAt": "2026-03-30T12:00:00.000Z",
+                    "updatedAt": "2026-03-30T12:00:00.000Z"
                   }
                 }
               }
@@ -1676,8 +1710,8 @@
                     "phone": "777000001",
                     "role": "admin",
                     "isActive": true,
-                    "createdAt": "2026-03-27T12:00:00.000Z",
-                    "updatedAt": "2026-03-27T12:00:00.000Z"
+                    "createdAt": "2026-03-30T12:00:00.000Z",
+                    "updatedAt": "2026-03-30T12:00:00.000Z"
                   }
                 }
               }
@@ -1775,8 +1809,8 @@
                     "phone": "777000001",
                     "role": "admin",
                     "isActive": true,
-                    "createdAt": "2026-03-27T12:00:00.000Z",
-                    "updatedAt": "2026-03-27T12:00:00.000Z"
+                    "createdAt": "2026-03-30T12:00:00.000Z",
+                    "updatedAt": "2026-03-30T12:00:00.000Z"
                   }
                 }
               }
@@ -1984,8 +2018,8 @@
                         "phone": "777000001",
                         "role": "admin",
                         "isActive": true,
-                        "createdAt": "2026-03-27T12:00:00.000Z",
-                        "updatedAt": "2026-03-27T12:00:00.000Z"
+                        "createdAt": "2026-03-30T12:00:00.000Z",
+                        "updatedAt": "2026-03-30T12:00:00.000Z"
                       }
                     ],
                     "pagination": {
@@ -2182,8 +2216,8 @@
                     "phone": "777000001",
                     "role": "admin",
                     "isActive": true,
-                    "createdAt": "2026-03-27T12:00:00.000Z",
-                    "updatedAt": "2026-03-27T12:00:00.000Z"
+                    "createdAt": "2026-03-30T12:00:00.000Z",
+                    "updatedAt": "2026-03-30T12:00:00.000Z"
                   }
                 }
               }
@@ -2323,8 +2357,8 @@
                     "phone": "777000001",
                     "role": "admin",
                     "isActive": true,
-                    "createdAt": "2026-03-27T12:00:00.000Z",
-                    "updatedAt": "2026-03-27T12:00:00.000Z"
+                    "createdAt": "2026-03-30T12:00:00.000Z",
+                    "updatedAt": "2026-03-30T12:00:00.000Z"
                   }
                 }
               }
@@ -2474,8 +2508,8 @@
                     "phone": "777000001",
                     "role": "admin",
                     "isActive": true,
-                    "createdAt": "2026-03-27T12:00:00.000Z",
-                    "updatedAt": "2026-03-27T12:00:00.000Z"
+                    "createdAt": "2026-03-30T12:00:00.000Z",
+                    "updatedAt": "2026-03-30T12:00:00.000Z"
                   }
                 }
               }
@@ -2641,8 +2675,8 @@
                     "phone": "777000001",
                     "role": "admin",
                     "isActive": true,
-                    "createdAt": "2026-03-27T12:00:00.000Z",
-                    "updatedAt": "2026-03-27T12:00:00.000Z"
+                    "createdAt": "2026-03-30T12:00:00.000Z",
+                    "updatedAt": "2026-03-30T12:00:00.000Z"
                   }
                 }
               }
@@ -4618,8 +4652,8 @@
                           "name": "2025-2026"
                         }
                       },
-                      "createdAt": "2026-03-27T12:00:00.000Z",
-                      "updatedAt": "2026-03-27T12:00:00.000Z"
+                      "createdAt": "2026-03-30T12:00:00.000Z",
+                      "updatedAt": "2026-03-30T12:00:00.000Z"
                     }
                   ]
                 }
@@ -4811,8 +4845,8 @@
                         "name": "2025-2026"
                       }
                     },
-                    "createdAt": "2026-03-27T12:00:00.000Z",
-                    "updatedAt": "2026-03-27T12:00:00.000Z"
+                    "createdAt": "2026-03-30T12:00:00.000Z",
+                    "updatedAt": "2026-03-30T12:00:00.000Z"
                   }
                 }
               }
@@ -4964,8 +4998,8 @@
                         "name": "2025-2026"
                       }
                     },
-                    "createdAt": "2026-03-27T12:00:00.000Z",
-                    "updatedAt": "2026-03-27T12:00:00.000Z"
+                    "createdAt": "2026-03-30T12:00:00.000Z",
+                    "updatedAt": "2026-03-30T12:00:00.000Z"
                   }
                 }
               }
@@ -5133,8 +5167,8 @@
                         "name": "2025-2026"
                       }
                     },
-                    "createdAt": "2026-03-27T12:00:00.000Z",
-                    "updatedAt": "2026-03-27T12:00:00.000Z"
+                    "createdAt": "2026-03-30T12:00:00.000Z",
+                    "updatedAt": "2026-03-30T12:00:00.000Z"
                   }
                 }
               }
@@ -6850,8 +6884,8 @@
                       "phone": "777000001",
                       "role": "admin",
                       "isActive": true,
-                      "createdAt": "2026-03-27T12:00:00.000Z",
-                      "updatedAt": "2026-03-27T12:00:00.000Z"
+                      "createdAt": "2026-03-30T12:00:00.000Z",
+                      "updatedAt": "2026-03-30T12:00:00.000Z"
                     }
                   ]
                 }
@@ -7002,8 +7036,8 @@
                     "phone": "777000001",
                     "role": "admin",
                     "isActive": true,
-                    "createdAt": "2026-03-27T12:00:00.000Z",
-                    "updatedAt": "2026-03-27T12:00:00.000Z"
+                    "createdAt": "2026-03-30T12:00:00.000Z",
+                    "updatedAt": "2026-03-30T12:00:00.000Z"
                   }
                 }
               }
@@ -7339,8 +7373,8 @@
                     "phone": "777000001",
                     "role": "admin",
                     "isActive": true,
-                    "createdAt": "2026-03-27T12:00:00.000Z",
-                    "updatedAt": "2026-03-27T12:00:00.000Z"
+                    "createdAt": "2026-03-30T12:00:00.000Z",
+                    "updatedAt": "2026-03-30T12:00:00.000Z"
                   }
                 }
               }
@@ -7504,7 +7538,7 @@
                     "studentId": "1",
                     "fullName": "طالب تجريبي 1",
                     "status": "present",
-                    "recordedAt": "2026-03-27T12:00:00.000Z"
+                    "recordedAt": "2026-03-30T12:00:00.000Z"
                   }
                 }
               }
@@ -7692,7 +7726,7 @@
                         "className": "الصف الأول",
                         "subjectId": "1",
                         "subjectName": "الرياضيات",
-                        "sessionDate": "2026-03-27",
+                        "sessionDate": "2026-03-30",
                         "periodNo": 1,
                         "presentCount": 2,
                         "absentCount": 1,
@@ -7893,7 +7927,7 @@
             "schema": {
               "type": "string",
               "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-              "example": "2026-03-27"
+              "example": "2026-03-30"
             },
             "description": "Filter by exact session date."
           },
@@ -7904,7 +7938,7 @@
             "schema": {
               "type": "string",
               "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-              "example": "2026-03-27"
+              "example": "2026-03-30"
             },
             "description": "Filter from session date."
           },
@@ -7915,7 +7949,7 @@
             "schema": {
               "type": "string",
               "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-              "example": "2026-03-27"
+              "example": "2026-03-30"
             },
             "description": "Filter to session date."
           }
@@ -7964,7 +7998,7 @@
                     "className": "الصف الأول",
                     "subjectId": "1",
                     "subjectName": "الرياضيات",
-                    "sessionDate": "2026-03-27",
+                    "sessionDate": "2026-03-30",
                     "periodNo": 1,
                     "presentCount": 2,
                     "absentCount": 1,
@@ -8054,7 +8088,7 @@
                 "subjectId": "1",
                 "academicYearId": "1",
                 "semesterId": "1",
-                "sessionDate": "2026-03-27",
+                "sessionDate": "2026-03-30",
                 "periodNo": 1,
                 "title": "حصة الرياضيات",
                 "notes": "اختبار سريع",
@@ -8110,7 +8144,7 @@
                     "className": "الصف الأول",
                     "subjectId": "1",
                     "subjectName": "الرياضيات",
-                    "sessionDate": "2026-03-27",
+                    "sessionDate": "2026-03-30",
                     "periodNo": 1,
                     "presentCount": 2,
                     "absentCount": 1,
@@ -8272,7 +8306,7 @@
                       "studentId": "1",
                       "fullName": "طالب تجريبي 1",
                       "status": "present",
-                      "recordedAt": "2026-03-27T12:00:00.000Z"
+                      "recordedAt": "2026-03-30T12:00:00.000Z"
                     }
                   ]
                 }
@@ -8473,7 +8507,7 @@
                         "semesterId": "1",
                         "maxScore": 20,
                         "weight": 10,
-                        "assessmentDate": "2026-03-27",
+                        "assessmentDate": "2026-03-30",
                         "isPublished": true
                       }
                     ],
@@ -8681,7 +8715,7 @@
             "schema": {
               "type": "string",
               "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-              "example": "2026-03-27"
+              "example": "2026-03-30"
             },
             "description": "Filter by exact assessment date."
           },
@@ -8692,7 +8726,7 @@
             "schema": {
               "type": "string",
               "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-              "example": "2026-03-27"
+              "example": "2026-03-30"
             },
             "description": "Filter from assessment date."
           },
@@ -8703,7 +8737,7 @@
             "schema": {
               "type": "string",
               "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-              "example": "2026-03-27"
+              "example": "2026-03-30"
             },
             "description": "Filter to assessment date."
           },
@@ -8766,7 +8800,7 @@
                     "semesterId": "1",
                     "maxScore": 20,
                     "weight": 10,
-                    "assessmentDate": "2026-03-27",
+                    "assessmentDate": "2026-03-30",
                     "isPublished": true
                   }
                 }
@@ -8858,7 +8892,7 @@
                 "description": "الوحدة الثانية",
                 "maxScore": 20,
                 "weight": 10,
-                "assessmentDate": "2026-03-27",
+                "assessmentDate": "2026-03-30",
                 "isPublished": true
               }
             }
@@ -8914,7 +8948,7 @@
                     "semesterId": "1",
                     "maxScore": 20,
                     "weight": 10,
-                    "assessmentDate": "2026-03-27",
+                    "assessmentDate": "2026-03-30",
                     "isPublished": true
                   }
                 }
@@ -9577,7 +9611,7 @@
                       "semesterId": "1",
                       "maxScore": 20,
                       "weight": 10,
-                      "assessmentDate": "2026-03-27",
+                      "assessmentDate": "2026-03-30",
                       "isPublished": true
                     }
                   ]
@@ -9678,7 +9712,7 @@
                     "semesterId": "1",
                     "maxScore": 20,
                     "weight": 10,
-                    "assessmentDate": "2026-03-27",
+                    "assessmentDate": "2026-03-30",
                     "isPublished": true
                   }
                 }
@@ -10075,8 +10109,8 @@
                         "behaviorName": "تأخر متكرر",
                         "behaviorType": "negative",
                         "severity": 3,
-                        "behaviorDate": "2026-03-27",
-                        "createdAt": "2026-03-27T12:00:00.000Z"
+                        "behaviorDate": "2026-03-30",
+                        "createdAt": "2026-03-30T12:00:00.000Z"
                       }
                     ],
                     "pagination": {
@@ -10293,7 +10327,7 @@
             "schema": {
               "type": "string",
               "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-              "example": "2026-03-27"
+              "example": "2026-03-30"
             },
             "description": "Filter by exact behavior date."
           },
@@ -10304,7 +10338,7 @@
             "schema": {
               "type": "string",
               "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-              "example": "2026-03-27"
+              "example": "2026-03-30"
             },
             "description": "Filter from behavior date."
           },
@@ -10315,7 +10349,7 @@
             "schema": {
               "type": "string",
               "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-              "example": "2026-03-27"
+              "example": "2026-03-30"
             },
             "description": "Filter to behavior date."
           }
@@ -10367,8 +10401,8 @@
                     "behaviorName": "تأخر متكرر",
                     "behaviorType": "negative",
                     "severity": 3,
-                    "behaviorDate": "2026-03-27",
-                    "createdAt": "2026-03-27T12:00:00.000Z"
+                    "behaviorDate": "2026-03-30",
+                    "createdAt": "2026-03-30T12:00:00.000Z"
                   }
                 }
               }
@@ -10455,7 +10489,7 @@
                 "semesterId": "1",
                 "description": "تأخر عن الطابور",
                 "severity": 3,
-                "behaviorDate": "2026-03-27",
+                "behaviorDate": "2026-03-30",
                 "teacherId": "1002"
               }
             }
@@ -10510,8 +10544,8 @@
                     "behaviorName": "تأخر متكرر",
                     "behaviorType": "negative",
                     "severity": 3,
-                    "behaviorDate": "2026-03-27",
-                    "createdAt": "2026-03-27T12:00:00.000Z"
+                    "behaviorDate": "2026-03-30",
+                    "createdAt": "2026-03-30T12:00:00.000Z"
                   }
                 }
               }
@@ -10664,8 +10698,8 @@
                     "behaviorName": "تأخر متكرر",
                     "behaviorType": "negative",
                     "severity": 3,
-                    "behaviorDate": "2026-03-27",
-                    "createdAt": "2026-03-27T12:00:00.000Z"
+                    "behaviorDate": "2026-03-30",
+                    "createdAt": "2026-03-30T12:00:00.000Z"
                   }
                 }
               }
@@ -10847,8 +10881,8 @@
                         "behaviorName": "تأخر متكرر",
                         "behaviorType": "negative",
                         "severity": 3,
-                        "behaviorDate": "2026-03-27",
-                        "createdAt": "2026-03-27T12:00:00.000Z"
+                        "behaviorDate": "2026-03-30",
+                        "createdAt": "2026-03-30T12:00:00.000Z"
                       }
                     ]
                   }
@@ -11010,7 +11044,7 @@
                       "id": "1",
                       "stopName": "Stop 1"
                     },
-                    "startDate": "2026-03-27",
+                    "startDate": "2026-03-30",
                     "endDate": null,
                     "isActive": true
                   }
@@ -11096,7 +11130,7 @@
                 "studentId": "1",
                 "routeId": "1",
                 "stopId": "1",
-                "startDate": "2026-03-27",
+                "startDate": "2026-03-30",
                 "endDate": null
               }
             }
@@ -11156,7 +11190,7 @@
                       "id": "1",
                       "stopName": "Stop 1"
                     },
-                    "startDate": "2026-03-27",
+                    "startDate": "2026-03-30",
                     "endDate": null,
                     "isActive": true
                   }
@@ -11272,7 +11306,7 @@
                 "$ref": "#/components/schemas/DeactivateTransportAssignmentRequest"
               },
               "example": {
-                "endDate": "2026-03-27"
+                "endDate": "2026-03-30"
               }
             }
           }
@@ -11335,7 +11369,7 @@
                         "id": "1",
                         "stopName": "Stop 1"
                       },
-                      "startDate": "2026-03-27",
+                      "startDate": "2026-03-30",
                       "endDate": null,
                       "isActive": true
                     }
@@ -11700,7 +11734,7 @@
                         "estimatedDurationMinutes": 35,
                         "isActive": true
                       },
-                      "startDate": "2026-03-27",
+                      "startDate": "2026-03-30",
                       "endDate": null,
                       "isActive": true
                     }
@@ -11815,7 +11849,7 @@
                       "estimatedDurationMinutes": 35,
                       "isActive": true
                     },
-                    "startDate": "2026-03-27",
+                    "startDate": "2026-03-30",
                     "endDate": null,
                     "isActive": true
                   }
@@ -11900,7 +11934,7 @@
               "example": {
                 "busId": "1",
                 "routeId": "1",
-                "startDate": "2026-03-27",
+                "startDate": "2026-03-30",
                 "endDate": null
               }
             }
@@ -11968,7 +12002,7 @@
                       "estimatedDurationMinutes": 35,
                       "isActive": true
                     },
-                    "startDate": "2026-03-27",
+                    "startDate": "2026-03-30",
                     "endDate": null,
                     "isActive": true
                   }
@@ -12084,7 +12118,7 @@
                 "$ref": "#/components/schemas/DeactivateTransportRouteAssignmentRequest"
               },
               "example": {
-                "endDate": "2026-03-27"
+                "endDate": "2026-03-30"
               }
             }
           }
@@ -12155,7 +12189,7 @@
                         "estimatedDurationMinutes": 35,
                         "isActive": true
                       },
-                      "startDate": "2026-03-27",
+                      "startDate": "2026-03-30",
                       "endDate": null,
                       "isActive": true
                     }
@@ -12819,10 +12853,10 @@
                       "status": "approved",
                       "submittedByUserId": "1",
                       "approvedByUserId": "1",
-                      "approvedAt": "2026-03-27T12:00:00.000Z",
+                      "approvedAt": "2026-03-30T12:00:00.000Z",
                       "notes": null,
-                      "createdAt": "2026-03-27T12:00:00.000Z",
-                      "updatedAt": "2026-03-27T12:00:00.000Z"
+                      "createdAt": "2026-03-30T12:00:00.000Z",
+                      "updatedAt": "2026-03-30T12:00:00.000Z"
                     }
                   }
                 }
@@ -12982,10 +13016,10 @@
                       "status": "approved",
                       "submittedByUserId": "1",
                       "approvedByUserId": "1",
-                      "approvedAt": "2026-03-27T12:00:00.000Z",
+                      "approvedAt": "2026-03-30T12:00:00.000Z",
                       "notes": null,
-                      "createdAt": "2026-03-27T12:00:00.000Z",
-                      "updatedAt": "2026-03-27T12:00:00.000Z"
+                      "createdAt": "2026-03-30T12:00:00.000Z",
+                      "updatedAt": "2026-03-30T12:00:00.000Z"
                     }
                   }
                 }
@@ -13145,10 +13179,10 @@
                       "status": "approved",
                       "submittedByUserId": "1",
                       "approvedByUserId": "1",
-                      "approvedAt": "2026-03-27T12:00:00.000Z",
+                      "approvedAt": "2026-03-30T12:00:00.000Z",
                       "notes": null,
-                      "createdAt": "2026-03-27T12:00:00.000Z",
-                      "updatedAt": "2026-03-27T12:00:00.000Z"
+                      "createdAt": "2026-03-30T12:00:00.000Z",
+                      "updatedAt": "2026-03-30T12:00:00.000Z"
                     }
                   }
                 }
@@ -13336,10 +13370,10 @@
                     "items": [
                       {
                         "id": "1",
-                        "tripDate": "2026-03-27",
+                        "tripDate": "2026-03-30",
                         "tripType": "pickup",
                         "tripStatus": "started",
-                        "startedAt": "2026-03-27T12:00:00.000Z",
+                        "startedAt": "2026-03-30T12:00:00.000Z",
                         "endedAt": null,
                         "bus": {
                           "id": "1",
@@ -13356,7 +13390,7 @@
                         "latestLocation": {
                           "latitude": 15.3694,
                           "longitude": 44.191,
-                          "recordedAt": "2026-03-27T12:00:00.000Z"
+                          "recordedAt": "2026-03-30T12:00:00.000Z"
                         },
                         "eventSummary": {
                           "boardedCount": 1,
@@ -13547,7 +13581,7 @@
             "schema": {
               "type": "string",
               "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-              "example": "2026-03-27"
+              "example": "2026-03-30"
             },
             "description": "Filter by exact trip date."
           },
@@ -13558,7 +13592,7 @@
             "schema": {
               "type": "string",
               "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-              "example": "2026-03-27"
+              "example": "2026-03-30"
             },
             "description": "Filter from trip date."
           },
@@ -13569,7 +13603,7 @@
             "schema": {
               "type": "string",
               "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-              "example": "2026-03-27"
+              "example": "2026-03-30"
             },
             "description": "Filter to trip date."
           }
@@ -13614,10 +13648,10 @@
                   "message": "Create Trip completed successfully",
                   "data": {
                     "id": "1",
-                    "tripDate": "2026-03-27",
+                    "tripDate": "2026-03-30",
                     "tripType": "pickup",
                     "tripStatus": "started",
-                    "startedAt": "2026-03-27T12:00:00.000Z",
+                    "startedAt": "2026-03-30T12:00:00.000Z",
                     "endedAt": null,
                     "bus": {
                       "id": "1",
@@ -13634,7 +13668,7 @@
                     "latestLocation": {
                       "latitude": 15.3694,
                       "longitude": 44.191,
-                      "recordedAt": "2026-03-27T12:00:00.000Z"
+                      "recordedAt": "2026-03-30T12:00:00.000Z"
                     },
                     "eventSummary": {
                       "boardedCount": 1,
@@ -13724,7 +13758,7 @@
               "example": {
                 "busId": "1",
                 "routeId": "1",
-                "tripDate": "2026-03-27",
+                "tripDate": "2026-03-30",
                 "tripType": "pickup"
               }
             }
@@ -13773,10 +13807,10 @@
                   "data": {
                     "trip": {
                       "id": "1",
-                      "tripDate": "2026-03-27",
+                      "tripDate": "2026-03-30",
                       "tripType": "pickup",
                       "tripStatus": "started",
-                      "startedAt": "2026-03-27T12:00:00.000Z",
+                      "startedAt": "2026-03-30T12:00:00.000Z",
                       "endedAt": null,
                       "bus": {
                         "id": "1",
@@ -13794,7 +13828,7 @@
                     "latestLocation": {
                       "latitude": 15.3694,
                       "longitude": 44.191,
-                      "recordedAt": "2026-03-27T12:00:00.000Z"
+                      "recordedAt": "2026-03-30T12:00:00.000Z"
                     },
                     "routeStops": [
                       {
@@ -13958,10 +13992,10 @@
                   "message": "End Trip completed successfully",
                   "data": {
                     "id": "1",
-                    "tripDate": "2026-03-27",
+                    "tripDate": "2026-03-30",
                     "tripType": "pickup",
                     "tripStatus": "started",
-                    "startedAt": "2026-03-27T12:00:00.000Z",
+                    "startedAt": "2026-03-30T12:00:00.000Z",
                     "endedAt": null,
                     "bus": {
                       "id": "1",
@@ -13978,7 +14012,7 @@
                     "latestLocation": {
                       "latitude": 15.3694,
                       "longitude": 44.191,
-                      "recordedAt": "2026-03-27T12:00:00.000Z"
+                      "recordedAt": "2026-03-30T12:00:00.000Z"
                     },
                     "eventSummary": {
                       "boardedCount": 1,
@@ -14143,7 +14177,7 @@
                         "fullName": "طالب تجريبي 1"
                       },
                       "eventType": "boarded",
-                      "eventTime": "2026-03-27T12:00:00.000Z",
+                      "eventTime": "2026-03-30T12:00:00.000Z",
                       "stop": {
                         "stopId": "1",
                         "stopName": "Stop 1"
@@ -14301,7 +14335,7 @@
                       "fullName": "طالب تجريبي 1"
                     },
                     "eventType": "boarded",
-                    "eventTime": "2026-03-27T12:00:00.000Z",
+                    "eventTime": "2026-03-30T12:00:00.000Z",
                     "stop": {
                       "stopId": "1",
                       "stopName": "Stop 1"
@@ -14470,10 +14504,10 @@
                   "message": "Record Trip Location completed successfully",
                   "data": {
                     "id": "1",
-                    "tripDate": "2026-03-27",
+                    "tripDate": "2026-03-30",
                     "tripType": "pickup",
                     "tripStatus": "started",
-                    "startedAt": "2026-03-27T12:00:00.000Z",
+                    "startedAt": "2026-03-30T12:00:00.000Z",
                     "endedAt": null,
                     "bus": {
                       "id": "1",
@@ -14490,7 +14524,7 @@
                     "latestLocation": {
                       "latitude": 15.3694,
                       "longitude": 44.191,
-                      "recordedAt": "2026-03-27T12:00:00.000Z"
+                      "recordedAt": "2026-03-30T12:00:00.000Z"
                     },
                     "eventSummary": {
                       "boardedCount": 1,
@@ -14659,10 +14693,10 @@
                   "message": "Start Trip completed successfully",
                   "data": {
                     "id": "1",
-                    "tripDate": "2026-03-27",
+                    "tripDate": "2026-03-30",
                     "tripType": "pickup",
                     "tripStatus": "started",
-                    "startedAt": "2026-03-27T12:00:00.000Z",
+                    "startedAt": "2026-03-30T12:00:00.000Z",
                     "endedAt": null,
                     "bus": {
                       "id": "1",
@@ -14679,7 +14713,7 @@
                     "latestLocation": {
                       "latitude": 15.3694,
                       "longitude": 44.191,
-                      "recordedAt": "2026-03-27T12:00:00.000Z"
+                      "recordedAt": "2026-03-30T12:00:00.000Z"
                     },
                     "eventSummary": {
                       "boardedCount": 1,
@@ -14856,7 +14890,7 @@
                         "currentTripEventType": "boarded",
                         "lastEvent": {
                           "eventType": "boarded",
-                          "eventTime": "2026-03-27T12:00:00.000Z",
+                          "eventTime": "2026-03-30T12:00:00.000Z",
                           "stopId": "1"
                         }
                       }
@@ -15031,7 +15065,7 @@
                     "created": true,
                     "trip": {
                       "id": "1",
-                      "tripDate": "2026-03-27",
+                      "tripDate": "2026-03-30",
                       "tripType": "pickup",
                       "tripStatus": "scheduled",
                       "startedAt": null,
@@ -15137,7 +15171,7 @@
               },
               "example": {
                 "routeAssignmentId": "1",
-                "tripDate": "2026-03-27",
+                "tripDate": "2026-03-30",
                 "tripType": "pickup"
               }
             }
@@ -15191,7 +15225,8 @@
                       "title": "[Seed] School Notice",
                       "content": "إعلان تجريبي للواجهات",
                       "targetRole": null,
-                      "publishedAt": "2026-03-27T12:00:00.000Z",
+                      "targetRoles": [],
+                      "publishedAt": "2026-03-30T12:00:00.000Z",
                       "expiresAt": "2026-04-01T00:00:00.000Z"
                     }
                   ]
@@ -15251,7 +15286,7 @@
           "Communication"
         ],
         "summary": "Create Announcement",
-        "description": "Create an announcement. targetRole narrows the feed; null targets all active users.\n\nAllowed roles: admin.",
+        "description": "Create an admin announcement targeted to all users, one role, or multiple roles. targetRole remains legacy; targetRoles[] is the new multi-role contract.\n\nAllowed roles: admin.\n\nNote: Announcements support roles/all only. Person-targeted announcements are not supported.\n\nNote: Do not send targetRole and targetRoles together.\n\nNote: If neither targetRole nor targetRoles is provided, the announcement targets all active roles.",
         "x-allowed-roles": [
           "admin"
         ],
@@ -15287,7 +15322,8 @@
                     "title": "[Seed] School Notice",
                     "content": "إعلان تجريبي للواجهات",
                     "targetRole": null,
-                    "publishedAt": "2026-03-27T12:00:00.000Z",
+                    "targetRoles": [],
+                    "publishedAt": "2026-03-30T12:00:00.000Z",
                     "expiresAt": "2026-04-01T00:00:00.000Z"
                   }
                 }
@@ -15370,8 +15406,11 @@
               },
               "example": {
                 "title": "[Seed] New notice",
-                "content": "إعلان موجّه لأولياء الأمور",
-                "targetRole": "parent",
+                "content": "إعلان موجّه للمعلمين والمشرفين",
+                "targetRoles": [
+                  "teacher",
+                  "supervisor"
+                ],
                 "expiresAt": "2026-04-01T00:00:00.000Z"
               }
             }
@@ -15385,7 +15424,7 @@
           "Communication"
         ],
         "summary": "List Active Announcements",
-        "description": "Return the active announcement feed visible to the authenticated role.\n\nAllowed roles: admin, parent, teacher, supervisor, driver.\n\nDerived data: The feed uses SQL views such as vw_active_announcements and targetRole filtering.",
+        "description": "Return the active announcement feed visible to the authenticated role.\n\nAllowed roles: admin, parent, teacher, supervisor, driver.\n\nDerived data: The feed uses SQL views such as vw_active_announcements and filters by targetRoles[] when present; an empty targetRoles array means all roles.",
         "x-allowed-roles": [
           "admin",
           "parent",
@@ -15429,7 +15468,8 @@
                       "title": "[Seed] School Notice",
                       "content": "إعلان تجريبي للواجهات",
                       "targetRole": null,
-                      "publishedAt": "2026-03-27T12:00:00.000Z",
+                      "targetRoles": [],
+                      "publishedAt": "2026-03-30T12:00:00.000Z",
                       "expiresAt": "2026-04-01T00:00:00.000Z"
                     }
                   ]
@@ -15531,7 +15571,7 @@
                     "senderUserId": "1",
                     "receiverUserId": "20",
                     "messageBody": "رسالة تجريبية",
-                    "sentAt": "2026-03-27T12:00:00.000Z",
+                    "sentAt": "2026-03-30T12:00:00.000Z",
                     "readAt": null
                   }
                 }
@@ -15667,7 +15707,7 @@
                     "senderUserId": "1",
                     "receiverUserId": "20",
                     "messageBody": "رسالة تجريبية",
-                    "sentAt": "2026-03-27T12:00:00.000Z",
+                    "sentAt": "2026-03-30T12:00:00.000Z",
                     "readAt": null
                   }
                 }
@@ -15776,6 +15816,143 @@
         ]
       }
     },
+    "/communication/messages/bulk": {
+      "post": {
+        "tags": [
+          "Communication"
+        ],
+        "summary": "[NEW] Send Bulk Messages",
+        "description": "Create admin-only multi-target direct messages as individual one-to-one copies. The endpoint is all-or-nothing and uses the same audience rules as /communication/recipients.\n\nAllowed roles: admin.\n\nNote: [NEW] Direct multi-target delivery creates individual copies inside messages; it does not create a group thread.\n\nNote: [NEW] At least one of receiverUserIds[] or targetRoles[] is required.\n\nNote: [NEW] Explicit self-targeting is rejected.\n\nNote: [NEW] If resolved audience is empty or explicit user ids are outside the available-recipient surface, the request fails with 400.\n\nDerived data: Audience resolution reuses the same active-user and self-exclusion policy exposed by GET /communication/recipients.",
+        "x-allowed-roles": [
+          "admin"
+        ],
+        "responses": {
+          "201": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "const": true
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/GenericObject"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                },
+                "example": {
+                  "success": true,
+                  "message": "[NEW] Send Bulk Messages completed successfully",
+                  "data": {
+                    "resolvedRecipients": 3,
+                    "duplicatesRemoved": 1,
+                    "successCount": 3,
+                    "failedCount": 0,
+                    "failedTargets": []
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Validation failed",
+                  "errors": [
+                    {
+                      "field": "fieldName",
+                      "code": "invalid_type",
+                      "message": "Validation error example"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication is missing or expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Unauthorized",
+                  "errors": [
+                    {
+                      "code": "UNAUTHORIZED",
+                      "message": "Authentication is required"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated but not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Forbidden",
+                  "errors": [
+                    {
+                      "code": "FORBIDDEN",
+                      "message": "You do not have permission to access this resource"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SendBulkMessageRequest"
+              },
+              "example": {
+                "receiverUserIds": [
+                  "20"
+                ],
+                "targetRoles": [
+                  "teacher",
+                  "supervisor"
+                ],
+                "messageBody": "رسالة جماعية منسوخة كرسائل فردية"
+              }
+            }
+          }
+        }
+      }
+    },
     "/communication/messages/conversations/{otherUserId}": {
       "get": {
         "tags": [
@@ -15843,7 +16020,7 @@
                         "senderUserId": "1",
                         "receiverUserId": "20",
                         "messageBody": "رسالة تجريبية",
-                        "sentAt": "2026-03-27T12:00:00.000Z",
+                        "sentAt": "2026-03-30T12:00:00.000Z",
                         "readAt": null
                       }
                     ],
@@ -16077,7 +16254,7 @@
                         "senderUserId": "1",
                         "receiverUserId": "20",
                         "messageBody": "رسالة تجريبية",
-                        "sentAt": "2026-03-27T12:00:00.000Z",
+                        "sentAt": "2026-03-30T12:00:00.000Z",
                         "readAt": null
                       }
                     ],
@@ -16291,7 +16468,7 @@
                         "senderUserId": "1",
                         "receiverUserId": "20",
                         "messageBody": "رسالة تجريبية",
-                        "sentAt": "2026-03-27T12:00:00.000Z",
+                        "sentAt": "2026-03-30T12:00:00.000Z",
                         "readAt": null
                       }
                     ],
@@ -16484,7 +16661,7 @@
                     "referenceType": "attendance",
                     "referenceId": "1",
                     "isRead": false,
-                    "createdAt": "2026-03-27T12:00:00.000Z"
+                    "createdAt": "2026-03-30T12:00:00.000Z"
                   }
                 }
               }
@@ -16627,7 +16804,7 @@
                     "referenceType": "attendance",
                     "referenceId": "1",
                     "isRead": false,
-                    "createdAt": "2026-03-27T12:00:00.000Z"
+                    "createdAt": "2026-03-30T12:00:00.000Z"
                   }
                 }
               }
@@ -16735,6 +16912,146 @@
         ]
       }
     },
+    "/communication/notifications/bulk": {
+      "post": {
+        "tags": [
+          "Communication"
+        ],
+        "summary": "[NEW] Create Bulk Notifications",
+        "description": "Create admin-only multi-target notifications in one all-or-nothing transaction with an authoritative delivery summary.\n\nAllowed roles: admin.\n\nNote: [NEW] At least one of userIds[] or targetRoles[] is required.\n\nNote: [NEW] Audience resolution reuses the same available-recipient rules as GET /communication/recipients.\n\nNote: [NEW] The response returns delivery summary metadata rather than the full notification list.",
+        "x-allowed-roles": [
+          "admin"
+        ],
+        "responses": {
+          "201": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "const": true
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/GenericObject"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                },
+                "example": {
+                  "success": true,
+                  "message": "[NEW] Create Bulk Notifications completed successfully",
+                  "data": {
+                    "resolvedRecipients": 3,
+                    "duplicatesRemoved": 1,
+                    "successCount": 3,
+                    "failedCount": 0,
+                    "failedTargets": []
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Validation failed",
+                  "errors": [
+                    {
+                      "field": "fieldName",
+                      "code": "invalid_type",
+                      "message": "Validation error example"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication is missing or expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Unauthorized",
+                  "errors": [
+                    {
+                      "code": "UNAUTHORIZED",
+                      "message": "Authentication is required"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated but not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Forbidden",
+                  "errors": [
+                    {
+                      "code": "FORBIDDEN",
+                      "message": "You do not have permission to access this resource"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateBulkNotificationRequest"
+              },
+              "example": {
+                "userIds": [
+                  "20"
+                ],
+                "targetRoles": [
+                  "parent"
+                ],
+                "title": "إشعار جماعي",
+                "message": "هذا الإشعار يصل كملاحظات فردية",
+                "notificationType": "manual",
+                "referenceType": null,
+                "referenceId": null
+              }
+            }
+          }
+        }
+      }
+    },
     "/communication/notifications/me": {
       "get": {
         "tags": [
@@ -16806,7 +17123,7 @@
                         "referenceType": "attendance",
                         "referenceId": "1",
                         "isRead": false,
-                        "createdAt": "2026-03-27T12:00:00.000Z"
+                        "createdAt": "2026-03-30T12:00:00.000Z"
                       }
                     ],
                     "pagination": {
@@ -17220,7 +17537,7 @@
                       {
                         "id": "1",
                         "title": "واجب الرياضيات 1",
-                        "assignedDate": "2026-03-27",
+                        "assignedDate": "2026-03-30",
                         "dueDate": "2026-03-28",
                         "classId": "1",
                         "subjectId": "1",
@@ -17422,7 +17739,7 @@
             "schema": {
               "type": "string",
               "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-              "example": "2026-03-27"
+              "example": "2026-03-30"
             },
             "description": "Filter by exact assigned date."
           },
@@ -17433,7 +17750,7 @@
             "schema": {
               "type": "string",
               "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-              "example": "2026-03-27"
+              "example": "2026-03-30"
             },
             "description": "Filter by exact due date."
           },
@@ -17444,7 +17761,7 @@
             "schema": {
               "type": "string",
               "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-              "example": "2026-03-27"
+              "example": "2026-03-30"
             },
             "description": "Filter from date range."
           },
@@ -17455,7 +17772,7 @@
             "schema": {
               "type": "string",
               "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-              "example": "2026-03-27"
+              "example": "2026-03-30"
             },
             "description": "Filter to date range."
           }
@@ -17501,7 +17818,7 @@
                   "data": {
                     "id": "1",
                     "title": "واجب الرياضيات 1",
-                    "assignedDate": "2026-03-27",
+                    "assignedDate": "2026-03-30",
                     "dueDate": "2026-03-28",
                     "classId": "1",
                     "subjectId": "1",
@@ -17594,7 +17911,7 @@
                 "semesterId": "1",
                 "title": "واجب الرياضيات 2",
                 "description": "حل الصفحات 12-14",
-                "assignedDate": "2026-03-27",
+                "assignedDate": "2026-03-30",
                 "dueDate": "2026-03-28"
               }
             }
@@ -17643,7 +17960,7 @@
                   "data": {
                     "id": "1",
                     "title": "واجب الرياضيات 1",
-                    "assignedDate": "2026-03-27",
+                    "assignedDate": "2026-03-30",
                     "dueDate": "2026-03-28",
                     "classId": "1",
                     "subjectId": "1",
@@ -17929,13 +18246,13 @@
                   {
                     "studentId": "1",
                     "status": "submitted",
-                    "submittedAt": "2026-03-27",
+                    "submittedAt": "2026-03-30",
                     "notes": "تم التسليم"
                   },
                   {
                     "studentId": "2",
                     "status": "late",
-                    "submittedAt": "2026-03-27",
+                    "submittedAt": "2026-03-30",
                     "notes": "تسليم متأخر"
                   }
                 ]
@@ -18190,7 +18507,7 @@
                         "referenceType": "attendance",
                         "referenceId": "1",
                         "isRead": false,
-                        "createdAt": "2026-03-27T12:00:00.000Z",
+                        "createdAt": "2026-03-30T12:00:00.000Z",
                         "readAt": null
                       }
                     ],
@@ -19093,13 +19410,13 @@
                         "stopId": "1",
                         "stopName": "Stop 1"
                       },
-                      "startDate": "2026-03-27",
+                      "startDate": "2026-03-30",
                       "endDate": null,
                       "isActive": true
                     },
                     "activeTrip": {
                       "tripId": "1",
-                      "tripDate": "2026-03-27",
+                      "tripDate": "2026-03-30",
                       "tripType": "pickup",
                       "tripStatus": "started",
                       "bus": {
@@ -19113,7 +19430,7 @@
                       "latestLocation": {
                         "latitude": 15.3694,
                         "longitude": 44.191,
-                        "recordedAt": "2026-03-27T12:00:00.000Z"
+                        "recordedAt": "2026-03-30T12:00:00.000Z"
                       },
                       "latestEvents": [
                         {
@@ -19124,7 +19441,7 @@
                             "fullName": "طالب تجريبي 1"
                           },
                           "eventType": "boarded",
-                          "eventTime": "2026-03-27T12:00:00.000Z",
+                          "eventTime": "2026-03-30T12:00:00.000Z",
                           "stop": {
                             "stopId": "1",
                             "stopName": "Stop 1"
@@ -19317,7 +19634,7 @@
                           "id": "1",
                           "name": "2025-2026"
                         },
-                        "createdAt": "2026-03-27T12:00:00.000Z"
+                        "createdAt": "2026-03-30T12:00:00.000Z"
                       }
                     ],
                     "studentSummaries": [
@@ -19366,8 +19683,8 @@
                         },
                         "description": "Late arrival",
                         "severity": 2,
-                        "behaviorDate": "2026-03-27",
-                        "createdAt": "2026-03-27T12:00:00.000Z"
+                        "behaviorDate": "2026-03-30",
+                        "createdAt": "2026-03-30T12:00:00.000Z"
                       }
                     ]
                   }
@@ -19550,13 +19867,13 @@
                           "id": "1",
                           "name": "2025-2026"
                         },
-                        "createdAt": "2026-03-27T12:00:00.000Z"
+                        "createdAt": "2026-03-30T12:00:00.000Z"
                       }
                     ],
                     "recentAttendanceSessions": [
                       {
                         "id": "1",
-                        "sessionDate": "2026-03-27",
+                        "sessionDate": "2026-03-30",
                         "periodNo": 1,
                         "title": "Morning Attendance",
                         "class": {
@@ -19582,7 +19899,7 @@
                       {
                         "id": "1",
                         "title": "اختبار قصير 1",
-                        "assessmentDate": "2026-03-27",
+                        "assessmentDate": "2026-03-30",
                         "assessmentType": {
                           "id": "1",
                           "code": "quiz",
@@ -19626,8 +19943,8 @@
                         },
                         "description": "Strong participation",
                         "severity": 1,
-                        "behaviorDate": "2026-03-27",
-                        "createdAt": "2026-03-27T12:00:00.000Z"
+                        "behaviorDate": "2026-03-30",
+                        "createdAt": "2026-03-30T12:00:00.000Z"
                       }
                     ]
                   }
@@ -19934,7 +20251,7 @@
                         "referenceType": "attendance",
                         "referenceId": "1",
                         "isRead": false,
-                        "createdAt": "2026-03-27T12:00:00.000Z",
+                        "createdAt": "2026-03-30T12:00:00.000Z",
                         "readAt": null
                       }
                     ],
@@ -20752,7 +21069,7 @@
                           "id": "1",
                           "name": "2025-2026"
                         },
-                        "createdAt": "2026-03-27T12:00:00.000Z"
+                        "createdAt": "2026-03-30T12:00:00.000Z"
                       }
                     ],
                     "studentSummaries": [
@@ -20801,8 +21118,8 @@
                         },
                         "description": "Late arrival",
                         "severity": 2,
-                        "behaviorDate": "2026-03-27",
-                        "createdAt": "2026-03-27T12:00:00.000Z"
+                        "behaviorDate": "2026-03-30",
+                        "createdAt": "2026-03-30T12:00:00.000Z"
                       }
                     ]
                   }
@@ -20931,13 +21248,13 @@
                           "id": "1",
                           "name": "2025-2026"
                         },
-                        "createdAt": "2026-03-27T12:00:00.000Z"
+                        "createdAt": "2026-03-30T12:00:00.000Z"
                       }
                     ],
                     "recentAttendanceSessions": [
                       {
                         "id": "1",
-                        "sessionDate": "2026-03-27",
+                        "sessionDate": "2026-03-30",
                         "periodNo": 1,
                         "title": "Morning Attendance",
                         "class": {
@@ -20963,7 +21280,7 @@
                       {
                         "id": "1",
                         "title": "اختبار قصير 1",
-                        "assessmentDate": "2026-03-27",
+                        "assessmentDate": "2026-03-30",
                         "assessmentType": {
                           "id": "1",
                           "code": "quiz",
@@ -21007,8 +21324,8 @@
                         },
                         "description": "Strong participation",
                         "severity": 1,
-                        "behaviorDate": "2026-03-27",
-                        "createdAt": "2026-03-27T12:00:00.000Z"
+                        "behaviorDate": "2026-03-30",
+                        "createdAt": "2026-03-30T12:00:00.000Z"
                       }
                     ]
                   }
@@ -21819,13 +22136,13 @@
                         "stopId": "1",
                         "stopName": "Stop 1"
                       },
-                      "startDate": "2026-03-27",
+                      "startDate": "2026-03-30",
                       "endDate": null,
                       "isActive": true
                     },
                     "activeTrip": {
                       "tripId": "1",
-                      "tripDate": "2026-03-27",
+                      "tripDate": "2026-03-30",
                       "tripType": "pickup",
                       "tripStatus": "started",
                       "bus": {
@@ -21839,7 +22156,7 @@
                       "latestLocation": {
                         "latitude": 15.3694,
                         "longitude": 44.191,
-                        "recordedAt": "2026-03-27T12:00:00.000Z"
+                        "recordedAt": "2026-03-30T12:00:00.000Z"
                       },
                       "latestEvents": [
                         {
@@ -21850,7 +22167,7 @@
                             "fullName": "طالب تجريبي 1"
                           },
                           "eventType": "boarded",
-                          "eventTime": "2026-03-27T12:00:00.000Z",
+                          "eventTime": "2026-03-30T12:00:00.000Z",
                           "stop": {
                             "stopId": "1",
                             "stopName": "Stop 1"

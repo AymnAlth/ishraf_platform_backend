@@ -1,15 +1,15 @@
 # OpenAPI / Postman Audit
 
-- Audit date: 2026-03-27
-- Runtime endpoint count: 131
-- Runtime changes during this reconciliation: 8 new endpoint(s)
+- Audit date: 2026-03-30
+- Runtime endpoint count: 133
+- Runtime changes during this reconciliation: 10 new endpoint(s)
 
 ## Coverage Summary
 
 | Artifact | Before | After |
 | --- | --- | --- |
-| Master OpenAPI | 123/131 | 131/131 |
-| Master Postman | 123/131 | 131/131 |
+| Master OpenAPI | 133/133 | 133/133 |
+| Master Postman | 133/133 | 133/133 |
 | Auth OpenAPI | 7/7 | 7/7 |
 | Auth Postman | 7/7 | 7/7 |
 
@@ -26,9 +26,9 @@
 | Assessments | 8 | 8/8 | 8/8 | 8/8 | 8/8 |
 | Behavior | 7 | 7/7 | 7/7 | 7/7 | 7/7 |
 | Transport | 26 | 26/26 | 26/26 | 26/26 | 26/26 |
-| Communication | 12 | 12/12 | 12/12 | 12/12 | 12/12 |
+| Communication | 14 | 14/14 | 14/14 | 14/14 | 14/14 |
 | Homework | 5 | 5/5 | 5/5 | 5/5 | 5/5 |
-| Reporting | 22 | 14/22 | 14/22 | 22/22 | 22/22 |
+| Reporting | 22 | 22/22 | 22/22 | 22/22 | 22/22 |
 
 ## [NEW] Runtime Endpoints Added In This Pass
 
@@ -40,17 +40,12 @@
 - `GET /reporting/admin-preview/parents/:parentUserId/students/:studentId/transport/live-status`
 - `GET /reporting/admin-preview/teachers/:teacherUserId/dashboard`
 - `GET /reporting/admin-preview/supervisors/:supervisorUserId/dashboard`
+- `POST /communication/messages/bulk`
+- `POST /communication/notifications/bulk`
 
 ## Runtime Endpoints Missing From Master OpenAPI Before This Update
 
-- `GET /reporting/admin-preview/parents/:parentUserId/dashboard`
-- `GET /reporting/admin-preview/parents/:parentUserId/students/:studentId/profile`
-- `GET /reporting/admin-preview/parents/:parentUserId/students/:studentId/reports/assessment-summary`
-- `GET /reporting/admin-preview/parents/:parentUserId/students/:studentId/reports/attendance-summary`
-- `GET /reporting/admin-preview/parents/:parentUserId/students/:studentId/reports/behavior-summary`
-- `GET /reporting/admin-preview/parents/:parentUserId/students/:studentId/transport/live-status`
-- `GET /reporting/admin-preview/supervisors/:supervisorUserId/dashboard`
-- `GET /reporting/admin-preview/teachers/:teacherUserId/dashboard`
+- none
 
 ## Views, Events, Targets Alignment
 
@@ -90,6 +85,7 @@
 
 ### Target / Event Fields Documented
 - `communication.announcements.targetRole`
+- `communication.announcements.targetRoles`
 - `communication.notifications.notificationType`
 - `behavior.categories.behaviorType`
 - `transport.trip-events.eventType`
@@ -100,3 +96,4 @@
 - The auth subset now covers all 7 live auth routes, including forgot-password and reset-password.
 - IDs in the auth subset were normalized to numeric-string ids instead of UUID assumptions.
 - The new admin-preview monitoring endpoints are marked with `[NEW]`-style audit visibility through this report and are documented as admin-only, read-only, and `users.id`-based surfaces.
+- Communication Phase 2 is now documented with admin-only bulk message and bulk notification delivery, plus additive `targetRoles[]` support for announcements.

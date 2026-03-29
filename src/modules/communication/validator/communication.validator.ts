@@ -38,6 +38,30 @@ const optionalTrimmedString = (maxLength: number) =>
     })
     .optional();
 
+const audienceIdsSchema = z.array(idSchema).min(1).optional();
+const audienceRolesSchema = z.array(z.enum(ROLE_VALUES)).min(1).optional();
+
+const ensureAudienceDefined = (
+  data: {
+    receiverUserIds?: string[];
+    userIds?: string[];
+    targetRoles?: string[];
+  },
+  ctx: z.RefinementCtx,
+  idsField: "receiverUserIds" | "userIds"
+): void => {
+  const hasIds = Array.isArray(data[idsField]) && data[idsField]!.length > 0;
+  const hasRoles = Array.isArray(data.targetRoles) && data.targetRoles.length > 0;
+
+  if (!hasIds && !hasRoles) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: [idsField],
+      message: "At least one audience selector is required"
+    });
+  }
+};
+
 export const messageIdParamsSchema = z.object({
   messageId: idSchema
 });
@@ -65,6 +89,15 @@ export const sendMessageSchema = z
     messageBody: trimmedString(5000)
   })
   .strict();
+
+export const sendBulkMessageSchema = z
+  .object({
+    receiverUserIds: audienceIdsSchema,
+    targetRoles: audienceRolesSchema,
+    messageBody: trimmedString(5000)
+  })
+  .strict()
+  .superRefine((data, ctx) => ensureAudienceDefined(data, ctx, "receiverUserIds"));
 
 export const inboxQuerySchema = buildPaginatedQuerySchema(
   {
@@ -100,9 +133,22 @@ export const createAnnouncementSchema = z
     title: trimmedString(150),
     content: trimmedString(5000),
     targetRole: z.enum(ROLE_VALUES).nullable().optional(),
+    targetRoles: audienceRolesSchema,
     expiresAt: isoDateTimeSchema.nullable().optional()
   })
-  .strict();
+  .strict()
+  .superRefine((data, ctx) => {
+    const hasTargetRole = data.targetRole !== undefined && data.targetRole !== null;
+    const hasTargetRoles = Array.isArray(data.targetRoles) && data.targetRoles.length > 0;
+
+    if (hasTargetRole && hasTargetRoles) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["targetRoles"],
+        message: "Use either targetRole or targetRoles, not both"
+      });
+    }
+  });
 
 export const createNotificationSchema = z
   .object({
@@ -114,6 +160,19 @@ export const createNotificationSchema = z
     referenceId: idSchema.nullable().optional()
   })
   .strict();
+
+export const createBulkNotificationSchema = z
+  .object({
+    userIds: audienceIdsSchema,
+    targetRoles: audienceRolesSchema,
+    title: trimmedString(150),
+    message: trimmedString(2000),
+    notificationType: trimmedString(50),
+    referenceType: optionalTrimmedString(50),
+    referenceId: idSchema.nullable().optional()
+  })
+  .strict()
+  .superRefine((data, ctx) => ensureAudienceDefined(data, ctx, "userIds"));
 
 export const notificationsQuerySchema = buildPaginatedQuerySchema(
   {

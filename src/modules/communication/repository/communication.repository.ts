@@ -12,6 +12,8 @@ import { db } from "../../../database/db";
 import type {
   AnnouncementRow,
   AnnouncementWriteInput,
+  BulkMessageWriteInput,
+  BulkNotificationWriteInput,
   CommunicationUserRow,
   ConversationListQuery,
   InboxListQuery,
@@ -58,6 +60,7 @@ const announcementSelect = `
     title,
     content,
     target_role AS "targetRole",
+    target_roles AS "targetRoles",
     published_at AS "publishedAt",
     expires_at AS "expiresAt",
     created_by AS "createdBy",
@@ -154,6 +157,54 @@ export class CommunicationRepository {
     };
   }
 
+  async listAvailableRecipientIdsByUserIds(
+    currentUserId: string,
+    userIds: string[],
+    queryable: Queryable = db
+  ): Promise<string[]> {
+    if (userIds.length === 0) {
+      return [];
+    }
+
+    const result = await queryable.query<{ id: string }>(
+      `
+        SELECT DISTINCT id::text AS id
+        FROM ${databaseTables.users}
+        WHERE is_active = true
+          AND id <> $1
+          AND id::text = ANY($2::text[])
+        ORDER BY id::text ASC
+      `,
+      [currentUserId, userIds]
+    );
+
+    return result.rows.map((row) => row.id);
+  }
+
+  async listAvailableRecipientIdsByRoles(
+    currentUserId: string,
+    roles: CommunicationUserRow["role"][],
+    queryable: Queryable = db
+  ): Promise<string[]> {
+    if (roles.length === 0) {
+      return [];
+    }
+
+    const result = await queryable.query<{ id: string }>(
+      `
+        SELECT DISTINCT id::text AS id
+        FROM ${databaseTables.users}
+        WHERE is_active = true
+          AND id <> $1
+          AND role = ANY($2::text[])
+        ORDER BY id::text ASC
+      `,
+      [currentUserId, roles]
+    );
+
+    return result.rows.map((row) => row.id);
+  }
+
   async createMessage(
     input: MessageWriteInput,
     queryable: Queryable = db
@@ -172,6 +223,29 @@ export class CommunicationRepository {
     );
 
     return result.rows[0].id;
+  }
+
+  async createMessagesBulk(
+    input: BulkMessageWriteInput,
+    queryable: Queryable = db
+  ): Promise<number> {
+    const result = await queryable.query(
+      `
+        INSERT INTO ${databaseTables.messages} (
+          sender_user_id,
+          receiver_user_id,
+          message_body
+        )
+        SELECT
+          $1::bigint,
+          recipient_user_id::bigint,
+          $3
+        FROM UNNEST($2::text[]) AS recipient_user_id
+      `,
+      [input.senderUserId, input.receiverUserIds, input.messageBody]
+    );
+
+    return result.rowCount ?? 0;
   }
 
   async findMessageById(
@@ -398,6 +472,30 @@ export class CommunicationRepository {
     return result.rows[0].id;
   }
 
+  async createAnnouncementTargetRoles(
+    announcementId: string,
+    targetRoles: CommunicationUserRow["role"][],
+    queryable: Queryable = db
+  ): Promise<void> {
+    if (targetRoles.length === 0) {
+      return;
+    }
+
+    await queryable.query(
+      `
+        INSERT INTO ${databaseTables.announcementTargetRoles} (
+          announcement_id,
+          target_role
+        )
+        SELECT
+          $1::bigint,
+          target_role::varchar(30)
+        FROM UNNEST($2::text[]) AS target_role
+      `,
+      [announcementId, targetRoles]
+    );
+  }
+
   async findAnnouncementById(
     announcementId: string,
     queryable: Queryable = db
@@ -436,12 +534,13 @@ export class CommunicationRepository {
           title,
           content,
           target_role AS "targetRole",
+          target_roles AS "targetRoles",
           published_at AS "publishedAt",
           expires_at AS "expiresAt",
           created_by AS "createdBy",
           created_by_name AS "createdByName"
         FROM ${databaseViews.vwActiveAnnouncements}
-        WHERE target_role IS NULL OR target_role = $1
+        WHERE COALESCE(cardinality(target_roles), 0) = 0 OR $1 = ANY(target_roles)
         ORDER BY published_at DESC, announcement_id DESC
       `,
       [role]
@@ -478,6 +577,42 @@ export class CommunicationRepository {
     );
 
     return result.rows[0].id;
+  }
+
+  async createNotificationsBulk(
+    input: BulkNotificationWriteInput,
+    queryable: Queryable = db
+  ): Promise<number> {
+    const result = await queryable.query(
+      `
+        INSERT INTO ${databaseTables.notifications} (
+          user_id,
+          title,
+          message,
+          notification_type,
+          reference_type,
+          reference_id
+        )
+        SELECT
+          recipient_user_id::bigint,
+          $2::varchar(150),
+          $3::text,
+          $4::varchar(50),
+          $5::varchar(50),
+          $6::bigint
+        FROM UNNEST($1::text[]) AS recipient_user_id
+      `,
+      [
+        input.userIds,
+        input.title,
+        input.message,
+        input.notificationType,
+        input.referenceType ?? null,
+        input.referenceId ?? null
+      ]
+    );
+
+    return result.rowCount ?? 0;
   }
 
   async findNotificationById(

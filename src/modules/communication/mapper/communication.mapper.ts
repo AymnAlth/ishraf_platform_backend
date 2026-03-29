@@ -76,6 +76,7 @@ export const toAnnouncementResponseDto = (
   title: row.title,
   content: row.content,
   targetRole: row.targetRole,
+  targetRoles: row.targetRoles ?? (row.targetRole ? [row.targetRole] : []),
   publishedAt: row.publishedAt.toISOString(),
   expiresAt: row.expiresAt ? row.expiresAt.toISOString() : null,
   createdBy: {

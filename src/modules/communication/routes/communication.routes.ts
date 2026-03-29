@@ -8,12 +8,14 @@ import {
   availableRecipientsQuerySchema,
   conversationQuerySchema,
   createAnnouncementSchema,
+  createBulkNotificationSchema,
   createNotificationSchema,
   inboxQuerySchema,
   messageIdParamsSchema,
   notificationIdParamsSchema,
   notificationsQuerySchema,
   otherUserIdParamsSchema,
+  sendBulkMessageSchema,
   sentQuerySchema,
   sendMessageSchema
 } from "../validator/communication.validator";
@@ -35,6 +37,13 @@ export const createCommunicationRouter = (
     ...communicationPolicies.messages,
     validateRequest({ body: sendMessageSchema }),
     asyncHandler((req, res) => controller.sendMessage(req, res))
+  );
+
+  router.post(
+    "/messages/bulk",
+    ...communicationPolicies.bulkMessages,
+    validateRequest({ body: sendBulkMessageSchema }),
+    asyncHandler((req, res) => controller.sendBulkMessages(req, res))
   );
 
   router.get(
@@ -92,6 +101,13 @@ export const createCommunicationRouter = (
     ...communicationPolicies.manageNotifications,
     validateRequest({ body: createNotificationSchema }),
     asyncHandler((req, res) => controller.createNotification(req, res))
+  );
+
+  router.post(
+    "/notifications/bulk",
+    ...communicationPolicies.bulkNotifications,
+    validateRequest({ body: createBulkNotificationSchema }),
+    asyncHandler((req, res) => controller.createBulkNotifications(req, res))
   );
 
   router.get(

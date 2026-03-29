@@ -9,8 +9,10 @@ const adminOnly = [authenticate, requireActiveUser, authorize("admin")] as const
 
 export const communicationPolicies = {
   messages: activeUser,
+  bulkMessages: adminOnly,
   readAnnouncements: activeUser,
   manageAnnouncements: adminOnly,
   readNotifications: activeUser,
-  manageNotifications: adminOnly
+  manageNotifications: adminOnly,
+  bulkNotifications: adminOnly
 } as const;

@@ -124,6 +124,7 @@ export interface IntegrationTestContext {
       title: string;
       content: string;
       targetRole: string | null;
+      targetRoles: string[];
       expiresAt: string | null;
     }>
   ) => ReturnType<ReturnType<typeof api>["post"]>;
@@ -258,6 +259,7 @@ export const createIntegrationTestContext = (pool: Pool): IntegrationTestContext
         title: overrides.title ?? "General notice",
         content: overrides.content ?? "School starts at 8 AM",
         targetRole: overrides.targetRole ?? null,
+        targetRoles: overrides.targetRoles ?? undefined,
         expiresAt: overrides.expiresAt ?? undefined
       }),
   createNotification: (accessToken, overrides = {}) =>

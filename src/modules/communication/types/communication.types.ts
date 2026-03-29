@@ -39,6 +39,7 @@ export interface AnnouncementRow {
   title: string;
   content: string;
   targetRole: Role | null;
+  targetRoles: Role[];
   publishedAt: Date;
   expiresAt: Date | null;
   createdBy: string;
@@ -99,6 +100,12 @@ export interface MessageWriteInput {
   messageBody: string;
 }
 
+export interface BulkMessageWriteInput {
+  senderUserId: string;
+  receiverUserIds: string[];
+  messageBody: string;
+}
+
 export interface AnnouncementWriteInput {
   createdBy: string;
   title: string;
@@ -109,6 +116,15 @@ export interface AnnouncementWriteInput {
 
 export interface NotificationWriteInput {
   userId: string;
+  title: string;
+  message: string;
+  notificationType: string;
+  referenceType?: string | null;
+  referenceId?: string | null;
+}
+
+export interface BulkNotificationWriteInput {
+  userIds: string[];
   title: string;
   message: string;
   notificationType: string;

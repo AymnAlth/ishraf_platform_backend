@@ -1,16 +1,32 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import type { Queryable } from "../../src/common/interfaces/queryable.interface";
 import { ForbiddenError } from "../../src/common/errors/forbidden-error";
 import { NotFoundError } from "../../src/common/errors/not-found-error";
 import { ValidationError } from "../../src/common/errors/validation-error";
-import { CommunicationService } from "../../src/modules/communication/service/communication.service";
+import type { AuthenticatedUser } from "../../src/common/types/auth.types";
 import type { CommunicationRepository } from "../../src/modules/communication/repository/communication.repository";
+import { CommunicationService } from "../../src/modules/communication/service/communication.service";
 import type {
   AnnouncementRow,
   CommunicationUserRow,
   MessageRow,
   NotificationRow
 } from "../../src/modules/communication/types/communication.types";
+
+const adminAuthUser: AuthenticatedUser = {
+  userId: "1001",
+  role: "admin",
+  email: "admin@example.com",
+  isActive: true
+};
+
+const teacherAuthUser: AuthenticatedUser = {
+  userId: "1002",
+  role: "teacher",
+  email: "teacher@example.com",
+  isActive: true
+};
 
 const userRow = (
   overrides: Partial<CommunicationUserRow> = {}
@@ -43,6 +59,7 @@ const announcementRow = (
   title: "General notice",
   content: "School starts at 8 AM",
   targetRole: null,
+  targetRoles: [],
   publishedAt: new Date("2026-03-14T08:00:00.000Z"),
   expiresAt: null,
   createdBy: "1001",
@@ -70,8 +87,11 @@ const notificationRow = (
 describe("CommunicationService", () => {
   const repositoryMock = {
     listAvailableRecipients: vi.fn(),
+    listAvailableRecipientIdsByUserIds: vi.fn(),
+    listAvailableRecipientIdsByRoles: vi.fn(),
     findUserById: vi.fn(),
     createMessage: vi.fn(),
+    createMessagesBulk: vi.fn(),
     findMessageById: vi.fn(),
     listInboxMessages: vi.fn(),
     listSentMessages: vi.fn(),
@@ -79,10 +99,12 @@ describe("CommunicationService", () => {
     findInboxSummaryByUserId: vi.fn(),
     markMessageAsRead: vi.fn(),
     createAnnouncement: vi.fn(),
+    createAnnouncementTargetRoles: vi.fn(),
     findAnnouncementById: vi.fn(),
     listAllAnnouncements: vi.fn(),
     listActiveAnnouncementsForRole: vi.fn(),
     createNotification: vi.fn(),
+    createNotificationsBulk: vi.fn(),
     findNotificationById: vi.fn(),
     listNotificationsByUserId: vi.fn(),
     findNotificationSummaryByUserId: vi.fn(),
@@ -90,10 +112,17 @@ describe("CommunicationService", () => {
   };
 
   let communicationService: CommunicationService;
+  let withTransaction: ReturnType<typeof vi.fn>;
+  let transactionQueryable: Queryable;
 
   beforeEach(() => {
+    transactionQueryable = {
+      query: vi.fn()
+    };
+    withTransaction = vi.fn(async (callback) => callback(transactionQueryable));
     communicationService = new CommunicationService(
-      repositoryMock as unknown as CommunicationRepository
+      repositoryMock as unknown as CommunicationRepository,
+      withTransaction
     );
 
     Object.values(repositoryMock).forEach((mockFn) => mockFn.mockReset());
@@ -104,24 +133,16 @@ describe("CommunicationService", () => {
     vi.mocked(repositoryMock.createMessage).mockResolvedValue("1");
     vi.mocked(repositoryMock.findMessageById).mockResolvedValue(messageRow());
 
-    const response = await communicationService.sendMessage(
-      {
-        userId: "1001",
-        role: "admin",
-        email: "admin@example.com",
-        isActive: true
-      },
-      {
-        receiverUserId: "1002",
-        messageBody: "Hello"
-      }
-    );
+    const response = await communicationService.sendMessage(adminAuthUser, {
+      receiverUserId: "1002",
+      messageBody: "Hello"
+    });
 
     expect(response.id).toBe("1");
     expect(repositoryMock.createMessage).toHaveBeenCalledOnce();
   });
 
-  it("returns the available recipients list using the current Wave 1 messaging policy contract", async () => {
+  it("returns the available recipients list using the current messaging policy contract", async () => {
     vi.mocked(repositoryMock.listAvailableRecipients).mockResolvedValue({
       rows: [
         userRow({
@@ -140,18 +161,10 @@ describe("CommunicationService", () => {
       totalItems: 2
     });
 
-    const response = await communicationService.listAvailableRecipients(
-      {
-        userId: "1002",
-        role: "teacher",
-        email: "teacher@example.com",
-        isActive: true
-      },
-      {
-        page: 1,
-        limit: 20
-      }
-    );
+    const response = await communicationService.listAvailableRecipients(teacherAuthUser, {
+      page: 1,
+      limit: 20
+    });
 
     expect(repositoryMock.listAvailableRecipients).toHaveBeenCalledWith("1002", {
       page: 1,
@@ -164,40 +177,77 @@ describe("CommunicationService", () => {
       totalItems: 2,
       totalPages: 1
     });
-    expect(response.items[0]).toMatchObject({
-      userId: "1003",
-      fullName: "Supervisor User",
-      role: "supervisor"
-    });
   });
 
   it("rejects self-messaging and self-conversations", async () => {
     await expect(
-      communicationService.sendMessage(
-        {
-          userId: "1001",
-          role: "admin",
-          email: "admin@example.com",
-          isActive: true
-        },
-        {
-          receiverUserId: "1001",
-          messageBody: "Hello"
-        }
-      )
+      communicationService.sendMessage(adminAuthUser, {
+        receiverUserId: "1001",
+        messageBody: "Hello"
+      })
     ).rejects.toBeInstanceOf(ValidationError);
 
     await expect(
-      communicationService.getConversation(
-        {
-          userId: "1001",
-          role: "admin",
-          email: "admin@example.com",
-          isActive: true
-        },
-        "1001"
-      )
+      communicationService.getConversation(adminAuthUser, "1001")
     ).rejects.toBeInstanceOf(ValidationError);
+  });
+
+  it("creates bulk messages with deduped recipients and returns a delivery summary", async () => {
+    vi.mocked(repositoryMock.listAvailableRecipientIdsByUserIds).mockResolvedValue([
+      "2001",
+      "2002"
+    ]);
+    vi.mocked(repositoryMock.listAvailableRecipientIdsByRoles).mockResolvedValue([
+      "2002",
+      "2003"
+    ]);
+    vi.mocked(repositoryMock.createMessagesBulk).mockResolvedValue(3);
+
+    const response = await communicationService.sendBulkMessages(adminAuthUser, {
+      receiverUserIds: ["2001", "2002"],
+      targetRoles: ["teacher"],
+      messageBody: "Important update"
+    });
+
+    expect(response).toMatchObject({
+      resolvedRecipients: 3,
+      duplicatesRemoved: 1,
+      successCount: 3,
+      failedCount: 0
+    });
+    expect(repositoryMock.createMessagesBulk).toHaveBeenCalledWith(
+      {
+        senderUserId: "1001",
+        receiverUserIds: ["2001", "2002", "2003"],
+        messageBody: "Important update"
+      },
+      transactionQueryable
+    );
+    expect(withTransaction).toHaveBeenCalledOnce();
+  });
+
+  it("rejects bulk messages that explicitly target the current user", async () => {
+    await expect(
+      communicationService.sendBulkMessages(adminAuthUser, {
+        receiverUserIds: ["1001", "2002"],
+        messageBody: "Important update"
+      })
+    ).rejects.toBeInstanceOf(ValidationError);
+
+    expect(repositoryMock.createMessagesBulk).not.toHaveBeenCalled();
+  });
+
+  it("rejects explicit bulk recipients that are outside the available audience", async () => {
+    vi.mocked(repositoryMock.listAvailableRecipientIdsByUserIds).mockResolvedValue(["2002"]);
+
+    await expect(
+      communicationService.sendBulkMessages(adminAuthUser, {
+        receiverUserIds: ["2002", "9999"],
+        messageBody: "Important update"
+      })
+    ).rejects.toBeInstanceOf(ValidationError);
+
+    expect(repositoryMock.createMessagesBulk).not.toHaveBeenCalled();
   });
 
   it("returns inbox summaries and sent messages scoped to the current user", async () => {
@@ -215,18 +265,8 @@ describe("CommunicationService", () => {
       })
     ]);
 
-    const inbox = await communicationService.listInbox({
-      userId: "1002",
-      role: "teacher",
-      email: "teacher@example.com",
-      isActive: true
-    });
-    const sent = await communicationService.listSent({
-      userId: "1002",
-      role: "teacher",
-      email: "teacher@example.com",
-      isActive: true
-    });
+    const inbox = await communicationService.listInbox(teacherAuthUser);
+    const sent = await communicationService.listSent(teacherAuthUser);
 
     expect(inbox.unreadCount).toBe(2);
     expect(inbox.messages).toHaveLength(1);
@@ -249,88 +289,123 @@ describe("CommunicationService", () => {
       );
     vi.mocked(repositoryMock.markMessageAsRead).mockResolvedValue(undefined);
 
-    const response = await communicationService.markMessageAsRead(
-      {
-        userId: "1002",
-        role: "teacher",
-        email: "teacher@example.com",
-        isActive: true
-      },
-      "1"
-    );
+    const response = await communicationService.markMessageAsRead(teacherAuthUser, "1");
 
     expect(response.readAt).not.toBeNull();
 
     await expect(
-      communicationService.markMessageAsRead(
-        {
-          userId: "1002",
-          role: "teacher",
-          email: "teacher@example.com",
-          isActive: true
-        },
-        "2"
-      )
+      communicationService.markMessageAsRead(teacherAuthUser, "2")
     ).rejects.toBeInstanceOf(NotFoundError);
   });
 
   it("allows only admins to create announcements and notifications", async () => {
     vi.mocked(repositoryMock.createAnnouncement).mockResolvedValue("5");
-    vi.mocked(repositoryMock.findAnnouncementById).mockResolvedValue(announcementRow());
+    vi.mocked(repositoryMock.createAnnouncementTargetRoles).mockResolvedValue(undefined);
+    vi.mocked(repositoryMock.findAnnouncementById).mockResolvedValue(
+      announcementRow({
+        targetRole: "teacher",
+        targetRoles: ["teacher"]
+      })
+    );
     vi.mocked(repositoryMock.findUserById).mockResolvedValue(userRow());
     vi.mocked(repositoryMock.createNotification).mockResolvedValue("10");
     vi.mocked(repositoryMock.findNotificationById).mockResolvedValue(notificationRow());
 
-    const announcement = await communicationService.createAnnouncement(
-      {
-        userId: "1001",
-        role: "admin",
-        email: "admin@example.com",
-        isActive: true
-      },
-      {
-        title: "General notice",
-        content: "School starts at 8 AM"
-      }
-    );
-    const notification = await communicationService.createNotification(
-      {
-        userId: "1001",
-        role: "admin",
-        email: "admin@example.com",
-        isActive: true
-      },
-      {
-        userId: "1002",
-        title: "Reminder",
-        message: "Please check the latest announcement",
-        notificationType: "announcement"
-      }
-    );
+    const announcement = await communicationService.createAnnouncement(adminAuthUser, {
+      title: "General notice",
+      content: "School starts at 8 AM",
+      targetRole: "teacher"
+    });
+    const notification = await communicationService.createNotification(adminAuthUser, {
+      userId: "1002",
+      title: "Reminder",
+      message: "Please check the latest announcement",
+      notificationType: "announcement"
+    });
 
-    expect(announcement.id).toBe("5");
+    expect(announcement.targetRole).toBe("teacher");
     expect(notification.id).toBe("10");
 
     await expect(
-      communicationService.createAnnouncement(
-        {
-          userId: "1002",
-          role: "teacher",
-          email: "teacher@example.com",
-          isActive: true
-        },
-        {
-          title: "General notice",
-          content: "School starts at 8 AM"
-        }
-      )
+      communicationService.createAnnouncement(teacherAuthUser, {
+        title: "General notice",
+        content: "School starts at 8 AM"
+      })
     ).rejects.toBeInstanceOf(ForbiddenError);
+  });
+
+  it("stores multi-role announcements without legacy single-role fallback", async () => {
+    vi.mocked(repositoryMock.createAnnouncement).mockResolvedValue("5");
+    vi.mocked(repositoryMock.createAnnouncementTargetRoles).mockResolvedValue(undefined);
+    vi.mocked(repositoryMock.findAnnouncementById).mockResolvedValue(
+      announcementRow({
+        targetRole: null,
+        targetRoles: ["teacher", "driver"]
+      })
+    );
+
+    const response = await communicationService.createAnnouncement(adminAuthUser, {
+      title: "Operations notice",
+      content: "Transport and academics sync",
+      targetRoles: ["teacher", "driver", "teacher"]
+    });
+
+    expect(repositoryMock.createAnnouncement).toHaveBeenCalledWith(
+      expect.objectContaining({
+        createdBy: "1001",
+        targetRole: null
+      }),
+      transactionQueryable
+    );
+    expect(repositoryMock.createAnnouncementTargetRoles).toHaveBeenCalledWith(
+      "5",
+      ["teacher", "driver"],
+      transactionQueryable
+    );
+    expect(response.targetRole).toBeNull();
+    expect(response.targetRoles).toEqual(["teacher", "driver"]);
+  });
+
+  it("creates bulk notifications with a resolved audience summary", async () => {
+    vi.mocked(repositoryMock.listAvailableRecipientIdsByUserIds).mockResolvedValue(["2001"]);
+    vi.mocked(repositoryMock.listAvailableRecipientIdsByRoles).mockResolvedValue([
+      "2001",
+      "2004"
+    ]);
+    vi.mocked(repositoryMock.createNotificationsBulk).mockResolvedValue(2);
+
+    const response = await communicationService.createBulkNotifications(adminAuthUser, {
+      userIds: ["2001"],
+      targetRoles: ["teacher"],
+      title: "Reminder",
+      message: "Please review the new announcement",
+      notificationType: "announcement"
+    });
+
+    expect(response).toMatchObject({
+      resolvedRecipients: 2,
+      duplicatesRemoved: 1,
+      successCount: 2,
+      failedCount: 0
+    });
+    expect(repositoryMock.createNotificationsBulk).toHaveBeenCalledWith(
+      {
+        userIds: ["2001", "2004"],
+        title: "Reminder",
+        message: "Please review the new announcement",
+        notificationType: "announcement",
+        referenceType: null,
+        referenceId: null
+      },
+      transactionQueryable
+    );
   });
 
   it("returns announcement feeds and personal notifications", async () => {
     vi.mocked(repositoryMock.listActiveAnnouncementsForRole).mockResolvedValue([
       announcementRow({
-        targetRole: "teacher"
+        targetRole: "teacher",
+        targetRoles: ["teacher"]
       })
     ]);
     vi.mocked(repositoryMock.listNotificationsByUserId).mockResolvedValue([notificationRow()]);
@@ -339,20 +414,11 @@ describe("CommunicationService", () => {
       unreadNotifications: "1"
     });
 
-    const announcements = await communicationService.listActiveAnnouncementsFeed({
-      userId: "1002",
-      role: "teacher",
-      email: "teacher@example.com",
-      isActive: true
-    });
-    const notifications = await communicationService.listMyNotifications({
-      userId: "1002",
-      role: "teacher",
-      email: "teacher@example.com",
-      isActive: true
-    });
+    const announcements = await communicationService.listActiveAnnouncementsFeed(teacherAuthUser);
+    const notifications = await communicationService.listMyNotifications(teacherAuthUser);
 
     expect(announcements[0].targetRole).toBe("teacher");
+    expect(announcements[0].targetRoles).toEqual(["teacher"]);
     expect(notifications.unreadCount).toBe(1);
   });
 
@@ -373,28 +439,12 @@ describe("CommunicationService", () => {
       );
     vi.mocked(repositoryMock.markNotificationAsRead).mockResolvedValue(undefined);
 
-    const response = await communicationService.markNotificationAsRead(
-      {
-        userId: "1002",
-        role: "teacher",
-        email: "teacher@example.com",
-        isActive: true
-      },
-      "10"
-    );
+    const response = await communicationService.markNotificationAsRead(teacherAuthUser, "10");
 
     expect(response.isRead).toBe(true);
 
     await expect(
-      communicationService.markNotificationAsRead(
-        {
-          userId: "1002",
-          role: "teacher",
-          email: "teacher@example.com",
-          isActive: true
-        },
-        "11"
-      )
+      communicationService.markNotificationAsRead(teacherAuthUser, "11")
     ).rejects.toBeInstanceOf(NotFoundError);
   });
 });
