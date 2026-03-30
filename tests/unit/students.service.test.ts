@@ -10,10 +10,12 @@ import type {
   AcademicYearReferenceRow,
   ClassReferenceRow,
   ParentReferenceRow,
+  StudentAcademicEnrollmentRow,
   StudentParentLinkRow,
   StudentPromotionRow,
   StudentReadRow
 } from "../../src/modules/students/types/students.types";
+import type { ActiveAcademicContext } from "../../src/common/services/active-academic-context.service";
 
 const studentRow = (overrides: Partial<StudentReadRow> = {}): StudentReadRow => ({
   id: "1",
@@ -111,11 +113,51 @@ const promotionRow = (
   ...overrides
 });
 
+const enrollmentRow = (
+  overrides: Partial<StudentAcademicEnrollmentRow> = {}
+): StudentAcademicEnrollmentRow => ({
+  id: "50",
+  studentId: "1",
+  academicNo: "STU-1001",
+  studentFullName: "Student One",
+  academicYearId: "1",
+  academicYearName: "2025-2026",
+  classId: "1",
+  className: "A",
+  classSection: "A",
+  classIsActive: true,
+  gradeLevelId: "1",
+  gradeLevelName: "Grade 1",
+  gradeLevelOrder: 1,
+  createdAt: new Date("2026-03-13T10:00:00.000Z"),
+  updatedAt: new Date("2026-03-13T10:00:00.000Z"),
+  ...overrides
+});
+
+const activeContext = (
+  overrides: Partial<ActiveAcademicContext> = {}
+): ActiveAcademicContext => ({
+  academicYearId: "1",
+  academicYearName: "2025-2026",
+  academicYearStartDate: new Date("2025-09-01T00:00:00.000Z"),
+  academicYearEndDate: new Date("2026-06-30T00:00:00.000Z"),
+  academicYearCreatedAt: new Date("2026-03-13T10:00:00.000Z"),
+  academicYearUpdatedAt: new Date("2026-03-13T10:00:00.000Z"),
+  semesterId: "1",
+  semesterName: "Semester 1",
+  semesterStartDate: new Date("2025-09-01T00:00:00.000Z"),
+  semesterEndDate: new Date("2026-01-31T00:00:00.000Z"),
+  semesterCreatedAt: new Date("2026-03-13T10:00:00.000Z"),
+  semesterUpdatedAt: new Date("2026-03-13T10:00:00.000Z"),
+  ...overrides
+});
+
 describe("StudentsService", () => {
   const repositoryMock = {
     listStudents: vi.fn(),
     findStudentById: vi.fn(),
     createStudent: vi.fn(),
+    createStudentAcademicEnrollment: vi.fn(),
     updateStudent: vi.fn(),
     updateStudentClassId: vi.fn(),
     findClassById: vi.fn(),
@@ -127,13 +169,26 @@ describe("StudentsService", () => {
     clearPrimaryParent: vi.fn(),
     setStudentParentPrimary: vi.fn(),
     createStudentPromotion: vi.fn(),
-    findStudentPromotionById: vi.fn()
+    findStudentPromotionById: vi.fn(),
+    findStudentAcademicEnrollmentByStudentAndAcademicYear: vi.fn(),
+    findStudentAcademicEnrollmentById: vi.fn(),
+    updateStudentAcademicEnrollment: vi.fn(),
+    listStudentAcademicEnrollments: vi.fn()
+  };
+  const activeAcademicContextServiceMock = {
+    getActiveContext: vi.fn(),
+    requireActiveContext: vi.fn(),
+    resolveActiveAcademicYear: vi.fn(),
+    resolveOperationalContext: vi.fn()
   };
 
   let studentsService: StudentsService;
 
   beforeEach(() => {
-    studentsService = new StudentsService(repositoryMock as unknown as StudentsRepository);
+    studentsService = new StudentsService(
+      repositoryMock as unknown as StudentsRepository,
+      activeAcademicContextServiceMock as never
+    );
 
     vi.restoreAllMocks();
     vi.spyOn(db, "withTransaction").mockImplementation(async (callback) => {
@@ -146,11 +201,23 @@ describe("StudentsService", () => {
     });
 
     Object.values(repositoryMock).forEach((mockFn) => mockFn.mockReset());
+    Object.values(activeAcademicContextServiceMock).forEach((mockFn) => mockFn.mockReset());
+    vi.mocked(activeAcademicContextServiceMock.getActiveContext).mockResolvedValue(
+      activeContext()
+    );
+    vi.mocked(activeAcademicContextServiceMock.requireActiveContext).mockResolvedValue(
+      activeContext()
+    );
+    vi.mocked(activeAcademicContextServiceMock.resolveActiveAcademicYear).mockResolvedValue({
+      academicYearId: "1",
+      academicYearName: "2025-2026"
+    });
   });
 
   it("creates a student after confirming the class exists", async () => {
     vi.mocked(repositoryMock.findClassById).mockResolvedValue(classRow());
     vi.mocked(repositoryMock.createStudent).mockResolvedValue("1");
+    vi.mocked(repositoryMock.createStudentAcademicEnrollment).mockResolvedValue("50");
     vi.mocked(repositoryMock.findStudentById).mockResolvedValue(studentRow());
 
     const response = await studentsService.createStudent({
@@ -163,6 +230,7 @@ describe("StudentsService", () => {
 
     expect(response.id).toBe("1");
     expect(repositoryMock.createStudent).toHaveBeenCalledOnce();
+    expect(repositoryMock.createStudentAcademicEnrollment).toHaveBeenCalledOnce();
   });
 
   it("auto-switches the primary parent when linking a new primary parent", async () => {
@@ -242,8 +310,14 @@ describe("StudentsService", () => {
   it("promotes a student in one transaction and returns the updated detail", async () => {
     vi.mocked(repositoryMock.findStudentById)
       .mockResolvedValueOnce(studentRow())
+      .mockResolvedValueOnce(studentRow())
       .mockResolvedValueOnce(studentRow({ classId: "2", className: "B", gradeLevelId: "2", gradeLevelName: "Grade 2" }));
     vi.mocked(repositoryMock.findAcademicYearById).mockResolvedValue(academicYearRow());
+    vi.mocked(repositoryMock.findStudentAcademicEnrollmentByStudentAndAcademicYear).mockResolvedValue(null);
+    vi.mocked(repositoryMock.createStudentAcademicEnrollment).mockResolvedValue("60");
+    vi.mocked(repositoryMock.findStudentAcademicEnrollmentById).mockResolvedValue(
+      enrollmentRow({ id: "60", classId: "2", className: "B", gradeLevelId: "2", gradeLevelName: "Grade 2" })
+    );
     vi.mocked(repositoryMock.findClassById).mockResolvedValue(
       classRow({
         id: "2",

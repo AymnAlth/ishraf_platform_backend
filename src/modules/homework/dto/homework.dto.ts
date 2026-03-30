@@ -12,8 +12,8 @@ export interface CreateHomeworkRequestDto {
   teacherId?: string;
   classId: string;
   subjectId: string;
-  academicYearId: string;
-  semesterId: string;
+  academicYearId?: string;
+  semesterId?: string;
   title: string;
   description?: string | null;
   assignedDate: string;
@@ -156,3 +156,5 @@ export interface StudentHomeworkListResponseDto {
   };
   items: StudentHomeworkItemResponseDto[];
 }
+
+

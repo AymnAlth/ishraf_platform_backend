@@ -10,6 +10,7 @@ const attendanceService = new AttendanceService(
   attendanceRepository,
   undefined,
   undefined,
+  undefined,
   automationService
 );
 const attendanceController = new AttendanceController(attendanceService);

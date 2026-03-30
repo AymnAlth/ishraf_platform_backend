@@ -1,4 +1,5 @@
 import type {
+  StudentAcademicEnrollmentResponseDto,
   PromoteStudentResponseDto,
   StudentClassSummaryDto,
   StudentDetailResponseDto,
@@ -7,6 +8,7 @@ import type {
   StudentSummaryResponseDto
 } from "../dto/students.dto";
 import type {
+  StudentAcademicEnrollmentRow,
   StudentParentLinkRow,
   StudentPromotionRow,
   StudentReadRow
@@ -160,4 +162,32 @@ export const toPromoteStudentResponseDto = (
 ): PromoteStudentResponseDto => ({
   student: toStudentDetailResponseDto(student),
   promotion: toStudentPromotionResponseDto(promotion)
+});
+
+export const toStudentAcademicEnrollmentResponseDto = (
+  row: StudentAcademicEnrollmentRow
+): StudentAcademicEnrollmentResponseDto => ({
+  id: row.id,
+  student: {
+    id: row.studentId,
+    academicNo: row.academicNo,
+    fullName: row.studentFullName
+  },
+  academicYear: {
+    id: row.academicYearId,
+    name: row.academicYearName
+  },
+  class: {
+    id: row.classId,
+    className: row.className,
+    section: row.classSection,
+    isActive: row.classIsActive,
+    gradeLevel: {
+      id: row.gradeLevelId,
+      name: row.gradeLevelName,
+      levelOrder: row.gradeLevelOrder
+    }
+  },
+  createdAt: row.createdAt.toISOString(),
+  updatedAt: row.updatedAt.toISOString()
 });

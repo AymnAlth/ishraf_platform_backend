@@ -1,4 +1,5 @@
 import type {
+  ActiveAcademicContextResponseDto,
   AcademicYearResponseDto,
   AcademicYearSummaryDto,
   ClassResponseDto,
@@ -15,6 +16,7 @@ import type {
   UserSummaryDto
 } from "../dto/academic-structure.dto";
 import type {
+  ActiveAcademicContextRow,
   AcademicYearRow,
   ClassRow,
   GradeLevelRow,
@@ -85,6 +87,30 @@ export const toSemesterResponseDto = (row: SemesterRow): SemesterResponseDto => 
   isActive: row.isActive,
   createdAt: row.createdAt.toISOString(),
   updatedAt: row.updatedAt.toISOString()
+});
+
+export const toActiveAcademicContextResponseDto = (
+  row: ActiveAcademicContextRow
+): ActiveAcademicContextResponseDto => ({
+  academicYear: {
+    id: row.academicYearId,
+    name: row.academicYearName,
+    startDate: toDateOnly(row.academicYearStartDate),
+    endDate: toDateOnly(row.academicYearEndDate),
+    isActive: true,
+    createdAt: row.academicYearCreatedAt.toISOString(),
+    updatedAt: row.academicYearUpdatedAt.toISOString()
+  },
+  semester: {
+    id: row.semesterId,
+    academicYear: toAcademicYearSummary(row.academicYearId, row.academicYearName),
+    name: row.semesterName,
+    startDate: toDateOnly(row.semesterStartDate),
+    endDate: toDateOnly(row.semesterEndDate),
+    isActive: true,
+    createdAt: row.semesterCreatedAt.toISOString(),
+    updatedAt: row.semesterUpdatedAt.toISOString()
+  }
 });
 
 export const toGradeLevelResponseDto = (

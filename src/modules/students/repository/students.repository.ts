@@ -12,15 +12,19 @@ import { db } from "../../../database/db";
 import type {
   AcademicYearReferenceRow,
   ClassReferenceRow,
+  CreateStudentAcademicEnrollmentInput,
   CreateStudentParentLinkInput,
   CreateStudentPromotionInput,
   CreateStudentRowInput,
   ParentReferenceRow,
+  StudentAcademicEnrollmentListQuery,
+  StudentAcademicEnrollmentRow,
   StudentListQuery,
   StudentListSortField,
   StudentParentLinkRow,
   StudentPromotionRow,
   StudentReadRow,
+  UpdateStudentAcademicEnrollmentInput,
   UpdateStudentRowInput
 } from "../types/students.types";
 
@@ -136,6 +140,30 @@ const studentPromotionSelect = `
   JOIN ${databaseTables.classes} to_class ON to_class.id = pr.to_class_id
   JOIN ${databaseTables.gradeLevels} to_grade ON to_grade.id = to_class.grade_level_id
   JOIN ${databaseTables.academicYears} to_year ON to_year.id = to_class.academic_year_id
+`;
+
+const studentAcademicEnrollmentSelect = `
+  SELECT
+    sae.id,
+    st.id AS "studentId",
+    st.academic_no AS "academicNo",
+    st.full_name AS "studentFullName",
+    ay.id AS "academicYearId",
+    ay.name AS "academicYearName",
+    c.id AS "classId",
+    c.class_name AS "className",
+    c.section AS "classSection",
+    c.is_active AS "classIsActive",
+    gl.id AS "gradeLevelId",
+    gl.name AS "gradeLevelName",
+    gl.level_order AS "gradeLevelOrder",
+    sae.created_at AS "createdAt",
+    sae.updated_at AS "updatedAt"
+  FROM ${databaseTables.studentAcademicEnrollments} sae
+  JOIN ${databaseTables.students} st ON st.id = sae.student_id
+  JOIN ${databaseTables.academicYears} ay ON ay.id = sae.academic_year_id
+  JOIN ${databaseTables.classes} c ON c.id = sae.class_id
+  JOIN ${databaseTables.gradeLevels} gl ON gl.id = c.grade_level_id
 `;
 
 export class StudentsRepository {
@@ -485,4 +513,125 @@ export class StudentsRepository {
 
     return mapSingleRow(result.rows);
   }
+
+  async listStudentAcademicEnrollments(
+    filters: StudentAcademicEnrollmentListQuery,
+    queryable: Queryable = db
+  ): Promise<StudentAcademicEnrollmentRow[]> {
+    const conditions: string[] = [];
+    const values: unknown[] = [];
+
+    const addCondition = (template: string, value: unknown): void => {
+      values.push(value);
+      conditions.push(template.replace("?", `$${values.length}`));
+    };
+
+    if (filters.studentId) {
+      addCondition("sae.student_id = ?", filters.studentId);
+    }
+
+    if (filters.academicYearId) {
+      addCondition("sae.academic_year_id = ?", filters.academicYearId);
+    }
+
+    if (filters.classId) {
+      addCondition("sae.class_id = ?", filters.classId);
+    }
+
+    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+    const result = await queryable.query<StudentAcademicEnrollmentRow>(
+      `
+        ${studentAcademicEnrollmentSelect}
+        ${whereClause}
+        ORDER BY sae.academic_year_id DESC, gl.level_order ASC, st.full_name ASC, sae.id ASC
+      `,
+      values
+    );
+
+    return result.rows;
+  }
+
+  async findStudentAcademicEnrollmentById(
+    enrollmentId: string,
+    queryable: Queryable = db
+  ): Promise<StudentAcademicEnrollmentRow | null> {
+    const result = await queryable.query<StudentAcademicEnrollmentRow>(
+      `
+        ${studentAcademicEnrollmentSelect}
+        WHERE sae.id = $1
+        LIMIT 1
+      `,
+      [enrollmentId]
+    );
+
+    return mapSingleRow(result.rows);
+  }
+
+  async findStudentAcademicEnrollmentByStudentAndAcademicYear(
+    studentId: string,
+    academicYearId: string,
+    queryable: Queryable = db
+  ): Promise<StudentAcademicEnrollmentRow | null> {
+    const result = await queryable.query<StudentAcademicEnrollmentRow>(
+      `
+        ${studentAcademicEnrollmentSelect}
+        WHERE sae.student_id = $1
+          AND sae.academic_year_id = $2
+        LIMIT 1
+      `,
+      [studentId, academicYearId]
+    );
+
+    return mapSingleRow(result.rows);
+  }
+
+  async createStudentAcademicEnrollment(
+    input: CreateStudentAcademicEnrollmentInput,
+    queryable: Queryable = db
+  ): Promise<string> {
+    const result = await queryable.query<{ id: string }>(
+      `
+        INSERT INTO ${databaseTables.studentAcademicEnrollments} (
+          student_id,
+          academic_year_id,
+          class_id
+        )
+        VALUES ($1, $2, $3)
+        ON CONFLICT (student_id, academic_year_id)
+        DO UPDATE SET
+          class_id = EXCLUDED.class_id,
+          updated_at = CURRENT_TIMESTAMP
+        RETURNING id
+      `,
+      [input.studentId, input.academicYearId, input.classId]
+    );
+
+    return result.rows[0].id;
+  }
+
+  async updateStudentAcademicEnrollment(
+    enrollmentId: string,
+    input: UpdateStudentAcademicEnrollmentInput,
+    queryable: Queryable = db
+  ): Promise<void> {
+    const { assignments, values } = buildAssignments({
+      class_id: input.classId
+    });
+
+    if (assignments.length === 0) {
+      return;
+    }
+
+    await queryable.query(
+      `
+        UPDATE ${databaseTables.studentAcademicEnrollments}
+        SET ${assignments.join(", ")}
+        WHERE id = $1
+      `,
+      [enrollmentId, ...values]
+    );
+  }
 }
+
+
+

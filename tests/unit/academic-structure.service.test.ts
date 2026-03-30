@@ -76,6 +76,7 @@ describe("AcademicStructureService", () => {
     createAcademicYear: vi.fn(),
     updateAcademicYear: vi.fn(),
     deactivateAllAcademicYears: vi.fn(),
+    deactivateAllSemesters: vi.fn(),
     listSemestersByAcademicYear: vi.fn(),
     findSemesterById: vi.fn(),
     createSemester: vi.fn(),
@@ -86,9 +87,11 @@ describe("AcademicStructureService", () => {
     listClasses: vi.fn(),
     findClassById: vi.fn(),
     createClass: vi.fn(),
+    updateClass: vi.fn(),
     listSubjects: vi.fn(),
     findSubjectById: vi.fn(),
     createSubject: vi.fn(),
+    updateSubject: vi.fn(),
     listSubjectOfferings: vi.fn(),
     findSubjectOfferingById: vi.fn(),
     findSubjectOfferingBySubjectAndSemester: vi.fn(),
@@ -99,9 +102,11 @@ describe("AcademicStructureService", () => {
     createTeacherAssignment: vi.fn(),
     listTeacherAssignments: vi.fn(),
     findTeacherAssignmentById: vi.fn(),
+    updateTeacherAssignment: vi.fn(),
     createSupervisorAssignment: vi.fn(),
     listSupervisorAssignments: vi.fn(),
-    findSupervisorAssignmentById: vi.fn()
+    findSupervisorAssignmentById: vi.fn(),
+    updateSupervisorAssignment: vi.fn()
   };
   const profileResolutionServiceMock = {
     requireTeacherProfileIdentifier: vi.fn(),
@@ -132,6 +137,7 @@ describe("AcademicStructureService", () => {
 
   it("deactivates existing academic years before creating a new active one", async () => {
     vi.mocked(repositoryMock.deactivateAllAcademicYears).mockResolvedValue(undefined);
+    vi.mocked(repositoryMock.deactivateAllSemesters).mockResolvedValue(undefined);
     vi.mocked(repositoryMock.createAcademicYear).mockResolvedValue("2");
     vi.mocked(repositoryMock.findAcademicYearById).mockResolvedValue({
       ...academicYearRow,
@@ -148,6 +154,7 @@ describe("AcademicStructureService", () => {
 
     expect(response.id).toBe("2");
     expect(repositoryMock.deactivateAllAcademicYears).toHaveBeenCalledOnce();
+    expect(repositoryMock.deactivateAllSemesters).toHaveBeenCalledOnce();
   });
 
   it("rejects semesters outside the academic year range", async () => {
@@ -338,5 +345,247 @@ describe("AcademicStructureService", () => {
         isActive: false
       }
     );
+  });
+
+  it("updates classes without changing their academic linkage", async () => {
+    vi.mocked(repositoryMock.findClassById)
+      .mockResolvedValueOnce(classRow)
+      .mockResolvedValueOnce({
+        ...classRow,
+        section: "C",
+        capacity: 40,
+        updatedAt: new Date("2026-03-29T12:00:00.000Z")
+      });
+    vi.mocked(repositoryMock.updateClass).mockResolvedValue(undefined);
+
+    const response = await academicStructureService.updateClass("11", {
+      section: "C",
+      capacity: 40
+    });
+
+    expect(response.section).toBe("C");
+    expect(response.capacity).toBe(40);
+    expect(repositoryMock.updateClass).toHaveBeenCalledWith("11", {
+      className: undefined,
+      section: "C",
+      capacity: 40,
+      isActive: undefined
+    });
+  });
+
+  it("updates subjects while preserving the grade-level-scoped model", async () => {
+    vi.mocked(repositoryMock.findSubjectById)
+      .mockResolvedValueOnce(subjectRow)
+      .mockResolvedValueOnce({
+        ...subjectRow,
+        name: "Advanced Science",
+        code: null,
+        updatedAt: new Date("2026-03-29T12:00:00.000Z")
+      });
+    vi.mocked(repositoryMock.updateSubject).mockResolvedValue(undefined);
+
+    const response = await academicStructureService.updateSubject("7", {
+      name: "Advanced Science",
+      code: null
+    });
+
+    expect(response.name).toBe("Advanced Science");
+    expect(response.code).toBeNull();
+    expect(repositoryMock.updateSubject).toHaveBeenCalledWith("7", {
+      name: "Advanced Science",
+      code: null,
+      isActive: undefined
+    });
+  });
+
+  it("normalizes teacher user ids in teacher assignment filters", async () => {
+    vi.mocked(profileResolutionServiceMock.requireTeacherProfileIdentifier).mockResolvedValue({
+      teacherId: "3",
+      userId: "1002",
+      fullName: "Sara Teacher",
+      email: "teacher1@eshraf.local",
+      phone: "700000003",
+      specialization: null,
+      qualification: null,
+      hireDate: null
+    });
+    vi.mocked(repositoryMock.listTeacherAssignments).mockResolvedValue([]);
+
+    await academicStructureService.listTeacherAssignments({
+      teacherId: "1002",
+      academicYearId: "1"
+    });
+
+    expect(repositoryMock.listTeacherAssignments).toHaveBeenCalledWith({
+      academicYearId: "1",
+      classId: undefined,
+      subjectId: undefined,
+      teacherId: "3"
+    });
+  });
+
+  it("updates teacher assignments using normalized teacher user ids", async () => {
+    vi.mocked(repositoryMock.findTeacherAssignmentById)
+      .mockResolvedValueOnce({
+        id: "30",
+        teacherId: "3",
+        teacherUserId: "1002",
+        teacherFullName: "Sara Teacher",
+        teacherEmail: "teacher1@eshraf.local",
+        teacherPhone: "700000003",
+        academicYearId: "1",
+        academicYearName: "2025-2026",
+        classId: "11",
+        className: "A",
+        classSection: "A",
+        classIsActive: true,
+        classAcademicYearId: "1",
+        classGradeLevelId: "2",
+        classGradeLevelName: "Grade 2",
+        classGradeLevelOrder: 2,
+        subjectId: "7",
+        subjectName: "Science",
+        subjectCode: "SCI-G2",
+        subjectIsActive: true,
+        subjectGradeLevelId: "2",
+        createdAt: new Date("2026-03-27T10:00:00.000Z")
+      })
+      .mockResolvedValueOnce({
+        id: "30",
+        teacherId: "8",
+        teacherUserId: "1010",
+        teacherFullName: "Fahad Teacher",
+        teacherEmail: "teacher2@eshraf.local",
+        teacherPhone: "700000008",
+        academicYearId: "1",
+        academicYearName: "2025-2026",
+        classId: "11",
+        className: "A",
+        classSection: "A",
+        classIsActive: true,
+        classAcademicYearId: "1",
+        classGradeLevelId: "2",
+        classGradeLevelName: "Grade 2",
+        classGradeLevelOrder: 2,
+        subjectId: "7",
+        subjectName: "Science",
+        subjectCode: "SCI-G2",
+        subjectIsActive: true,
+        subjectGradeLevelId: "2",
+        createdAt: new Date("2026-03-27T10:00:00.000Z")
+      });
+    vi.mocked(profileResolutionServiceMock.requireTeacherProfileIdentifier).mockResolvedValue({
+      teacherId: "8",
+      userId: "1010",
+      fullName: "Fahad Teacher",
+      email: "teacher2@eshraf.local",
+      phone: "700000008",
+      specialization: null,
+      qualification: null,
+      hireDate: null
+    });
+    vi.mocked(repositoryMock.findAcademicYearById).mockResolvedValue(academicYearRow);
+    vi.mocked(repositoryMock.findClassById).mockResolvedValue(classRow);
+    vi.mocked(repositoryMock.findSubjectById).mockResolvedValue(subjectRow);
+    vi.mocked(repositoryMock.updateTeacherAssignment).mockResolvedValue(undefined);
+
+    const response = await academicStructureService.updateTeacherAssignment("30", {
+      teacherId: "1010"
+    });
+
+    expect(response.teacher.id).toBe("8");
+    expect(repositoryMock.updateTeacherAssignment).toHaveBeenCalledWith("30", {
+      teacherId: "8",
+      classId: undefined,
+      subjectId: undefined,
+      academicYearId: undefined
+    });
+  });
+
+  it("normalizes supervisor user ids in supervisor assignment filters", async () => {
+    vi.mocked(profileResolutionServiceMock.requireSupervisorProfileIdentifier).mockResolvedValue({
+      supervisorId: "4",
+      userId: "1005",
+      fullName: "Mona Supervisor",
+      email: "supervisor@example.com",
+      phone: "700000005",
+      department: null
+    });
+    vi.mocked(repositoryMock.listSupervisorAssignments).mockResolvedValue([]);
+
+    await academicStructureService.listSupervisorAssignments({
+      supervisorId: "1005",
+      academicYearId: "1"
+    });
+
+    expect(repositoryMock.listSupervisorAssignments).toHaveBeenCalledWith({
+      academicYearId: "1",
+      classId: undefined,
+      supervisorId: "4"
+    });
+  });
+
+  it("updates supervisor assignments using normalized supervisor user ids", async () => {
+    vi.mocked(repositoryMock.findSupervisorAssignmentById)
+      .mockResolvedValueOnce({
+        id: "31",
+        supervisorId: "4",
+        supervisorUserId: "1005",
+        supervisorFullName: "Mona Supervisor",
+        supervisorEmail: "supervisor@example.com",
+        supervisorPhone: "700000005",
+        academicYearId: "1",
+        academicYearName: "2025-2026",
+        classId: "11",
+        className: "A",
+        classSection: "A",
+        classIsActive: true,
+        classAcademicYearId: "1",
+        classGradeLevelId: "2",
+        classGradeLevelName: "Grade 2",
+        classGradeLevelOrder: 2,
+        createdAt: new Date("2026-03-27T10:00:00.000Z")
+      })
+      .mockResolvedValueOnce({
+        id: "31",
+        supervisorId: "9",
+        supervisorUserId: "1011",
+        supervisorFullName: "Adel Supervisor",
+        supervisorEmail: "supervisor2@example.com",
+        supervisorPhone: "700000009",
+        academicYearId: "1",
+        academicYearName: "2025-2026",
+        classId: "11",
+        className: "A",
+        classSection: "A",
+        classIsActive: true,
+        classAcademicYearId: "1",
+        classGradeLevelId: "2",
+        classGradeLevelName: "Grade 2",
+        classGradeLevelOrder: 2,
+        createdAt: new Date("2026-03-27T10:00:00.000Z")
+      });
+    vi.mocked(profileResolutionServiceMock.requireSupervisorProfileIdentifier).mockResolvedValue({
+      supervisorId: "9",
+      userId: "1011",
+      fullName: "Adel Supervisor",
+      email: "supervisor2@example.com",
+      phone: "700000009",
+      department: null
+    });
+    vi.mocked(repositoryMock.findAcademicYearById).mockResolvedValue(academicYearRow);
+    vi.mocked(repositoryMock.findClassById).mockResolvedValue(classRow);
+    vi.mocked(repositoryMock.updateSupervisorAssignment).mockResolvedValue(undefined);
+
+    const response = await academicStructureService.updateSupervisorAssignment("31", {
+      supervisorId: "1011"
+    });
+
+    expect(response.supervisor.id).toBe("9");
+    expect(repositoryMock.updateSupervisorAssignment).toHaveBeenCalledWith("31", {
+      supervisorId: "9",
+      classId: undefined,
+      academicYearId: undefined
+    });
   });
 });

@@ -1,7 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { ConflictError } from "../../src/common/errors/conflict-error";
 import { ForbiddenError } from "../../src/common/errors/forbidden-error";
 import { NotFoundError } from "../../src/common/errors/not-found-error";
+import type { ActiveAcademicContext } from "../../src/common/services/active-academic-context.service";
 import type { OwnershipService } from "../../src/common/services/ownership.service";
 import type {
   ParentProfile,
@@ -119,6 +121,12 @@ describe("ReportingService", () => {
     assertSupervisorAssignedToClassYear: vi.fn(),
     assertParentOwnsStudent: vi.fn()
   };
+  const activeAcademicContextServiceMock = {
+    getActiveContext: vi.fn(),
+    requireActiveContext: vi.fn(),
+    resolveActiveAcademicYear: vi.fn(),
+    resolveOperationalContext: vi.fn()
+  };
 
   let reportingService: ReportingService;
 
@@ -126,12 +134,29 @@ describe("ReportingService", () => {
     Object.values(repositoryMock).forEach((mockFn) => mockFn.mockReset());
     Object.values(profileResolutionServiceMock).forEach((mockFn) => mockFn.mockReset());
     Object.values(ownershipServiceMock).forEach((mockFn) => mockFn.mockReset());
-
-    vi.mocked(repositoryMock.findActivePeriod).mockResolvedValue(activePeriod);
+    Object.values(activeAcademicContextServiceMock).forEach((mockFn) => mockFn.mockReset());
+    const activeContext: ActiveAcademicContext = {
+      academicYearId: activePeriod.academicYearId,
+      academicYearName: activePeriod.academicYearName,
+      academicYearStartDate: new Date("2025-09-01T00:00:00.000Z"),
+      academicYearEndDate: new Date("2026-06-30T00:00:00.000Z"),
+      academicYearCreatedAt: new Date("2026-03-13T10:00:00.000Z"),
+      academicYearUpdatedAt: new Date("2026-03-13T10:00:00.000Z"),
+      semesterId: activePeriod.semesterId,
+      semesterName: activePeriod.semesterName,
+      semesterStartDate: new Date("2026-02-01T00:00:00.000Z"),
+      semesterEndDate: new Date("2026-06-30T00:00:00.000Z"),
+      semesterCreatedAt: new Date("2026-03-13T10:00:00.000Z"),
+      semesterUpdatedAt: new Date("2026-03-13T10:00:00.000Z")
+    };
+    vi.mocked(activeAcademicContextServiceMock.requireActiveContext).mockResolvedValue(
+      activeContext
+    );
     reportingService = new ReportingService(
       repositoryMock as unknown as ReportingRepository,
       profileResolutionServiceMock as unknown as ProfileResolutionService,
-      ownershipServiceMock as unknown as OwnershipService
+      ownershipServiceMock as unknown as OwnershipService,
+      activeAcademicContextServiceMock as never
     );
   });
 
@@ -242,7 +267,16 @@ describe("ReportingService", () => {
   });
 
   it("requires an active academic period before serving reporting endpoints", async () => {
-    vi.mocked(repositoryMock.findActivePeriod).mockResolvedValue(null);
+    vi.mocked(activeAcademicContextServiceMock.requireActiveContext).mockRejectedValue(
+      new ConflictError("Academic context not configured", [
+        {
+          field: "academicContext",
+          code: "ACADEMIC_CONTEXT_NOT_CONFIGURED",
+          message:
+            "An active academic year and active semester must be configured before using this endpoint"
+        }
+      ])
+    );
 
     await expect(
       reportingService.getAdminDashboard({
@@ -251,7 +285,7 @@ describe("ReportingService", () => {
         email: "admin@example.com",
         isActive: true
       })
-    ).rejects.toBeInstanceOf(NotFoundError);
+    ).rejects.toBeInstanceOf(ConflictError);
   });
 
   it("requires a driver profile for driver transport summaries", async () => {

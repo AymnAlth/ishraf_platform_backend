@@ -11,8 +11,8 @@ export interface AttendanceRecordIdParamsDto {
 export interface CreateAttendanceSessionRequestDto {
   classId: string;
   subjectId: string;
-  academicYearId: string;
-  semesterId: string;
+  academicYearId?: string;
+  semesterId?: string;
   sessionDate: string;
   periodNo: number;
   title?: string | null;

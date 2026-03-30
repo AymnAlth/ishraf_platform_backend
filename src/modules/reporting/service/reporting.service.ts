@@ -1,5 +1,6 @@
 import { ForbiddenError } from "../../../common/errors/forbidden-error";
 import { NotFoundError } from "../../../common/errors/not-found-error";
+import { ActiveAcademicContextService } from "../../../common/services/active-academic-context.service";
 import { OwnershipService } from "../../../common/services/ownership.service";
 import { ProfileResolutionService } from "../../../common/services/profile-resolution.service";
 import type { AuthenticatedUser } from "../../../common/types/auth.types";
@@ -62,7 +63,8 @@ export class ReportingService {
   constructor(
     private readonly reportingRepository: ReportingRepository,
     private readonly profileResolutionService = new ProfileResolutionService(),
-    private readonly ownershipService = new OwnershipService()
+    private readonly ownershipService = new OwnershipService(),
+    private readonly activeAcademicContextService: ActiveAcademicContextService = new ActiveAcademicContextService()
   ) {}
 
   async getStudentProfile(
@@ -686,10 +688,14 @@ export class ReportingService {
   }
 
   private async requireActivePeriod(): Promise<ActivePeriodRow> {
-    return assertFound(
-      await this.reportingRepository.findActivePeriod(),
-      "Active academic period"
-    );
+    const activeContext = await this.activeAcademicContextService.requireActiveContext();
+
+    return {
+      academicYearId: activeContext.academicYearId,
+      academicYearName: activeContext.academicYearName,
+      semesterId: activeContext.semesterId,
+      semesterName: activeContext.semesterName
+    };
   }
 
   private assertRole(authUser: AuthenticatedUser, role: AuthenticatedUser["role"]): void {

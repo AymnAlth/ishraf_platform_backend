@@ -350,8 +350,10 @@ export const registerBehaviorIntegrationTests = (
       expect(semesterMismatchResponse.status).toBe(400);
       expect(invalidTeacherResponse.status).toBe(404);
       expect(semesterMismatchResponse.body.message).toBe(
-        "Semester must belong to the selected academic year"
+        "Operational requests can only use the active semester"
       );
     });
   });
 };
+
+

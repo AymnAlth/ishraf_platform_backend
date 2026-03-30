@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   createClassSchema,
   createSemesterSchema,
+  updateClassSchema,
   updateAcademicYearSchema
 } from "../../src/modules/academic-structure/validator/academic-structure.validator";
 
@@ -38,5 +39,13 @@ describe("academic-structure.validator", () => {
     const result = updateAcademicYearSchema.safeParse({});
 
     expect(result.success).toBe(false);
+  });
+
+  it("accepts null capacity in class patches", () => {
+    const result = updateClassSchema.safeParse({
+      capacity: null
+    });
+
+    expect(result.success).toBe(true);
   });
 });

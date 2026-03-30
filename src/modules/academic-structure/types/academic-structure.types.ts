@@ -20,6 +20,21 @@ export interface SemesterRow {
   updatedAt: Date;
 }
 
+export interface ActiveAcademicContextRow {
+  academicYearId: string;
+  academicYearName: string;
+  academicYearStartDate: Date;
+  academicYearEndDate: Date;
+  academicYearCreatedAt: Date;
+  academicYearUpdatedAt: Date;
+  semesterId: string;
+  semesterName: string;
+  semesterStartDate: Date;
+  semesterEndDate: Date;
+  semesterCreatedAt: Date;
+  semesterUpdatedAt: Date;
+}
+
 export interface GradeLevelRow {
   id: string;
   name: string;
@@ -179,11 +194,24 @@ export interface ClassWriteInput {
   isActive: boolean;
 }
 
+export interface ClassUpdateInput {
+  className?: string;
+  section?: string;
+  capacity?: number | null;
+  isActive?: boolean;
+}
+
 export interface SubjectWriteInput {
   name: string;
   gradeLevelId: string;
   code: string | null;
   isActive: boolean;
+}
+
+export interface SubjectUpdateInput {
+  name?: string;
+  code?: string | null;
+  isActive?: boolean;
 }
 
 export interface SubjectOfferingWriteInput {
@@ -204,6 +232,17 @@ export interface SubjectOfferingFilters {
   isActive?: boolean;
 }
 
+export interface ClassFilters {
+  academicYearId?: string;
+  gradeLevelId?: string;
+  isActive?: boolean;
+}
+
+export interface SubjectFilters {
+  gradeLevelId?: string;
+  isActive?: boolean;
+}
+
 export interface TeacherAssignmentWriteInput {
   teacherId: string;
   classId: string;
@@ -211,8 +250,34 @@ export interface TeacherAssignmentWriteInput {
   academicYearId: string;
 }
 
+export interface TeacherAssignmentUpdateInput {
+  teacherId?: string;
+  classId?: string;
+  subjectId?: string;
+  academicYearId?: string;
+}
+
+export interface TeacherAssignmentFilters {
+  academicYearId?: string;
+  classId?: string;
+  subjectId?: string;
+  teacherId?: string;
+}
+
 export interface SupervisorAssignmentWriteInput {
   supervisorId: string;
   classId: string;
   academicYearId: string;
+}
+
+export interface SupervisorAssignmentUpdateInput {
+  supervisorId?: string;
+  classId?: string;
+  academicYearId?: string;
+}
+
+export interface SupervisorAssignmentFilters {
+  academicYearId?: string;
+  classId?: string;
+  supervisorId?: string;
 }

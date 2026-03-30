@@ -8,8 +8,8 @@
   - `src/docs/openapi/ishraf-platform.openapi.json`
   - `src/docs/postman/ishraf-platform.postman_collection.json`
 - حالة التغطية الحالية:
-- `OpenAPI = 133/133`
-- `Postman = 133/133`
+- `OpenAPI = 146/146`
+- `Postman = 146/146`
 - هذا الملف يشرح العقود البشرية وقواعد الاستخدام والـ endpoints الأكثر أهمية للفرق، ويجب أن يبقى منسجمًا مع الكود و`OpenAPI/Postman` دون أن يحاول أن يكون clone حرفيًا لكل schema سطرًا بسطر.
 
 حالة البيئة المستضافة الحالية بتاريخ `2026-03-30`:
@@ -167,6 +167,32 @@ Authorization: Bearer <accessToken>
 - `desc` في معظم القوائم
 - `GET /communication/messages/conversations/:otherUserId` يستخدم `sentAt asc` افتراضيًا للحفاظ على التسلسل الزمني
 
+## Active Academic Context
+
+القاعدة التشغيلية الجديدة للنظام:
+- توجد سنة دراسية واحدة فقط `active`
+- يوجد فصل دراسي واحد فقط `active`
+- الفصل النشط يجب أن ينتمي إلى السنة النشطة
+- هذا الزوج هو المرجع التشغيلي اليومي الرسمي للوحة الإدارة
+
+التمييز المهم:
+- `Academic Management`:
+  - يسمح بتجهيز سنوات غير نشطة صراحة
+  - مثل السنوات والفصول والصفوف و`subject-offerings` والتعيينات و`student academic enrollments`
+- `Operational Surfaces`:
+  - تعمل فقط على `active academic year + active semester`
+  - مثل الحضور والتقييمات والسلوك والواجبات والطلاب والتقارير اليومية
+
+سلوك الاستجابات:
+- إذا لم يوجد `active academic year + active semester` مكتملان:
+  - المسارات التشغيلية المعتمدة على السياق ترجع `409 Academic context not configured`
+- إذا وُجد السياق النشط لكن لا توجد بيانات بعد:
+  - المسارات ترجع `200` مع empty/zero-safe payload
+
+قواعد انتقالية مهمة:
+- بعض المسارات التشغيلية ما زالت تقبل `academicYearId` و`semesterId` أثناء الانتقال
+- لكن إذا أُرسلت هذه القيم في المسارات التشغيلية، فيجب أن تطابق السياق النشط
+- يمكن أيضًا تركها فارغة في المسارات التي أصبحت `active-context-first`، والباك سيحلها من السياق النشط تلقائيًا
 ## Current Ready Endpoints
 
 ### Auth Module
@@ -971,6 +997,11 @@ GET /api/v1/academic-structure/classes
 Authorization: Bearer <accessToken>
 ```
 
+الـ query params المدعومة:
+- `academicYearId`
+- `gradeLevelId`
+- `isActive`
+
 ```json
 {
   "success": true,
@@ -1032,6 +1063,29 @@ Authorization: Bearer <accessToken>
 }
 ```
 
+#### PATCH `/academic-structure/classes/:id`
+
+الهدف: تعديل الحقول التشغيلية والإدارية للفصل بدون تغيير ربطه الأكاديمي.
+
+```http
+PATCH /api/v1/academic-structure/classes/1
+Authorization: Bearer <accessToken>
+Content-Type: application/json
+```
+
+```json
+{
+  "section": "C",
+  "capacity": 30,
+  "isActive": false
+}
+```
+
+مهم:
+- هذا المسار مخصص لتصحيح أو تفعيل/تعطيل الفصل داخل `Academic Management`
+- لا يغيّر `academicYearId` أو `gradeLevelId`
+- `capacity` يمكن إرسالها كرقم موجب أو `null`
+
 #### POST `/academic-structure/subjects`
 
 الهدف: إنشاء مادة دراسية مرتبطة بمستوى.
@@ -1085,6 +1139,10 @@ GET /api/v1/academic-structure/subjects
 Authorization: Bearer <accessToken>
 ```
 
+الـ query params المدعومة:
+- `gradeLevelId`
+- `isActive`
+
 ```json
 {
   "success": true,
@@ -1135,6 +1193,29 @@ Authorization: Bearer <accessToken>
   }
 }
 ```
+
+#### PATCH `/academic-structure/subjects/:id`
+
+الهدف: تعديل بيانات المادة كـ `master data` على مستوى المستوى الدراسي.
+
+```http
+PATCH /api/v1/academic-structure/subjects/1
+Authorization: Bearer <accessToken>
+Content-Type: application/json
+```
+
+```json
+{
+  "name": "Advanced Science",
+  "code": null,
+  "isActive": false
+}
+```
+
+مهم:
+- هذا المسار لا يجعل المادة `semester-scoped`
+- ما زالت `subject-offerings` هي الطبقة الرسمية لربط المادة بالفصل
+- `code` يمكن مسحه بإرسال `null`
 
 #### POST `/academic-structure/subject-offerings`
 
@@ -1302,6 +1383,17 @@ GET /api/v1/academic-structure/teacher-assignments
 Authorization: Bearer <accessToken>
 ```
 
+الـ query params المدعومة:
+- `academicYearId`
+- `classId`
+- `subjectId`
+- `teacherId`
+
+مهم:
+- `teacherId` يقبل:
+  - `users.id` القادم من `GET /users?role=teacher`
+  - أو `teachers.id` legacy
+
 ```json
 {
   "success": true,
@@ -1366,6 +1458,39 @@ Content-Type: application/json
 }
 ```
 
+#### GET `/academic-structure/teacher-assignments/:id`
+
+الهدف: جلب توزيع معلم واحد بالتفاصيل الكاملة لاستخدامه في `edit flows`.
+
+```http
+GET /api/v1/academic-structure/teacher-assignments/1
+Authorization: Bearer <accessToken>
+```
+
+#### PATCH `/academic-structure/teacher-assignments/:id`
+
+الهدف: تعديل توزيع معلم موجود لأغراض التصحيح الإداري.
+
+```http
+PATCH /api/v1/academic-structure/teacher-assignments/1
+Authorization: Bearer <accessToken>
+Content-Type: application/json
+```
+
+```json
+{
+  "classId": "2",
+  "subjectId": "4",
+  "academicYearId": "1"
+}
+```
+
+مهم:
+- `teacherId` هنا يقبل أيضًا `users.id` أو `teachers.id` legacy
+- الباك يعيد تطبيق نفس تحقق التوافق:
+  - الصف يجب أن ينتمي إلى السنة المختارة
+  - المادة يجب أن تنتمي إلى نفس مستوى الصف
+
 مهم: `supervisorId` هنا يقبل الآن:
 - `users.id` القادم من `GET /users?role=supervisor`
 - أو `supervisors.id` legacy للتوافق الخلفي
@@ -1413,6 +1538,16 @@ Content-Type: application/json
 GET /api/v1/academic-structure/supervisor-assignments
 Authorization: Bearer <accessToken>
 ```
+
+الـ query params المدعومة:
+- `academicYearId`
+- `classId`
+- `supervisorId`
+
+مهم:
+- `supervisorId` يقبل:
+  - `users.id` القادم من `GET /users?role=supervisor`
+  - أو `supervisors.id` legacy
 
 ```json
 {
@@ -1568,6 +1703,36 @@ Content-Type: application/json
   }
 }
 ```
+
+#### GET `/academic-structure/supervisor-assignments/:id`
+
+الهدف: جلب توزيع مشرف واحد بالتفاصيل الكاملة لاستخدامه في `edit flows`.
+
+```http
+GET /api/v1/academic-structure/supervisor-assignments/1
+Authorization: Bearer <accessToken>
+```
+
+#### PATCH `/academic-structure/supervisor-assignments/:id`
+
+الهدف: تعديل توزيع مشرف موجود لأغراض التصحيح الإداري.
+
+```http
+PATCH /api/v1/academic-structure/supervisor-assignments/1
+Authorization: Bearer <accessToken>
+Content-Type: application/json
+```
+
+```json
+{
+  "classId": "2",
+  "academicYearId": "1"
+}
+```
+
+مهم:
+- `supervisorId` هنا يقبل أيضًا `users.id` أو `supervisors.id` legacy
+- الباك يعيد تطبيق تحقق توافق الصف مع السنة المختارة
 
 Notes:
 - `resetToken` يظهر فقط عندما تكون `AUTH_EXPOSE_RESET_TOKEN_IN_RESPONSE=true`
@@ -2564,6 +2729,93 @@ Contract notes:
   - `400 Validation Error`
   - code = `TARGET_USER_NOT_AVAILABLE`
 
+## Active Context Foundation Endpoints
+
+### GET `/academic-structure/context/active`
+
+Purpose: return the canonical active academic year and active semester used by daily operational surfaces.
+
+```http
+GET /api/v1/academic-structure/context/active
+Authorization: Bearer <accessToken>
+```
+
+Notes:
+- هذا هو المرجع الرسمي للسياق العام في لوحة الإدارة
+- إذا لم يكتمل السياق بعد، فبعض surfaces التشغيلية سترجع `409 Academic context not configured`
+
+### PATCH `/academic-structure/context/active`
+
+Purpose: atomically set the active academic year and active semester together.
+
+```http
+PATCH /api/v1/academic-structure/context/active
+Authorization: Bearer <accessToken>
+Content-Type: application/json
+```
+
+```json
+{
+  "academicYearId": "1",
+  "semesterId": "2"
+}
+```
+
+Notes:
+- استخدم هذا endpoint كالمسار canonical للتفعيل النهائي
+- `PATCH /academic-structure/academic-years/:id/activate` بقي موجودًا للتوافق، لكنه لم يعد surface التفعيل الأشمل لوحده
+- الفصل المحدد يجب أن ينتمي إلى السنة المحددة
+
+## Student Academic Enrollments
+
+هذه الطبقة أصبحت هي التمثيل المؤسسي للحالة الأكاديمية للطالب عبر السنوات.
+
+ما الذي تعنيه:
+- هوية الطالب تبقى في `students`
+- الحالة الأكاديمية المرتبطة بسنة معينة تبقى في `student academic enrollments`
+- الترقية المنظمة تكتب enrollment جديدة بدل الاعتماد فقط على تعديل `students.class_id`
+
+### GET `/students/academic-enrollments`
+- surface إدارية أكاديمية لجلب enrollments مع filters مثل:
+  - `studentId`
+  - `academicYearId`
+  - `classId`
+
+### POST `/students/academic-enrollments/bulk`
+- surface مؤسسية للترقية أو التجهيز المنظم للسنة الجديدة على دفعات
+- تقوم بإنشاء أو تحديث enrollments بدل النقل العشوائي للطلاب
+
+### PATCH `/students/academic-enrollments/:enrollmentId`
+- تعديل enrollment موجودة
+
+### POST `/students/:id/academic-enrollments`
+- إنشاء أو upsert enrollment واحدة لطالب محدد
+
+### GET `/students/:id/academic-enrollments`
+- جلب التاريخ الأكاديمي المرتبط بالطالب عبر السنوات
+
+قواعد مهمة:
+- البيانات التاريخية التشغيلية مثل:
+  - attendance
+  - assessments
+  - behavior
+  - homework
+  لا تُنسخ عند إنشاء enrollment جديدة
+- الترقية إلى سنة جديدة تعني إنشاء الحالة الأكاديمية الجديدة، لا نسخ السجلات اليومية القديمة
+- `students.class_id` ما زال موجودًا كطبقة توافق انتقالية، لكنه لم يعد النموذج المؤسسي الوحيد للحالة الأكاديمية
+
+## Operational Active-Only Notes
+
+### Students
+- `GET /students` أصبح surface تشغيلية قائمة على السنة النشطة
+- إذا أُرسل `academicYearId`، فيجب أن يطابق السنة النشطة
+- `GET /students/:id` يقرأ الحالة الحالية للطالب من السياق النشط
+
+### Attendance / Assessments / Behavior / Homework
+- هذه المسارات أصبحت `active-context-first`
+- يمكن ترك `academicYearId` و`semesterId` فارغين في المسارات التي تدعم ذلك، وسيحلها الباك من السياق النشط
+- إذا أُرسلت قيم غير مطابقة للسياق النشط، فسيُرفض الطلب بخطأ validation واضح
+- `subject offerings` تبقى شرطًا تشغيليًا رسميًا على مستوى الفصل
 ### Wave 1 Deferred Items
 
 The following items are not part of backend Wave 1:
@@ -2583,3 +2835,4 @@ Use the following source-of-truth order before implementing any new frontend scr
 3. current OpenAPI and Postman artifacts
 4. `src/docs/API_REFERENCE.md`
 5. older academic documentation
+

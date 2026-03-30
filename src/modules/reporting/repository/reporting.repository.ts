@@ -722,22 +722,20 @@ export class ReportingRepository {
     const result = await queryable.query<RecentStudentRow>(
       `
         SELECT
-          st.id AS "studentId",
-          st.academic_no AS "academicNo",
-          st.full_name AS "fullName",
-          st.status,
-          c.id AS "classId",
-          c.class_name AS "className",
-          c.section,
-          gl.id AS "gradeLevelId",
-          gl.name AS "gradeLevelName",
-          ay.id AS "academicYearId",
-          ay.name AS "academicYearName",
+          sp.student_id AS "studentId",
+          sp.academic_no AS "academicNo",
+          sp.student_name AS "fullName",
+          sp.student_status AS status,
+          sp.class_id AS "classId",
+          sp.class_name AS "className",
+          sp.section,
+          sp.grade_level_id AS "gradeLevelId",
+          sp.grade_level_name AS "gradeLevelName",
+          sp.academic_year_id AS "academicYearId",
+          sp.academic_year_name AS "academicYearName",
           st.created_at AS "createdAt"
         FROM ${databaseTables.students} st
-        JOIN ${databaseTables.classes} c ON c.id = st.class_id
-        JOIN ${databaseTables.gradeLevels} gl ON gl.id = c.grade_level_id
-        JOIN ${databaseTables.academicYears} ay ON ay.id = c.academic_year_id
+        JOIN ${databaseViews.studentProfiles} sp ON sp.student_id = st.id
         ORDER BY st.created_at DESC, st.id DESC
         LIMIT $1
       `,

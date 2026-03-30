@@ -7,6 +7,10 @@ export interface StudentParentParamsDto {
   parentId: string;
 }
 
+export interface StudentAcademicEnrollmentIdParamsDto {
+  enrollmentId: string;
+}
+
 export interface CreateStudentRequestDto {
   academicNo: string;
   fullName: string;
@@ -46,6 +50,29 @@ export interface PromoteStudentRequestDto {
   toClassId: string;
   academicYearId: string;
   notes?: string;
+}
+
+export interface ListStudentAcademicEnrollmentsQueryDto {
+  studentId?: string;
+  academicYearId?: string;
+  classId?: string;
+}
+
+export interface CreateStudentAcademicEnrollmentRequestDto {
+  academicYearId: string;
+  classId: string;
+}
+
+export interface UpdateStudentAcademicEnrollmentRequestDto {
+  classId?: string;
+}
+
+export interface BulkStudentAcademicEnrollmentsRequestDto {
+  items: Array<{
+    studentId: string;
+    academicYearId: string;
+    classId: string;
+  }>;
 }
 
 export interface StudentClassSummaryDto {
@@ -114,4 +141,30 @@ export interface StudentPromotionResponseDto {
 export interface PromoteStudentResponseDto {
   student: StudentDetailResponseDto;
   promotion: StudentPromotionResponseDto;
+}
+
+export interface StudentAcademicEnrollmentResponseDto {
+  id: string;
+  student: {
+    id: string;
+    academicNo: string;
+    fullName: string;
+  };
+  academicYear: {
+    id: string;
+    name: string;
+  };
+  class: {
+    id: string;
+    className: string;
+    section: string;
+    isActive: boolean;
+    gradeLevel: {
+      id: string;
+      name: string;
+      levelOrder: number;
+    };
+  };
+  createdAt: string;
+  updatedAt: string;
 }

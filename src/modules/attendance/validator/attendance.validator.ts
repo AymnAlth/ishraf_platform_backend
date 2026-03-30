@@ -42,8 +42,8 @@ export const createAttendanceSessionSchema = z
   .object({
     classId: idSchema,
     subjectId: idSchema,
-    academicYearId: idSchema,
-    semesterId: idSchema,
+    academicYearId: idSchema.optional(),
+    semesterId: idSchema.optional(),
     sessionDate: dateSchema,
     periodNo: positiveIntSchema,
     title: optionalTrimmedString(200),

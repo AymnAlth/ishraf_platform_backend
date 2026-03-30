@@ -30,6 +30,18 @@ export const studentParentParamsSchema = z.object({
   parentId: idSchema
 });
 
+export const studentAcademicEnrollmentParamsSchema = z.object({
+  enrollmentId: idSchema
+});
+
+export const listStudentAcademicEnrollmentsQuerySchema = z
+  .object({
+    studentId: idSchema.optional(),
+    academicYearId: idSchema.optional(),
+    classId: idSchema.optional()
+  })
+  .strict();
+
 export const listStudentsQuerySchema = buildPaginatedQuerySchema(
   {
     classId: idSchema.optional(),
@@ -89,5 +101,37 @@ export const promoteStudentSchema = z
     toClassId: idSchema,
     academicYearId: idSchema,
     notes: z.string().trim().min(1, "Notes are required").optional()
+  })
+  .strict();
+
+export const createStudentAcademicEnrollmentSchema = z
+  .object({
+    academicYearId: idSchema,
+    classId: idSchema
+  })
+  .strict();
+
+export const updateStudentAcademicEnrollmentSchema = z
+  .object({
+    classId: idSchema.optional()
+  })
+  .strict()
+  .refine((payload) => payload.classId !== undefined, {
+    message: "At least one field is required"
+  });
+
+export const bulkStudentAcademicEnrollmentsSchema = z
+  .object({
+    items: z
+      .array(
+        z
+          .object({
+            studentId: idSchema,
+            academicYearId: idSchema,
+            classId: idSchema
+          })
+          .strict()
+      )
+      .min(1, "At least one enrollment item is required")
   })
   .strict();

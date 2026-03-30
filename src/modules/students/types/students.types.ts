@@ -96,6 +96,24 @@ export interface StudentPromotionRow {
   notes: string | null;
 }
 
+export interface StudentAcademicEnrollmentRow {
+  id: string;
+  studentId: string;
+  academicNo: string;
+  studentFullName: string;
+  academicYearId: string;
+  academicYearName: string;
+  classId: string;
+  className: string;
+  classSection: string;
+  classIsActive: boolean;
+  gradeLevelId: string;
+  gradeLevelName: string;
+  gradeLevelOrder: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export interface CreateStudentRowInput {
   academicNo: string;
   fullName: string;
@@ -129,6 +147,16 @@ export interface CreateStudentPromotionInput {
   notes?: string;
 }
 
+export interface CreateStudentAcademicEnrollmentInput {
+  studentId: string;
+  academicYearId: string;
+  classId: string;
+}
+
+export interface UpdateStudentAcademicEnrollmentInput {
+  classId?: string;
+}
+
 export const STUDENT_LIST_SORT_FIELDS = [
   "createdAt",
   "academicNo",
@@ -145,4 +173,10 @@ export interface StudentListQuery
   academicYearId?: string;
   status?: StudentStatus;
   gender?: StudentGender;
+}
+
+export interface StudentAcademicEnrollmentListQuery {
+  studentId?: string;
+  academicYearId?: string;
+  classId?: string;
 }

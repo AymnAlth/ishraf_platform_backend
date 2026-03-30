@@ -1,6 +1,7 @@
 import { ForbiddenError } from "../../../common/errors/forbidden-error";
 import { NotFoundError } from "../../../common/errors/not-found-error";
 import { ValidationError } from "../../../common/errors/validation-error";
+import { ActiveAcademicContextService } from "../../../common/services/active-academic-context.service";
 import { OwnershipService } from "../../../common/services/ownership.service";
 import { ProfileResolutionService } from "../../../common/services/profile-resolution.service";
 import type { AuthenticatedUser } from "../../../common/types/auth.types";
@@ -164,6 +165,7 @@ export class BehaviorService {
     private readonly behaviorRepository: BehaviorRepository,
     private readonly profileResolutionService = new ProfileResolutionService(),
     private readonly ownershipService = new OwnershipService(),
+    private readonly activeAcademicContextService: ActiveAcademicContextService = new ActiveAcademicContextService(),
     private readonly automationService: AutomationPort | null = null
   ) {}
 
@@ -196,6 +198,11 @@ export class BehaviorService {
     payload: CreateBehaviorRecordRequestDto
   ): Promise<BehaviorRecordResponseDto> {
     const actor = await this.resolveActor(authUser);
+    const operationalContext =
+      await this.activeAcademicContextService.resolveOperationalContext({
+        academicYearId: payload.academicYearId,
+        semesterId: payload.semesterId
+      });
     const student = assertFound(
       await this.behaviorRepository.findStudentBehaviorReferenceById(payload.studentId),
       "Student"
@@ -205,11 +212,11 @@ export class BehaviorService {
       "Behavior category"
     );
     const academicYear = assertFound(
-      await this.behaviorRepository.findAcademicYearById(payload.academicYearId),
+      await this.behaviorRepository.findAcademicYearById(operationalContext.academicYearId),
       "Academic year"
     );
     const semester = assertFound(
-      await this.behaviorRepository.findSemesterById(payload.semesterId),
+      await this.behaviorRepository.findSemesterById(operationalContext.semesterId),
       "Semester"
     );
 
@@ -229,8 +236,8 @@ export class BehaviorService {
           behaviorCategoryId: payload.behaviorCategoryId,
           teacherId: actorSelection.teacherId,
           supervisorId: actorSelection.supervisorId,
-          academicYearId: payload.academicYearId,
-          semesterId: payload.semesterId,
+          academicYearId: operationalContext.academicYearId,
+          semesterId: operationalContext.semesterId,
           description: payload.description,
           severity: payload.severity ?? category.defaultSeverity,
           behaviorDate: payload.behaviorDate
@@ -263,8 +270,17 @@ export class BehaviorService {
   ): Promise<PaginatedData<BehaviorRecordResponseDto>> {
     const actor = await this.resolveActor(authUser);
     const normalizedFilters = await this.normalizeFilters(filters);
+    const operationalContext =
+      await this.activeAcademicContextService.resolveOperationalContext({
+        academicYearId: normalizedFilters.academicYearId,
+        semesterId: normalizedFilters.semesterId
+      });
     const { rows, totalItems } = await this.behaviorRepository.listBehaviorRecords(
-      normalizedFilters,
+      {
+        ...normalizedFilters,
+        academicYearId: operationalContext.academicYearId,
+        semesterId: operationalContext.semesterId
+      },
       this.toRepositoryScope(actor)
     );
 
@@ -363,6 +379,7 @@ export class BehaviorService {
     authUser: AuthenticatedUser,
     studentId: string
   ): Promise<StudentBehaviorRecordsResponseDto> {
+    await this.activeAcademicContextService.requireActiveContext();
     const actor = await this.resolveActor(authUser);
     const student = assertFound(
       await this.behaviorRepository.findStudentBehaviorReferenceById(studentId),

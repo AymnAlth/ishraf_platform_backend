@@ -20,6 +20,7 @@ import type {
   HomeworkWriteInput,
   SemesterReferenceRow,
   StudentHomeworkRow,
+  StudentHomeworkScope,
   StudentReferenceRow,
   SubjectReferenceRow,
   TeacherReferenceRow
@@ -475,10 +476,17 @@ export class HomeworkRepository {
 
   async listStudentHomework(
     student: StudentReferenceRow,
-    scope: HomeworkScope = {},
+    scope: StudentHomeworkScope = {},
     queryable: Queryable = db
   ): Promise<StudentHomeworkRow[]> {
     const values: unknown[] = [student.studentId, student.classId, student.academicYearId];
+    const semesterClause =
+      scope.semesterId !== undefined
+        ? (() => {
+            values.push(scope.semesterId);
+            return `AND h.semester_id = $${values.length}`;
+          })()
+        : "";
     const teacherClause =
       scope.teacherId !== undefined
         ? (() => {
@@ -492,6 +500,7 @@ export class HomeworkRepository {
         ${studentHomeworkSelect}
         WHERE h.class_id = $2
           AND h.academic_year_id = $3
+          ${semesterClause}
           ${teacherClause}
         ORDER BY h.due_date DESC, h.id DESC
       `,
@@ -501,5 +510,9 @@ export class HomeworkRepository {
     return result.rows;
   }
 }
+
+
+
+
 
 

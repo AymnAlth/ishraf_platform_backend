@@ -1,15 +1,15 @@
 # OpenAPI / Postman Audit
 
 - Audit date: 2026-03-30
-- Runtime endpoint count: 133
+- Runtime endpoint count: 146
 - Runtime changes during this reconciliation: 10 new endpoint(s)
 
 ## Coverage Summary
 
 | Artifact | Before | After |
 | --- | --- | --- |
-| Master OpenAPI | 133/133 | 133/133 |
-| Master Postman | 133/133 | 133/133 |
+| Master OpenAPI | 140/146 | 146/146 |
+| Master Postman | 140/146 | 146/146 |
 | Auth OpenAPI | 7/7 | 7/7 |
 | Auth Postman | 7/7 | 7/7 |
 
@@ -20,8 +20,8 @@
 | Health | 2 | 2/2 | 2/2 | 2/2 | 2/2 |
 | Auth | 7 | 7/7 | 7/7 | 7/7 | 7/7 |
 | Users | 5 | 5/5 | 5/5 | 5/5 | 5/5 |
-| Academic Structure | 24 | 24/24 | 24/24 | 24/24 | 24/24 |
-| Students | 8 | 8/8 | 8/8 | 8/8 | 8/8 |
+| Academic Structure | 32 | 26/32 | 26/32 | 32/32 | 32/32 |
+| Students | 13 | 13/13 | 13/13 | 13/13 | 13/13 |
 | Attendance | 5 | 5/5 | 5/5 | 5/5 | 5/5 |
 | Assessments | 8 | 8/8 | 8/8 | 8/8 | 8/8 |
 | Behavior | 7 | 7/7 | 7/7 | 7/7 | 7/7 |
@@ -45,7 +45,12 @@
 
 ## Runtime Endpoints Missing From Master OpenAPI Before This Update
 
-- none
+- `PATCH /academic-structure/classes/:id`
+- `PATCH /academic-structure/subjects/:id`
+- `GET /academic-structure/supervisor-assignments/:id`
+- `PATCH /academic-structure/supervisor-assignments/:id`
+- `GET /academic-structure/teacher-assignments/:id`
+- `PATCH /academic-structure/teacher-assignments/:id`
 
 ## Views, Events, Targets Alignment
 

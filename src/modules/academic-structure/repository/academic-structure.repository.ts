@@ -2,12 +2,16 @@ import type { QueryResultRow } from "pg";
 
 import type { Queryable } from "../../../common/interfaces/queryable.interface";
 import { databaseTables } from "../../../config/database";
+import { databaseViews } from "../../../config/database";
 import { db } from "../../../database/db";
 import type {
   AcademicYearRow,
+  ActiveAcademicContextRow,
   AcademicYearUpdateInput,
   AcademicYearWriteInput,
+  ClassFilters,
   ClassRow,
+  ClassUpdateInput,
   ClassWriteInput,
   GradeLevelRow,
   GradeLevelWriteInput,
@@ -18,12 +22,18 @@ import type {
   SubjectOfferingRow,
   SubjectOfferingUpdateInput,
   SubjectOfferingWriteInput,
+  SubjectFilters,
   SubjectRow,
+  SubjectUpdateInput,
   SubjectWriteInput,
+  SupervisorAssignmentFilters,
   SupervisorAssignmentRow,
+  SupervisorAssignmentUpdateInput,
   SupervisorAssignmentWriteInput,
   SupervisorSummaryRow,
+  TeacherAssignmentFilters,
   TeacherAssignmentRow,
+  TeacherAssignmentUpdateInput,
   TeacherAssignmentWriteInput,
   TeacherSummaryRow
 } from "../types/academic-structure.types";
@@ -197,6 +207,32 @@ const supervisorAssignmentSelect = `
 `;
 
 export class AcademicStructureRepository {
+  async findActiveAcademicContext(
+    queryable: Queryable = db
+  ): Promise<ActiveAcademicContextRow | null> {
+    const result = await queryable.query<ActiveAcademicContextRow>(
+      `
+        SELECT
+          academic_year_id AS "academicYearId",
+          academic_year_name AS "academicYearName",
+          academic_year_start_date AS "academicYearStartDate",
+          academic_year_end_date AS "academicYearEndDate",
+          academic_year_created_at AS "academicYearCreatedAt",
+          academic_year_updated_at AS "academicYearUpdatedAt",
+          semester_id AS "semesterId",
+          semester_name AS "semesterName",
+          semester_start_date AS "semesterStartDate",
+          semester_end_date AS "semesterEndDate",
+          semester_created_at AS "semesterCreatedAt",
+          semester_updated_at AS "semesterUpdatedAt"
+        FROM ${databaseViews.activeAcademicContext}
+        LIMIT 1
+      `
+    );
+
+    return mapSingleRow(result.rows);
+  }
+
   async listAcademicYears(queryable: Queryable = db): Promise<AcademicYearRow[]> {
     const result = await queryable.query<AcademicYearRow>(
       `
@@ -275,6 +311,16 @@ export class AcademicStructureRepository {
     await queryable.query(
       `
         UPDATE ${databaseTables.academicYears}
+        SET is_active = false
+        WHERE is_active = true
+      `
+    );
+  }
+
+  async deactivateAllSemesters(queryable: Queryable = db): Promise<void> {
+    await queryable.query(
+      `
+        UPDATE ${databaseTables.semesters}
         SET is_active = false
         WHERE is_active = true
       `
@@ -407,12 +453,35 @@ export class AcademicStructureRepository {
     return result.rows[0].id;
   }
 
-  async listClasses(queryable: Queryable = db): Promise<ClassRow[]> {
+  async listClasses(filters: ClassFilters = {}, queryable: Queryable = db): Promise<ClassRow[]> {
+    const conditions: string[] = [];
+    const values: unknown[] = [];
+
+    const addCondition = (template: string, value: unknown): void => {
+      values.push(value);
+      conditions.push(template.replace("?", `$${values.length}`));
+    };
+
+    if (filters.academicYearId) {
+      addCondition("c.academic_year_id = ?", filters.academicYearId);
+    }
+
+    if (filters.gradeLevelId) {
+      addCondition("c.grade_level_id = ?", filters.gradeLevelId);
+    }
+
+    if (filters.isActive !== undefined) {
+      addCondition("c.is_active = ?", filters.isActive);
+    }
+
+    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
     const result = await queryable.query<ClassRow>(
       `
         ${classSelect}
+        ${whereClause}
         ORDER BY c.academic_year_id DESC, gl.level_order ASC, c.class_name ASC, c.section ASC
-      `
+      `,
+      values
     );
 
     return result.rows;
@@ -458,12 +527,57 @@ export class AcademicStructureRepository {
     return result.rows[0].id;
   }
 
-  async listSubjects(queryable: Queryable = db): Promise<SubjectRow[]> {
+  async updateClass(
+    id: string,
+    input: ClassUpdateInput,
+    queryable: Queryable = db
+  ): Promise<void> {
+    const { assignments, values } = buildAssignments({
+      class_name: input.className,
+      section: input.section,
+      capacity: input.capacity,
+      is_active: input.isActive
+    });
+
+    if (assignments.length === 0) {
+      return;
+    }
+
+    await queryable.query(
+      `
+        UPDATE ${databaseTables.classes}
+        SET ${assignments.join(", ")}
+        WHERE id = $1
+      `,
+      [id, ...values]
+    );
+  }
+
+  async listSubjects(filters: SubjectFilters = {}, queryable: Queryable = db): Promise<SubjectRow[]> {
+    const conditions: string[] = [];
+    const values: unknown[] = [];
+
+    const addCondition = (template: string, value: unknown): void => {
+      values.push(value);
+      conditions.push(template.replace("?", `$${values.length}`));
+    };
+
+    if (filters.gradeLevelId) {
+      addCondition("s.grade_level_id = ?", filters.gradeLevelId);
+    }
+
+    if (filters.isActive !== undefined) {
+      addCondition("s.is_active = ?", filters.isActive);
+    }
+
+    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
     const result = await queryable.query<SubjectRow>(
       `
         ${subjectSelect}
+        ${whereClause}
         ORDER BY gl.level_order ASC, s.name ASC, s.id ASC
-      `
+      `,
+      values
     );
 
     return result.rows;
@@ -504,6 +618,31 @@ export class AcademicStructureRepository {
     );
 
     return result.rows[0].id;
+  }
+
+  async updateSubject(
+    id: string,
+    input: SubjectUpdateInput,
+    queryable: Queryable = db
+  ): Promise<void> {
+    const { assignments, values } = buildAssignments({
+      name: input.name,
+      code: input.code,
+      is_active: input.isActive
+    });
+
+    if (assignments.length === 0) {
+      return;
+    }
+
+    await queryable.query(
+      `
+        UPDATE ${databaseTables.subjects}
+        SET ${assignments.join(", ")}
+        WHERE id = $1
+      `,
+      [id, ...values]
+    );
   }
 
   async listSubjectOfferings(
@@ -701,13 +840,41 @@ export class AcademicStructureRepository {
   }
 
   async listTeacherAssignments(
+    filters: TeacherAssignmentFilters = {},
     queryable: Queryable = db
   ): Promise<TeacherAssignmentRow[]> {
+    const conditions: string[] = [];
+    const values: unknown[] = [];
+
+    const addCondition = (template: string, value: unknown): void => {
+      values.push(value);
+      conditions.push(template.replace("?", `$${values.length}`));
+    };
+
+    if (filters.academicYearId) {
+      addCondition("tc.academic_year_id = ?", filters.academicYearId);
+    }
+
+    if (filters.classId) {
+      addCondition("tc.class_id = ?", filters.classId);
+    }
+
+    if (filters.subjectId) {
+      addCondition("tc.subject_id = ?", filters.subjectId);
+    }
+
+    if (filters.teacherId) {
+      addCondition("tc.teacher_id = ?", filters.teacherId);
+    }
+
+    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
     const result = await queryable.query<TeacherAssignmentRow>(
       `
         ${teacherAssignmentSelect}
+        ${whereClause}
         ORDER BY tc.created_at DESC, tc.id DESC
-      `
+      `,
+      values
     );
 
     return result.rows;
@@ -727,6 +894,32 @@ export class AcademicStructureRepository {
     );
 
     return mapSingleRow(result.rows);
+  }
+
+  async updateTeacherAssignment(
+    id: string,
+    input: TeacherAssignmentUpdateInput,
+    queryable: Queryable = db
+  ): Promise<void> {
+    const { assignments, values } = buildAssignments({
+      teacher_id: input.teacherId,
+      class_id: input.classId,
+      subject_id: input.subjectId,
+      academic_year_id: input.academicYearId
+    });
+
+    if (assignments.length === 0) {
+      return;
+    }
+
+    await queryable.query(
+      `
+        UPDATE ${databaseTables.teacherClasses}
+        SET ${assignments.join(", ")}
+        WHERE id = $1
+      `,
+      [id, ...values]
+    );
   }
 
   async createSupervisorAssignment(
@@ -750,13 +943,37 @@ export class AcademicStructureRepository {
   }
 
   async listSupervisorAssignments(
+    filters: SupervisorAssignmentFilters = {},
     queryable: Queryable = db
   ): Promise<SupervisorAssignmentRow[]> {
+    const conditions: string[] = [];
+    const values: unknown[] = [];
+
+    const addCondition = (template: string, value: unknown): void => {
+      values.push(value);
+      conditions.push(template.replace("?", `$${values.length}`));
+    };
+
+    if (filters.academicYearId) {
+      addCondition("sc.academic_year_id = ?", filters.academicYearId);
+    }
+
+    if (filters.classId) {
+      addCondition("sc.class_id = ?", filters.classId);
+    }
+
+    if (filters.supervisorId) {
+      addCondition("sc.supervisor_id = ?", filters.supervisorId);
+    }
+
+    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
     const result = await queryable.query<SupervisorAssignmentRow>(
       `
         ${supervisorAssignmentSelect}
+        ${whereClause}
         ORDER BY sc.created_at DESC, sc.id DESC
-      `
+      `,
+      values
     );
 
     return result.rows;
@@ -776,5 +993,30 @@ export class AcademicStructureRepository {
     );
 
     return mapSingleRow(result.rows);
+  }
+
+  async updateSupervisorAssignment(
+    id: string,
+    input: SupervisorAssignmentUpdateInput,
+    queryable: Queryable = db
+  ): Promise<void> {
+    const { assignments, values } = buildAssignments({
+      supervisor_id: input.supervisorId,
+      class_id: input.classId,
+      academic_year_id: input.academicYearId
+    });
+
+    if (assignments.length === 0) {
+      return;
+    }
+
+    await queryable.query(
+      `
+        UPDATE ${databaseTables.supervisorClasses}
+        SET ${assignments.join(", ")}
+        WHERE id = $1
+      `,
+      [id, ...values]
+    );
   }
 }

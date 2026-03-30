@@ -18,8 +18,8 @@ export interface CreateAssessmentRequestDto {
   classId: string;
   subjectId: string;
   teacherId?: string;
-  academicYearId: string;
-  semesterId: string;
+  academicYearId?: string;
+  semesterId?: string;
   title: string;
   description?: string | null;
   maxScore: number;

@@ -70,6 +70,11 @@ export interface StudentHomeworkRow {
   notes: string | null;
 }
 
+export interface StudentHomeworkScope {
+  semesterId?: string;
+  teacherId?: string;
+}
+
 export interface StudentReferenceRow {
   studentId: string;
   academicNo: string;
@@ -166,3 +171,5 @@ export interface HomeworkListQuery
 export interface HomeworkScope {
   teacherId?: string;
 }
+
+

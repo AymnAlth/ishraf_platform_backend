@@ -184,7 +184,118 @@ const examples = {
     createdAt: NOW,
     updatedAt: NOW
   },
-  student: {
+  teacherAssignment: {
+    id: "1",
+    academicYear: {
+      id: "1",
+      name: "2025-2026"
+    },
+    class: {
+      id: "1",
+      className: "A",
+      section: "A",
+      isActive: true,
+      gradeLevel: {
+        id: "1",
+        name: "الصف الأول",
+        levelOrder: 1
+      }
+    },
+    subject: {
+      id: "1",
+      name: "الرياضيات",
+      code: "MATH-1",
+      isActive: true,
+      gradeLevel: {
+        id: "1",
+        name: "الصف الأول",
+        levelOrder: 1
+      }
+    },
+    teacher: {
+      id: "1",
+      userId: "47",
+      fullName: "مروان أمين شعبان",
+      email: "marwan-amin-shaban@ishraf.local",
+      phone: null
+    },
+    createdAt: NOW
+  },
+  supervisorAssignment: {
+    id: "1",
+    academicYear: {
+      id: "1",
+      name: "2025-2026"
+    },
+    class: {
+      id: "1",
+      className: "A",
+      section: "A",
+      isActive: true,
+      gradeLevel: {
+        id: "1",
+        name: "الصف الأول",
+        levelOrder: 1
+      }
+    },
+    supervisor: {
+      id: "1",
+      userId: "50",
+      fullName: "إدريس مشوير",
+      email: "idris-mashwir@ishraf.local",
+      phone: null
+    },
+    createdAt: NOW
+  },
+  activeAcademicContext: {
+    academicYear: {
+      id: "1",
+      name: "2025-2026",
+      startDate: "2025-09-01",
+      endDate: "2026-06-30",
+      isActive: true,
+      createdAt: NOW,
+      updatedAt: NOW
+    },
+    semester: {
+      id: "2",
+      academicYear: {
+        id: "1",
+        name: "2025-2026"
+      },
+      name: "الفصل الثاني",
+      startDate: "2026-02-01",
+      endDate: "2026-06-30",
+      isActive: true,
+      createdAt: NOW,
+      updatedAt: NOW
+    }
+  },
+  studentAcademicEnrollment: {
+    id: "1",
+    student: {
+      id: "1",
+      academicNo: "SEED-STU-001",
+      fullName: "طالب تجريبي 1"
+    },
+    academicYear: {
+      id: "1",
+      name: "2025-2026"
+    },
+    class: {
+      id: "1",
+      className: "A",
+      section: "A",
+      isActive: true,
+      gradeLevel: {
+        id: "1",
+        name: "الصف الأول",
+        levelOrder: 1
+      }
+    },
+    createdAt: NOW,
+    updatedAt: NOW
+  },  student: {
     id: "1",
     academicNo: "SEED-STU-001",
     fullName: "طالب تجريبي 1",
@@ -1359,6 +1470,21 @@ const componentSchemas = {
       isActive: true
     }
   },
+  UpdateClassRequest: {
+    type: "object",
+    properties: {
+      className: { type: "string", minLength: 1, maxLength: 50 },
+      section: { type: "string", minLength: 1, maxLength: 50 },
+      capacity: { anyOf: [{ type: "integer", minimum: 1 }, { type: "null" }] },
+      isActive: { type: "boolean" }
+    },
+    additionalProperties: false,
+    example: {
+      section: "C",
+      capacity: 30,
+      isActive: false
+    }
+  },
   CreateSubjectRequest: {
     type: "object",
     properties: {
@@ -1370,6 +1496,16 @@ const componentSchemas = {
     required: ["name", "gradeLevelId"],
     additionalProperties: false,
     example: { name: "العلوم", gradeLevelId: "1", code: "SCI-1", isActive: true }
+  },
+  UpdateSubjectRequest: {
+    type: "object",
+    properties: {
+      name: { type: "string", minLength: 1, maxLength: 100 },
+      code: { anyOf: [{ type: "string", maxLength: 50 }, { type: "null" }] },
+      isActive: { type: "boolean" }
+    },
+    additionalProperties: false,
+    example: { name: "العلوم المتقدمة", code: null, isActive: false }
   },
   CreateSubjectOfferingRequest: {
     type: "object",
@@ -1403,6 +1539,17 @@ const componentSchemas = {
     additionalProperties: false,
     example: { teacherId: "47", classId: "1", subjectId: "1", academicYearId: "1" }
   },
+  UpdateTeacherAssignmentRequest: {
+    type: "object",
+    properties: {
+      teacherId: clone(numericIdSchema),
+      classId: clone(numericIdSchema),
+      subjectId: clone(numericIdSchema),
+      academicYearId: clone(numericIdSchema)
+    },
+    additionalProperties: false,
+    example: { classId: "2", subjectId: "4", academicYearId: "1" }
+  },
   CreateSupervisorAssignmentRequest: {
     type: "object",
     properties: {
@@ -1413,6 +1560,16 @@ const componentSchemas = {
     required: ["supervisorId", "classId", "academicYearId"],
     additionalProperties: false,
     example: { supervisorId: "50", classId: "1", academicYearId: "1" }
+  },
+  UpdateSupervisorAssignmentRequest: {
+    type: "object",
+    properties: {
+      supervisorId: clone(numericIdSchema),
+      classId: clone(numericIdSchema),
+      academicYearId: clone(numericIdSchema)
+    },
+    additionalProperties: false,
+    example: { classId: "2", academicYearId: "1" }
   }
 };
 
@@ -1422,6 +1579,9 @@ function addSchema(name, schema) {
 
 [
   [
+    "ActiveAcademicContextRequest",
+    { academicYearId: "1", semesterId: "2" }
+  ],  [
     "CreateStudentRequest",
     {
       academicNo: "SEED-STU-010",
@@ -1436,6 +1596,17 @@ function addSchema(name, schema) {
   ["UpdateStudentRequest", { fullName: "طالب محدث", status: "suspended" }],
   ["LinkStudentParentRequest", { parentId: "48", relationType: "mother", isPrimary: false }],
   ["PromoteStudentRequest", { toClassId: "2", academicYearId: "2", notes: "ترقية إلى الصف التالي" }],
+  ["CreateStudentAcademicEnrollmentRequest", { academicYearId: "2", classId: "2" }],
+  ["UpdateStudentAcademicEnrollmentRequest", { classId: "3" }],
+  [
+    "BulkStudentAcademicEnrollmentsRequest",
+    {
+      items: [
+        { studentId: "1", academicYearId: "2", classId: "2" },
+        { studentId: "2", academicYearId: "2", classId: "2" }
+      ]
+    }
+  ],
   ["CreateAssessmentTypeRequest", { code: "QUIZ", name: "Quiz", description: "Short quiz", isActive: true }],
   [
     "CreateAssessmentRequest",
@@ -1537,6 +1708,7 @@ function pathParamDescription(routePath, paramName) {
   if (paramName === "supervisorUserId") return "Supervisor user numeric string identifier from /users?role=supervisor.";
   if (paramName === "studentAssessmentId") return "Student assessment score numeric string identifier.";
   if (paramName === "attendanceId") return "Attendance record numeric string identifier.";
+  if (paramName === "enrollmentId") return "Student academic enrollment numeric string identifier.";
   if (paramName === "academicYearId") return "Academic year numeric string identifier.";
   if (paramName === "routeId") return "Route numeric string identifier.";
   if (paramName === "otherUserId") return "The other conversation participant user id.";
@@ -1551,6 +1723,8 @@ function pathParamDescription(routePath, paramName) {
   if (routePath.startsWith("/academic-structure/classes/:id")) return "Class numeric string identifier.";
   if (routePath.startsWith("/academic-structure/subjects/:id")) return "Subject numeric string identifier.";
   if (routePath.startsWith("/academic-structure/subject-offerings/:id")) return "Subject offering numeric string identifier.";
+  if (routePath.startsWith("/academic-structure/teacher-assignments/:id")) return "Teacher assignment numeric string identifier.";
+  if (routePath.startsWith("/academic-structure/supervisor-assignments/:id")) return "Supervisor assignment numeric string identifier.";
   if (routePath.startsWith("/assessments/:id")) return "Assessment numeric string identifier.";
   if (routePath.startsWith("/attendance/sessions/:id")) return "Attendance session numeric string identifier.";
   if (routePath.startsWith("/behavior/records/:id")) return "Behavior record numeric string identifier.";
@@ -1584,6 +1758,8 @@ function postmanVariableForParam(routePath, paramName) {
   if (routePath.startsWith("/academic-structure/classes/:id")) return "classId";
   if (routePath.startsWith("/academic-structure/subjects/:id")) return "subjectId";
   if (routePath.startsWith("/academic-structure/subject-offerings/:id")) return "subjectOfferingId";
+  if (routePath.startsWith("/academic-structure/teacher-assignments/:id")) return "teacherAssignmentId";
+  if (routePath.startsWith("/academic-structure/supervisor-assignments/:id")) return "supervisorAssignmentId";
   if (routePath.startsWith("/assessments/:id")) return "assessmentId";
   if (routePath.startsWith("/attendance/sessions/:id")) return "attendanceSessionId";
   if (routePath.startsWith("/behavior/records/:id")) return "behaviorRecordId";
@@ -1619,6 +1795,11 @@ function makeEndpoint({ m, p, t, s, u, r = ["admin"], auth = true, b, q = [], ki
 }
 const userListQuery = paginatedQuery(["createdAt"], [commonQuery.text("role", "Filter by role.", "admin"), commonQuery.boolean("isActive", "Filter by active status.")], "createdAt");
 const studentListQuery = paginatedQuery(["createdAt", "academicNo", "fullName", "enrollmentDate"], [commonQuery.id("classId", "Filter by class id."), commonQuery.id("academicYearId", "Filter by academic year id."), commonQuery.text("status", "Filter by student status.", "active"), commonQuery.text("gender", "Filter by gender.", "male")], "createdAt");
+const studentAcademicEnrollmentsQuery = [
+  commonQuery.id("studentId", "Filter by student id."),
+  commonQuery.id("academicYearId", "Filter by academic year id."),
+  commonQuery.id("classId", "Filter by class id.")
+];
 const attendanceListQuery = paginatedQuery(["sessionDate", "periodNo", "createdAt"], [commonQuery.id("classId", "Filter by class id."), commonQuery.id("subjectId", "Filter by subject id."), commonQuery.id("teacherId", "Filter by teacher identifier. Accepts the teacher user id from /users?role=teacher or the legacy teacher profile id."), commonQuery.id("academicYearId", "Filter by academic year id."), commonQuery.id("semesterId", "Filter by semester id."), commonQuery.date("sessionDate", "Filter by exact session date."), commonQuery.date("dateFrom", "Filter from session date."), commonQuery.date("dateTo", "Filter to session date.")], "sessionDate");
 const assessmentListQuery = paginatedQuery(["assessmentDate", "createdAt", "title"], [commonQuery.id("assessmentTypeId", "Filter by assessment type id."), commonQuery.id("classId", "Filter by class id."), commonQuery.id("subjectId", "Filter by subject id."), commonQuery.id("teacherId", "Filter by teacher identifier. Accepts the teacher user id from /users?role=teacher or the legacy teacher profile id."), commonQuery.id("academicYearId", "Filter by academic year id."), commonQuery.id("semesterId", "Filter by semester id."), commonQuery.date("assessmentDate", "Filter by exact assessment date."), commonQuery.date("dateFrom", "Filter from assessment date."), commonQuery.date("dateTo", "Filter to assessment date."), commonQuery.boolean("isPublished", "Filter by publication state.")], "assessmentDate");
 const behaviorListQuery = paginatedQuery(["behaviorDate", "createdAt", "severity"], [commonQuery.id("studentId", "Filter by student id."), commonQuery.id("behaviorCategoryId", "Filter by behavior category id."), commonQuery.text("behaviorType", "Filter by behavior type.", "negative"), commonQuery.id("academicYearId", "Filter by academic year id."), commonQuery.id("semesterId", "Filter by semester id."), commonQuery.id("teacherId", "Filter by teacher identifier. Accepts the teacher user id from /users?role=teacher or the legacy teacher profile id."), commonQuery.id("supervisorId", "Filter by supervisor identifier. Accepts the supervisor user id from /users?role=supervisor or the legacy supervisor profile id."), commonQuery.date("behaviorDate", "Filter by exact behavior date."), commonQuery.date("dateFrom", "Filter from behavior date."), commonQuery.date("dateTo", "Filter to behavior date.")], "behaviorDate");
@@ -1629,6 +1810,26 @@ const subjectOfferingsQuery = [
   commonQuery.id("gradeLevelId", "Filter by grade level id."),
   commonQuery.id("subjectId", "Filter by subject id."),
   commonQuery.boolean("isActive", "Filter by activation state.")
+];
+const classesQuery = [
+  commonQuery.id("academicYearId", "Filter by academic year id."),
+  commonQuery.id("gradeLevelId", "Filter by grade level id."),
+  commonQuery.boolean("isActive", "Filter by activation state.")
+];
+const subjectsQuery = [
+  commonQuery.id("gradeLevelId", "Filter by grade level id."),
+  commonQuery.boolean("isActive", "Filter by activation state.")
+];
+const teacherAssignmentsQuery = [
+  commonQuery.id("academicYearId", "Filter by academic year id."),
+  commonQuery.id("classId", "Filter by class id."),
+  commonQuery.id("subjectId", "Filter by subject id."),
+  commonQuery.id("teacherId", "Filter by teacher identifier. Accepts the teacher user id from /users?role=teacher or the legacy teacher profile id.")
+];
+const supervisorAssignmentsQuery = [
+  commonQuery.id("academicYearId", "Filter by academic year id."),
+  commonQuery.id("classId", "Filter by class id."),
+  commonQuery.id("supervisorId", "Filter by supervisor identifier. Accepts the supervisor user id from /users?role=supervisor or the legacy supervisor profile id.")
 ];
 const tripListQuery = paginatedQuery(["tripDate", "tripStatus", "startedAt", "createdAt"], [commonQuery.id("busId", "Filter by bus id."), commonQuery.id("routeId", "Filter by route id."), commonQuery.text("tripType", "Filter by trip type.", "pickup"), commonQuery.text("tripStatus", "Filter by trip status.", "started"), commonQuery.date("tripDate", "Filter by exact trip date."), commonQuery.date("dateFrom", "Filter from trip date."), commonQuery.date("dateTo", "Filter to trip date.")], "tripDate");
 const tripRosterQuery = [commonQuery.text("search", "Filter roster rows by student full name or academic number.", "Student One"), commonQuery.id("stopId", "Filter roster rows by assigned stop id.")];
@@ -1658,6 +1859,8 @@ const endpoints = [
   makeEndpoint({ m: "GET", p: "/users/:id", t: "Users", s: "Get User", u: "Return one user by id.", e: "user", status: 200 }),
   makeEndpoint({ m: "PATCH", p: "/users/:id", t: "Users", s: "Update User", u: "Update basic user fields and role-specific profile fields.", b: "UpdateUserRequest", e: "user", status: 200 }),
   makeEndpoint({ m: "PATCH", p: "/users/:id/status", t: "Users", s: "Update User Status", u: "Activate or deactivate a user account.", b: "UpdateUserStatusRequest", e: "user", status: 200 }),
+  makeEndpoint({ m: "GET", p: "/academic-structure/context/active", t: "Academic Structure", s: "[NEW] Get Active Academic Context", u: "Return the active academic year and active semester used by operational admin surfaces.", e: "activeAcademicContext", status: 200, notes: ["[NEW] This is the canonical global context for daily admin operations.", "If either the active academic year or active semester is missing, operational endpoints may return 409 Academic context not configured."] }),
+  makeEndpoint({ m: "PATCH", p: "/academic-structure/context/active", t: "Academic Structure", s: "[NEW] Update Active Academic Context", u: "Atomically set the active academic year and active semester for operational surfaces.", b: "ActiveAcademicContextRequest", e: "activeAcademicContext", status: 200, notes: ["[NEW] Use this as the canonical activation flow instead of activating the academic year and semester separately.", "The selected semester must belong to the selected academic year."] }),
   makeEndpoint({ m: "POST", p: "/academic-structure/academic-years", t: "Academic Structure", s: "Create Academic Year", u: "Create an academic year record.", b: "CreateAcademicYearRequest", e: "academicYear" }),
   makeEndpoint({ m: "GET", p: "/academic-structure/academic-years", t: "Academic Structure", s: "List Academic Years", u: "List all academic years.", kind: "array", e: "academicYear", status: 200 }),
   makeEndpoint({ m: "GET", p: "/academic-structure/academic-years/:id", t: "Academic Structure", s: "Get Academic Year", u: "Return one academic year by id.", e: "academicYear", status: 200 }),
@@ -1669,46 +1872,58 @@ const endpoints = [
   makeEndpoint({ m: "POST", p: "/academic-structure/grade-levels", t: "Academic Structure", s: "Create Grade Level", u: "Create a grade level.", b: "CreateGradeLevelRequest", e: "classEntity" }),
   makeEndpoint({ m: "GET", p: "/academic-structure/grade-levels", t: "Academic Structure", s: "List Grade Levels", u: "List grade levels.", kind: "array", e: "classEntity", status: 200 }),
   makeEndpoint({ m: "POST", p: "/academic-structure/classes", t: "Academic Structure", s: "Create Class", u: "Create a class section.", b: "CreateClassRequest", e: "classEntity" }),
-  makeEndpoint({ m: "GET", p: "/academic-structure/classes", t: "Academic Structure", s: "List Classes", u: "List classes.", kind: "array", e: "classEntity", status: 200 }),
+  makeEndpoint({ m: "GET", p: "/academic-structure/classes", t: "Academic Structure", s: "List Classes", u: "List classes with optional academic year, grade level, and activation filters.", q: classesQuery, kind: "array", e: "classEntity", status: 200 }),
   makeEndpoint({ m: "GET", p: "/academic-structure/classes/:id", t: "Academic Structure", s: "Get Class", u: "Return one class by id.", e: "classEntity", status: 200 }),
+  makeEndpoint({ m: "PATCH", p: "/academic-structure/classes/:id", t: "Academic Structure", s: "[NEW] Update Class", u: "Update class operational fields such as section, capacity, and activation state without changing academic linkage.", b: "UpdateClassRequest", e: "classEntity", status: 200, notes: ["[NEW] This is the canonical management surface for class corrections and activation updates."] }),
   makeEndpoint({ m: "POST", p: "/academic-structure/subjects", t: "Academic Structure", s: "Create Subject", u: "Create a subject under a grade level. Subjects remain grade-level master data and do not accept semesterId.", b: "CreateSubjectRequest", e: "subject", notes: ["Use subject-offerings to link a subject into one or more semesters without changing the subject master record."] }),
-  makeEndpoint({ m: "GET", p: "/academic-structure/subjects", t: "Academic Structure", s: "List Subjects", u: "List subjects.", kind: "array", e: "subject", status: 200 }),
+  makeEndpoint({ m: "GET", p: "/academic-structure/subjects", t: "Academic Structure", s: "List Subjects", u: "List subjects with optional grade level and activation filters.", q: subjectsQuery, kind: "array", e: "subject", status: 200 }),
   makeEndpoint({ m: "GET", p: "/academic-structure/subjects/:id", t: "Academic Structure", s: "Get Subject", u: "Return one subject by id.", e: "subject", status: 200 }),
+  makeEndpoint({ m: "PATCH", p: "/academic-structure/subjects/:id", t: "Academic Structure", s: "[NEW] Update Subject", u: "Update subject master-data fields such as name, code, and activation state while keeping the subject grade-level-scoped.", b: "UpdateSubjectRequest", e: "subject", status: 200, notes: ["[NEW] Subjects remain master data; semester-specific availability still belongs to subject-offerings."] }),
   makeEndpoint({ m: "POST", p: "/academic-structure/subject-offerings", t: "Academic Structure", s: "[NEW] Create Subject Offering", u: "Link an existing subject to a semester without changing the subject master data.", b: "CreateSubjectOfferingRequest", e: "subjectOffering", notes: ["[NEW] Subject offerings are the official semester-aware layer for subject availability."] }),
   makeEndpoint({ m: "GET", p: "/academic-structure/subject-offerings", t: "Academic Structure", s: "[NEW] List Subject Offerings", u: "List subject offerings with optional academic year, semester, grade level, subject, and activation filters.", q: subjectOfferingsQuery, kind: "array", e: "subjectOffering", status: 200, notes: ["[NEW] This is the canonical list surface for semester-aware subject availability."] }),
   makeEndpoint({ m: "GET", p: "/academic-structure/subject-offerings/:id", t: "Academic Structure", s: "[NEW] Get Subject Offering", u: "Return one subject offering by id.", e: "subjectOffering", status: 200 }),
   makeEndpoint({ m: "PATCH", p: "/academic-structure/subject-offerings/:id", t: "Academic Structure", s: "[NEW] Update Subject Offering", u: "Update a subject offering activation state. This round only supports isActive changes.", b: "UpdateSubjectOfferingRequest", e: "subjectOffering", status: 200 }),
-  makeEndpoint({ m: "POST", p: "/academic-structure/teacher-assignments", t: "Academic Structure", s: "Create Teacher Assignment", u: "Assign a teacher to a class and subject for an academic year. teacherId accepts the teacher user id from /users?role=teacher or the legacy teacher profile id.", b: "CreateTeacherAssignmentRequest", e: "classEntity", notes: ["Frontend should send the teacher user id returned by GET /users?role=teacher. The backend resolves it internally to the stored teacher profile id.", "Legacy integrations may still send the teacher profile id directly.", "If the same value matches a teacher user id and a different teacher profile id, the backend rejects the request with TEACHER_ID_AMBIGUOUS instead of guessing."] }),
-  makeEndpoint({ m: "GET", p: "/academic-structure/teacher-assignments", t: "Academic Structure", s: "List Teacher Assignments", u: "List teacher assignments.", kind: "array", e: "classEntity", status: 200 }),
-  makeEndpoint({ m: "POST", p: "/academic-structure/supervisor-assignments", t: "Academic Structure", s: "Create Supervisor Assignment", u: "Assign a supervisor to a class for an academic year. supervisorId accepts the supervisor user id from /users?role=supervisor or the legacy supervisor profile id.", b: "CreateSupervisorAssignmentRequest", e: "classEntity", notes: ["Frontend should send the supervisor user id returned by GET /users?role=supervisor. The backend resolves it internally to the stored supervisor profile id.", "Legacy integrations may still send the supervisor profile id directly.", "If the same value matches a supervisor user id and a different supervisor profile id, the backend rejects the request with SUPERVISOR_ID_AMBIGUOUS instead of guessing."] }),
-  makeEndpoint({ m: "GET", p: "/academic-structure/supervisor-assignments", t: "Academic Structure", s: "List Supervisor Assignments", u: "List supervisor assignments.", kind: "array", e: "classEntity", status: 200 })
+  makeEndpoint({ m: "POST", p: "/academic-structure/teacher-assignments", t: "Academic Structure", s: "Create Teacher Assignment", u: "Assign a teacher to a class and subject for an academic year. teacherId accepts the teacher user id from /users?role=teacher or the legacy teacher profile id.", b: "CreateTeacherAssignmentRequest", e: "teacherAssignment", notes: ["Frontend should send the teacher user id returned by GET /users?role=teacher. The backend resolves it internally to the stored teacher profile id.", "Legacy integrations may still send the teacher profile id directly.", "If the same value matches a teacher user id and a different teacher profile id, the backend rejects the request with TEACHER_ID_AMBIGUOUS instead of guessing."] }),
+  makeEndpoint({ m: "GET", p: "/academic-structure/teacher-assignments", t: "Academic Structure", s: "List Teacher Assignments", u: "List teacher assignments with optional academic year, class, subject, and teacher filters.", q: teacherAssignmentsQuery, kind: "array", e: "teacherAssignment", status: 200 }),
+  makeEndpoint({ m: "GET", p: "/academic-structure/teacher-assignments/:id", t: "Academic Structure", s: "[NEW] Get Teacher Assignment", u: "Return one teacher assignment by id.", e: "teacherAssignment", status: 200 }),
+  makeEndpoint({ m: "PATCH", p: "/academic-structure/teacher-assignments/:id", t: "Academic Structure", s: "[NEW] Update Teacher Assignment", u: "Update a teacher assignment for administrative corrections. teacherId accepts the teacher user id from /users?role=teacher or the legacy teacher profile id.", b: "UpdateTeacherAssignmentRequest", e: "teacherAssignment", status: 200, notes: ["[NEW] Teacher assignment updates preserve the existing compatibility and teacher-resolution rules."] }),
+  makeEndpoint({ m: "POST", p: "/academic-structure/supervisor-assignments", t: "Academic Structure", s: "Create Supervisor Assignment", u: "Assign a supervisor to a class for an academic year. supervisorId accepts the supervisor user id from /users?role=supervisor or the legacy supervisor profile id.", b: "CreateSupervisorAssignmentRequest", e: "supervisorAssignment", notes: ["Frontend should send the supervisor user id returned by GET /users?role=supervisor. The backend resolves it internally to the stored supervisor profile id.", "Legacy integrations may still send the supervisor profile id directly.", "If the same value matches a supervisor user id and a different supervisor profile id, the backend rejects the request with SUPERVISOR_ID_AMBIGUOUS instead of guessing."] }),
+  makeEndpoint({ m: "GET", p: "/academic-structure/supervisor-assignments", t: "Academic Structure", s: "List Supervisor Assignments", u: "List supervisor assignments with optional academic year, class, and supervisor filters.", q: supervisorAssignmentsQuery, kind: "array", e: "supervisorAssignment", status: 200 }),
+  makeEndpoint({ m: "GET", p: "/academic-structure/supervisor-assignments/:id", t: "Academic Structure", s: "[NEW] Get Supervisor Assignment", u: "Return one supervisor assignment by id.", e: "supervisorAssignment", status: 200 }),
+  makeEndpoint({ m: "PATCH", p: "/academic-structure/supervisor-assignments/:id", t: "Academic Structure", s: "[NEW] Update Supervisor Assignment", u: "Update a supervisor assignment for administrative corrections. supervisorId accepts the supervisor user id from /users?role=supervisor or the legacy supervisor profile id.", b: "UpdateSupervisorAssignmentRequest", e: "supervisorAssignment", status: 200, notes: ["[NEW] Supervisor assignment updates preserve the existing compatibility and supervisor-resolution rules."] })
 ];
 endpoints.push(
-  makeEndpoint({ m: "POST", p: "/students", t: "Students", s: "Create Student", u: "Create a student in the selected class.", b: "CreateStudentRequest", e: "student" }),
-  makeEndpoint({ m: "GET", p: "/students", t: "Students", s: "List Students", u: "List students with pagination and filters.", q: studentListQuery, kind: "paginated", e: "student", status: 200 }),
-  makeEndpoint({ m: "GET", p: "/students/:id", t: "Students", s: "Get Student", u: "Return one student by id.", e: "student", status: 200 }),
+  makeEndpoint({ m: "POST", p: "/students", t: "Students", s: "Create Student", u: "Create a student in the selected class and create the matching academic enrollment record inside the same transaction.", b: "CreateStudentRequest", e: "student", notes: ["The selected class determines the academic year for the initial enrollment."] }),
+  makeEndpoint({ m: "GET", p: "/students", t: "Students", s: "List Students", u: "List students for the active academic year with pagination and filters.", q: studentListQuery, kind: "paginated", e: "student", status: 200, notes: ["This operational surface is active-year-aware.", "If academicYearId is provided, it must match the active academic year or the request is rejected."] }),
+  makeEndpoint({ m: "GET", p: "/students/academic-enrollments", t: "Students", s: "[NEW] List Student Academic Enrollments", u: "List student academic enrollments for academic management and year preparation.", q: studentAcademicEnrollmentsQuery, kind: "array", e: "studentAcademicEnrollment", status: 200, notes: ["[NEW] This is an academic-management surface, not a daily operational roster."] }),
+  makeEndpoint({ m: "POST", p: "/students/academic-enrollments/bulk", t: "Students", s: "[NEW] Bulk Upsert Student Academic Enrollments", u: "Create or update many student academic enrollments for structured promotion and year preparation.", b: "BulkStudentAcademicEnrollmentsRequest", kind: "array", e: "studentAcademicEnrollment", status: 200, notes: ["[NEW] Use this for organized year-transition work instead of mutating students one by one."] }),
+  makeEndpoint({ m: "PATCH", p: "/students/academic-enrollments/:enrollmentId", t: "Students", s: "[NEW] Update Student Academic Enrollment", u: "Update one student academic enrollment record.", b: "UpdateStudentAcademicEnrollmentRequest", e: "studentAcademicEnrollment", status: 200 }),
+  makeEndpoint({ m: "GET", p: "/students/:id", t: "Students", s: "Get Student", u: "Return one student by id using the active academic year as the current academic state.", e: "student", status: 200, notes: ["This operational detail surface requires an active academic context."] }),
   makeEndpoint({ m: "PATCH", p: "/students/:id", t: "Students", s: "Update Student", u: "Update student profile fields and lifecycle status.", b: "UpdateStudentRequest", e: "student", status: 200 }),
+  makeEndpoint({ m: "POST", p: "/students/:id/academic-enrollments", t: "Students", s: "[NEW] Create Student Academic Enrollment", u: "Create or upsert one academic enrollment for the selected student.", b: "CreateStudentAcademicEnrollmentRequest", e: "studentAcademicEnrollment", notes: ["[NEW] This is the canonical academic-management surface for assigning a student into a class for a specific year."] }),
+  makeEndpoint({ m: "GET", p: "/students/:id/academic-enrollments", t: "Students", s: "[NEW] List Student Academic Enrollments By Student", u: "Return all academic enrollments for one student across years.", kind: "array", e: "studentAcademicEnrollment", status: 200 }),
+
   makeEndpoint({ m: "POST", p: "/students/:id/parents", t: "Students", s: "Link Parent to Student", u: "Link an existing parent to a student. parentId may be either the parent user id returned by /users?role=parent or the underlying parent profile id.", b: "LinkStudentParentRequest", e: "user", notes: ["The backend resolves parentId to the stored parent profile id automatically. Prefer sending the user id returned by /users?role=parent in admin frontend flows."] }),
   makeEndpoint({ m: "GET", p: "/students/:id/parents", t: "Students", s: "List Student Parents", u: "Return parent links for one student.", kind: "array", e: "user", status: 200 }),
   makeEndpoint({ m: "PATCH", p: "/students/:studentId/parents/:parentId/primary", t: "Students", s: "Set Primary Parent", u: "Mark one linked parent as the primary parent for that student. parentId may be either the parent user id returned by /users?role=parent or the underlying parent profile id.", e: "user", status: 200, notes: ["The backend resolves parentId to the stored parent profile id automatically. Prefer sending the user id returned by /users?role=parent in admin frontend flows."] }),
-  makeEndpoint({ m: "POST", p: "/students/:id/promotions", t: "Students", s: "Promote Student", u: "Promote a student to another class for a target academic year.", b: "PromoteStudentRequest", e: "student" }),
+  makeEndpoint({ m: "POST", p: "/students/:id/promotions", t: "Students", s: "Promote Student", u: "Promote a student to another class for a target academic year while writing structured enrollment state and promotion history.", b: "PromoteStudentRequest", e: "student", notes: ["The promotion writes the target academic enrollment even when the target year is not active yet.", "students.class_id is only synchronized immediately when the target year is the active academic year."] }),
   makeEndpoint({ m: "POST", p: "/assessments/types", t: "Assessments", s: "Create Assessment Type", u: "Create a reusable assessment type.", b: "CreateAssessmentTypeRequest", e: "assessment" }),
   makeEndpoint({ m: "GET", p: "/assessments/types", t: "Assessments", s: "List Assessment Types", u: "List assessment types.", r: ["admin", "teacher"], kind: "array", e: "assessment", status: 200 }),
-  makeEndpoint({ m: "POST", p: "/assessments", t: "Assessments", s: "Create Assessment", u: "Create an assessment. Teachers may omit teacherId and rely on the authenticated teacher profile. Admin teacherId accepts the teacher user id from /users?role=teacher or the legacy teacher profile id.", r: ["admin", "teacher"], b: "CreateAssessmentRequest", e: "assessment", notes: ["The selected subjectId must have an active subject offering for the selected semesterId.", "Admin frontend flows should send teacherId as the teacher user id returned by GET /users?role=teacher."] }),
-  makeEndpoint({ m: "GET", p: "/assessments", t: "Assessments", s: "List Assessments", u: "List assessments with pagination and filters.", r: ["admin", "teacher"], q: assessmentListQuery, kind: "paginated", e: "assessment", status: 200, notes: ["teacherId filter accepts the teacher user id returned by GET /users?role=teacher or the legacy teacher profile id. Prefer the user id in admin frontend flows."] }),
+  makeEndpoint({ m: "POST", p: "/assessments", t: "Assessments", s: "Create Assessment", u: "Create an assessment inside the active academic context. Teachers may omit teacherId and rely on the authenticated teacher profile. Admin teacherId accepts the teacher user id from /users?role=teacher or the legacy teacher profile id.", r: ["admin", "teacher"], b: "CreateAssessmentRequest", e: "assessment", notes: ["academicYearId and semesterId may be omitted; the backend resolves the active academic context automatically.", "If academicYearId or semesterId is sent, it must match the active context.", "The selected subjectId must have an active subject offering for the resolved semester.", "Admin frontend flows should send teacherId as the teacher user id returned by GET /users?role=teacher."] }),
+  makeEndpoint({ m: "GET", p: "/assessments", t: "Assessments", s: "List Assessments", u: "List assessments for the active academic context with pagination and filters.", r: ["admin", "teacher"], q: assessmentListQuery, kind: "paginated", e: "assessment", status: 200, notes: ["This operational list is scoped to the active academic year and active semester.", "teacherId filter accepts the teacher user id returned by GET /users?role=teacher or the legacy teacher profile id. Prefer the user id in admin frontend flows."] }),
   makeEndpoint({ m: "GET", p: "/assessments/:id", t: "Assessments", s: "Get Assessment", u: "Return one assessment detail record.", r: ["admin", "teacher"], e: "assessment", status: 200 }),
   makeEndpoint({ m: "GET", p: "/assessments/:id/scores", t: "Assessments", s: "Get Assessment Scores", u: "Return the score roster for one assessment.", r: ["admin", "teacher"], kind: "array", e: "assessmentScore", status: 200 }),
   makeEndpoint({ m: "PUT", p: "/assessments/:id/scores", t: "Assessments", s: "Save Assessment Scores", u: "Create or update the full score roster for an assessment.", r: ["admin", "teacher"], b: "SaveAssessmentScoresRequest", kind: "array", e: "assessmentScore", status: 200 }),
   makeEndpoint({ m: "PATCH", p: "/assessments/scores/:studentAssessmentId", t: "Assessments", s: "Update Student Assessment Score", u: "Update one student score row.", r: ["admin", "teacher"], b: "UpdateStudentAssessmentScoreRequest", e: "assessmentScore", status: 200 }),
-  makeEndpoint({ m: "POST", p: "/attendance/sessions", t: "Attendance", s: "Create Attendance Session", u: "Create an attendance session for a class and subject. Admin teacherId accepts the teacher user id from /users?role=teacher or the legacy teacher profile id.", r: ["admin", "teacher"], b: "CreateAttendanceSessionRequest", e: "attendanceSession", notes: ["The selected subjectId must have an active subject offering for the selected semesterId.", "Admin frontend flows should send teacherId as the teacher user id returned by GET /users?role=teacher."] }),
-  makeEndpoint({ m: "GET", p: "/attendance/sessions", t: "Attendance", s: "List Attendance Sessions", u: "List attendance sessions with pagination. There is no root /attendance endpoint.", r: ["admin", "teacher", "supervisor"], q: attendanceListQuery, kind: "paginated", e: "attendanceSession", status: 200, notes: ["Empty collections return 200 with items=[] and pagination metadata.", "teacherId filter accepts the teacher user id returned by GET /users?role=teacher or the legacy teacher profile id. Prefer the user id in admin frontend flows."] }),
+  makeEndpoint({ m: "POST", p: "/attendance/sessions", t: "Attendance", s: "Create Attendance Session", u: "Create an attendance session inside the active academic context. Admin teacherId accepts the teacher user id from /users?role=teacher or the legacy teacher profile id.", r: ["admin", "teacher"], b: "CreateAttendanceSessionRequest", e: "attendanceSession", notes: ["academicYearId and semesterId may be omitted; the backend resolves the active academic context automatically.", "If academicYearId or semesterId is sent, it must match the active context.", "The selected subjectId must have an active subject offering for the resolved semester.", "Admin frontend flows should send teacherId as the teacher user id returned by GET /users?role=teacher."] }),
+  makeEndpoint({ m: "GET", p: "/attendance/sessions", t: "Attendance", s: "List Attendance Sessions", u: "List attendance sessions for the active academic context with pagination. There is no root /attendance endpoint.", r: ["admin", "teacher", "supervisor"], q: attendanceListQuery, kind: "paginated", e: "attendanceSession", status: 200, notes: ["Empty collections return 200 with items=[] and pagination metadata.", "This operational list is scoped to the active academic year and active semester.", "teacherId filter accepts the teacher user id returned by GET /users?role=teacher or the legacy teacher profile id. Prefer the user id in admin frontend flows."] }),
   makeEndpoint({ m: "GET", p: "/attendance/sessions/:id", t: "Attendance", s: "Get Attendance Session", u: "Return one attendance session including its student roster.", r: ["admin", "teacher", "supervisor"], e: "attendanceSession", status: 200 }),
   makeEndpoint({ m: "PUT", p: "/attendance/sessions/:id/records", t: "Attendance", s: "Save Attendance Records", u: "Save the full attendance roster snapshot for one session.", r: ["admin", "teacher", "supervisor"], b: "SaveAttendanceRecordsRequest", kind: "array", e: "attendanceRecord", status: 200, side: "Any newly absent record can trigger parent notifications through the internal automation service." }),
   makeEndpoint({ m: "PATCH", p: "/attendance/records/:attendanceId", t: "Attendance", s: "Update Attendance Record", u: "Update one attendance record status or notes.", r: ["admin", "teacher", "supervisor"], b: "UpdateAttendanceRecordRequest", e: "attendanceRecord", status: 200, side: "If the record changes into absent, the internal automation service may create notifications for linked parents." }),
   makeEndpoint({ m: "POST", p: "/behavior/categories", t: "Behavior", s: "Create Behavior Category", u: "Create a behavior category definition.", b: "CreateBehaviorCategoryRequest", e: "behaviorCategory" }),
   makeEndpoint({ m: "GET", p: "/behavior/categories", t: "Behavior", s: "List Behavior Categories", u: "List behavior categories used in behavior forms. There is no behaviorType query filter in v1.", r: ["admin", "teacher", "supervisor"], kind: "array", e: "behaviorCategory", status: 200 }),
-  makeEndpoint({ m: "POST", p: "/behavior/records", t: "Behavior", s: "Create Behavior Record", u: "Create a behavior record for one student. teacherId and supervisorId accept the matching user ids from /users or the legacy profile ids.", r: ["admin", "teacher", "supervisor"], b: "CreateBehaviorRecordRequest", e: "behaviorRecord", notes: ["Admin frontend flows should send teacherId or supervisorId as the selected account user id from GET /users?role=teacher|supervisor.", "Legacy integrations may still send teacher/supervisor profile ids directly."], side: "Negative behavior categories trigger parent notifications through the internal automation service." }),
-  makeEndpoint({ m: "GET", p: "/behavior/records", t: "Behavior", s: "List Behavior Records", u: "List behavior records with pagination and filters.", r: ["admin", "teacher", "supervisor"], q: behaviorListQuery, kind: "paginated", e: "behaviorRecord", status: 200, notes: ["teacherId and supervisorId filters accept the corresponding user ids returned by GET /users or the legacy profile ids. Prefer user ids in admin frontend flows."] }),
+  makeEndpoint({ m: "POST", p: "/behavior/records", t: "Behavior", s: "Create Behavior Record", u: "Create a behavior record inside the active academic context. teacherId and supervisorId accept the matching user ids from /users or the legacy profile ids.", r: ["admin", "teacher", "supervisor"], b: "CreateBehaviorRecordRequest", e: "behaviorRecord", notes: ["academicYearId and semesterId may be omitted; the backend resolves the active academic context automatically.", "If academicYearId or semesterId is sent, it must match the active context.", "Admin frontend flows should send teacherId or supervisorId as the selected account user id from GET /users?role=teacher|supervisor.", "Legacy integrations may still send teacher/supervisor profile ids directly."], side: "Negative behavior categories trigger parent notifications through the internal automation service." }),
+  makeEndpoint({ m: "GET", p: "/behavior/records", t: "Behavior", s: "List Behavior Records", u: "List behavior records for the active academic context with pagination and filters.", r: ["admin", "teacher", "supervisor"], q: behaviorListQuery, kind: "paginated", e: "behaviorRecord", status: 200, notes: ["This operational list is scoped to the active academic year and active semester.", "teacherId and supervisorId filters accept the corresponding user ids returned by GET /users or the legacy profile ids. Prefer user ids in admin frontend flows."] }),
   makeEndpoint({ m: "GET", p: "/behavior/records/:id", t: "Behavior", s: "Get Behavior Record", u: "Return one behavior record.", r: ["admin", "teacher", "supervisor"], e: "behaviorRecord", status: 200 }),
   makeEndpoint({ m: "PATCH", p: "/behavior/records/:id", t: "Behavior", s: "Update Behavior Record", u: "Update a behavior record payload.", r: ["admin", "teacher", "supervisor"], b: "UpdateBehaviorRecordRequest", e: "behaviorRecord", status: 200 }),
   makeEndpoint({ m: "GET", p: "/behavior/students/:studentId/records", t: "Behavior", s: "Get Student Behavior Records", u: "Return the student behavior timeline used beside behavior summaries. This endpoint is not paginated.", r: ["admin", "teacher", "supervisor"], e: "behaviorTimeline", status: 200, notes: ["If the student exists but has no behavior records yet, the response remains 200 with zero-safe summary values and records=[]."], derived: "The response combines behavior detail and summary SQL views such as vw_behavior_details and vw_student_behavior_summary." }),
@@ -1754,8 +1969,8 @@ endpoints.push(
   makeEndpoint({ m: "POST", p: "/communication/notifications/bulk", t: "Communication", s: "[NEW] Create Bulk Notifications", u: "Create admin-only multi-target notifications in one all-or-nothing transaction with an authoritative delivery summary.", r: ["admin"], b: "CreateBulkNotificationRequest", e: "bulkDelivery", status: 201, notes: ["[NEW] At least one of userIds[] or targetRoles[] is required.", "[NEW] Audience resolution reuses the same available-recipient rules as GET /communication/recipients.", "[NEW] The response returns delivery summary metadata rather than the full notification list."] }),
   makeEndpoint({ m: "GET", p: "/communication/notifications/me", t: "Communication", s: "List My Notifications", u: "List notifications for the authenticated user with unreadCount metadata.", r: ["admin", "parent", "teacher", "supervisor", "driver"], q: notificationsQuery, kind: "paginated", e: "notification", status: 200, derived: "Notification lists rely on views such as vw_notification_details and vw_user_notification_summary." }),
   makeEndpoint({ m: "PATCH", p: "/communication/notifications/:notificationId/read", t: "Communication", s: "Mark Notification Read", u: "Mark one notification as read.", r: ["admin", "parent", "teacher", "supervisor", "driver"], e: "notification", status: 200 }),
-  makeEndpoint({ m: "POST", p: "/homework", t: "Homework", s: "Create Homework", u: "Create homework for a class and subject. Teachers may omit teacherId and rely on the authenticated teacher profile. Admin teacherId accepts the teacher user id from /users?role=teacher or the legacy teacher profile id.", r: ["admin", "teacher"], b: "CreateHomeworkRequest", e: "homework", notes: ["The selected subjectId must have an active subject offering for the selected semesterId.", "Admin frontend flows should send teacherId as the teacher user id returned by GET /users?role=teacher."] }),
-  makeEndpoint({ m: "GET", p: "/homework", t: "Homework", s: "List Homework", u: "List homework with pagination and academic filters.", r: ["admin", "teacher"], q: homeworkListQuery, kind: "paginated", e: "homework", status: 200, notes: ["teacherId filter accepts the teacher user id returned by GET /users?role=teacher or the legacy teacher profile id. Prefer the user id in admin frontend flows."], derived: "Homework lists are enriched by SQL views such as vw_homework_details." }),
+  makeEndpoint({ m: "POST", p: "/homework", t: "Homework", s: "Create Homework", u: "Create homework inside the active academic context. Teachers may omit teacherId and rely on the authenticated teacher profile. Admin teacherId accepts the teacher user id from /users?role=teacher or the legacy teacher profile id.", r: ["admin", "teacher"], b: "CreateHomeworkRequest", e: "homework", notes: ["academicYearId and semesterId may be omitted; the backend resolves the active academic context automatically.", "If academicYearId or semesterId is sent, it must match the active context.", "The selected subjectId must have an active subject offering for the resolved semester.", "Admin frontend flows should send teacherId as the teacher user id returned by GET /users?role=teacher."] }),
+  makeEndpoint({ m: "GET", p: "/homework", t: "Homework", s: "List Homework", u: "List homework for the active academic context with pagination and academic filters.", r: ["admin", "teacher"], q: homeworkListQuery, kind: "paginated", e: "homework", status: 200, notes: ["This operational list is scoped to the active academic year and active semester.", "teacherId filter accepts the teacher user id returned by GET /users?role=teacher or the legacy teacher profile id. Prefer the user id in admin frontend flows."], derived: "Homework lists are enriched by SQL views such as vw_homework_details." }),
   makeEndpoint({ m: "GET", p: "/homework/students/:studentId", t: "Homework", s: "Get Student Homework", u: "Return homework assigned to one student. Parents are restricted to their linked children.", r: ["admin", "teacher", "parent"], e: "studentHomework", status: 200, notes: ["If the student exists but has no homework yet, the response remains 200 with items=[]."], derived: "Student homework uses view-backed projections such as vw_homework_details and vw_homework_submission_details." }),
   makeEndpoint({ m: "GET", p: "/homework/:id", t: "Homework", s: "Get Homework", u: "Return one homework detail including roster-level submission summary.", r: ["admin", "teacher"], e: "homework", status: 200, derived: "Homework detail is enriched through SQL views such as vw_homework_details and vw_homework_submission_details." }),
   makeEndpoint({ m: "PUT", p: "/homework/:id/submissions", t: "Homework", s: "Save Homework Submissions", u: "Create or update the homework submission roster.", r: ["admin", "teacher"], b: "SaveHomeworkSubmissionsRequest", kind: "array", e: "studentHomework", status: 200 }),
@@ -2082,3 +2297,6 @@ console.log(`Master OpenAPI: ${final.masterOpenApi.covered.length}/${actualRoute
 console.log(`Master Postman: ${final.masterPostman.covered.length}/${actualRoutes.length}`);
 console.log(`Auth OpenAPI: ${final.authOpenApi.covered.length}/7`);
 console.log(`Auth Postman: ${final.authPostman.covered.length}/7`);
+
+
+

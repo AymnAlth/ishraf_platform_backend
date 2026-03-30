@@ -3,6 +3,8 @@ import { ValidationError } from "../../../common/errors/validation-error";
 import { ProfileResolutionService } from "../../../common/services/profile-resolution.service";
 import { db } from "../../../database/db";
 import type {
+  ActiveAcademicContextRequestDto,
+  ActiveAcademicContextResponseDto,
   AcademicYearRequestDto,
   AcademicYearResponseDto,
   ClassRequestDto,
@@ -10,7 +12,11 @@ import type {
   CreateSubjectOfferingRequestDto,
   GradeLevelRequestDto,
   GradeLevelResponseDto,
+  ListClassesQueryDto,
+  ListSubjectsQueryDto,
   ListSubjectOfferingsQueryDto,
+  ListSupervisorAssignmentsQueryDto,
+  ListTeacherAssignmentsQueryDto,
   SemesterRequestDto,
   SemesterResponseDto,
   SubjectOfferingResponseDto,
@@ -20,11 +26,16 @@ import type {
   SupervisorAssignmentResponseDto,
   TeacherAssignmentRequestDto,
   TeacherAssignmentResponseDto,
+  UpdateClassRequestDto,
   UpdateSubjectOfferingRequestDto,
+  UpdateSubjectRequestDto,
+  UpdateSupervisorAssignmentRequestDto,
+  UpdateTeacherAssignmentRequestDto,
   UpdateAcademicYearRequestDto,
   UpdateSemesterRequestDto
 } from "../dto/academic-structure.dto";
 import {
+  toActiveAcademicContextResponseDto,
   toAcademicYearResponseDto,
   toClassResponseDto,
   toGradeLevelResponseDto,
@@ -82,6 +93,19 @@ const assertWithinAcademicYear = (
     ]);
   }
 };
+
+const buildSemesterActivationYearError = (): ValidationError =>
+  new ValidationError(
+    "Active semesters must belong to the active academic year. Use the active context endpoint to switch year and semester together.",
+    [
+      {
+        field: "isActive",
+        code: "SEMESTER_ACTIVATION_REQUIRES_ACTIVE_ACADEMIC_YEAR",
+        message:
+          "Active semesters must belong to the active academic year. Use the active context endpoint to switch year and semester together."
+      }
+    ]
+  );
 
 const assertFound = <T>(entity: T | null, label: string): T => {
   if (!entity) {
@@ -141,6 +165,63 @@ export class AcademicStructureService {
     private readonly profileResolutionService: ProfileResolutionService = new ProfileResolutionService()
   ) {}
 
+  async getActiveAcademicContext(): Promise<ActiveAcademicContextResponseDto> {
+    const activeContext = assertFound(
+      await this.academicStructureRepository.findActiveAcademicContext(),
+      "Active academic context"
+    );
+
+    return toActiveAcademicContextResponseDto(activeContext);
+  }
+
+  async updateActiveAcademicContext(
+    payload: ActiveAcademicContextRequestDto
+  ): Promise<ActiveAcademicContextResponseDto> {
+    const activeContext = await db.withTransaction(async (client) => {
+      const academicYear = assertFound(
+        await this.academicStructureRepository.findAcademicYearById(payload.academicYearId, client),
+        "Academic year"
+      );
+      const semester = assertFound(
+        await this.academicStructureRepository.findSemesterById(payload.semesterId, client),
+        "Semester"
+      );
+
+      if (semester.academicYearId !== academicYear.id) {
+        throw new ValidationError(
+          "Semester must belong to the selected academic year",
+          [
+            {
+              field: "semesterId",
+              code: "SEMESTER_YEAR_MISMATCH",
+              message: "Semester must belong to the selected academic year"
+            }
+          ]
+        );
+      }
+
+      await this.academicStructureRepository.deactivateAllAcademicYears(client);
+      await this.academicStructureRepository.deactivateAllSemesters(client);
+      await this.academicStructureRepository.updateAcademicYear(
+        academicYear.id,
+        { isActive: true },
+        client
+      );
+      await this.academicStructureRepository.updateSemester(
+        semester.id,
+        { isActive: true },
+        client
+      );
+
+      return assertFound(
+        await this.academicStructureRepository.findActiveAcademicContext(client),
+        "Active academic context"
+      );
+    });
+
+    return toActiveAcademicContextResponseDto(activeContext);
+  }
+
   async createAcademicYear(
     payload: AcademicYearRequestDto
   ): Promise<AcademicYearResponseDto> {
@@ -149,6 +230,7 @@ export class AcademicStructureService {
     const academicYear = await db.withTransaction(async (client) => {
       if (payload.isActive) {
         await this.academicStructureRepository.deactivateAllAcademicYears(client);
+        await this.academicStructureRepository.deactivateAllSemesters(client);
       }
 
       const id = await this.academicStructureRepository.createAcademicYear(
@@ -201,6 +283,7 @@ export class AcademicStructureService {
 
       if (payload.isActive) {
         await this.academicStructureRepository.deactivateAllAcademicYears(client);
+        await this.academicStructureRepository.deactivateAllSemesters(client);
       }
 
       await this.academicStructureRepository.updateAcademicYear(
@@ -231,6 +314,7 @@ export class AcademicStructureService {
       );
 
       await this.academicStructureRepository.deactivateAllAcademicYears(client);
+      await this.academicStructureRepository.deactivateAllSemesters(client);
       await this.academicStructureRepository.updateAcademicYear(
         id,
         {
@@ -261,6 +345,14 @@ export class AcademicStructureService {
       );
 
       assertWithinAcademicYear(payload.startDate, payload.endDate, academicYear);
+
+      if (payload.isActive) {
+        if (!academicYear.isActive) {
+          throw buildSemesterActivationYearError();
+        }
+
+        await this.academicStructureRepository.deactivateAllSemesters(client);
+      }
 
       const id = await this.academicStructureRepository.createSemester(
         {
@@ -316,6 +408,14 @@ export class AcademicStructureService {
 
       assertDateRange(nextStartDate, nextEndDate, "Semester");
       assertWithinAcademicYear(nextStartDate, nextEndDate, academicYear);
+
+      if (payload.isActive) {
+        if (!academicYear.isActive) {
+          throw buildSemesterActivationYearError();
+        }
+
+        await this.academicStructureRepository.deactivateAllSemesters(client);
+      }
 
       await this.academicStructureRepository.updateSemester(
         id,
@@ -384,13 +484,28 @@ export class AcademicStructureService {
     return toClassResponseDto(row);
   }
 
-  async listClasses(): Promise<ClassResponseDto[]> {
-    const rows = await this.academicStructureRepository.listClasses();
+  async listClasses(filters: ListClassesQueryDto = {}): Promise<ClassResponseDto[]> {
+    const rows = await this.academicStructureRepository.listClasses(filters);
 
     return rows.map((row) => toClassResponseDto(row));
   }
 
   async getClassById(id: string): Promise<ClassResponseDto> {
+    const row = assertFound(await this.academicStructureRepository.findClassById(id), "Class");
+
+    return toClassResponseDto(row);
+  }
+
+  async updateClass(id: string, payload: UpdateClassRequestDto): Promise<ClassResponseDto> {
+    assertFound(await this.academicStructureRepository.findClassById(id), "Class");
+
+    await this.academicStructureRepository.updateClass(id, {
+      className: payload.className,
+      section: payload.section,
+      capacity: payload.capacity,
+      isActive: payload.isActive
+    });
+
     const row = assertFound(await this.academicStructureRepository.findClassById(id), "Class");
 
     return toClassResponseDto(row);
@@ -416,13 +531,33 @@ export class AcademicStructureService {
     return toSubjectResponseDto(row);
   }
 
-  async listSubjects(): Promise<SubjectResponseDto[]> {
-    const rows = await this.academicStructureRepository.listSubjects();
+  async listSubjects(filters: ListSubjectsQueryDto = {}): Promise<SubjectResponseDto[]> {
+    const rows = await this.academicStructureRepository.listSubjects(filters);
 
     return rows.map((row) => toSubjectResponseDto(row));
   }
 
   async getSubjectById(id: string): Promise<SubjectResponseDto> {
+    const row = assertFound(
+      await this.academicStructureRepository.findSubjectById(id),
+      "Subject"
+    );
+
+    return toSubjectResponseDto(row);
+  }
+
+  async updateSubject(
+    id: string,
+    payload: UpdateSubjectRequestDto
+  ): Promise<SubjectResponseDto> {
+    assertFound(await this.academicStructureRepository.findSubjectById(id), "Subject");
+
+    await this.academicStructureRepository.updateSubject(id, {
+      name: payload.name,
+      code: payload.code,
+      isActive: payload.isActive
+    });
+
     const row = assertFound(
       await this.academicStructureRepository.findSubjectById(id),
       "Subject"
@@ -530,10 +665,77 @@ export class AcademicStructureService {
     return toTeacherAssignmentResponseDto(row);
   }
 
-  async listTeacherAssignments(): Promise<TeacherAssignmentResponseDto[]> {
-    const rows = await this.academicStructureRepository.listTeacherAssignments();
+  async listTeacherAssignments(
+    filters: ListTeacherAssignmentsQueryDto = {}
+  ): Promise<TeacherAssignmentResponseDto[]> {
+    const resolvedTeacher =
+      filters.teacherId !== undefined
+        ? await this.profileResolutionService.requireTeacherProfileIdentifier(filters.teacherId)
+        : null;
+    const rows = await this.academicStructureRepository.listTeacherAssignments({
+      academicYearId: filters.academicYearId,
+      classId: filters.classId,
+      subjectId: filters.subjectId,
+      teacherId: resolvedTeacher?.teacherId
+    });
 
     return rows.map((row) => toTeacherAssignmentResponseDto(row));
+  }
+
+  async getTeacherAssignmentById(id: string): Promise<TeacherAssignmentResponseDto> {
+    const row = assertFound(
+      await this.academicStructureRepository.findTeacherAssignmentById(id),
+      "Teacher assignment"
+    );
+
+    return toTeacherAssignmentResponseDto(row);
+  }
+
+  async updateTeacherAssignment(
+    id: string,
+    payload: UpdateTeacherAssignmentRequestDto
+  ): Promise<TeacherAssignmentResponseDto> {
+    const existing = assertFound(
+      await this.academicStructureRepository.findTeacherAssignmentById(id),
+      "Teacher assignment"
+    );
+
+    const resolvedTeacher =
+      payload.teacherId !== undefined
+        ? await this.profileResolutionService.requireTeacherProfileIdentifier(payload.teacherId)
+        : null;
+    const nextAcademicYearId = payload.academicYearId ?? existing.academicYearId;
+    const nextClassId = payload.classId ?? existing.classId;
+    const nextSubjectId = payload.subjectId ?? existing.subjectId;
+
+    assertFound(
+      await this.academicStructureRepository.findAcademicYearById(nextAcademicYearId),
+      "Academic year"
+    );
+    const classRow = assertFound(
+      await this.academicStructureRepository.findClassById(nextClassId),
+      "Class"
+    );
+    const subjectRow = assertFound(
+      await this.academicStructureRepository.findSubjectById(nextSubjectId),
+      "Subject"
+    );
+
+    assertTeacherAssignmentCompatibility(classRow, subjectRow, nextAcademicYearId);
+
+    await this.academicStructureRepository.updateTeacherAssignment(id, {
+      teacherId: resolvedTeacher?.teacherId,
+      classId: payload.classId,
+      subjectId: payload.subjectId,
+      academicYearId: payload.academicYearId
+    });
+
+    const row = assertFound(
+      await this.academicStructureRepository.findTeacherAssignmentById(id),
+      "Teacher assignment"
+    );
+
+    return toTeacherAssignmentResponseDto(row);
   }
 
   async createSupervisorAssignment(
@@ -567,9 +769,73 @@ export class AcademicStructureService {
     return toSupervisorAssignmentResponseDto(row);
   }
 
-  async listSupervisorAssignments(): Promise<SupervisorAssignmentResponseDto[]> {
-    const rows = await this.academicStructureRepository.listSupervisorAssignments();
+  async listSupervisorAssignments(
+    filters: ListSupervisorAssignmentsQueryDto = {}
+  ): Promise<SupervisorAssignmentResponseDto[]> {
+    const resolvedSupervisor =
+      filters.supervisorId !== undefined
+        ? await this.profileResolutionService.requireSupervisorProfileIdentifier(
+            filters.supervisorId
+          )
+        : null;
+    const rows = await this.academicStructureRepository.listSupervisorAssignments({
+      academicYearId: filters.academicYearId,
+      classId: filters.classId,
+      supervisorId: resolvedSupervisor?.supervisorId
+    });
 
     return rows.map((row) => toSupervisorAssignmentResponseDto(row));
+  }
+
+  async getSupervisorAssignmentById(id: string): Promise<SupervisorAssignmentResponseDto> {
+    const row = assertFound(
+      await this.academicStructureRepository.findSupervisorAssignmentById(id),
+      "Supervisor assignment"
+    );
+
+    return toSupervisorAssignmentResponseDto(row);
+  }
+
+  async updateSupervisorAssignment(
+    id: string,
+    payload: UpdateSupervisorAssignmentRequestDto
+  ): Promise<SupervisorAssignmentResponseDto> {
+    const existing = assertFound(
+      await this.academicStructureRepository.findSupervisorAssignmentById(id),
+      "Supervisor assignment"
+    );
+
+    const resolvedSupervisor =
+      payload.supervisorId !== undefined
+        ? await this.profileResolutionService.requireSupervisorProfileIdentifier(
+            payload.supervisorId
+          )
+        : null;
+    const nextAcademicYearId = payload.academicYearId ?? existing.academicYearId;
+    const nextClassId = payload.classId ?? existing.classId;
+
+    assertFound(
+      await this.academicStructureRepository.findAcademicYearById(nextAcademicYearId),
+      "Academic year"
+    );
+    const classRow = assertFound(
+      await this.academicStructureRepository.findClassById(nextClassId),
+      "Class"
+    );
+
+    assertSupervisorAssignmentCompatibility(classRow, nextAcademicYearId);
+
+    await this.academicStructureRepository.updateSupervisorAssignment(id, {
+      supervisorId: resolvedSupervisor?.supervisorId,
+      classId: payload.classId,
+      academicYearId: payload.academicYearId
+    });
+
+    const row = assertFound(
+      await this.academicStructureRepository.findSupervisorAssignmentById(id),
+      "Supervisor assignment"
+    );
+
+    return toSupervisorAssignmentResponseDto(row);
   }
 }

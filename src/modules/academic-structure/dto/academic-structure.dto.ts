@@ -40,10 +40,34 @@ export interface ClassRequestDto {
   isActive?: boolean;
 }
 
+export interface UpdateClassRequestDto {
+  className?: string;
+  section?: string;
+  capacity?: number | null;
+  isActive?: boolean;
+}
+
+export interface ListClassesQueryDto {
+  academicYearId?: string;
+  gradeLevelId?: string;
+  isActive?: boolean;
+}
+
 export interface SubjectRequestDto {
   name: string;
   gradeLevelId: string;
   code?: string;
+  isActive?: boolean;
+}
+
+export interface UpdateSubjectRequestDto {
+  name?: string;
+  code?: string | null;
+  isActive?: boolean;
+}
+
+export interface ListSubjectsQueryDto {
+  gradeLevelId?: string;
   isActive?: boolean;
 }
 
@@ -72,10 +96,36 @@ export interface TeacherAssignmentRequestDto {
   academicYearId: string;
 }
 
+export interface UpdateTeacherAssignmentRequestDto {
+  teacherId?: string;
+  classId?: string;
+  subjectId?: string;
+  academicYearId?: string;
+}
+
+export interface ListTeacherAssignmentsQueryDto {
+  academicYearId?: string;
+  classId?: string;
+  subjectId?: string;
+  teacherId?: string;
+}
+
 export interface SupervisorAssignmentRequestDto {
   supervisorId: string;
   classId: string;
   academicYearId: string;
+}
+
+export interface UpdateSupervisorAssignmentRequestDto {
+  supervisorId?: string;
+  classId?: string;
+  academicYearId?: string;
+}
+
+export interface ListSupervisorAssignmentsQueryDto {
+  academicYearId?: string;
+  classId?: string;
+  supervisorId?: string;
 }
 
 export interface EntityIdParamsDto {
@@ -84,6 +134,11 @@ export interface EntityIdParamsDto {
 
 export interface AcademicYearParamsDto {
   academicYearId: string;
+}
+
+export interface ActiveAcademicContextRequestDto {
+  academicYearId: string;
+  semesterId: string;
 }
 
 export interface AcademicYearSummaryDto {
@@ -129,6 +184,11 @@ export interface AcademicYearResponseDto {
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface ActiveAcademicContextResponseDto {
+  academicYear: AcademicYearResponseDto;
+  semester: SemesterResponseDto;
 }
 
 export interface SemesterResponseDto {

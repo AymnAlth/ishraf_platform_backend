@@ -30,8 +30,8 @@ export interface BehaviorCategoryResponseDto {
 export interface CreateBehaviorRecordRequestDto {
   studentId: string;
   behaviorCategoryId: string;
-  academicYearId: string;
-  semesterId: string;
+  academicYearId?: string;
+  semesterId?: string;
   description?: string | null;
   severity?: number;
   behaviorDate: string;

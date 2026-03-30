@@ -66,7 +66,7 @@ export const registerAutomationIntegrationTests = (
           subjectId: "1",
           teacherId: "1",
           academicYearId: "1",
-          semesterId: "1",
+          semesterId: "2",
           sessionDate: "2026-03-13",
           periodNo: 1
         });
@@ -115,7 +115,7 @@ export const registerAutomationIntegrationTests = (
           behaviorCategoryId: "6",
           teacherId: "1",
           academicYearId: "1",
-          semesterId: "1",
+          semesterId: "2",
           behaviorDate: "2026-03-13",
           description: "Repeated disruption"
         });
@@ -225,3 +225,4 @@ export const registerAutomationIntegrationTests = (
     });
   });
 };
+

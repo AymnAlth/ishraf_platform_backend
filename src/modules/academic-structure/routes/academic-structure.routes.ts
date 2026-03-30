@@ -5,6 +5,7 @@ import { asyncHandler } from "../../../common/utils/async-handler";
 import type { AcademicStructureController } from "../controller/academic-structure.controller";
 import { academicStructurePolicies } from "../policies/academic-structure.policy";
 import {
+  activeAcademicContextSchema,
   academicYearParamsSchema,
   createAcademicYearSchema,
   createClassSchema,
@@ -15,9 +16,17 @@ import {
   createSupervisorAssignmentSchema,
   createTeacherAssignmentSchema,
   entityIdParamsSchema,
+  listClassesQuerySchema,
+  listSubjectsQuerySchema,
   listSubjectOfferingsQuerySchema,
+  listSupervisorAssignmentsQuerySchema,
+  listTeacherAssignmentsQuerySchema,
   updateAcademicYearSchema,
+  updateClassSchema,
   updateSubjectOfferingSchema,
+  updateSubjectSchema,
+  updateSupervisorAssignmentSchema,
+  updateTeacherAssignmentSchema,
   updateSemesterSchema
 } from "../validator/academic-structure.validator";
 
@@ -25,6 +34,19 @@ export const createAcademicStructureRouter = (
   controller: AcademicStructureController
 ): Router => {
   const router = Router();
+
+  router.get(
+    "/context/active",
+    ...academicStructurePolicies.adminOnly,
+    asyncHandler((req, res) => controller.getActiveAcademicContext(req, res))
+  );
+
+  router.patch(
+    "/context/active",
+    ...academicStructurePolicies.adminOnly,
+    validateRequest({ body: activeAcademicContextSchema }),
+    asyncHandler((req, res) => controller.updateActiveAcademicContext(req, res))
+  );
 
   router.post(
     "/academic-years",
@@ -113,6 +135,7 @@ export const createAcademicStructureRouter = (
   router.get(
     "/classes",
     ...academicStructurePolicies.adminOnly,
+    validateRequest({ query: listClassesQuerySchema }),
     asyncHandler((req, res) => controller.listClasses(req, res))
   );
 
@@ -121,6 +144,16 @@ export const createAcademicStructureRouter = (
     ...academicStructurePolicies.adminOnly,
     validateRequest({ params: entityIdParamsSchema }),
     asyncHandler((req, res) => controller.getClassById(req, res))
+  );
+
+  router.patch(
+    "/classes/:id",
+    ...academicStructurePolicies.adminOnly,
+    validateRequest({
+      params: entityIdParamsSchema,
+      body: updateClassSchema
+    }),
+    asyncHandler((req, res) => controller.updateClass(req, res))
   );
 
   router.post(
@@ -133,6 +166,7 @@ export const createAcademicStructureRouter = (
   router.get(
     "/subjects",
     ...academicStructurePolicies.adminOnly,
+    validateRequest({ query: listSubjectsQuerySchema }),
     asyncHandler((req, res) => controller.listSubjects(req, res))
   );
 
@@ -141,6 +175,16 @@ export const createAcademicStructureRouter = (
     ...academicStructurePolicies.adminOnly,
     validateRequest({ params: entityIdParamsSchema }),
     asyncHandler((req, res) => controller.getSubjectById(req, res))
+  );
+
+  router.patch(
+    "/subjects/:id",
+    ...academicStructurePolicies.adminOnly,
+    validateRequest({
+      params: entityIdParamsSchema,
+      body: updateSubjectSchema
+    }),
+    asyncHandler((req, res) => controller.updateSubject(req, res))
   );
 
   router.post(
@@ -184,7 +228,25 @@ export const createAcademicStructureRouter = (
   router.get(
     "/teacher-assignments",
     ...academicStructurePolicies.adminOnly,
+    validateRequest({ query: listTeacherAssignmentsQuerySchema }),
     asyncHandler((req, res) => controller.listTeacherAssignments(req, res))
+  );
+
+  router.get(
+    "/teacher-assignments/:id",
+    ...academicStructurePolicies.adminOnly,
+    validateRequest({ params: entityIdParamsSchema }),
+    asyncHandler((req, res) => controller.getTeacherAssignmentById(req, res))
+  );
+
+  router.patch(
+    "/teacher-assignments/:id",
+    ...academicStructurePolicies.adminOnly,
+    validateRequest({
+      params: entityIdParamsSchema,
+      body: updateTeacherAssignmentSchema
+    }),
+    asyncHandler((req, res) => controller.updateTeacherAssignment(req, res))
   );
 
   router.post(
@@ -197,7 +259,25 @@ export const createAcademicStructureRouter = (
   router.get(
     "/supervisor-assignments",
     ...academicStructurePolicies.adminOnly,
+    validateRequest({ query: listSupervisorAssignmentsQuerySchema }),
     asyncHandler((req, res) => controller.listSupervisorAssignments(req, res))
+  );
+
+  router.get(
+    "/supervisor-assignments/:id",
+    ...academicStructurePolicies.adminOnly,
+    validateRequest({ params: entityIdParamsSchema }),
+    asyncHandler((req, res) => controller.getSupervisorAssignmentById(req, res))
+  );
+
+  router.patch(
+    "/supervisor-assignments/:id",
+    ...academicStructurePolicies.adminOnly,
+    validateRequest({
+      params: entityIdParamsSchema,
+      body: updateSupervisorAssignmentSchema
+    }),
+    asyncHandler((req, res) => controller.updateSupervisorAssignment(req, res))
   );
 
   return router;

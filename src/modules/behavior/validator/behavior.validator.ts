@@ -62,8 +62,8 @@ export const createBehaviorRecordSchema = z
   .object({
     studentId: idSchema,
     behaviorCategoryId: idSchema,
-    academicYearId: idSchema,
-    semesterId: idSchema,
+    academicYearId: idSchema.optional(),
+    semesterId: idSchema.optional(),
     description: optionalTrimmedString(2000),
     severity: severitySchema.optional(),
     behaviorDate: dateSchema,

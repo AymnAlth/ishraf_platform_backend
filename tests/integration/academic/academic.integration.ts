@@ -122,6 +122,88 @@ export const registerAcademicIntegrationTests = (
       expect(getClassResponse.body.data.gradeLevel.name).toBe("Kindergarten");
     });
 
+    it("updates classes and subjects and supports filtered academic-management lists", async () => {
+      const { accessToken } = await context.loginAsAdmin();
+
+      const gradeLevelResponse = await request(context.app)
+        .post("/api/v1/academic-structure/grade-levels")
+        .set("Authorization", `Bearer ${accessToken}`)
+        .send({
+          name: "Preparatory",
+          levelOrder: 21
+        });
+
+      const subjectResponse = await request(context.app)
+        .post("/api/v1/academic-structure/subjects")
+        .set("Authorization", `Bearer ${accessToken}`)
+        .send({
+          name: "Mathematics",
+          gradeLevelId: gradeLevelResponse.body.data.id,
+          code: "MATH-PREP"
+        });
+
+      const classResponse = await request(context.app)
+        .post("/api/v1/academic-structure/classes")
+        .set("Authorization", `Bearer ${accessToken}`)
+        .send({
+          gradeLevelId: gradeLevelResponse.body.data.id,
+          academicYearId: "1",
+          className: "Prep A",
+          section: "A",
+          capacity: 28
+        });
+
+      const updateSubjectResponse = await request(context.app)
+        .patch(`/api/v1/academic-structure/subjects/${subjectResponse.body.data.id}`)
+        .set("Authorization", `Bearer ${accessToken}`)
+        .send({
+          name: "Advanced Mathematics",
+          code: null,
+          isActive: false
+        });
+
+      const updateClassResponse = await request(context.app)
+        .patch(`/api/v1/academic-structure/classes/${classResponse.body.data.id}`)
+        .set("Authorization", `Bearer ${accessToken}`)
+        .send({
+          section: "C",
+          capacity: 30,
+          isActive: false
+        });
+
+      const filteredSubjectsResponse = await request(context.app)
+        .get("/api/v1/academic-structure/subjects")
+        .query({
+          gradeLevelId: gradeLevelResponse.body.data.id,
+          isActive: "false"
+        })
+        .set("Authorization", `Bearer ${accessToken}`);
+
+      const filteredClassesResponse = await request(context.app)
+        .get("/api/v1/academic-structure/classes")
+        .query({
+          academicYearId: "1",
+          gradeLevelId: gradeLevelResponse.body.data.id,
+          isActive: "false"
+        })
+        .set("Authorization", `Bearer ${accessToken}`);
+
+      expect(updateSubjectResponse.status).toBe(200);
+      expect(updateSubjectResponse.body.data.name).toBe("Advanced Mathematics");
+      expect(updateSubjectResponse.body.data.code).toBeNull();
+      expect(updateSubjectResponse.body.data.isActive).toBe(false);
+      expect(updateClassResponse.status).toBe(200);
+      expect(updateClassResponse.body.data.section).toBe("C");
+      expect(updateClassResponse.body.data.capacity).toBe(30);
+      expect(updateClassResponse.body.data.isActive).toBe(false);
+      expect(filteredSubjectsResponse.status).toBe(200);
+      expect(filteredSubjectsResponse.body.data).toHaveLength(1);
+      expect(filteredSubjectsResponse.body.data[0].id).toBe(subjectResponse.body.data.id);
+      expect(filteredClassesResponse.status).toBe(200);
+      expect(filteredClassesResponse.body.data).toHaveLength(1);
+      expect(filteredClassesResponse.body.data[0].id).toBe(classResponse.body.data.id);
+    });
+
     it("creates, lists, fetches, and updates subject offerings", async () => {
       const { accessToken } = await context.loginAsAdmin();
 
@@ -216,6 +298,93 @@ export const registerAcademicIntegrationTests = (
       expect(listResponse.body.data).toHaveLength(1);
       expect(mismatchResponse.status).toBe(400);
       expect(invalidTeacherResponse.status).toBe(404);
+    });
+
+    it("updates teacher and supervisor assignments and supports detail/filter surfaces", async () => {
+      const { accessToken } = await context.loginAsAdmin();
+
+      const teacherAssignmentResponse = await request(context.app)
+        .post("/api/v1/academic-structure/teacher-assignments")
+        .set("Authorization", `Bearer ${accessToken}`)
+        .send({
+          teacherId: AUTH_TEST_FIXTURES.activePhoneUser.id,
+          classId: "1",
+          subjectId: "1",
+          academicYearId: "1"
+        });
+
+      const supervisorAssignmentResponse = await request(context.app)
+        .post("/api/v1/academic-structure/supervisor-assignments")
+        .set("Authorization", `Bearer ${accessToken}`)
+        .send({
+          supervisorId: SEEDED_SUPERVISOR.id,
+          classId: "1",
+          academicYearId: "1"
+        });
+
+      const teacherDetailResponse = await request(context.app)
+        .get(`/api/v1/academic-structure/teacher-assignments/${teacherAssignmentResponse.body.data.id}`)
+        .set("Authorization", `Bearer ${accessToken}`);
+
+      const supervisorDetailResponse = await request(context.app)
+        .get(
+          `/api/v1/academic-structure/supervisor-assignments/${supervisorAssignmentResponse.body.data.id}`
+        )
+        .set("Authorization", `Bearer ${accessToken}`);
+
+      const updateTeacherResponse = await request(context.app)
+        .patch(`/api/v1/academic-structure/teacher-assignments/${teacherAssignmentResponse.body.data.id}`)
+        .set("Authorization", `Bearer ${accessToken}`)
+        .send({
+          classId: "2",
+          subjectId: "4",
+          academicYearId: "1"
+        });
+
+      const updateSupervisorResponse = await request(context.app)
+        .patch(
+          `/api/v1/academic-structure/supervisor-assignments/${supervisorAssignmentResponse.body.data.id}`
+        )
+        .set("Authorization", `Bearer ${accessToken}`)
+        .send({
+          classId: "2",
+          academicYearId: "1"
+        });
+
+      const filteredTeacherAssignmentsResponse = await request(context.app)
+        .get("/api/v1/academic-structure/teacher-assignments")
+        .query({
+          teacherId: AUTH_TEST_FIXTURES.activePhoneUser.id,
+          classId: "2",
+          subjectId: "4",
+          academicYearId: "1"
+        })
+        .set("Authorization", `Bearer ${accessToken}`);
+
+      const filteredSupervisorAssignmentsResponse = await request(context.app)
+        .get("/api/v1/academic-structure/supervisor-assignments")
+        .query({
+          supervisorId: SEEDED_SUPERVISOR.id,
+          classId: "2",
+          academicYearId: "1"
+        })
+        .set("Authorization", `Bearer ${accessToken}`);
+
+      expect(teacherDetailResponse.status).toBe(200);
+      expect(teacherDetailResponse.body.data.id).toBe(teacherAssignmentResponse.body.data.id);
+      expect(supervisorDetailResponse.status).toBe(200);
+      expect(supervisorDetailResponse.body.data.id).toBe(
+        supervisorAssignmentResponse.body.data.id
+      );
+      expect(updateTeacherResponse.status).toBe(200);
+      expect(updateTeacherResponse.body.data.class.id).toBe("2");
+      expect(updateTeacherResponse.body.data.subject.id).toBe("4");
+      expect(updateSupervisorResponse.status).toBe(200);
+      expect(updateSupervisorResponse.body.data.class.id).toBe("2");
+      expect(filteredTeacherAssignmentsResponse.status).toBe(200);
+      expect(filteredTeacherAssignmentsResponse.body.data).toHaveLength(1);
+      expect(filteredSupervisorAssignmentsResponse.status).toBe(200);
+      expect(filteredSupervisorAssignmentsResponse.body.data).toHaveLength(1);
     });
 
     it("creates supervisor assignments and lists them with joined data", async () => {

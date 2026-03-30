@@ -1,6 +1,7 @@
 import { ForbiddenError } from "../../../common/errors/forbidden-error";
 import { NotFoundError } from "../../../common/errors/not-found-error";
 import { ValidationError } from "../../../common/errors/validation-error";
+import { ActiveAcademicContextService } from "../../../common/services/active-academic-context.service";
 import { OwnershipService } from "../../../common/services/ownership.service";
 import { ProfileResolutionService } from "../../../common/services/profile-resolution.service";
 import type { AuthenticatedUser } from "../../../common/types/auth.types";
@@ -192,7 +193,8 @@ export class AssessmentsService {
   constructor(
     private readonly assessmentsRepository: AssessmentsRepository,
     private readonly profileResolutionService = new ProfileResolutionService(),
-    private readonly ownershipService = new OwnershipService()
+    private readonly ownershipService = new OwnershipService(),
+    private readonly activeAcademicContextService: ActiveAcademicContextService = new ActiveAcademicContextService()
   ) {}
 
   async createAssessmentType(
@@ -223,6 +225,11 @@ export class AssessmentsService {
     payload: CreateAssessmentRequestDto
   ): Promise<AssessmentDetailResponseDto> {
     const actor = await this.resolveActor(authUser);
+    const operationalContext =
+      await this.activeAcademicContextService.resolveOperationalContext({
+        academicYearId: payload.academicYearId,
+        semesterId: payload.semesterId
+      });
 
     assertFound(
       await this.assessmentsRepository.findAssessmentTypeById(payload.assessmentTypeId),
@@ -237,11 +244,11 @@ export class AssessmentsService {
       "Subject"
     );
     const academicYear = assertFound(
-      await this.assessmentsRepository.findAcademicYearById(payload.academicYearId),
+      await this.assessmentsRepository.findAcademicYearById(operationalContext.academicYearId),
       "Academic year"
     );
     const semester = assertFound(
-      await this.assessmentsRepository.findSemesterById(payload.semesterId),
+      await this.assessmentsRepository.findSemesterById(operationalContext.semesterId),
       "Semester"
     );
 
@@ -251,7 +258,7 @@ export class AssessmentsService {
     assertSubjectOfferedInSemester(
       await this.assessmentsRepository.hasActiveSubjectOffering(
         payload.subjectId,
-        payload.semesterId
+        operationalContext.semesterId
       )
     );
 
@@ -267,7 +274,7 @@ export class AssessmentsService {
     await this.assertTeacherAssignment(
       teacherId,
       payload.classId,
-      payload.academicYearId,
+      operationalContext.academicYearId,
       payload.subjectId
     );
 
@@ -278,8 +285,8 @@ export class AssessmentsService {
           classId: payload.classId,
           subjectId: payload.subjectId,
           teacherId,
-          academicYearId: payload.academicYearId,
-          semesterId: payload.semesterId,
+          academicYearId: operationalContext.academicYearId,
+          semesterId: operationalContext.semesterId,
           title: payload.title,
           description: payload.description,
           maxScore: payload.maxScore,
@@ -311,8 +318,17 @@ export class AssessmentsService {
             ...filters,
             teacherId: await this.resolveTeacherIdentifier(filters.teacherId)
           };
+    const operationalContext =
+      await this.activeAcademicContextService.resolveOperationalContext({
+        academicYearId: normalizedFilters.academicYearId,
+        semesterId: normalizedFilters.semesterId
+      });
     const { rows, totalItems } = await this.assessmentsRepository.listAssessments(
-      normalizedFilters,
+      {
+        ...normalizedFilters,
+        academicYearId: operationalContext.academicYearId,
+        semesterId: operationalContext.semesterId
+      },
       this.toRepositoryScope(actor)
     );
 

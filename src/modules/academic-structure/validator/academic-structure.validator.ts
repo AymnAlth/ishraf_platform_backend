@@ -34,6 +34,13 @@ export const academicYearParamsSchema = z.object({
   academicYearId: idSchema
 });
 
+export const activeAcademicContextSchema = z
+  .object({
+    academicYearId: idSchema,
+    semesterId: idSchema
+  })
+  .strict();
+
 export const createAcademicYearSchema = z
   .object({
     name: nonEmptyString("Name", 50),
@@ -124,12 +131,63 @@ export const createClassSchema = z
   })
   .strict();
 
+export const updateClassSchema = z
+  .object({
+    className: nonEmptyString("Class name", 50).optional(),
+    section: nonEmptyString("Section", 50).optional(),
+    capacity: z.union([z.number().int().positive("Capacity must be greater than zero"), z.null()]).optional(),
+    isActive: z.boolean().optional()
+  })
+  .strict()
+  .refine(
+    (payload) =>
+      payload.className !== undefined ||
+      payload.section !== undefined ||
+      payload.capacity !== undefined ||
+      payload.isActive !== undefined,
+    {
+      message: "At least one field is required"
+    }
+  );
+
+export const listClassesQuerySchema = z
+  .object({
+    academicYearId: idSchema.optional(),
+    gradeLevelId: idSchema.optional(),
+    isActive: booleanQuerySchema.optional()
+  })
+  .strict();
+
 export const createSubjectSchema = z
   .object({
     name: nonEmptyString("Name", 100),
     gradeLevelId: idSchema,
     code: optionalNonEmptyString("Code", 50),
     isActive: z.boolean().optional().default(true)
+  })
+  .strict();
+
+export const updateSubjectSchema = z
+  .object({
+    name: nonEmptyString("Name", 100).optional(),
+    code: z.union([optionalNonEmptyString("Code", 50), z.null()]).optional(),
+    isActive: z.boolean().optional()
+  })
+  .strict()
+  .refine(
+    (payload) =>
+      payload.name !== undefined ||
+      payload.code !== undefined ||
+      payload.isActive !== undefined,
+    {
+      message: "At least one field is required"
+    }
+  );
+
+export const listSubjectsQuerySchema = z
+  .object({
+    gradeLevelId: idSchema.optional(),
+    isActive: booleanQuerySchema.optional()
   })
   .strict();
 
@@ -166,10 +224,63 @@ export const createTeacherAssignmentSchema = z
   })
   .strict();
 
+export const updateTeacherAssignmentSchema = z
+  .object({
+    teacherId: idSchema.optional(),
+    classId: idSchema.optional(),
+    subjectId: idSchema.optional(),
+    academicYearId: idSchema.optional()
+  })
+  .strict()
+  .refine(
+    (payload) =>
+      payload.teacherId !== undefined ||
+      payload.classId !== undefined ||
+      payload.subjectId !== undefined ||
+      payload.academicYearId !== undefined,
+    {
+      message: "At least one field is required"
+    }
+  );
+
+export const listTeacherAssignmentsQuerySchema = z
+  .object({
+    academicYearId: idSchema.optional(),
+    classId: idSchema.optional(),
+    subjectId: idSchema.optional(),
+    teacherId: idSchema.optional()
+  })
+  .strict();
+
 export const createSupervisorAssignmentSchema = z
   .object({
     supervisorId: idSchema,
     classId: idSchema,
     academicYearId: idSchema
-  }) 
+  })
+  .strict();
+
+export const updateSupervisorAssignmentSchema = z
+  .object({
+    supervisorId: idSchema.optional(),
+    classId: idSchema.optional(),
+    academicYearId: idSchema.optional()
+  })
+  .strict()
+  .refine(
+    (payload) =>
+      payload.supervisorId !== undefined ||
+      payload.classId !== undefined ||
+      payload.academicYearId !== undefined,
+    {
+      message: "At least one field is required"
+    }
+  );
+
+export const listSupervisorAssignmentsQuerySchema = z
+  .object({
+    academicYearId: idSchema.optional(),
+    classId: idSchema.optional(),
+    supervisorId: idSchema.optional()
+  })
   .strict();

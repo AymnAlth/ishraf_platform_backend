@@ -10,6 +10,7 @@ const behaviorService = new BehaviorService(
   behaviorRepository,
   undefined,
   undefined,
+  undefined,
   automationService
 );
 const behaviorController = new BehaviorController(behaviorService);

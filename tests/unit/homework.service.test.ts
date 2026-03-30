@@ -108,13 +108,18 @@ describe("HomeworkService", () => {
     assertParentOwnsStudent: vi.fn()
   };
 
+  const activeAcademicContextServiceMock = {
+    resolveOperationalContext: vi.fn()
+  };
+
   let homeworkService: HomeworkService;
 
   beforeEach(() => {
     homeworkService = new HomeworkService(
       repositoryMock as unknown as HomeworkRepository,
       profileResolutionServiceMock as never,
-      ownershipServiceMock as never
+      ownershipServiceMock as never,
+      activeAcademicContextServiceMock as never
     );
 
     vi.restoreAllMocks();
@@ -130,6 +135,11 @@ describe("HomeworkService", () => {
     Object.values(repositoryMock).forEach((mockFn) => mockFn.mockReset());
     Object.values(profileResolutionServiceMock).forEach((mockFn) => mockFn.mockReset());
     Object.values(ownershipServiceMock).forEach((mockFn) => mockFn.mockReset());
+    Object.values(activeAcademicContextServiceMock).forEach((mockFn) => mockFn.mockReset());
+    vi.mocked(activeAcademicContextServiceMock.resolveOperationalContext).mockResolvedValue({
+      academicYearId: "1",
+      semesterId: "2"
+    });
   });
 
   it("creates homework when the subject is offered in the selected semester for an admin-selected teacher user id", async () => {
@@ -177,6 +187,13 @@ describe("HomeworkService", () => {
 
     expect(response.id).toBe("10");
     expect(repositoryMock.createHomework).toHaveBeenCalledOnce();
+    expect(repositoryMock.createHomework).toHaveBeenCalledWith(
+      expect.objectContaining({
+        academicYearId: "1",
+        semesterId: "2"
+      }),
+      expect.anything()
+    );
   });
 
   it("normalizes teacher user ids in homework list filters", async () => {
@@ -214,7 +231,9 @@ describe("HomeworkService", () => {
     expect(response.items).toHaveLength(1);
     expect(repositoryMock.listHomework).toHaveBeenCalledWith(
       expect.objectContaining({
-        teacherId: "1"
+        teacherId: "1",
+        academicYearId: "1",
+        semesterId: "2"
       }),
       {}
     );
@@ -250,5 +269,51 @@ describe("HomeworkService", () => {
         }
       )
     ).rejects.toBeInstanceOf(ValidationError);
+  });
+
+  it("uses the active context when admin omits academicYearId and semesterId", async () => {
+    vi.mocked(repositoryMock.findClassById).mockResolvedValue(classRow());
+    vi.mocked(repositoryMock.findSubjectById).mockResolvedValue(subjectRow());
+    vi.mocked(repositoryMock.findAcademicYearById).mockResolvedValue({
+      id: "1",
+      name: "2025-2026"
+    });
+    vi.mocked(repositoryMock.findSemesterById).mockResolvedValue(semesterRow());
+    vi.mocked(repositoryMock.hasActiveSubjectOffering).mockResolvedValue(true);
+    vi.mocked(profileResolutionServiceMock.requireTeacherProfileIdentifier).mockResolvedValue({
+      teacherId: "1",
+      userId: "1002",
+      fullName: "Sara Teacher",
+      email: "teacher@example.com",
+      phone: "700000003",
+      specialization: null,
+      qualification: null,
+      hireDate: null
+    });
+    vi.mocked(ownershipServiceMock.assertTeacherAssignedToClassYear).mockResolvedValue(undefined);
+    vi.mocked(repositoryMock.createHomework).mockResolvedValue("10");
+    vi.mocked(repositoryMock.findHomeworkById).mockResolvedValue(homeworkRow());
+
+    await homeworkService.createHomework(
+      {
+        userId: "1001",
+        role: "admin",
+        email: "admin@example.com",
+        isActive: true
+      },
+      {
+        teacherId: "1002",
+        classId: "1",
+        subjectId: "1",
+        title: "Science Homework",
+        assignedDate: "2026-03-10",
+        dueDate: "2026-03-12"
+      }
+    );
+
+    expect(activeAcademicContextServiceMock.resolveOperationalContext).toHaveBeenCalledWith({
+      academicYearId: undefined,
+      semesterId: undefined
+    });
   });
 });

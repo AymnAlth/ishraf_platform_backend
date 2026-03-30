@@ -529,6 +529,41 @@
           "isActive": true
         }
       },
+      "UpdateClassRequest": {
+        "type": "object",
+        "properties": {
+          "className": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 50
+          },
+          "section": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 50
+          },
+          "capacity": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "isActive": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false,
+        "example": {
+          "section": "C",
+          "capacity": 30,
+          "isActive": false
+        }
+      },
       "CreateSubjectRequest": {
         "type": "object",
         "properties": {
@@ -560,6 +595,36 @@
           "gradeLevelId": "1",
           "code": "SCI-1",
           "isActive": true
+        }
+      },
+      "UpdateSubjectRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "code": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 50
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "isActive": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false,
+        "example": {
+          "name": "العلوم المتقدمة",
+          "code": null,
+          "isActive": false
         }
       },
       "CreateSubjectOfferingRequest": {
@@ -643,6 +708,37 @@
           "academicYearId": "1"
         }
       },
+      "UpdateTeacherAssignmentRequest": {
+        "type": "object",
+        "properties": {
+          "teacherId": {
+            "type": "string",
+            "pattern": "^[0-9]+$",
+            "example": "1"
+          },
+          "classId": {
+            "type": "string",
+            "pattern": "^[0-9]+$",
+            "example": "1"
+          },
+          "subjectId": {
+            "type": "string",
+            "pattern": "^[0-9]+$",
+            "example": "1"
+          },
+          "academicYearId": {
+            "type": "string",
+            "pattern": "^[0-9]+$",
+            "example": "1"
+          }
+        },
+        "additionalProperties": false,
+        "example": {
+          "classId": "2",
+          "subjectId": "4",
+          "academicYearId": "1"
+        }
+      },
       "CreateSupervisorAssignmentRequest": {
         "type": "object",
         "properties": {
@@ -672,6 +768,39 @@
           "supervisorId": "50",
           "classId": "1",
           "academicYearId": "1"
+        }
+      },
+      "UpdateSupervisorAssignmentRequest": {
+        "type": "object",
+        "properties": {
+          "supervisorId": {
+            "type": "string",
+            "pattern": "^[0-9]+$",
+            "example": "1"
+          },
+          "classId": {
+            "type": "string",
+            "pattern": "^[0-9]+$",
+            "example": "1"
+          },
+          "academicYearId": {
+            "type": "string",
+            "pattern": "^[0-9]+$",
+            "example": "1"
+          }
+        },
+        "additionalProperties": false,
+        "example": {
+          "classId": "2",
+          "academicYearId": "1"
+        }
+      },
+      "ActiveAcademicContextRequest": {
+        "type": "object",
+        "additionalProperties": true,
+        "example": {
+          "academicYearId": "1",
+          "semesterId": "2"
         }
       },
       "CreateStudentRequest": {
@@ -711,6 +840,39 @@
           "toClassId": "2",
           "academicYearId": "2",
           "notes": "ترقية إلى الصف التالي"
+        }
+      },
+      "CreateStudentAcademicEnrollmentRequest": {
+        "type": "object",
+        "additionalProperties": true,
+        "example": {
+          "academicYearId": "2",
+          "classId": "2"
+        }
+      },
+      "UpdateStudentAcademicEnrollmentRequest": {
+        "type": "object",
+        "additionalProperties": true,
+        "example": {
+          "classId": "3"
+        }
+      },
+      "BulkStudentAcademicEnrollmentsRequest": {
+        "type": "object",
+        "additionalProperties": true,
+        "example": {
+          "items": [
+            {
+              "studentId": "1",
+              "academicYearId": "2",
+              "classId": "2"
+            },
+            {
+              "studentId": "2",
+              "academicYearId": "2",
+              "classId": "2"
+            }
+          ]
         }
       },
       "CreateAssessmentTypeRequest": {

@@ -2,12 +2,17 @@ import type { Request, Response } from "express";
 
 import { buildSuccessResponse } from "../../../common/base/http-response";
 import type {
+  BulkStudentAcademicEnrollmentsRequestDto,
+  CreateStudentAcademicEnrollmentRequestDto,
   CreateStudentRequestDto,
+  ListStudentAcademicEnrollmentsQueryDto,
   ListStudentsQueryDto,
   LinkStudentParentRequestDto,
   PromoteStudentRequestDto,
+  StudentAcademicEnrollmentIdParamsDto,
   StudentIdParamsDto,
   StudentParentParamsDto,
+  UpdateStudentAcademicEnrollmentRequestDto,
   UpdateStudentRequestDto
 } from "../dto/students.dto";
 import type { StudentsService } from "../service/students.service";
@@ -34,6 +39,56 @@ export class StudentsController {
     const response = await this.studentsService.getStudentById(params.id);
 
     res.status(200).json(buildSuccessResponse("Student fetched successfully", response));
+  }
+
+  async listAcademicEnrollments(req: Request, res: Response): Promise<void> {
+    const query = req.validated?.query as ListStudentAcademicEnrollmentsQueryDto;
+    const response = await this.studentsService.listAcademicEnrollments(query);
+
+    res
+      .status(200)
+      .json(buildSuccessResponse("Student academic enrollments fetched successfully", response));
+  }
+
+  async listStudentAcademicEnrollments(req: Request, res: Response): Promise<void> {
+    const params = req.validated?.params as StudentIdParamsDto;
+    const response = await this.studentsService.listStudentAcademicEnrollments(params.id);
+
+    res
+      .status(200)
+      .json(buildSuccessResponse("Student academic enrollments fetched successfully", response));
+  }
+
+  async createAcademicEnrollment(req: Request, res: Response): Promise<void> {
+    const params = req.validated?.params as StudentIdParamsDto;
+    const payload = req.validated?.body as CreateStudentAcademicEnrollmentRequestDto;
+    const response = await this.studentsService.createAcademicEnrollment(params.id, payload);
+
+    res
+      .status(201)
+      .json(buildSuccessResponse("Student academic enrollment created successfully", response));
+  }
+
+  async updateAcademicEnrollment(req: Request, res: Response): Promise<void> {
+    const params = req.validated?.params as StudentAcademicEnrollmentIdParamsDto;
+    const payload = req.validated?.body as UpdateStudentAcademicEnrollmentRequestDto;
+    const response = await this.studentsService.updateAcademicEnrollment(
+      params.enrollmentId,
+      payload
+    );
+
+    res
+      .status(200)
+      .json(buildSuccessResponse("Student academic enrollment updated successfully", response));
+  }
+
+  async bulkUpsertAcademicEnrollments(req: Request, res: Response): Promise<void> {
+    const payload = req.validated?.body as BulkStudentAcademicEnrollmentsRequestDto;
+    const response = await this.studentsService.bulkUpsertAcademicEnrollments(payload);
+
+    res
+      .status(200)
+      .json(buildSuccessResponse("Student academic enrollments upserted successfully", response));
   }
 
   async update(req: Request, res: Response): Promise<void> {

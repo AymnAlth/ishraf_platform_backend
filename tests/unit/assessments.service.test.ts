@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ForbiddenError } from "../../src/common/errors/forbidden-error";
 import { ValidationError } from "../../src/common/errors/validation-error";
+import type { ActiveAcademicContext } from "../../src/common/services/active-academic-context.service";
 import { db } from "../../src/database/db";
 import { AssessmentsService } from "../../src/modules/assessments/service/assessments.service";
 import type { AssessmentsRepository } from "../../src/modules/assessments/repository/assessments.repository";
@@ -139,6 +140,24 @@ const studentAssessmentRow = (
 });
 
 describe("AssessmentsService", () => {
+  const activeContext = (
+    overrides: Partial<ActiveAcademicContext> = {}
+  ): ActiveAcademicContext => ({
+    academicYearId: "1",
+    academicYearName: "2025-2026",
+    academicYearStartDate: new Date("2025-09-01T00:00:00.000Z"),
+    academicYearEndDate: new Date("2026-06-30T00:00:00.000Z"),
+    academicYearCreatedAt: new Date("2026-03-13T10:00:00.000Z"),
+    academicYearUpdatedAt: new Date("2026-03-13T10:00:00.000Z"),
+    semesterId: "2",
+    semesterName: "Semester 2",
+    semesterStartDate: new Date("2026-02-01T00:00:00.000Z"),
+    semesterEndDate: new Date("2026-06-30T00:00:00.000Z"),
+    semesterCreatedAt: new Date("2026-03-13T10:00:00.000Z"),
+    semesterUpdatedAt: new Date("2026-03-13T10:00:00.000Z"),
+    ...overrides
+  });
+
   const repositoryMock = {
     createAssessmentType: vi.fn(),
     listActiveAssessmentTypes: vi.fn(),
@@ -162,13 +181,21 @@ describe("AssessmentsService", () => {
   const profileResolutionServiceMock = {
     requireTeacherProfileIdentifier: vi.fn()
   };
+  const activeAcademicContextServiceMock = {
+    getActiveContext: vi.fn(),
+    requireActiveContext: vi.fn(),
+    resolveActiveAcademicYear: vi.fn(),
+    resolveOperationalContext: vi.fn()
+  };
 
   let assessmentsService: AssessmentsService;
 
   beforeEach(() => {
     assessmentsService = new AssessmentsService(
       repositoryMock as unknown as AssessmentsRepository,
-      profileResolutionServiceMock as never
+      profileResolutionServiceMock as never,
+      undefined,
+      activeAcademicContextServiceMock as never
     );
 
     vi.restoreAllMocks();
@@ -183,6 +210,16 @@ describe("AssessmentsService", () => {
 
     Object.values(repositoryMock).forEach((mockFn) => mockFn.mockReset());
     Object.values(profileResolutionServiceMock).forEach((mockFn) => mockFn.mockReset());
+    Object.values(activeAcademicContextServiceMock).forEach((mockFn) => mockFn.mockReset());
+    vi.mocked(activeAcademicContextServiceMock.resolveOperationalContext).mockResolvedValue({
+      academicYearId: "1",
+      academicYearName: "2025-2026",
+      semesterId: "2",
+      semesterName: "Semester 2"
+    });
+    vi.mocked(activeAcademicContextServiceMock.requireActiveContext).mockResolvedValue(
+      activeContext()
+    );
   });
 
   it("creates an assessment for an assigned admin-selected teacher user id", async () => {

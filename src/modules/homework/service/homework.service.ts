@@ -1,6 +1,7 @@
 import { ForbiddenError } from "../../../common/errors/forbidden-error";
 import { NotFoundError } from "../../../common/errors/not-found-error";
 import { ValidationError } from "../../../common/errors/validation-error";
+import { ActiveAcademicContextService } from "../../../common/services/active-academic-context.service";
 import { OwnershipService } from "../../../common/services/ownership.service";
 import { ProfileResolutionService } from "../../../common/services/profile-resolution.service";
 import type { AuthenticatedUser } from "../../../common/types/auth.types";
@@ -167,7 +168,8 @@ export class HomeworkService {
   constructor(
     private readonly homeworkRepository: HomeworkRepository,
     private readonly profileResolutionService: ProfileResolutionService = new ProfileResolutionService(),
-    private readonly ownershipService: OwnershipService = new OwnershipService()
+    private readonly ownershipService: OwnershipService = new OwnershipService(),
+    private readonly activeAcademicContextService: ActiveAcademicContextService = new ActiveAcademicContextService()
   ) {}
 
   async createHomework(
@@ -175,6 +177,11 @@ export class HomeworkService {
     payload: CreateHomeworkRequestDto
   ): Promise<HomeworkListItemResponseDto> {
     const actor = await this.resolveManageActor(authUser);
+    const operationalContext =
+      await this.activeAcademicContextService.resolveOperationalContext({
+        academicYearId: payload.academicYearId,
+        semesterId: payload.semesterId
+      });
     const classRow = assertFound(
       await this.homeworkRepository.findClassById(payload.classId),
       "Class"
@@ -184,11 +191,11 @@ export class HomeworkService {
       "Subject"
     );
     const academicYear = assertFound(
-      await this.homeworkRepository.findAcademicYearById(payload.academicYearId),
+      await this.homeworkRepository.findAcademicYearById(operationalContext.academicYearId),
       "Academic year"
     );
     const semester = assertFound(
-      await this.homeworkRepository.findSemesterById(payload.semesterId),
+      await this.homeworkRepository.findSemesterById(operationalContext.semesterId),
       "Semester"
     );
 
@@ -198,7 +205,7 @@ export class HomeworkService {
     assertSubjectOfferedInSemester(
       await this.homeworkRepository.hasActiveSubjectOffering(
         payload.subjectId,
-        payload.semesterId
+        operationalContext.semesterId
       )
     );
 
@@ -209,7 +216,7 @@ export class HomeworkService {
     await this.ownershipService.assertTeacherAssignedToClassYear(
       teacherId,
       payload.classId,
-      payload.academicYearId,
+      operationalContext.academicYearId,
       payload.subjectId
     );
 
@@ -219,8 +226,8 @@ export class HomeworkService {
           teacherId,
           classId: payload.classId,
           subjectId: payload.subjectId,
-          academicYearId: payload.academicYearId,
-          semesterId: payload.semesterId,
+          academicYearId: operationalContext.academicYearId,
+          semesterId: operationalContext.semesterId,
           title: payload.title,
           description: payload.description,
           assignedDate: payload.assignedDate,
@@ -250,8 +257,17 @@ export class HomeworkService {
             ...filters,
             teacherId: await this.resolveTeacherIdentifier(filters.teacherId)
           };
+    const operationalContext =
+      await this.activeAcademicContextService.resolveOperationalContext({
+        academicYearId: normalizedFilters.academicYearId,
+        semesterId: normalizedFilters.semesterId
+      });
     const { rows, totalItems } = await this.homeworkRepository.listHomework(
-      normalizedFilters,
+      {
+        ...normalizedFilters,
+        academicYearId: operationalContext.academicYearId,
+        semesterId: operationalContext.semesterId
+      },
       actor.role === "teacher" ? { teacherId: actor.teacher.teacherId } : {}
     );
 
@@ -307,6 +323,7 @@ export class HomeworkService {
     authUser: AuthenticatedUser,
     studentId: string
   ): Promise<StudentHomeworkListResponseDto> {
+    const operationalContext = await this.activeAcademicContextService.resolveOperationalContext({});
     const actor = await this.resolveStudentActor(authUser);
     const student = assertFound(await this.homeworkRepository.findStudentById(studentId), "Student");
 
@@ -324,7 +341,9 @@ export class HomeworkService {
 
     const items = await this.homeworkRepository.listStudentHomework(
       student,
-      actor.role === "teacher" ? { teacherId: actor.teacher.teacherId } : {}
+      actor.role === "teacher"
+        ? { teacherId: actor.teacher.teacherId, semesterId: operationalContext.semesterId }
+        : { semesterId: operationalContext.semesterId }
     );
 
     return toStudentHomeworkListResponseDto(student, items);
@@ -393,6 +412,3 @@ export class HomeworkService {
     return teacher.teacherId;
   }
 }
-
-
-

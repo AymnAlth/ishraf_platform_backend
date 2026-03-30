@@ -5,12 +5,17 @@ import { asyncHandler } from "../../../common/utils/async-handler";
 import type { StudentsController } from "../controller/students.controller";
 import { studentsPolicies } from "../policies/students.policy";
 import {
+  bulkStudentAcademicEnrollmentsSchema,
+  createStudentAcademicEnrollmentSchema,
   createStudentSchema,
   linkStudentParentSchema,
+  listStudentAcademicEnrollmentsQuerySchema,
   listStudentsQuerySchema,
   promoteStudentSchema,
+  studentAcademicEnrollmentParamsSchema,
   studentIdParamsSchema,
   studentParentParamsSchema,
+  updateStudentAcademicEnrollmentSchema,
   updateStudentSchema
 } from "../validator/students.validator";
 
@@ -32,6 +37,30 @@ export const createStudentsRouter = (controller: StudentsController): Router => 
   );
 
   router.get(
+    "/academic-enrollments",
+    ...studentsPolicies.adminOnly,
+    validateRequest({ query: listStudentAcademicEnrollmentsQuerySchema }),
+    asyncHandler((req, res) => controller.listAcademicEnrollments(req, res))
+  );
+
+  router.post(
+    "/academic-enrollments/bulk",
+    ...studentsPolicies.adminOnly,
+    validateRequest({ body: bulkStudentAcademicEnrollmentsSchema }),
+    asyncHandler((req, res) => controller.bulkUpsertAcademicEnrollments(req, res))
+  );
+
+  router.patch(
+    "/academic-enrollments/:enrollmentId",
+    ...studentsPolicies.adminOnly,
+    validateRequest({
+      params: studentAcademicEnrollmentParamsSchema,
+      body: updateStudentAcademicEnrollmentSchema
+    }),
+    asyncHandler((req, res) => controller.updateAcademicEnrollment(req, res))
+  );
+
+  router.get(
     "/:id",
     ...studentsPolicies.adminOnly,
     validateRequest({ params: studentIdParamsSchema }),
@@ -43,6 +72,23 @@ export const createStudentsRouter = (controller: StudentsController): Router => 
     ...studentsPolicies.adminOnly,
     validateRequest({ params: studentIdParamsSchema, body: updateStudentSchema }),
     asyncHandler((req, res) => controller.update(req, res))
+  );
+
+  router.post(
+    "/:id/academic-enrollments",
+    ...studentsPolicies.adminOnly,
+    validateRequest({
+      params: studentIdParamsSchema,
+      body: createStudentAcademicEnrollmentSchema
+    }),
+    asyncHandler((req, res) => controller.createAcademicEnrollment(req, res))
+  );
+
+  router.get(
+    "/:id/academic-enrollments",
+    ...studentsPolicies.adminOnly,
+    validateRequest({ params: studentIdParamsSchema }),
+    asyncHandler((req, res) => controller.listStudentAcademicEnrollments(req, res))
   );
 
   router.post(

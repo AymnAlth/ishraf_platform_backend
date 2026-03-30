@@ -1,6 +1,7 @@
 import { ForbiddenError } from "../../../common/errors/forbidden-error";
 import { NotFoundError } from "../../../common/errors/not-found-error";
 import { ValidationError } from "../../../common/errors/validation-error";
+import { ActiveAcademicContextService } from "../../../common/services/active-academic-context.service";
 import type { AuthenticatedUser } from "../../../common/types/auth.types";
 import type { PaginatedData } from "../../../common/types/pagination.types";
 import { toPaginatedData } from "../../../common/utils/pagination.util";
@@ -180,6 +181,7 @@ export class AttendanceService {
     private readonly attendanceRepository: AttendanceRepository,
     private readonly profileResolutionService: ProfileResolutionService = new ProfileResolutionService(),
     private readonly ownershipService: OwnershipService = new OwnershipService(),
+    private readonly activeAcademicContextService: ActiveAcademicContextService = new ActiveAcademicContextService(),
     private readonly automationService: AutomationPort | null = null
   ) {}
 
@@ -188,6 +190,11 @@ export class AttendanceService {
     payload: CreateAttendanceSessionRequestDto
   ): Promise<AttendanceSessionListItemResponseDto> {
     const actor = await this.resolveActor(authUser);
+    const operationalContext =
+      await this.activeAcademicContextService.resolveOperationalContext({
+        academicYearId: payload.academicYearId,
+        semesterId: payload.semesterId
+      });
 
     if (actor.role === "supervisor") {
       throw new ForbiddenError("Supervisors cannot create attendance sessions");
@@ -202,11 +209,11 @@ export class AttendanceService {
       "Subject"
     );
     const academicYear = assertFound(
-      await this.attendanceRepository.findAcademicYearById(payload.academicYearId),
+      await this.attendanceRepository.findAcademicYearById(operationalContext.academicYearId),
       "Academic year"
     );
     const semester = assertFound(
-      await this.attendanceRepository.findSemesterById(payload.semesterId),
+      await this.attendanceRepository.findSemesterById(operationalContext.semesterId),
       "Semester"
     );
 
@@ -216,7 +223,7 @@ export class AttendanceService {
     assertSubjectOfferedInSemester(
       await this.attendanceRepository.hasActiveSubjectOffering(
         payload.subjectId,
-        payload.semesterId
+        operationalContext.semesterId
       )
     );
 
@@ -228,7 +235,7 @@ export class AttendanceService {
     await this.assertTeacherAssignment(
       teacherId,
       payload.classId,
-      payload.academicYearId,
+      operationalContext.academicYearId,
       payload.subjectId
     );
 
@@ -238,8 +245,8 @@ export class AttendanceService {
           classId: payload.classId,
           subjectId: payload.subjectId,
           teacherId,
-          academicYearId: payload.academicYearId,
-          semesterId: payload.semesterId,
+          academicYearId: operationalContext.academicYearId,
+          semesterId: operationalContext.semesterId,
           sessionDate: payload.sessionDate,
           periodNo: payload.periodNo,
           title: payload.title,
@@ -269,8 +276,17 @@ export class AttendanceService {
             ...filters,
             teacherId: await this.resolveTeacherIdentifier(filters.teacherId)
           };
+    const operationalContext =
+      await this.activeAcademicContextService.resolveOperationalContext({
+        academicYearId: normalizedFilters.academicYearId,
+        semesterId: normalizedFilters.semesterId
+      });
     const rows = await this.attendanceRepository.listAttendanceSessions(
-      normalizedFilters,
+      {
+        ...normalizedFilters,
+        academicYearId: operationalContext.academicYearId,
+        semesterId: operationalContext.semesterId
+      },
       this.toRepositoryScope(actor)
     );
 

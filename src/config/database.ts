@@ -25,6 +25,7 @@ export const databaseTables = {
   teacherClasses: `${databaseConfig.schema}.teacher_classes`,
   supervisorClasses: `${databaseConfig.schema}.supervisor_classes`,
   students: `${databaseConfig.schema}.students`,
+  studentAcademicEnrollments: `${databaseConfig.schema}.student_academic_enrollments`,
   studentParents: `${databaseConfig.schema}.student_parents`,
   studentPromotions: `${databaseConfig.schema}.student_promotions`,
   passwordResetTokens: `${databaseConfig.schema}.password_reset_tokens`,
@@ -53,6 +54,7 @@ export const databaseTables = {
 } as const;
 
 export const databaseViews = {
+  activeAcademicContext: `${databaseConfig.schema}.vw_active_academic_context`,
   studentProfiles: `${databaseConfig.schema}.vw_student_profiles`,
   studentPrimaryParent: `${databaseConfig.schema}.vw_student_primary_parent`,
   classStudents: `${databaseConfig.schema}.vw_class_students`,

@@ -42,8 +42,8 @@ export const createHomeworkSchema = z
     teacherId: idSchema.optional(),
     classId: idSchema,
     subjectId: idSchema,
-    academicYearId: idSchema,
-    semesterId: idSchema,
+    academicYearId: idSchema.optional(),
+    semesterId: idSchema.optional(),
     title: requiredTrimmedString(200),
     description: optionalTrimmedString(4000),
     assignedDate: dateSchema,
@@ -98,3 +98,5 @@ export const saveHomeworkSubmissionsSchema = z
       .min(1, "At least one submission record is required")
   })
   .strict();
+
+
