@@ -637,7 +637,7 @@
         ],
         "additionalProperties": false,
         "example": {
-          "teacherId": "1002",
+          "teacherId": "47",
           "classId": "1",
           "subjectId": "1",
           "academicYearId": "1"
@@ -669,7 +669,7 @@
         ],
         "additionalProperties": false,
         "example": {
-          "supervisorId": "1005",
+          "supervisorId": "50",
           "classId": "1",
           "academicYearId": "1"
         }
@@ -699,7 +699,7 @@
         "type": "object",
         "additionalProperties": true,
         "example": {
-          "parentId": "1003",
+          "parentId": "48",
           "relationType": "mother",
           "isPrimary": false
         }
@@ -730,7 +730,7 @@
           "assessmentTypeId": "1",
           "classId": "1",
           "subjectId": "1",
-          "teacherId": "1002",
+          "teacherId": "47",
           "academicYearId": "1",
           "semesterId": "1",
           "title": "اختبار قصير 2",
@@ -779,7 +779,7 @@
           "periodNo": 1,
           "title": "حصة الرياضيات",
           "notes": "اختبار سريع",
-          "teacherId": "1002"
+          "teacherId": "47"
         }
       },
       "SaveAttendanceRecordsRequest": {
@@ -829,7 +829,7 @@
           "description": "تأخر عن الطابور",
           "severity": 3,
           "behaviorDate": "2026-03-30",
-          "teacherId": "1002"
+          "teacherId": "47"
         }
       },
       "UpdateBehaviorRecordRequest": {
@@ -1023,7 +1023,7 @@
         "type": "object",
         "additionalProperties": true,
         "example": {
-          "teacherId": "1002",
+          "teacherId": "47",
           "classId": "1",
           "subjectId": "1",
           "academicYearId": "1",
@@ -1327,9 +1327,9 @@
                   "message": "Login successful",
                   "data": {
                     "id": "1",
-                    "fullName": "Admin Seed",
-                    "email": "seed-admin-01@ishraf.local",
-                    "phone": "777000001",
+                    "fullName": "أيمن أحمد محسن الذاهبي",
+                    "email": "mod87521@gmail.com",
+                    "phone": null,
                     "role": "admin",
                     "isActive": true,
                     "createdAt": "2026-03-30T12:00:00.000Z",
@@ -1519,9 +1519,9 @@
                   "message": "Current user fetched successfully",
                   "data": {
                     "id": "1",
-                    "fullName": "Admin Seed",
-                    "email": "seed-admin-01@ishraf.local",
-                    "phone": "777000001",
+                    "fullName": "أيمن أحمد محسن الذاهبي",
+                    "email": "mod87521@gmail.com",
+                    "phone": null,
                     "role": "admin",
                     "isActive": true,
                     "createdAt": "2026-03-30T12:00:00.000Z",
@@ -1618,9 +1618,9 @@
                   "message": "Token refreshed successfully",
                   "data": {
                     "id": "1",
-                    "fullName": "Admin Seed",
-                    "email": "seed-admin-01@ishraf.local",
-                    "phone": "777000001",
+                    "fullName": "أيمن أحمد محسن الذاهبي",
+                    "email": "mod87521@gmail.com",
+                    "phone": null,
                     "role": "admin",
                     "isActive": true,
                     "createdAt": "2026-03-30T12:00:00.000Z",

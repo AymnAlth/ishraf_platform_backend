@@ -687,7 +687,7 @@
         ],
         "additionalProperties": false,
         "example": {
-          "teacherId": "1002",
+          "teacherId": "47",
           "classId": "1",
           "subjectId": "1",
           "academicYearId": "1"
@@ -719,7 +719,7 @@
         ],
         "additionalProperties": false,
         "example": {
-          "supervisorId": "1005",
+          "supervisorId": "50",
           "classId": "1",
           "academicYearId": "1"
         }
@@ -749,7 +749,7 @@
         "type": "object",
         "additionalProperties": true,
         "example": {
-          "parentId": "1003",
+          "parentId": "48",
           "relationType": "mother",
           "isPrimary": false
         }
@@ -780,7 +780,7 @@
           "assessmentTypeId": "1",
           "classId": "1",
           "subjectId": "1",
-          "teacherId": "1002",
+          "teacherId": "47",
           "academicYearId": "1",
           "semesterId": "1",
           "title": "اختبار قصير 2",
@@ -829,7 +829,7 @@
           "periodNo": 1,
           "title": "حصة الرياضيات",
           "notes": "اختبار سريع",
-          "teacherId": "1002"
+          "teacherId": "47"
         }
       },
       "SaveAttendanceRecordsRequest": {
@@ -879,7 +879,7 @@
           "description": "تأخر عن الطابور",
           "severity": 3,
           "behaviorDate": "2026-03-30",
-          "teacherId": "1002"
+          "teacherId": "47"
         }
       },
       "UpdateBehaviorRecordRequest": {
@@ -1073,7 +1073,7 @@
         "type": "object",
         "additionalProperties": true,
         "example": {
-          "teacherId": "1002",
+          "teacherId": "47",
           "classId": "1",
           "subjectId": "1",
           "academicYearId": "1",
@@ -1513,9 +1513,9 @@
                   "message": "Login successful",
                   "data": {
                     "id": "1",
-                    "fullName": "Admin Seed",
-                    "email": "seed-admin-01@ishraf.local",
-                    "phone": "777000001",
+                    "fullName": "أيمن أحمد محسن الذاهبي",
+                    "email": "mod87521@gmail.com",
+                    "phone": null,
                     "role": "admin",
                     "isActive": true,
                     "createdAt": "2026-03-30T12:00:00.000Z",
@@ -1705,9 +1705,9 @@
                   "message": "Current user fetched successfully",
                   "data": {
                     "id": "1",
-                    "fullName": "Admin Seed",
-                    "email": "seed-admin-01@ishraf.local",
-                    "phone": "777000001",
+                    "fullName": "أيمن أحمد محسن الذاهبي",
+                    "email": "mod87521@gmail.com",
+                    "phone": null,
                     "role": "admin",
                     "isActive": true,
                     "createdAt": "2026-03-30T12:00:00.000Z",
@@ -1804,9 +1804,9 @@
                   "message": "Token refreshed successfully",
                   "data": {
                     "id": "1",
-                    "fullName": "Admin Seed",
-                    "email": "seed-admin-01@ishraf.local",
-                    "phone": "777000001",
+                    "fullName": "أيمن أحمد محسن الذاهبي",
+                    "email": "mod87521@gmail.com",
+                    "phone": null,
                     "role": "admin",
                     "isActive": true,
                     "createdAt": "2026-03-30T12:00:00.000Z",
@@ -2013,9 +2013,9 @@
                     "items": [
                       {
                         "id": "1",
-                        "fullName": "Admin Seed",
-                        "email": "seed-admin-01@ishraf.local",
-                        "phone": "777000001",
+                        "fullName": "أيمن أحمد محسن الذاهبي",
+                        "email": "mod87521@gmail.com",
+                        "phone": null,
                         "role": "admin",
                         "isActive": true,
                         "createdAt": "2026-03-30T12:00:00.000Z",
@@ -2211,9 +2211,9 @@
                   "message": "Create User completed successfully",
                   "data": {
                     "id": "1",
-                    "fullName": "Admin Seed",
-                    "email": "seed-admin-01@ishraf.local",
-                    "phone": "777000001",
+                    "fullName": "أيمن أحمد محسن الذاهبي",
+                    "email": "mod87521@gmail.com",
+                    "phone": null,
                     "role": "admin",
                     "isActive": true,
                     "createdAt": "2026-03-30T12:00:00.000Z",
@@ -2352,9 +2352,9 @@
                   "message": "Get User completed successfully",
                   "data": {
                     "id": "1",
-                    "fullName": "Admin Seed",
-                    "email": "seed-admin-01@ishraf.local",
-                    "phone": "777000001",
+                    "fullName": "أيمن أحمد محسن الذاهبي",
+                    "email": "mod87521@gmail.com",
+                    "phone": null,
                     "role": "admin",
                     "isActive": true,
                     "createdAt": "2026-03-30T12:00:00.000Z",
@@ -2503,9 +2503,9 @@
                   "message": "Update User completed successfully",
                   "data": {
                     "id": "1",
-                    "fullName": "Admin Seed",
-                    "email": "seed-admin-01@ishraf.local",
-                    "phone": "777000001",
+                    "fullName": "أيمن أحمد محسن الذاهبي",
+                    "email": "mod87521@gmail.com",
+                    "phone": null,
                     "role": "admin",
                     "isActive": true,
                     "createdAt": "2026-03-30T12:00:00.000Z",
@@ -2670,9 +2670,9 @@
                   "message": "Update User Status completed successfully",
                   "data": {
                     "id": "1",
-                    "fullName": "Admin Seed",
-                    "email": "seed-admin-01@ishraf.local",
-                    "phone": "777000001",
+                    "fullName": "أيمن أحمد محسن الذاهبي",
+                    "email": "mod87521@gmail.com",
+                    "phone": null,
                     "role": "admin",
                     "isActive": true,
                     "createdAt": "2026-03-30T12:00:00.000Z",
@@ -5890,7 +5890,7 @@
                 "$ref": "#/components/schemas/CreateSupervisorAssignmentRequest"
               },
               "example": {
-                "supervisorId": "1005",
+                "supervisorId": "50",
                 "classId": "1",
                 "academicYearId": "1"
               }
@@ -6121,7 +6121,7 @@
                 "$ref": "#/components/schemas/CreateTeacherAssignmentRequest"
               },
               "example": {
-                "teacherId": "1002",
+                "teacherId": "47",
                 "classId": "1",
                 "subjectId": "1",
                 "academicYearId": "1"
@@ -6879,9 +6879,9 @@
                   "data": [
                     {
                       "id": "1",
-                      "fullName": "Admin Seed",
-                      "email": "seed-admin-01@ishraf.local",
-                      "phone": "777000001",
+                      "fullName": "أيمن أحمد محسن الذاهبي",
+                      "email": "mod87521@gmail.com",
+                      "phone": null,
                       "role": "admin",
                       "isActive": true,
                       "createdAt": "2026-03-30T12:00:00.000Z",
@@ -7031,9 +7031,9 @@
                   "message": "Link Parent to Student completed successfully",
                   "data": {
                     "id": "1",
-                    "fullName": "Admin Seed",
-                    "email": "seed-admin-01@ishraf.local",
-                    "phone": "777000001",
+                    "fullName": "أيمن أحمد محسن الذاهبي",
+                    "email": "mod87521@gmail.com",
+                    "phone": null,
                     "role": "admin",
                     "isActive": true,
                     "createdAt": "2026-03-30T12:00:00.000Z",
@@ -7151,7 +7151,7 @@
                 "$ref": "#/components/schemas/LinkStudentParentRequest"
               },
               "example": {
-                "parentId": "1003",
+                "parentId": "48",
                 "relationType": "mother",
                 "isPrimary": false
               }
@@ -7368,9 +7368,9 @@
                   "message": "Set Primary Parent completed successfully",
                   "data": {
                     "id": "1",
-                    "fullName": "Admin Seed",
-                    "email": "seed-admin-01@ishraf.local",
-                    "phone": "777000001",
+                    "fullName": "أيمن أحمد محسن الذاهبي",
+                    "email": "mod87521@gmail.com",
+                    "phone": null,
                     "role": "admin",
                     "isActive": true,
                     "createdAt": "2026-03-30T12:00:00.000Z",
@@ -8092,7 +8092,7 @@
                 "periodNo": 1,
                 "title": "حصة الرياضيات",
                 "notes": "اختبار سريع",
-                "teacherId": "1002"
+                "teacherId": "47"
               }
             }
           }
@@ -8885,7 +8885,7 @@
                 "assessmentTypeId": "1",
                 "classId": "1",
                 "subjectId": "1",
-                "teacherId": "1002",
+                "teacherId": "47",
                 "academicYearId": "1",
                 "semesterId": "1",
                 "title": "اختبار قصير 2",
@@ -10490,7 +10490,7 @@
                 "description": "تأخر عن الطابور",
                 "severity": 3,
                 "behaviorDate": "2026-03-30",
-                "teacherId": "1002"
+                "teacherId": "47"
               }
             }
           }
@@ -11473,11 +11473,11 @@
                       "capacity": 40,
                       "status": "active",
                       "driver": {
-                        "driverId": "30",
-                        "userId": "15",
-                        "fullName": "Seed Driver 01",
-                        "email": "seed-driver-01@ishraf.local",
-                        "phone": "770500001"
+                        "driverId": "1",
+                        "userId": "49",
+                        "fullName": "هلال عبد الله الملصي",
+                        "email": "hilal-abdullah-almolsi@ishraf.local",
+                        "phone": null
                       }
                     }
                   ]
@@ -11574,11 +11574,11 @@
                     "capacity": 40,
                     "status": "active",
                     "driver": {
-                      "driverId": "30",
-                      "userId": "15",
-                      "fullName": "Seed Driver 01",
-                      "email": "seed-driver-01@ishraf.local",
-                      "phone": "770500001"
+                      "driverId": "1",
+                      "userId": "49",
+                      "fullName": "هلال عبد الله الملصي",
+                      "email": "hilal-abdullah-almolsi@ishraf.local",
+                      "phone": null
                     }
                   }
                 }
@@ -11720,11 +11720,11 @@
                         "status": "active"
                       },
                       "driver": {
-                        "driverId": "30",
-                        "userId": "15",
-                        "fullName": "Seed Driver 01",
-                        "email": "seed-driver-01@ishraf.local",
-                        "phone": "770500001"
+                        "driverId": "1",
+                        "userId": "49",
+                        "fullName": "هلال عبد الله الملصي",
+                        "email": "hilal-abdullah-almolsi@ishraf.local",
+                        "phone": null
                       },
                       "route": {
                         "id": "1",
@@ -11835,11 +11835,11 @@
                       "status": "active"
                     },
                     "driver": {
-                      "driverId": "30",
-                      "userId": "15",
-                      "fullName": "Seed Driver 01",
-                      "email": "seed-driver-01@ishraf.local",
-                      "phone": "770500001"
+                      "driverId": "1",
+                      "userId": "49",
+                      "fullName": "هلال عبد الله الملصي",
+                      "email": "hilal-abdullah-almolsi@ishraf.local",
+                      "phone": null
                     },
                     "route": {
                       "id": "1",
@@ -11988,11 +11988,11 @@
                       "status": "active"
                     },
                     "driver": {
-                      "driverId": "30",
-                      "userId": "15",
-                      "fullName": "Seed Driver 01",
-                      "email": "seed-driver-01@ishraf.local",
-                      "phone": "770500001"
+                      "driverId": "1",
+                      "userId": "49",
+                      "fullName": "هلال عبد الله الملصي",
+                      "email": "hilal-abdullah-almolsi@ishraf.local",
+                      "phone": null
                     },
                     "route": {
                       "id": "1",
@@ -12175,11 +12175,11 @@
                         "status": "active"
                       },
                       "driver": {
-                        "driverId": "30",
-                        "userId": "15",
-                        "fullName": "Seed Driver 01",
-                        "email": "seed-driver-01@ishraf.local",
-                        "phone": "770500001"
+                        "driverId": "1",
+                        "userId": "49",
+                        "fullName": "هلال عبد الله الملصي",
+                        "email": "hilal-abdullah-almolsi@ishraf.local",
+                        "phone": null
                       },
                       "route": {
                         "id": "1",
@@ -13380,8 +13380,8 @@
                           "plateNumber": "SEED-1001"
                         },
                         "driver": {
-                          "driverId": "30",
-                          "fullName": "Seed Driver 01"
+                          "driverId": "1",
+                          "fullName": "هلال عبد الله الملصي"
                         },
                         "route": {
                           "id": "1",
@@ -13658,8 +13658,8 @@
                       "plateNumber": "SEED-1001"
                     },
                     "driver": {
-                      "driverId": "30",
-                      "fullName": "Seed Driver 01"
+                      "driverId": "1",
+                      "fullName": "هلال عبد الله الملصي"
                     },
                     "route": {
                       "id": "1",
@@ -13817,8 +13817,8 @@
                         "plateNumber": "SEED-1001"
                       },
                       "driver": {
-                        "driverId": "30",
-                        "fullName": "Seed Driver 01"
+                        "driverId": "1",
+                        "fullName": "هلال عبد الله الملصي"
                       },
                       "route": {
                         "id": "1",
@@ -14002,8 +14002,8 @@
                       "plateNumber": "SEED-1001"
                     },
                     "driver": {
-                      "driverId": "30",
-                      "fullName": "Seed Driver 01"
+                      "driverId": "1",
+                      "fullName": "هلال عبد الله الملصي"
                     },
                     "route": {
                       "id": "1",
@@ -14514,8 +14514,8 @@
                       "plateNumber": "SEED-1001"
                     },
                     "driver": {
-                      "driverId": "30",
-                      "fullName": "Seed Driver 01"
+                      "driverId": "1",
+                      "fullName": "هلال عبد الله الملصي"
                     },
                     "route": {
                       "id": "1",
@@ -14703,8 +14703,8 @@
                       "plateNumber": "SEED-1001"
                     },
                     "driver": {
-                      "driverId": "30",
-                      "fullName": "Seed Driver 01"
+                      "driverId": "1",
+                      "fullName": "هلال عبد الله الملصي"
                     },
                     "route": {
                       "id": "1",
@@ -15075,8 +15075,8 @@
                         "plateNumber": "SEED-1001"
                       },
                       "driver": {
-                        "driverId": "30",
-                        "fullName": "Seed Driver 01"
+                        "driverId": "1",
+                        "fullName": "هلال عبد الله الملصي"
                       },
                       "route": {
                         "id": "1",
@@ -17904,7 +17904,7 @@
                 "$ref": "#/components/schemas/CreateHomeworkRequest"
               },
               "example": {
-                "teacherId": "1002",
+                "teacherId": "47",
                 "classId": "1",
                 "subjectId": "1",
                 "academicYearId": "1",
@@ -18461,12 +18461,12 @@
                   "data": {
                     "parent": {
                       "parentId": "10",
-                      "userId": "1003",
-                      "fullName": "ولي أمر تجريبي",
-                      "email": "parent@example.com",
-                      "phone": "770000010",
-                      "address": "Sanaa",
-                      "relationType": "father"
+                      "userId": "48",
+                      "fullName": "خالد العرامي",
+                      "email": "khaled-alarami@ishraf.local",
+                      "phone": null,
+                      "address": null,
+                      "relationType": null
                     },
                     "children": [
                       {
@@ -18683,13 +18683,13 @@
                       {
                         "linkId": "1",
                         "parentId": "10",
-                        "userId": "1003",
-                        "fullName": "ولي أمر تجريبي",
-                        "email": "parent@example.com",
-                        "phone": "770000010",
-                        "relationType": "father",
+                        "userId": "48",
+                        "fullName": "خالد العرامي",
+                        "email": "khaled-alarami@ishraf.local",
+                        "phone": null,
+                        "relationType": null,
                         "isPrimary": true,
-                        "address": "Sanaa"
+                        "address": null
                       }
                     ],
                     "attendanceSummary": {
@@ -19424,8 +19424,8 @@
                         "plateNumber": "SEED-1001"
                       },
                       "driver": {
-                        "driverId": "30",
-                        "fullName": "Seed Driver 01"
+                        "driverId": "1",
+                        "fullName": "هلال عبد الله الملصي"
                       },
                       "latestLocation": {
                         "latitude": 15.3694,
@@ -19608,11 +19608,11 @@
                   "data": {
                     "supervisor": {
                       "supervisorId": "1",
-                      "userId": "1005",
-                      "fullName": "Supervisor User",
-                      "email": "supervisor@example.com",
-                      "phone": "700000005",
-                      "department": "Student Affairs"
+                      "userId": "50",
+                      "fullName": "إدريس مشوير",
+                      "email": "idris-mashwir@ishraf.local",
+                      "phone": null,
+                      "department": null
                     },
                     "assignments": [
                       {
@@ -19834,13 +19834,13 @@
                   "data": {
                     "teacher": {
                       "teacherId": "1",
-                      "userId": "1002",
-                      "fullName": "Teacher User",
-                      "email": "teacher@example.com",
-                      "phone": "700000002",
-                      "specialization": "Science",
-                      "qualification": "Bachelor",
-                      "hireDate": "2025-09-01"
+                      "userId": "47",
+                      "fullName": "مروان أمين شعبان",
+                      "email": "marwan-amin-shaban@ishraf.local",
+                      "phone": null,
+                      "specialization": null,
+                      "qualification": null,
+                      "hireDate": null
                     },
                     "assignments": [
                       {
@@ -20205,12 +20205,12 @@
                   "data": {
                     "parent": {
                       "parentId": "10",
-                      "userId": "1003",
-                      "fullName": "ولي أمر تجريبي",
-                      "email": "parent@example.com",
-                      "phone": "770000010",
-                      "address": "Sanaa",
-                      "relationType": "father"
+                      "userId": "48",
+                      "fullName": "خالد العرامي",
+                      "email": "khaled-alarami@ishraf.local",
+                      "phone": null,
+                      "address": null,
+                      "relationType": null
                     },
                     "children": [
                       {
@@ -20373,13 +20373,13 @@
                       {
                         "linkId": "1",
                         "parentId": "10",
-                        "userId": "1003",
-                        "fullName": "ولي أمر تجريبي",
-                        "email": "parent@example.com",
-                        "phone": "770000010",
-                        "relationType": "father",
+                        "userId": "48",
+                        "fullName": "خالد العرامي",
+                        "email": "khaled-alarami@ishraf.local",
+                        "phone": null,
+                        "relationType": null,
                         "isPrimary": true,
-                        "address": "Sanaa"
+                        "address": null
                       }
                     ],
                     "attendanceSummary": {
@@ -21043,11 +21043,11 @@
                   "data": {
                     "supervisor": {
                       "supervisorId": "1",
-                      "userId": "1005",
-                      "fullName": "Supervisor User",
-                      "email": "supervisor@example.com",
-                      "phone": "700000005",
-                      "department": "Student Affairs"
+                      "userId": "50",
+                      "fullName": "إدريس مشوير",
+                      "email": "idris-mashwir@ishraf.local",
+                      "phone": null,
+                      "department": null
                     },
                     "assignments": [
                       {
@@ -21215,13 +21215,13 @@
                   "data": {
                     "teacher": {
                       "teacherId": "1",
-                      "userId": "1002",
-                      "fullName": "Teacher User",
-                      "email": "teacher@example.com",
-                      "phone": "700000002",
-                      "specialization": "Science",
-                      "qualification": "Bachelor",
-                      "hireDate": "2025-09-01"
+                      "userId": "47",
+                      "fullName": "مروان أمين شعبان",
+                      "email": "marwan-amin-shaban@ishraf.local",
+                      "phone": null,
+                      "specialization": null,
+                      "qualification": null,
+                      "hireDate": null
                     },
                     "assignments": [
                       {
@@ -21447,13 +21447,13 @@
                       {
                         "linkId": "1",
                         "parentId": "10",
-                        "userId": "1003",
-                        "fullName": "ولي أمر تجريبي",
-                        "email": "parent@example.com",
-                        "phone": "770000010",
-                        "relationType": "father",
+                        "userId": "48",
+                        "fullName": "خالد العرامي",
+                        "email": "khaled-alarami@ishraf.local",
+                        "phone": null,
+                        "relationType": null,
                         "isPrimary": true,
-                        "address": "Sanaa"
+                        "address": null
                       }
                     ],
                     "attendanceSummary": {
@@ -22150,8 +22150,8 @@
                         "plateNumber": "SEED-1001"
                       },
                       "driver": {
-                        "driverId": "30",
-                        "fullName": "Seed Driver 01"
+                        "driverId": "1",
+                        "fullName": "هلال عبد الله الملصي"
                       },
                       "latestLocation": {
                         "latitude": 15.3694,

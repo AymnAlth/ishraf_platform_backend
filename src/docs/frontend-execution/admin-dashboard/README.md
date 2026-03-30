@@ -24,6 +24,12 @@
 - `https://ishraf-platform-backend-staging.onrender.com`
 - `https://ishraf-platform-backend-staging.onrender.com/api/v1`
 
+## ملاحظة عن البيئة الحالية
+
+- البيئة المستضافة الحالية تحتوي فقط على حسابات الوصول الدنيا الموثقة في `src/docs/STAGING_FRONTEND_SEED.md`
+- لا توجد الآن بيانات أكاديمية أو تشغيلية جاهزة مسبقًا على staging
+- أي قوائم تشغيلية أو dashboards قد تعود فارغة إلى أن تُنشأ البيانات من داخل النظام
+
 ## داخل النطاق
 
 - كل شاشات الإدارة التشغيلية المذكورة في `Wave 1`

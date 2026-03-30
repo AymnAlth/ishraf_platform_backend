@@ -20,6 +20,7 @@
     "test:db:reset": "tsx tests/setup/reset-test-db.ts",
     "deploy:bootstrap-admin": "tsx src/scripts/bootstrap-admin.ts",
     "deploy:seed-frontend-data": "tsx src/scripts/seed-staging-frontend-data.ts",
+    "deploy:reset-minimal-accounts": "tsx src/scripts/reset-minimal-accounts.ts",
     "deploy:smoke": "tsx src/scripts/smoke-deploy.ts",
     "users:fix-placeholder-passwords": "tsx src/scripts/fix-placeholder-passwords.ts",
     "db:migrate": "node-pg-migrate up -m src/database/migrations -t pgmigrations",

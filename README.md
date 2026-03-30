@@ -57,6 +57,7 @@ Modular monolith backend scaffold built with Node.js, TypeScript, Express, Postg
 - `pnpm db:migrate:down`
 - `pnpm deploy:bootstrap-admin`
 - `pnpm deploy:seed-frontend-data`
+- `pnpm deploy:reset-minimal-accounts`
 - `pnpm deploy:smoke`
 
 ## Deployment and Staging
@@ -70,6 +71,12 @@ Current hosted staging backend:
 
 - root: `https://ishraf-platform-backend-staging.onrender.com`
 - API base: `https://ishraf-platform-backend-staging.onrender.com/api/v1`
+
+Current hosted staging database state:
+
+- the primary admin account `mod87521@gmail.com` is preserved as-is
+- the live database currently contains only the minimal role accounts documented in `src/docs/STAGING_FRONTEND_SEED.md`
+- academic, student, transport, communication, and reporting data are intentionally empty until recreated through the product flows
 
 Deployment references:
 
@@ -183,7 +190,7 @@ OpenAPI and Postman files are available under `src/docs/`.
 - Admin contract alignment note: `src/docs/frontend-execution/admin-dashboard/ATTENDANCE_BEHAVIOR_ROUTE_ALIGNMENT.md`
 - API reference: `src/docs/API_REFERENCE.md`
 - Endpoint addition guide: `src/docs/ADDING_ENDPOINTS.md`
-- Staging seed guide: `src/docs/STAGING_FRONTEND_SEED.md`
+- Current staging accounts/data guide: `src/docs/STAGING_FRONTEND_SEED.md`
 - Deployment guide: `src/docs/DEPLOY_RENDER_NEON.md`
 - API testing guide: `src/docs/TESTING_WITH_OPENAPI_AND_POSTMAN.md`
 - Legacy alignment note: `src/docs/LEGACY_DOC_ALIGNMENT.md`

@@ -133,9 +133,9 @@ const examples = {
   serviceStatus: { name: "Ishraf Platform Backend", environment: "staging" },
   user: {
     id: "1",
-    fullName: "Admin Seed",
-    email: "seed-admin-01@ishraf.local",
-    phone: "777000001",
+    fullName: "أيمن أحمد محسن الذاهبي",
+    email: "mod87521@gmail.com",
+    phone: null,
     role: "admin",
     isActive: true,
     createdAt: NOW,
@@ -262,11 +262,11 @@ const examples = {
     capacity: 40,
     status: "active",
     driver: {
-      driverId: "30",
-      userId: "15",
-      fullName: "Seed Driver 01",
-      email: "seed-driver-01@ishraf.local",
-      phone: "770500001"
+      driverId: "1",
+      userId: "49",
+      fullName: "هلال عبد الله الملصي",
+      email: "hilal-abdullah-almolsi@ishraf.local",
+      phone: null
     }
   },
   route: {
@@ -312,11 +312,11 @@ const examples = {
       status: "active"
     },
     driver: {
-      driverId: "30",
-      userId: "15",
-      fullName: "Seed Driver 01",
-      email: "seed-driver-01@ishraf.local",
-      phone: "770500001"
+      driverId: "1",
+      userId: "49",
+      fullName: "هلال عبد الله الملصي",
+      email: "hilal-abdullah-almolsi@ishraf.local",
+      phone: null
     },
     route: {
       id: "1",
@@ -342,8 +342,8 @@ const examples = {
       plateNumber: "SEED-1001"
     },
     driver: {
-      driverId: "30",
-      fullName: "Seed Driver 01"
+      driverId: "1",
+      fullName: "هلال عبد الله الملصي"
     },
     route: {
       id: "1",
@@ -374,8 +374,8 @@ const examples = {
         plateNumber: "SEED-1001"
       },
       driver: {
-        driverId: "30",
-        fullName: "Seed Driver 01"
+        driverId: "1",
+        fullName: "هلال عبد الله الملصي"
       },
       route: {
         id: "1",
@@ -417,8 +417,8 @@ const examples = {
         plateNumber: "SEED-1001"
       },
       driver: {
-        driverId: "30",
-        fullName: "Seed Driver 01"
+        driverId: "1",
+        fullName: "هلال عبد الله الملصي"
       },
       route: {
         id: "1",
@@ -593,13 +593,13 @@ const examples = {
       {
         linkId: "1",
         parentId: "10",
-        userId: "1003",
-        fullName: "ولي أمر تجريبي",
-        email: "parent@example.com",
-        phone: "770000010",
-        relationType: "father",
+        userId: "48",
+        fullName: "خالد العرامي",
+        email: "khaled-alarami@ishraf.local",
+        phone: null,
+        relationType: null,
         isPrimary: true,
-        address: "Sanaa"
+        address: null
       }
     ],
     attendanceSummary: {
@@ -691,12 +691,12 @@ const examples = {
   parentDashboard: {
     parent: {
       parentId: "10",
-      userId: "1003",
-      fullName: "ولي أمر تجريبي",
-      email: "parent@example.com",
-      phone: "770000010",
-      address: "Sanaa",
-      relationType: "father"
+      userId: "48",
+      fullName: "خالد العرامي",
+      email: "khaled-alarami@ishraf.local",
+      phone: null,
+      address: null,
+      relationType: null
     },
     children: [
       {
@@ -746,13 +746,13 @@ const examples = {
   teacherDashboard: {
     teacher: {
       teacherId: "1",
-      userId: "1002",
-      fullName: "Teacher User",
-      email: "teacher@example.com",
-      phone: "700000002",
-      specialization: "Science",
-      qualification: "Bachelor",
-      hireDate: "2025-09-01"
+      userId: "47",
+      fullName: "مروان أمين شعبان",
+      email: "marwan-amin-shaban@ishraf.local",
+      phone: null,
+      specialization: null,
+      qualification: null,
+      hireDate: null
     },
     assignments: [
       {
@@ -863,11 +863,11 @@ const examples = {
   supervisorDashboard: {
     supervisor: {
       supervisorId: "1",
-      userId: "1005",
-      fullName: "Supervisor User",
-      email: "supervisor@example.com",
-      phone: "700000005",
-      department: "Student Affairs"
+      userId: "50",
+      fullName: "إدريس مشوير",
+      email: "idris-mashwir@ishraf.local",
+      phone: null,
+      department: null
     },
     assignments: [
       {
@@ -982,8 +982,8 @@ const examples = {
         plateNumber: "SEED-1001"
       },
       driver: {
-        driverId: "30",
-        fullName: "Seed Driver 01"
+        driverId: "1",
+        fullName: "هلال عبد الله الملصي"
       },
       latestLocation: {
         latitude: 15.3694,
@@ -1401,7 +1401,7 @@ const componentSchemas = {
     },
     required: ["teacherId", "classId", "subjectId", "academicYearId"],
     additionalProperties: false,
-    example: { teacherId: "1002", classId: "1", subjectId: "1", academicYearId: "1" }
+    example: { teacherId: "47", classId: "1", subjectId: "1", academicYearId: "1" }
   },
   CreateSupervisorAssignmentRequest: {
     type: "object",
@@ -1412,7 +1412,7 @@ const componentSchemas = {
     },
     required: ["supervisorId", "classId", "academicYearId"],
     additionalProperties: false,
-    example: { supervisorId: "1005", classId: "1", academicYearId: "1" }
+    example: { supervisorId: "50", classId: "1", academicYearId: "1" }
   }
 };
 
@@ -1434,7 +1434,7 @@ function addSchema(name, schema) {
     }
   ],
   ["UpdateStudentRequest", { fullName: "طالب محدث", status: "suspended" }],
-  ["LinkStudentParentRequest", { parentId: "1003", relationType: "mother", isPrimary: false }],
+  ["LinkStudentParentRequest", { parentId: "48", relationType: "mother", isPrimary: false }],
   ["PromoteStudentRequest", { toClassId: "2", academicYearId: "2", notes: "ترقية إلى الصف التالي" }],
   ["CreateAssessmentTypeRequest", { code: "QUIZ", name: "Quiz", description: "Short quiz", isActive: true }],
   [
@@ -1443,7 +1443,7 @@ function addSchema(name, schema) {
       assessmentTypeId: "1",
       classId: "1",
       subjectId: "1",
-      teacherId: "1002",
+      teacherId: "47",
       academicYearId: "1",
       semesterId: "1",
       title: "اختبار قصير 2",
@@ -1470,13 +1470,13 @@ function addSchema(name, schema) {
       periodNo: 1,
       title: "حصة الرياضيات",
       notes: "اختبار سريع",
-      teacherId: "1002"
+      teacherId: "47"
     }
   ],
   ["SaveAttendanceRecordsRequest", { records: [{ studentId: "1", status: "present" }, { studentId: "2", status: "absent", notes: "غياب بدون عذر" }] }],
   ["UpdateAttendanceRecordRequest", { status: "late", notes: "وصل متأخرًا" }],
   ["CreateBehaviorCategoryRequest", { code: "NEG-001", name: "تأخر متكرر", behaviorType: "negative", defaultSeverity: 3, isActive: true }],
-  ["CreateBehaviorRecordRequest", { studentId: "1", behaviorCategoryId: "1", academicYearId: "1", semesterId: "1", description: "تأخر عن الطابور", severity: 3, behaviorDate: TODAY, teacherId: "1002" }],
+  ["CreateBehaviorRecordRequest", { studentId: "1", behaviorCategoryId: "1", academicYearId: "1", semesterId: "1", description: "تأخر عن الطابور", severity: 3, behaviorDate: TODAY, teacherId: "47" }],
   ["UpdateBehaviorRecordRequest", { severity: 2, description: "تم تعديل الملاحظة" }],
   ["CreateBusRequest", { plateNumber: "SEED-1004", driverId: "1004", capacity: 45, status: "active" }],
   ["CreateRouteRequest", { routeName: "SEED Route 4", startPoint: "School", endPoint: "District D", estimatedDurationMinutes: 40, isActive: true }],
@@ -1495,7 +1495,7 @@ function addSchema(name, schema) {
   ["CreateAnnouncementRequest", { title: "[Seed] New notice", content: "إعلان موجّه للمعلمين والمشرفين", targetRoles: ["teacher", "supervisor"], expiresAt: "2026-04-01T00:00:00.000Z" }],
   ["CreateNotificationRequest", { userId: "20", title: "إشعار يدوي", message: "رسالة إشعار يدوية", notificationType: "manual", referenceType: null, referenceId: null }],
   ["CreateBulkNotificationRequest", { userIds: ["20"], targetRoles: ["parent"], title: "إشعار جماعي", message: "هذا الإشعار يصل كملاحظات فردية", notificationType: "manual", referenceType: null, referenceId: null }],
-  ["CreateHomeworkRequest", { teacherId: "1002", classId: "1", subjectId: "1", academicYearId: "1", semesterId: "1", title: "واجب الرياضيات 2", description: "حل الصفحات 12-14", assignedDate: TODAY, dueDate: "2026-03-28" }],
+  ["CreateHomeworkRequest", { teacherId: "47", classId: "1", subjectId: "1", academicYearId: "1", semesterId: "1", title: "واجب الرياضيات 2", description: "حل الصفحات 12-14", assignedDate: TODAY, dueDate: "2026-03-28" }],
   ["SaveHomeworkSubmissionsRequest", { records: [{ studentId: "1", status: "submitted", submittedAt: TODAY, notes: "تم التسليم" }, { studentId: "2", status: "late", submittedAt: TODAY, notes: "تسليم متأخر" }] }]
 ].forEach(([name, example]) => {
   addSchema(name, {
@@ -1960,36 +1960,36 @@ function buildCollection(name, description, subset) {
       { key: "baseUrl", value: API_SERVER_URL },
       { key: "accessToken", value: "" },
       { key: "refreshToken", value: "" },
-      { key: "loginIdentifier", value: "" },
+      { key: "loginIdentifier", value: "mod87521@gmail.com" },
       { key: "loginPassword", value: "" },
       { key: "newPassword", value: "UpdatedPassword123!" },
       { key: "resetToken", value: "" },
       { key: "userId", value: "1" },
-      { key: "academicYearId", value: "1" },
-      { key: "semesterId", value: "1" },
-      { key: "gradeLevelId", value: "1" },
-      { key: "classId", value: "1" },
-      { key: "subjectId", value: "1" },
-      { key: "subjectOfferingId", value: "1" },
-      { key: "studentId", value: "1" },
-      { key: "parentUserId", value: "1003" },
-      { key: "teacherUserId", value: "1002" },
-      { key: "supervisorUserId", value: "1005" },
-      { key: "parentId", value: "1003" },
-      { key: "assessmentId", value: "1" },
-      { key: "studentAssessmentId", value: "1" },
-      { key: "attendanceSessionId", value: "1" },
-      { key: "attendanceRecordId", value: "1" },
-      { key: "behaviorRecordId", value: "1" },
-      { key: "routeId", value: "1" },
-      { key: "stopId", value: "1" },
-      { key: "assignmentId", value: "1" },
-      { key: "routeAssignmentId", value: "1" },
-      { key: "tripId", value: "1" },
-      { key: "messageId", value: "1" },
-      { key: "notificationId", value: "1" },
-      { key: "otherUserId", value: "20" },
-      { key: "homeworkId", value: "1" }
+      { key: "academicYearId", value: "" },
+      { key: "semesterId", value: "" },
+      { key: "gradeLevelId", value: "" },
+      { key: "classId", value: "" },
+      { key: "subjectId", value: "" },
+      { key: "subjectOfferingId", value: "" },
+      { key: "studentId", value: "" },
+      { key: "parentUserId", value: "48" },
+      { key: "teacherUserId", value: "47" },
+      { key: "supervisorUserId", value: "50" },
+      { key: "parentId", value: "48" },
+      { key: "assessmentId", value: "" },
+      { key: "studentAssessmentId", value: "" },
+      { key: "attendanceSessionId", value: "" },
+      { key: "attendanceRecordId", value: "" },
+      { key: "behaviorRecordId", value: "" },
+      { key: "routeId", value: "" },
+      { key: "stopId", value: "" },
+      { key: "assignmentId", value: "" },
+      { key: "routeAssignmentId", value: "" },
+      { key: "tripId", value: "" },
+      { key: "messageId", value: "" },
+      { key: "notificationId", value: "" },
+      { key: "otherUserId", value: "47" },
+      { key: "homeworkId", value: "" }
     ],
     item: Array.from(folders.entries()).filter(([, items]) => items.length > 0).map(([nameValue, item]) => ({ name: nameValue, description: tagDescriptions[nameValue], item }))
   };

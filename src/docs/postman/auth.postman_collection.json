@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Ishraf Platform Auth API",
-    "_postman_id": "ef9b3052-ccc6-4bf8-b483-e150291c10b8",
+    "_postman_id": "c6621f3d-7ab1-49d9-a437-3263a88b4650",
     "description": "Auth-only Postman subset synchronized with the full collection.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
@@ -24,7 +24,7 @@
     },
     {
       "key": "loginIdentifier",
-      "value": ""
+      "value": "mod87521@gmail.com"
     },
     {
       "key": "loginPassword",
@@ -44,103 +44,103 @@
     },
     {
       "key": "academicYearId",
-      "value": "1"
+      "value": ""
     },
     {
       "key": "semesterId",
-      "value": "1"
+      "value": ""
     },
     {
       "key": "gradeLevelId",
-      "value": "1"
+      "value": ""
     },
     {
       "key": "classId",
-      "value": "1"
+      "value": ""
     },
     {
       "key": "subjectId",
-      "value": "1"
+      "value": ""
     },
     {
       "key": "subjectOfferingId",
-      "value": "1"
+      "value": ""
     },
     {
       "key": "studentId",
-      "value": "1"
+      "value": ""
     },
     {
       "key": "parentUserId",
-      "value": "1003"
+      "value": "48"
     },
     {
       "key": "teacherUserId",
-      "value": "1002"
+      "value": "47"
     },
     {
       "key": "supervisorUserId",
-      "value": "1005"
+      "value": "50"
     },
     {
       "key": "parentId",
-      "value": "1003"
+      "value": "48"
     },
     {
       "key": "assessmentId",
-      "value": "1"
+      "value": ""
     },
     {
       "key": "studentAssessmentId",
-      "value": "1"
+      "value": ""
     },
     {
       "key": "attendanceSessionId",
-      "value": "1"
+      "value": ""
     },
     {
       "key": "attendanceRecordId",
-      "value": "1"
+      "value": ""
     },
     {
       "key": "behaviorRecordId",
-      "value": "1"
+      "value": ""
     },
     {
       "key": "routeId",
-      "value": "1"
+      "value": ""
     },
     {
       "key": "stopId",
-      "value": "1"
+      "value": ""
     },
     {
       "key": "assignmentId",
-      "value": "1"
+      "value": ""
     },
     {
       "key": "routeAssignmentId",
-      "value": "1"
+      "value": ""
     },
     {
       "key": "tripId",
-      "value": "1"
+      "value": ""
     },
     {
       "key": "messageId",
-      "value": "1"
+      "value": ""
     },
     {
       "key": "notificationId",
-      "value": "1"
+      "value": ""
     },
     {
       "key": "otherUserId",
-      "value": "20"
+      "value": "47"
     },
     {
       "key": "homeworkId",
-      "value": "1"
+      "value": ""
     }
   ],
   "item": [

@@ -8,9 +8,15 @@
   - `src/docs/openapi/ishraf-platform.openapi.json`
   - `src/docs/postman/ishraf-platform.postman_collection.json`
 - حالة التغطية الحالية:
-  - `OpenAPI = 131/131`
-  - `Postman = 131/131`
+- `OpenAPI = 133/133`
+- `Postman = 133/133`
 - هذا الملف يشرح العقود البشرية وقواعد الاستخدام والـ endpoints الأكثر أهمية للفرق، ويجب أن يبقى منسجمًا مع الكود و`OpenAPI/Postman` دون أن يحاول أن يكون clone حرفيًا لكل schema سطرًا بسطر.
+
+حالة البيئة المستضافة الحالية بتاريخ `2026-03-30`:
+- حساب الأدمن الأساسي المحفوظ: `mod87521@gmail.com`
+- توجد فقط حسابات roles الدنيا الموثقة في `src/docs/STAGING_FRONTEND_SEED.md`
+- لا توجد حاليًا بيانات أكاديمية أو تشغيلية seeded على البيئة المستضافة
+- لذلك كثير من القوائم والتقارير التشغيلية ستعود فارغة إلى أن تُنشأ البيانات من داخل النظام
 
 الملفات الجاهزة للاستخدام:
 - Postman Collection: `src/docs/postman/ishraf-platform.postman_collection.json`
@@ -176,8 +182,8 @@ Content-Type: application/json
 
 ```json
 {
-  "identifier": "seed-admin-01@ishraf.local",
-  "password": "ChangeMe123!"
+  "identifier": "mod87521@gmail.com",
+  "password": "<current-admin-password>"
 }
 ```
 
@@ -193,9 +199,9 @@ Content-Type: application/json
   "data": {
     "user": {
       "id": "1",
-      "fullName": "System Administrator",
-      "email": "seed-admin-01@ishraf.local",
-      "phone": "700000001",
+      "fullName": "أيمن أحمد محسن الذاهبي",
+      "email": "mod87521@gmail.com",
+      "phone": null,
       "role": "admin",
       "isActive": true
     },
@@ -270,7 +276,7 @@ Content-Type: application/json
 
 ```json
 {
-  "currentPassword": "ChangeMe123!",
+  "currentPassword": "<current-admin-password>",
   "newPassword": "UpdatedPassword123!"
 }
 ```
@@ -298,9 +304,9 @@ Authorization: Bearer <accessToken>
   "message": "Current user fetched successfully",
   "data": {
     "id": "1",
-    "fullName": "System Administrator",
-    "email": "seed-admin-01@ishraf.local",
-    "phone": "700000001",
+    "fullName": "أيمن أحمد محسن الذاهبي",
+    "email": "mod87521@gmail.com",
+    "phone": null,
     "role": "admin",
     "isActive": true,
     "lastLoginAt": "2026-03-13T10:00:00.000Z"
@@ -452,9 +458,9 @@ Query params المدعومة:
     "items": [
       {
         "id": "1",
-        "fullName": "System Administrator",
-        "email": "seed-admin-01@ishraf.local",
-        "phone": "700000001",
+        "fullName": "أيمن أحمد محسن الذاهبي",
+        "email": "mod87521@gmail.com",
+        "phone": null,
         "role": "admin",
         "isActive": true,
         "lastLoginAt": "2026-03-13T10:00:00.000Z",
@@ -463,10 +469,10 @@ Query params المدعومة:
         "profile": null
       },
       {
-        "id": "3",
-        "fullName": "Sara Teacher",
-        "email": "seed-teacher-01@ishraf.local",
-        "phone": "700000003",
+        "id": "47",
+        "fullName": "مروان أمين شعبان",
+        "email": "marwan-amin-shaban@ishraf.local",
+        "phone": null,
         "role": "teacher",
         "isActive": true,
         "lastLoginAt": null,
@@ -494,7 +500,7 @@ Query params المدعومة:
 الهدف: جلب مستخدم واحد مع profile.
 
 ```http
-GET /api/v1/users/3
+GET /api/v1/users/47
 Authorization: Bearer <accessToken>
 ```
 
@@ -503,10 +509,10 @@ Authorization: Bearer <accessToken>
   "success": true,
   "message": "User fetched successfully",
   "data": {
-    "id": "3",
-    "fullName": "Sara Teacher",
-    "email": "seed-teacher-01@ishraf.local",
-    "phone": "700000003",
+    "id": "47",
+    "fullName": "مروان أمين شعبان",
+    "email": "marwan-amin-shaban@ishraf.local",
+    "phone": null,
     "role": "teacher",
     "isActive": true,
     "lastLoginAt": null,
@@ -526,7 +532,7 @@ Authorization: Bearer <accessToken>
 الهدف: تحديث base fields وحقول profile فقط. لا يسمح بتغيير `role` أو `password`.
 
 ```http
-PATCH /api/v1/users/3
+PATCH /api/v1/users/47
 Authorization: Bearer <accessToken>
 Content-Type: application/json
 ```
@@ -548,9 +554,9 @@ Content-Type: application/json
   "success": true,
   "message": "User updated successfully",
   "data": {
-    "id": "3",
+    "id": "47",
     "fullName": "Updated Teacher",
-    "email": "seed-teacher-01@ishraf.local",
+    "email": "marwan-amin-shaban@ishraf.local",
     "phone": "700000099",
     "role": "teacher",
     "isActive": true,
@@ -571,7 +577,7 @@ Content-Type: application/json
 الهدف: تفعيل أو تعطيل المستخدم. عند التعطيل يتم إبطال refresh tokens مباشرة.
 
 ```http
-PATCH /api/v1/users/5/status
+PATCH /api/v1/users/49/status
 Authorization: Bearer <accessToken>
 Content-Type: application/json
 ```
@@ -587,10 +593,10 @@ Content-Type: application/json
   "success": true,
   "message": "User status updated successfully",
   "data": {
-    "id": "5",
-    "fullName": "Ali Driver",
-    "email": "seed-driver-01@ishraf.local",
-    "phone": "700000005",
+    "id": "49",
+    "fullName": "هلال عبد الله الملصي",
+    "email": "hilal-abdullah-almolsi@ishraf.local",
+    "phone": null,
     "role": "driver",
     "isActive": false,
     "lastLoginAt": null,
@@ -1230,7 +1236,7 @@ Content-Type: application/json
 
 ```json
 {
-  "teacherId": "1002",
+  "teacherId": "47",
   "classId": "1",
   "subjectId": "1",
   "academicYearId": "1"
@@ -1277,10 +1283,10 @@ Content-Type: application/json
     },
     "teacher": {
       "id": "1",
-      "userId": "3",
-      "fullName": "Sara Teacher",
-      "email": "seed-teacher-01@ishraf.local",
-      "phone": "700000003"
+      "userId": "47",
+      "fullName": "مروان أمين شعبان",
+      "email": "marwan-amin-shaban@ishraf.local",
+      "phone": null
     },
     "createdAt": "2026-03-13T12:45:00.000Z"
   }
@@ -1331,10 +1337,10 @@ Authorization: Bearer <accessToken>
       },
       "teacher": {
         "id": "1",
-        "userId": "3",
-        "fullName": "Sara Teacher",
-        "email": "seed-teacher-01@ishraf.local",
-        "phone": "700000003"
+        "userId": "47",
+        "fullName": "مروان أمين شعبان",
+        "email": "marwan-amin-shaban@ishraf.local",
+        "phone": null
       },
       "createdAt": "2026-03-13T12:45:00.000Z"
     }
@@ -1354,7 +1360,7 @@ Content-Type: application/json
 
 ```json
 {
-  "supervisorId": "1005",
+  "supervisorId": "50",
   "classId": "1",
   "academicYearId": "1"
 }
@@ -1389,10 +1395,10 @@ Content-Type: application/json
     },
     "supervisor": {
       "id": "1",
-      "userId": "5",
-      "fullName": "Mona Supervisor",
-      "email": "seed-supervisor-01@ishraf.local",
-      "phone": "770000005"
+      "userId": "50",
+      "fullName": "إدريس مشوير",
+      "email": "idris-mashwir@ishraf.local",
+      "phone": null
     },
     "createdAt": "2026-03-13T12:50:00.000Z"
   }
@@ -1432,10 +1438,10 @@ Authorization: Bearer <accessToken>
       },
       "supervisor": {
         "id": "1",
-        "userId": "5",
-        "fullName": "Mona Supervisor",
-        "email": "seed-supervisor-01@ishraf.local",
-        "phone": "770000005"
+        "userId": "50",
+        "fullName": "إدريس مشوير",
+        "email": "idris-mashwir@ishraf.local",
+        "phone": null
       },
       "createdAt": "2026-03-13T12:50:00.000Z"
     }
@@ -1739,7 +1745,7 @@ Success shape:
         },
         "teacher": {
           "id": "1",
-          "fullName": "Sara Teacher"
+          "fullName": "مروان أمين شعبان"
         },
         "academicYear": {
           "id": "1",
@@ -2188,7 +2194,7 @@ Success shape:
       },
       "driver": {
         "driverId": "1",
-        "fullName": "Seed Driver 01"
+        "fullName": "هلال عبد الله الملصي"
       },
       "route": {
         "id": "1",
@@ -2370,7 +2376,7 @@ Body:
 
 ```json
 {
-  "receiverUserId": "1005",
+  "receiverUserId": "50",
   "messageBody": "رسالة مباشرة تجريبية"
 }
 ```
@@ -2391,7 +2397,7 @@ Body:
 
 ```json
 {
-  "receiverUserIds": ["1005"],
+  "receiverUserIds": ["50"],
   "targetRoles": ["teacher", "driver"],
   "messageBody": "تحديث تشغيلي لليوم"
 }
@@ -2492,7 +2498,7 @@ Body:
 
 ```json
 {
-  "userId": "1005",
+  "userId": "50",
   "title": "إشعار يدوي",
   "message": "يرجى مراجعة الخطة الجديدة",
   "notificationType": "manual",
@@ -2516,7 +2522,7 @@ Body:
 
 ```json
 {
-  "userIds": ["1005"],
+  "userIds": ["50"],
   "targetRoles": ["teacher", "driver"],
   "title": "تذكير تشغيلي",
   "message": "يرجى مراجعة الخطة المحدثة",

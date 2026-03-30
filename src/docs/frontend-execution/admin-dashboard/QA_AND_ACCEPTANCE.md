@@ -1,5 +1,17 @@
 # التحقق والقبول للوحة الإدارة
 
+## Current Staging Data State
+
+- البيئة المستضافة الحالية بعد reset تحتوي فقط على حسابات الدخول الدنيا
+- لا توجد بيانات أكاديمية أو تشغيلية جاهزة مسبقًا
+- لذلك empty states في:
+  - dashboard lists
+  - academic lists
+  - student/reporting surfaces
+  - transport
+  - communication
+  تعتبر سلوكًا صحيحًا حاليًا إلى أن تُنشأ البيانات من داخل النظام
+
 ## Happy Paths
 
 - admin يستطيع login ثم الوصول إلى shell اللوحة

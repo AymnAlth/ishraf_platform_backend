@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Ishraf Platform Backend API",
-    "_postman_id": "b2cec266-84a2-46db-b272-d4967182a3bb",
+    "_postman_id": "184ac5ea-b51e-45ab-a465-97efdbade932",
     "description": "Full Postman collection covering every live backend endpoint.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
@@ -24,7 +24,7 @@
     },
     {
       "key": "loginIdentifier",
-      "value": ""
+      "value": "mod87521@gmail.com"
     },
     {
       "key": "loginPassword",
@@ -44,103 +44,103 @@
     },
     {
       "key": "academicYearId",
-      "value": "1"
+      "value": ""
     },
     {
       "key": "semesterId",
-      "value": "1"
+      "value": ""
     },
     {
       "key": "gradeLevelId",
-      "value": "1"
+      "value": ""
     },
     {
       "key": "classId",
-      "value": "1"
+      "value": ""
     },
     {
       "key": "subjectId",
-      "value": "1"
+      "value": ""
     },
     {
       "key": "subjectOfferingId",
-      "value": "1"
+      "value": ""
     },
     {
       "key": "studentId",
-      "value": "1"
+      "value": ""
     },
     {
       "key": "parentUserId",
-      "value": "1003"
+      "value": "48"
     },
     {
       "key": "teacherUserId",
-      "value": "1002"
+      "value": "47"
     },
     {
       "key": "supervisorUserId",
-      "value": "1005"
+      "value": "50"
     },
     {
       "key": "parentId",
-      "value": "1003"
+      "value": "48"
     },
     {
       "key": "assessmentId",
-      "value": "1"
+      "value": ""
     },
     {
       "key": "studentAssessmentId",
-      "value": "1"
+      "value": ""
     },
     {
       "key": "attendanceSessionId",
-      "value": "1"
+      "value": ""
     },
     {
       "key": "attendanceRecordId",
-      "value": "1"
+      "value": ""
     },
     {
       "key": "behaviorRecordId",
-      "value": "1"
+      "value": ""
     },
     {
       "key": "routeId",
-      "value": "1"
+      "value": ""
     },
     {
       "key": "stopId",
-      "value": "1"
+      "value": ""
     },
     {
       "key": "assignmentId",
-      "value": "1"
+      "value": ""
     },
     {
       "key": "routeAssignmentId",
-      "value": "1"
+      "value": ""
     },
     {
       "key": "tripId",
-      "value": "1"
+      "value": ""
     },
     {
       "key": "messageId",
-      "value": "1"
+      "value": ""
     },
     {
       "key": "notificationId",
-      "value": "1"
+      "value": ""
     },
     {
       "key": "otherUserId",
-      "value": "20"
+      "value": "47"
     },
     {
       "key": "homeworkId",
-      "value": "1"
+      "value": ""
     }
   ],
   "item": [
@@ -1247,7 +1247,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"supervisorId\": \"1005\",\n  \"classId\": \"1\",\n  \"academicYearId\": \"1\"\n}"
+              "raw": "{\n  \"supervisorId\": \"50\",\n  \"classId\": \"1\",\n  \"academicYearId\": \"1\"\n}"
             }
           }
         },
@@ -1303,7 +1303,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"teacherId\": \"1002\",\n  \"classId\": \"1\",\n  \"subjectId\": \"1\",\n  \"academicYearId\": \"1\"\n}"
+              "raw": "{\n  \"teacherId\": \"47\",\n  \"classId\": \"1\",\n  \"subjectId\": \"1\",\n  \"academicYearId\": \"1\"\n}"
             }
           }
         }
@@ -1518,7 +1518,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"parentId\": \"1003\",\n  \"relationType\": \"mother\",\n  \"isPrimary\": false\n}"
+              "raw": "{\n  \"parentId\": \"48\",\n  \"relationType\": \"mother\",\n  \"isPrimary\": false\n}"
             }
           }
         },
@@ -1734,7 +1734,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"classId\": \"1\",\n  \"subjectId\": \"1\",\n  \"academicYearId\": \"1\",\n  \"semesterId\": \"1\",\n  \"sessionDate\": \"2026-03-30\",\n  \"periodNo\": 1,\n  \"title\": \"حصة الرياضيات\",\n  \"notes\": \"اختبار سريع\",\n  \"teacherId\": \"1002\"\n}"
+              "raw": "{\n  \"classId\": \"1\",\n  \"subjectId\": \"1\",\n  \"academicYearId\": \"1\",\n  \"semesterId\": \"1\",\n  \"sessionDate\": \"2026-03-30\",\n  \"periodNo\": 1,\n  \"title\": \"حصة الرياضيات\",\n  \"notes\": \"اختبار سريع\",\n  \"teacherId\": \"47\"\n}"
             }
           }
         },
@@ -1924,7 +1924,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"assessmentTypeId\": \"1\",\n  \"classId\": \"1\",\n  \"subjectId\": \"1\",\n  \"teacherId\": \"1002\",\n  \"academicYearId\": \"1\",\n  \"semesterId\": \"1\",\n  \"title\": \"اختبار قصير 2\",\n  \"description\": \"الوحدة الثانية\",\n  \"maxScore\": 20,\n  \"weight\": 10,\n  \"assessmentDate\": \"2026-03-30\",\n  \"isPublished\": true\n}"
+              "raw": "{\n  \"assessmentTypeId\": \"1\",\n  \"classId\": \"1\",\n  \"subjectId\": \"1\",\n  \"teacherId\": \"47\",\n  \"academicYearId\": \"1\",\n  \"semesterId\": \"1\",\n  \"title\": \"اختبار قصير 2\",\n  \"description\": \"الوحدة الثانية\",\n  \"maxScore\": 20,\n  \"weight\": 10,\n  \"assessmentDate\": \"2026-03-30\",\n  \"isPublished\": true\n}"
             }
           }
         },
@@ -2284,7 +2284,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"studentId\": \"1\",\n  \"behaviorCategoryId\": \"1\",\n  \"academicYearId\": \"1\",\n  \"semesterId\": \"1\",\n  \"description\": \"تأخر عن الطابور\",\n  \"severity\": 3,\n  \"behaviorDate\": \"2026-03-30\",\n  \"teacherId\": \"1002\"\n}"
+              "raw": "{\n  \"studentId\": \"1\",\n  \"behaviorCategoryId\": \"1\",\n  \"academicYearId\": \"1\",\n  \"semesterId\": \"1\",\n  \"description\": \"تأخر عن الطابور\",\n  \"severity\": 3,\n  \"behaviorDate\": \"2026-03-30\",\n  \"teacherId\": \"47\"\n}"
             }
           }
         },
@@ -3836,7 +3836,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"teacherId\": \"1002\",\n  \"classId\": \"1\",\n  \"subjectId\": \"1\",\n  \"academicYearId\": \"1\",\n  \"semesterId\": \"1\",\n  \"title\": \"واجب الرياضيات 2\",\n  \"description\": \"حل الصفحات 12-14\",\n  \"assignedDate\": \"2026-03-30\",\n  \"dueDate\": \"2026-03-28\"\n}"
+              "raw": "{\n  \"teacherId\": \"47\",\n  \"classId\": \"1\",\n  \"subjectId\": \"1\",\n  \"academicYearId\": \"1\",\n  \"semesterId\": \"1\",\n  \"title\": \"واجب الرياضيات 2\",\n  \"description\": \"حل الصفحات 12-14\",\n  \"assignedDate\": \"2026-03-30\",\n  \"dueDate\": \"2026-03-28\"\n}"
             }
           }
         },
