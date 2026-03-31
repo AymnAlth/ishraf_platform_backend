@@ -2,15 +2,10 @@
 
 ## Current Staging Data State
 
-- البيئة المستضافة الحالية بعد reset تحتوي فقط على حسابات الدخول الدنيا
-- لا توجد بيانات أكاديمية أو تشغيلية جاهزة مسبقًا
-- لذلك empty states في:
-  - dashboard lists
-  - academic lists
-  - student/reporting surfaces
-  - transport
-  - communication
-  تعتبر سلوكًا صحيحًا حاليًا إلى أن تُنشأ البيانات من داخل النظام
+- البيئة المستضافة الحالية تحتوي على الحسابات المرجعية الحالية + dataset عربية جاهزة
+- لذلك التوقع الافتراضي لم يعد `empty state` في السطوح الأساسية، بل وجود بيانات تشغيلية فعلية
+- مرجع الحالة الحية الحالي أصبح:
+  - `src/docs/STAGING_FRONTEND_SEED.md`
 
 ## Happy Paths
 

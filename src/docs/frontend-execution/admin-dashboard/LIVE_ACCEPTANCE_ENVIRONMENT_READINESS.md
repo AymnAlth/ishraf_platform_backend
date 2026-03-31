@@ -9,7 +9,7 @@ Generated at: 2026-03-29T22:15:21.187Z
 - Checks: 6 pass / 0 fail / 0 skipped
 - Current staging account reference is now:
   - `src/docs/STAGING_FRONTEND_SEED.md`
-- This report predates the minimal live database reset on `2026-03-30`, so use it for tooling/readiness flow only, not as a description of the current staging dataset.
+- This report predates the current Arabic staging seed on `2026-03-31`, so use it for tooling/readiness flow only, not as a description of the current staging dataset.
 
 ## Readiness Checks
 

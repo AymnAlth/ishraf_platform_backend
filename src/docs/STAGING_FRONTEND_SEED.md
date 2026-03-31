@@ -1,32 +1,24 @@
-# Current Staging Accounts And Data State
+# Current Staging Accounts And Arabic Seed Dataset
 
-هذا الملف هو المرجع الحالي للبيئة المستضافة على `Render + Neon` بعد إعادة تهيئة قاعدة البيانات بتاريخ `2026-03-30`.
+هذا الملف هو المرجع الحالي للبيئة المستضافة على `Render + Neon` بعد تشغيل الـ seed العربية الكاملة بتاريخ `2026-03-31`.
 
 ## الحالة الحالية
 
-البيئة المستضافة لا تحتوي الآن على dataset تشغيلية كاملة.
+البيئة المستضافة تحتوي الآن على:
+- الحسابات الدنيا الحالية نفسها بدون تغيير
+- dataset أكاديمية وتشغيلية عربية متكاملة فوق هذه الحسابات
 
-الموجود حاليًا فقط:
-- حساب الأدمن الأساسي المحفوظ كما هو
-- حساب معلم واحد
-- حساب ولي أمر واحد
-- حساب سائق واحد
-- حسابا مشرفين
-
-غير الموجود حاليًا:
-- سنوات دراسية
-- فصول
-- صفوف
-- مواد
-- طلاب
-- نقل
-- رسائل
-- إعلانات
-- إشعارات
+هذه الـ dataset مخصصة لـ:
+- اختبار لوحة الإدارة
+- اختبار الشاشات التشغيلية
+- التحقق من التقارير
+- التحقق من النقل والتواصل
 
 مهم:
-- أي surfaces أكاديمية أو تشغيلية ستعيد `empty state` أو `404` حسب العقد إلى أن يُعاد إنشاء البيانات من داخل النظام
-- هذا السلوك صحيح حاليًا ولا يعني وجود كسر في الباك
+- حساب الأدمن الأساسي لم يُعدّل
+- كلمة مرور الأدمن الأساسي بقيت كما هي
+- الـ seed الحالية **لا تنشئ حسابات مستخدمين جديدة** خارج الحسابات الحالية
+- بل تبني بيانات المشروع فوق الحسابات الحالية فقط
 
 ## الحسابات الحالية
 
@@ -39,16 +31,31 @@
 
 - الاسم: `مروان أمين شعبان`
 - البريد: `marwan-amin-shaban@ishraf.local`
+- كلمة المرور:
+
+```text
+SeedDev123!
+```
 
 ### Parent
 
 - الاسم: `خالد العرامي`
 - البريد: `khaled-alarami@ishraf.local`
+- كلمة المرور:
+
+```text
+SeedDev123!
+```
 
 ### Driver
 
 - الاسم: `هلال عبد الله الملصي`
 - البريد: `hilal-abdullah-almolsi@ishraf.local`
+- كلمة المرور:
+
+```text
+SeedDriver123!
+```
 
 ### Supervisors
 
@@ -57,55 +64,108 @@
 - `بسام علي علي نحيلة`
   - `bassam-ali-ali-nuhailah@ishraf.local`
 
-## كلمات المرور الافتراضية الحالية
-
-### Teacher + Parent + Supervisors
+كلمة المرور للمشرفين:
 
 ```text
 SeedDev123!
 ```
 
-### Driver
+## ملخص الـ dataset الحالية
 
-```text
-SeedDriver123!
+### Academic Context
+
+- السنة النشطة:
+  - `العام الدراسي 2025-2026`
+- الفصل النشط:
+  - `الفصل الثاني`
+
+### Academic Management
+
+- سنوات دراسية: `3`
+- فصول دراسية: `6`
+- مستويات دراسية: `4`
+- صفوف: `6`
+- مواد: `12`
+- `subject offerings`: `18`
+- تعيينات المعلمين: `6`
+- تعيينات المشرفين: `4`
+
+### Students
+
+- طلاب: `6`
+- روابط ولي أمر: `6`
+- `student academic enrollments`: `18`
+- سجل ترقيات: `3`
+
+### Daily Operations
+
+- أنواع تقييم: `3`
+- فئات سلوك: `5`
+- تقييمات: `2`
+- درجات طلاب: `6`
+- جلسات حضور: `2`
+- سجلات حضور: `6`
+- واجبات: `2`
+- تسليمات واجبات: `6`
+- سجلات سلوك: `4`
+
+### Transport
+
+- حافلات: `1`
+- خطوط: `1`
+- `route assignments`: `1`
+- مواقف: `3`
+- ربط طلاب بالنقل: `6`
+- مواقع منازل معتمدة: `6`
+- رحلات: `2`
+- سجل مواقع الحافلة: `3`
+- أحداث طلاب الرحلات: `10`
+
+### Communication
+
+- رسائل: `6`
+- إعلانات: `3`
+- `announcement target roles`: `3`
+- إشعارات: `6`
+
+## ملامح البيانات الحالية
+
+- جميع الأسماء الظاهرة للمستخدمين والطلاب والمواد والصفوف باللغة العربية
+- يوجد parent واحد مرتبط بجميع الطلاب الستة
+- يوجد teacher واحد يغطي تعيينات تشغيلية وإدارية متعددة
+- يوجد supervisorان يغطّيان الصفين الحاليين والسنة القادمة
+- يوجد driver واحد مع خط نقل واحد وحافلة واحدة ورحلتي pickup/dropoff
+- توجد بيانات حالية وتاريخية ومخططة تساعد في اختبار:
+  - `Active Academic Context`
+  - `Academic Management`
+  - الترقيات
+  - الحضور
+  - التقييمات
+  - الواجبات
+  - السلوك
+  - النقل
+  - التواصل
+
+## الملفات التشغيلية
+
+- ملف الـ seed:
+  - `src/database/seeds/staging_frontend_seed.sql`
+- الـ runner:
+  - `src/scripts/seed-staging-frontend-data.ts`
+
+لتشغيل الـ seed على البيئة المستضافة:
+
+```bash
+pnpm deploy:seed-frontend-data
 ```
 
-## التحقق السريع الحالي
+## ملاحظات مهمة
 
-```sql
-SELECT COUNT(*) AS users_count FROM users;
-SELECT COUNT(*) AS teachers_count FROM teachers;
-SELECT COUNT(*) AS parents_count FROM parents;
-SELECT COUNT(*) AS drivers_count FROM drivers;
-SELECT COUNT(*) AS supervisors_count FROM supervisors;
-SELECT COUNT(*) AS academic_years_count FROM academic_years;
-SELECT COUNT(*) AS students_count FROM students;
-SELECT COUNT(*) AS messages_count FROM messages;
-SELECT COUNT(*) AS announcements_count FROM announcements;
-SELECT COUNT(*) AS notifications_count FROM notifications;
-```
-
-النتيجة المرجعية الحالية:
-- `users = 6`
-- `teachers = 1`
-- `parents = 1`
-- `drivers = 1`
-- `supervisors = 2`
-- `academic_years = 0`
-- `students = 0`
-- `messages = 0`
-- `announcements = 0`
-- `notifications = 0`
-
-## عن ملفات الـ seed الأكبر
-
-الملف التالي ما زال موجودًا كأداة تشغيلية اختيارية فقط:
-- `src/database/seeds/staging_frontend_seed.sql`
-
-والـ runner الخاص به:
-- `src/scripts/seed-staging-frontend-data.ts`
-
-لكن مهم جدًا:
-- هذه الـ seed **ليست** ما يعكس البيئة المستضافة الحالية
-- لا تعتمد عليها كمرجع للحالة الحية إلا إذا قررنا تشغيلها صراحة مرة أخرى
+- هذه الـ seed هي المرجع الحي الحالي للبيئة المستضافة
+- لا تعتمد على أي أمثلة قديمة كانت تستخدم:
+  - `seed-admin-*`
+  - `seed-parent-*`
+  - `seed-teacher-*`
+  - `seed-supervisor-*`
+  - `seed-driver-*`
+- أي وثيقة أو flow قديم يفترض أن البيئة فارغة أكاديميًا أو تشغيليًا لم يعد صحيحًا بعد هذا التشغيل

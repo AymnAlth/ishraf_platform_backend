@@ -127,10 +127,11 @@ Generated at: 2026-03-29T00:00:00.000Z
   - [API_REFERENCE.md](/d:/Project-R/ishraf_platform_backend/src/docs/API_REFERENCE.md)
   - [README.md](/d:/Project-R/ishraf_platform_backend/src/docs/frontend-execution/admin-dashboard/README.md)
   للإحالة إلى هذا المرجع نفسه بدل ترك بيانات قديمة أو متضاربة داخل الأمثلة.
-- الحالة الحالية للبيئة المستضافة بعد reset `2026-03-30` هي:
+- الحالة الحالية للبيئة المستضافة بعد إعادة تشغيل الـ seed العربية `2026-03-31` هي:
   - الأدمن الأساسي المحفوظ: `mod87521@gmail.com`
-  - حسابات roles الدنيا فقط
-  - لا توجد dataset أكاديمية أو تشغيلية seeded
+  - الحسابات الحالية نفسها
+  - dataset عربية أكاديمية وتشغيلية جاهزة كما هي موثقة في:
+    - [STAGING_FRONTEND_SEED.md](/d:/Project-R/ishraf_platform_backend/src/docs/STAGING_FRONTEND_SEED.md)
 - كلمات المرور المرجعية الحالية:
   - teacher/parent/supervisor: `SeedDev123!`
   - driver: `SeedDriver123!`

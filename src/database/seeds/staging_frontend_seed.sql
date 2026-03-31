@@ -3,53 +3,55 @@ BEGIN;
 SET search_path TO public, pg_temp;
 
 -- =========================================================
--- Seed users and role profiles
--- Shared password for all seed accounts:
--- SeedDev123!
--- bcrypt hash:
--- $2b$12$oauEwjnwE9Cl.BtNScMfA.B8C2mfHUL6ntmy6xah3CcQHYr8la/xO
+-- Arabic staging seed
+-- This seed does not create or modify user accounts/passwords.
+-- It assumes the current minimal accounts already exist and builds
+-- a complete Arabic demo dataset on top of them.
 -- =========================================================
 
-CREATE TEMP TABLE seed_users (
-  email text PRIMARY KEY,
-  full_name text NOT NULL,
-  phone text NOT NULL,
-  password_hash text NOT NULL,
-  role varchar(30) NOT NULL,
-  is_active boolean NOT NULL DEFAULT true
-) ON COMMIT DROP;
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM users WHERE LOWER(email) = LOWER('mod87521@gmail.com') AND role = 'admin'
+  ) THEN
+    RAISE EXCEPTION 'Required admin account mod87521@gmail.com was not found.';
+  END IF;
 
-INSERT INTO seed_users (email, full_name, phone, password_hash, role, is_active)
-VALUES
-  ('seed-admin-01@ishraf.local', 'Seed Admin 01', '770100001', '$2b$12$oauEwjnwE9Cl.BtNScMfA.B8C2mfHUL6ntmy6xah3CcQHYr8la/xO', 'admin', true),
-  ('seed-admin-02@ishraf.local', 'Seed Admin 02', '770100002', '$2b$12$oauEwjnwE9Cl.BtNScMfA.B8C2mfHUL6ntmy6xah3CcQHYr8la/xO', 'admin', true),
-  ('seed-parent-01@ishraf.local', 'Seed Parent 01', '770200001', '$2b$12$oauEwjnwE9Cl.BtNScMfA.B8C2mfHUL6ntmy6xah3CcQHYr8la/xO', 'parent', true),
-  ('seed-parent-02@ishraf.local', 'Seed Parent 02', '770200002', '$2b$12$oauEwjnwE9Cl.BtNScMfA.B8C2mfHUL6ntmy6xah3CcQHYr8la/xO', 'parent', true),
-  ('seed-parent-03@ishraf.local', 'Seed Parent 03', '770200003', '$2b$12$oauEwjnwE9Cl.BtNScMfA.B8C2mfHUL6ntmy6xah3CcQHYr8la/xO', 'parent', true),
-  ('seed-teacher-01@ishraf.local', 'Seed Teacher 01', '770300001', '$2b$12$oauEwjnwE9Cl.BtNScMfA.B8C2mfHUL6ntmy6xah3CcQHYr8la/xO', 'teacher', true),
-  ('seed-teacher-02@ishraf.local', 'Seed Teacher 02', '770300002', '$2b$12$oauEwjnwE9Cl.BtNScMfA.B8C2mfHUL6ntmy6xah3CcQHYr8la/xO', 'teacher', true),
-  ('seed-teacher-03@ishraf.local', 'Seed Teacher 03', '770300003', '$2b$12$oauEwjnwE9Cl.BtNScMfA.B8C2mfHUL6ntmy6xah3CcQHYr8la/xO', 'teacher', true),
-  ('seed-supervisor-01@ishraf.local', 'Seed Supervisor 01', '770400001', '$2b$12$oauEwjnwE9Cl.BtNScMfA.B8C2mfHUL6ntmy6xah3CcQHYr8la/xO', 'supervisor', true),
-  ('seed-supervisor-02@ishraf.local', 'Seed Supervisor 02', '770400002', '$2b$12$oauEwjnwE9Cl.BtNScMfA.B8C2mfHUL6ntmy6xah3CcQHYr8la/xO', 'supervisor', true),
-  ('seed-supervisor-03@ishraf.local', 'Seed Supervisor 03', '770400003', '$2b$12$oauEwjnwE9Cl.BtNScMfA.B8C2mfHUL6ntmy6xah3CcQHYr8la/xO', 'supervisor', true),
-  ('seed-driver-01@ishraf.local', 'Seed Driver 01', '770500001', '$2b$12$oauEwjnwE9Cl.BtNScMfA.B8C2mfHUL6ntmy6xah3CcQHYr8la/xO', 'driver', true),
-  ('seed-driver-02@ishraf.local', 'Seed Driver 02', '770500002', '$2b$12$oauEwjnwE9Cl.BtNScMfA.B8C2mfHUL6ntmy6xah3CcQHYr8la/xO', 'driver', true),
-  ('seed-driver-03@ishraf.local', 'Seed Driver 03', '770500003', '$2b$12$oauEwjnwE9Cl.BtNScMfA.B8C2mfHUL6ntmy6xah3CcQHYr8la/xO', 'driver', true);
+  IF NOT EXISTS (
+    SELECT 1 FROM users WHERE LOWER(email) = LOWER('marwan-amin-shaban@ishraf.local') AND role = 'teacher'
+  ) THEN
+    RAISE EXCEPTION 'Required teacher account marwan-amin-shaban@ishraf.local was not found.';
+  END IF;
 
-INSERT INTO users (full_name, email, phone, password_hash, role, is_active)
-SELECT full_name, email, phone, password_hash, role, is_active
-FROM seed_users
-ON CONFLICT DO NOTHING;
+  IF NOT EXISTS (
+    SELECT 1 FROM users WHERE LOWER(email) = LOWER('khaled-alarami@ishraf.local') AND role = 'parent'
+  ) THEN
+    RAISE EXCEPTION 'Required parent account khaled-alarami@ishraf.local was not found.';
+  END IF;
 
-UPDATE users u
-SET
-  full_name = su.full_name,
-  phone = su.phone,
-  password_hash = su.password_hash,
-  role = su.role,
-  is_active = su.is_active
-FROM seed_users su
-WHERE LOWER(u.email) = LOWER(su.email);
+  IF NOT EXISTS (
+    SELECT 1 FROM users WHERE LOWER(email) = LOWER('hilal-abdullah-almolsi@ishraf.local') AND role = 'driver'
+  ) THEN
+    RAISE EXCEPTION 'Required driver account hilal-abdullah-almolsi@ishraf.local was not found.';
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM users WHERE LOWER(email) = LOWER('idris-mashwir@ishraf.local') AND role = 'supervisor'
+  ) THEN
+    RAISE EXCEPTION 'Required supervisor account idris-mashwir@ishraf.local was not found.';
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM users WHERE LOWER(email) = LOWER('bassam-ali-ali-nuhailah@ishraf.local') AND role = 'supervisor'
+  ) THEN
+    RAISE EXCEPTION 'Required supervisor account bassam-ali-ali-nuhailah@ishraf.local was not found.';
+  END IF;
+END
+$$;
+
+-- =========================================================
+-- Role profiles
+-- =========================================================
 
 CREATE TEMP TABLE seed_parent_profiles (
   email text PRIMARY KEY,
@@ -59,9 +61,7 @@ CREATE TEMP TABLE seed_parent_profiles (
 
 INSERT INTO seed_parent_profiles (email, address, relation_type)
 VALUES
-  ('seed-parent-01@ishraf.local', 'Sanaa - Seed District 01', 'father'),
-  ('seed-parent-02@ishraf.local', 'Taiz - Seed District 02', 'mother'),
-  ('seed-parent-03@ishraf.local', 'Aden - Seed District 03', 'guardian');
+  ('khaled-alarami@ishraf.local', 'صنعاء - حي النهضة - شارع الأربعين', 'father');
 
 INSERT INTO parents (user_id, address, relation_type)
 SELECT u.id, spp.address, spp.relation_type
@@ -86,9 +86,7 @@ CREATE TEMP TABLE seed_teacher_profiles (
 
 INSERT INTO seed_teacher_profiles (email, specialization, qualification, hire_date)
 VALUES
-  ('seed-teacher-01@ishraf.local', 'Mathematics', 'Bachelor of Education', DATE '2024-09-01'),
-  ('seed-teacher-02@ishraf.local', 'Science', 'Bachelor of Science', DATE '2024-09-01'),
-  ('seed-teacher-03@ishraf.local', 'Arabic', 'Bachelor of Arts', DATE '2024-09-01');
+  ('marwan-amin-shaban@ishraf.local', 'اللغة العربية', 'بكالوريوس تربية - لغة عربية', DATE '2024-09-01');
 
 INSERT INTO teachers (user_id, specialization, qualification, hire_date)
 SELECT u.id, stp.specialization, stp.qualification, stp.hire_date
@@ -112,9 +110,8 @@ CREATE TEMP TABLE seed_supervisor_profiles (
 
 INSERT INTO seed_supervisor_profiles (email, department)
 VALUES
-  ('seed-supervisor-01@ishraf.local', 'Student Affairs'),
-  ('seed-supervisor-02@ishraf.local', 'Quality Assurance'),
-  ('seed-supervisor-03@ishraf.local', 'Academic Follow-up');
+  ('idris-mashwir@ishraf.local', 'شؤون الطلاب'),
+  ('bassam-ali-ali-nuhailah@ishraf.local', 'المتابعة الأكاديمية');
 
 INSERT INTO supervisors (user_id, department)
 SELECT u.id, ssp.department
@@ -136,9 +133,7 @@ CREATE TEMP TABLE seed_driver_profiles (
 
 INSERT INTO seed_driver_profiles (email, license_number, driver_status)
 VALUES
-  ('seed-driver-01@ishraf.local', 'SEED-DRV-001', 'active'),
-  ('seed-driver-02@ishraf.local', 'SEED-DRV-002', 'active'),
-  ('seed-driver-03@ishraf.local', 'SEED-DRV-003', 'active');
+  ('hilal-abdullah-almolsi@ishraf.local', 'DRV-HILAL-001', 'active');
 
 INSERT INTO drivers (user_id, license_number, driver_status)
 SELECT u.id, sdp.license_number, sdp.driver_status
@@ -167,14 +162,14 @@ CREATE TEMP TABLE seed_academic_years (
 
 INSERT INTO seed_academic_years (name, start_date, end_date, is_active)
 VALUES
-  ('SEED AY 2024-2025', DATE '2024-09-01', DATE '2025-06-30', false),
-  ('SEED AY 2025-2026', DATE '2025-09-01', DATE '2026-06-30', true),
-  ('SEED AY 2026-2027', DATE '2026-09-01', DATE '2027-06-30', false);
+  ('العام الدراسي 2024-2025', DATE '2024-09-01', DATE '2025-06-30', false),
+  ('العام الدراسي 2025-2026', DATE '2025-09-01', DATE '2026-06-30', true),
+  ('العام الدراسي 2026-2027', DATE '2026-09-01', DATE '2027-06-30', false);
 
 UPDATE academic_years
 SET is_active = FALSE
 WHERE is_active = TRUE
-  AND name <> 'SEED AY 2025-2026';
+  AND name <> 'العام الدراسي 2025-2026';
 
 INSERT INTO academic_years (name, start_date, end_date, is_active)
 SELECT name, start_date, end_date, is_active
@@ -200,14 +195,16 @@ CREATE TEMP TABLE seed_semesters (
 
 INSERT INTO seed_semesters (academic_year_name, name, start_date, end_date, is_active)
 VALUES
-  ('SEED AY 2024-2025', 'SEED Semester 1', DATE '2024-09-01', DATE '2025-01-31', false),
-  ('SEED AY 2024-2025', 'SEED Semester 2', DATE '2025-02-01', DATE '2025-06-30', false),
-  ('SEED AY 2025-2026', 'SEED Semester 1', DATE '2025-09-01', DATE '2026-01-31', false),
-  ('SEED AY 2025-2026', 'SEED Semester 2', DATE '2026-02-01', DATE '2026-06-30', true),
-  ('SEED AY 2026-2027', 'SEED Semester 1', DATE '2026-09-01', DATE '2027-01-31', false),
-  ('SEED AY 2026-2027', 'SEED Semester 2', DATE '2027-02-01', DATE '2027-06-30', false);
+  ('العام الدراسي 2024-2025', 'الفصل الأول', DATE '2024-09-01', DATE '2025-01-31', false),
+  ('العام الدراسي 2024-2025', 'الفصل الثاني', DATE '2025-02-01', DATE '2025-06-30', false),
+  ('العام الدراسي 2025-2026', 'الفصل الأول', DATE '2025-09-01', DATE '2026-01-31', false),
+  ('العام الدراسي 2025-2026', 'الفصل الثاني', DATE '2026-02-01', DATE '2026-06-30', true),
+  ('العام الدراسي 2026-2027', 'الفصل الأول', DATE '2026-09-01', DATE '2027-01-31', false),
+  ('العام الدراسي 2026-2027', 'الفصل الثاني', DATE '2027-02-01', DATE '2027-06-30', false);
 
-UPDATE semesters SET is_active = FALSE WHERE is_active = TRUE;
+UPDATE semesters
+SET is_active = FALSE
+WHERE is_active = TRUE;
 
 INSERT INTO semesters (academic_year_id, name, start_date, end_date, is_active)
 SELECT ay.id, ss.name, ss.start_date, ss.end_date, ss.is_active
@@ -232,9 +229,10 @@ CREATE TEMP TABLE seed_grade_levels (
 
 INSERT INTO seed_grade_levels (name, level_order)
 VALUES
-  ('SEED Grade 1', 1),
-  ('SEED Grade 2', 2),
-  ('SEED Grade 3', 3);
+  ('الصف الثالث', 3),
+  ('الصف الرابع', 4),
+  ('الصف الخامس', 5),
+  ('الصف السادس', 6);
 
 INSERT INTO grade_levels (name, level_order)
 SELECT name, level_order
@@ -258,9 +256,12 @@ CREATE TEMP TABLE seed_classes (
 
 INSERT INTO seed_classes (grade_level_name, academic_year_name, class_name, section, capacity, is_active)
 VALUES
-  ('SEED Grade 1', 'SEED AY 2025-2026', 'SEED-A', 'A', 35, true),
-  ('SEED Grade 2', 'SEED AY 2025-2026', 'SEED-B', 'A', 35, true),
-  ('SEED Grade 3', 'SEED AY 2025-2026', 'SEED-C', 'A', 35, true);
+  ('الصف الثالث', 'العام الدراسي 2024-2025', 'الثالث', 'أ', 30, false),
+  ('الصف الرابع', 'العام الدراسي 2024-2025', 'الرابع', 'أ', 30, false),
+  ('الصف الرابع', 'العام الدراسي 2025-2026', 'الرابع', 'أ', 30, true),
+  ('الصف الخامس', 'العام الدراسي 2025-2026', 'الخامس', 'أ', 30, true),
+  ('الصف الخامس', 'العام الدراسي 2026-2027', 'الخامس', 'أ', 30, true),
+  ('الصف السادس', 'العام الدراسي 2026-2027', 'السادس', 'أ', 30, true);
 
 INSERT INTO classes (grade_level_id, academic_year_id, class_name, section, capacity, is_active)
 SELECT gl.id, ay.id, sc.class_name, sc.section, sc.capacity, sc.is_active
@@ -290,15 +291,18 @@ CREATE TEMP TABLE seed_subjects (
 
 INSERT INTO seed_subjects (code, name, grade_level_name, is_active)
 VALUES
-  ('SEED-SCI-G1', 'Science', 'SEED Grade 1', true),
-  ('SEED-AR-G1', 'Arabic', 'SEED Grade 1', true),
-  ('SEED-MATH-G1', 'Mathematics', 'SEED Grade 1', true),
-  ('SEED-SCI-G2', 'Science', 'SEED Grade 2', true),
-  ('SEED-AR-G2', 'Arabic', 'SEED Grade 2', true),
-  ('SEED-MATH-G2', 'Mathematics', 'SEED Grade 2', true),
-  ('SEED-SCI-G3', 'Science', 'SEED Grade 3', true),
-  ('SEED-AR-G3', 'Arabic', 'SEED Grade 3', true),
-  ('SEED-MATH-G3', 'Mathematics', 'SEED Grade 3', true);
+  ('AR-G3', 'اللغة العربية', 'الصف الثالث', true),
+  ('MA-G3', 'الرياضيات', 'الصف الثالث', true),
+  ('SC-G3', 'العلوم', 'الصف الثالث', true),
+  ('AR-G4', 'اللغة العربية', 'الصف الرابع', true),
+  ('MA-G4', 'الرياضيات', 'الصف الرابع', true),
+  ('SC-G4', 'العلوم', 'الصف الرابع', true),
+  ('AR-G5', 'اللغة العربية', 'الصف الخامس', true),
+  ('MA-G5', 'الرياضيات', 'الصف الخامس', true),
+  ('SC-G5', 'العلوم', 'الصف الخامس', true),
+  ('AR-G6', 'اللغة العربية', 'الصف السادس', true),
+  ('MA-G6', 'الرياضيات', 'الصف السادس', true),
+  ('SC-G6', 'العلوم', 'الصف السادس', true);
 
 INSERT INTO subjects (name, grade_level_id, code, is_active)
 SELECT ss.name, gl.id, ss.code, ss.is_active
@@ -315,6 +319,52 @@ JOIN grade_levels gl ON gl.name = ss.grade_level_name
 WHERE s.code = ss.code
   AND s.grade_level_id = gl.id;
 
+CREATE TEMP TABLE seed_subject_offerings (
+  subject_code varchar(50) NOT NULL,
+  academic_year_name varchar(50) NOT NULL,
+  semester_name varchar(50) NOT NULL,
+  is_active boolean NOT NULL,
+  PRIMARY KEY (subject_code, academic_year_name, semester_name)
+) ON COMMIT DROP;
+
+INSERT INTO seed_subject_offerings (subject_code, academic_year_name, semester_name, is_active)
+VALUES
+  ('AR-G4', 'العام الدراسي 2025-2026', 'الفصل الأول', true),
+  ('MA-G4', 'العام الدراسي 2025-2026', 'الفصل الأول', true),
+  ('SC-G4', 'العام الدراسي 2025-2026', 'الفصل الأول', true),
+  ('AR-G5', 'العام الدراسي 2025-2026', 'الفصل الأول', true),
+  ('MA-G5', 'العام الدراسي 2025-2026', 'الفصل الأول', true),
+  ('SC-G5', 'العام الدراسي 2025-2026', 'الفصل الأول', true),
+  ('AR-G4', 'العام الدراسي 2025-2026', 'الفصل الثاني', true),
+  ('MA-G4', 'العام الدراسي 2025-2026', 'الفصل الثاني', true),
+  ('SC-G4', 'العام الدراسي 2025-2026', 'الفصل الثاني', true),
+  ('AR-G5', 'العام الدراسي 2025-2026', 'الفصل الثاني', true),
+  ('MA-G5', 'العام الدراسي 2025-2026', 'الفصل الثاني', true),
+  ('SC-G5', 'العام الدراسي 2025-2026', 'الفصل الثاني', true),
+  ('AR-G5', 'العام الدراسي 2026-2027', 'الفصل الأول', true),
+  ('MA-G5', 'العام الدراسي 2026-2027', 'الفصل الأول', true),
+  ('SC-G5', 'العام الدراسي 2026-2027', 'الفصل الأول', true),
+  ('AR-G6', 'العام الدراسي 2026-2027', 'الفصل الأول', true),
+  ('MA-G6', 'العام الدراسي 2026-2027', 'الفصل الأول', true),
+  ('SC-G6', 'العام الدراسي 2026-2027', 'الفصل الأول', true);
+
+INSERT INTO subject_offerings (subject_id, semester_id, is_active)
+SELECT subj.id, sem.id, sso.is_active
+FROM seed_subject_offerings sso
+JOIN subjects subj ON subj.code = sso.subject_code
+JOIN academic_years ay ON ay.name = sso.academic_year_name
+JOIN semesters sem ON sem.academic_year_id = ay.id AND sem.name = sso.semester_name
+ON CONFLICT DO NOTHING;
+
+UPDATE subject_offerings so
+SET is_active = sso.is_active
+FROM seed_subject_offerings sso
+JOIN subjects subj ON subj.code = sso.subject_code
+JOIN academic_years ay ON ay.name = sso.academic_year_name
+JOIN semesters sem ON sem.academic_year_id = ay.id AND sem.name = sso.semester_name
+WHERE so.subject_id = subj.id
+  AND so.semester_id = sem.id;
+
 CREATE TEMP TABLE seed_teacher_assignments (
   teacher_email text NOT NULL,
   class_name varchar(50) NOT NULL,
@@ -326,9 +376,12 @@ CREATE TEMP TABLE seed_teacher_assignments (
 
 INSERT INTO seed_teacher_assignments (teacher_email, class_name, section, subject_code, academic_year_name)
 VALUES
-  ('seed-teacher-01@ishraf.local', 'SEED-A', 'A', 'SEED-MATH-G1', 'SEED AY 2025-2026'),
-  ('seed-teacher-02@ishraf.local', 'SEED-B', 'A', 'SEED-SCI-G2', 'SEED AY 2025-2026'),
-  ('seed-teacher-03@ishraf.local', 'SEED-C', 'A', 'SEED-AR-G3', 'SEED AY 2025-2026');
+  ('marwan-amin-shaban@ishraf.local', 'الرابع', 'أ', 'AR-G4', 'العام الدراسي 2025-2026'),
+  ('marwan-amin-shaban@ishraf.local', 'الرابع', 'أ', 'MA-G4', 'العام الدراسي 2025-2026'),
+  ('marwan-amin-shaban@ishraf.local', 'الخامس', 'أ', 'AR-G5', 'العام الدراسي 2025-2026'),
+  ('marwan-amin-shaban@ishraf.local', 'الخامس', 'أ', 'SC-G5', 'العام الدراسي 2025-2026'),
+  ('marwan-amin-shaban@ishraf.local', 'الخامس', 'أ', 'AR-G5', 'العام الدراسي 2026-2027'),
+  ('marwan-amin-shaban@ishraf.local', 'السادس', 'أ', 'AR-G6', 'العام الدراسي 2026-2027');
 
 INSERT INTO teacher_classes (teacher_id, class_id, subject_id, academic_year_id)
 SELECT t.id, c.id, subj.id, ay.id
@@ -350,9 +403,10 @@ CREATE TEMP TABLE seed_supervisor_assignments (
 
 INSERT INTO seed_supervisor_assignments (supervisor_email, class_name, section, academic_year_name)
 VALUES
-  ('seed-supervisor-01@ishraf.local', 'SEED-A', 'A', 'SEED AY 2025-2026'),
-  ('seed-supervisor-02@ishraf.local', 'SEED-B', 'A', 'SEED AY 2025-2026'),
-  ('seed-supervisor-03@ishraf.local', 'SEED-C', 'A', 'SEED AY 2025-2026');
+  ('idris-mashwir@ishraf.local', 'الرابع', 'أ', 'العام الدراسي 2025-2026'),
+  ('bassam-ali-ali-nuhailah@ishraf.local', 'الخامس', 'أ', 'العام الدراسي 2025-2026'),
+  ('idris-mashwir@ishraf.local', 'الخامس', 'أ', 'العام الدراسي 2026-2027'),
+  ('bassam-ali-ali-nuhailah@ishraf.local', 'السادس', 'أ', 'العام الدراسي 2026-2027');
 
 INSERT INTO supervisor_classes (supervisor_id, class_id, academic_year_id)
 SELECT s.id, c.id, ay.id
@@ -364,7 +418,7 @@ JOIN classes c ON c.academic_year_id = ay.id AND c.class_name = ssa.class_name A
 ON CONFLICT DO NOTHING;
 
 -- =========================================================
--- Students and parent links
+-- Students, enrollments, parent links, promotions
 -- =========================================================
 
 CREATE TEMP TABLE seed_students (
@@ -381,15 +435,12 @@ CREATE TEMP TABLE seed_students (
 
 INSERT INTO seed_students (academic_no, full_name, date_of_birth, gender, class_name, section, academic_year_name, status, enrollment_date)
 VALUES
-  ('SEED-STU-001', 'Seed Student 001', DATE '2017-01-10', 'male', 'SEED-A', 'A', 'SEED AY 2025-2026', 'active', DATE '2025-09-01'),
-  ('SEED-STU-002', 'Seed Student 002', DATE '2017-03-12', 'female', 'SEED-A', 'A', 'SEED AY 2025-2026', 'active', DATE '2025-09-01'),
-  ('SEED-STU-003', 'Seed Student 003', DATE '2017-05-08', 'male', 'SEED-A', 'A', 'SEED AY 2025-2026', 'active', DATE '2025-09-01'),
-  ('SEED-STU-004', 'Seed Student 004', DATE '2016-02-11', 'female', 'SEED-B', 'A', 'SEED AY 2025-2026', 'active', DATE '2025-09-01'),
-  ('SEED-STU-005', 'Seed Student 005', DATE '2016-04-18', 'male', 'SEED-B', 'A', 'SEED AY 2025-2026', 'active', DATE '2025-09-01'),
-  ('SEED-STU-006', 'Seed Student 006', DATE '2016-06-22', 'female', 'SEED-B', 'A', 'SEED AY 2025-2026', 'active', DATE '2025-09-01'),
-  ('SEED-STU-007', 'Seed Student 007', DATE '2015-01-09', 'male', 'SEED-C', 'A', 'SEED AY 2025-2026', 'active', DATE '2025-09-01'),
-  ('SEED-STU-008', 'Seed Student 008', DATE '2015-03-17', 'female', 'SEED-C', 'A', 'SEED AY 2025-2026', 'active', DATE '2025-09-01'),
-  ('SEED-STU-009', 'Seed Student 009', DATE '2015-07-25', 'male', 'SEED-C', 'A', 'SEED AY 2025-2026', 'active', DATE '2025-09-01');
+  ('AR-STU-401', 'أحمد خالد العرامي', DATE '2015-01-14', 'male', 'الرابع', 'أ', 'العام الدراسي 2025-2026', 'active', DATE '2025-09-01'),
+  ('AR-STU-402', 'ريم خالد العرامي', DATE '2015-03-22', 'female', 'الرابع', 'أ', 'العام الدراسي 2025-2026', 'active', DATE '2025-09-01'),
+  ('AR-STU-403', 'يوسف خالد العرامي', DATE '2015-06-05', 'male', 'الرابع', 'أ', 'العام الدراسي 2025-2026', 'active', DATE '2025-09-01'),
+  ('AR-STU-501', 'سارة خالد العرامي', DATE '2014-02-11', 'female', 'الخامس', 'أ', 'العام الدراسي 2025-2026', 'active', DATE '2025-09-01'),
+  ('AR-STU-502', 'عبد الرحمن خالد العرامي', DATE '2014-05-18', 'male', 'الخامس', 'أ', 'العام الدراسي 2025-2026', 'active', DATE '2025-09-01'),
+  ('AR-STU-503', 'جنى خالد العرامي', DATE '2014-09-09', 'female', 'الخامس', 'أ', 'العام الدراسي 2025-2026', 'active', DATE '2025-09-01');
 
 INSERT INTO students (academic_no, full_name, date_of_birth, gender, class_id, status, enrollment_date)
 SELECT ss.academic_no, ss.full_name, ss.date_of_birth, ss.gender, c.id, ss.status, ss.enrollment_date
@@ -411,6 +462,46 @@ JOIN academic_years ay ON ay.name = ss.academic_year_name
 JOIN classes c ON c.academic_year_id = ay.id AND c.class_name = ss.class_name AND c.section = ss.section
 WHERE s.academic_no = ss.academic_no;
 
+CREATE TEMP TABLE seed_student_enrollments (
+  student_academic_no varchar(50) NOT NULL,
+  academic_year_name varchar(50) NOT NULL,
+  class_name varchar(50) NOT NULL,
+  section varchar(50) NOT NULL,
+  PRIMARY KEY (student_academic_no, academic_year_name)
+) ON COMMIT DROP;
+
+INSERT INTO seed_student_enrollments (student_academic_no, academic_year_name, class_name, section)
+VALUES
+  ('AR-STU-401', 'العام الدراسي 2024-2025', 'الثالث', 'أ'),
+  ('AR-STU-401', 'العام الدراسي 2025-2026', 'الرابع', 'أ'),
+  ('AR-STU-401', 'العام الدراسي 2026-2027', 'الخامس', 'أ'),
+  ('AR-STU-402', 'العام الدراسي 2024-2025', 'الثالث', 'أ'),
+  ('AR-STU-402', 'العام الدراسي 2025-2026', 'الرابع', 'أ'),
+  ('AR-STU-402', 'العام الدراسي 2026-2027', 'الخامس', 'أ'),
+  ('AR-STU-403', 'العام الدراسي 2024-2025', 'الثالث', 'أ'),
+  ('AR-STU-403', 'العام الدراسي 2025-2026', 'الرابع', 'أ'),
+  ('AR-STU-403', 'العام الدراسي 2026-2027', 'الخامس', 'أ'),
+  ('AR-STU-501', 'العام الدراسي 2024-2025', 'الرابع', 'أ'),
+  ('AR-STU-501', 'العام الدراسي 2025-2026', 'الخامس', 'أ'),
+  ('AR-STU-501', 'العام الدراسي 2026-2027', 'السادس', 'أ'),
+  ('AR-STU-502', 'العام الدراسي 2024-2025', 'الرابع', 'أ'),
+  ('AR-STU-502', 'العام الدراسي 2025-2026', 'الخامس', 'أ'),
+  ('AR-STU-502', 'العام الدراسي 2026-2027', 'السادس', 'أ'),
+  ('AR-STU-503', 'العام الدراسي 2024-2025', 'الرابع', 'أ'),
+  ('AR-STU-503', 'العام الدراسي 2025-2026', 'الخامس', 'أ'),
+  ('AR-STU-503', 'العام الدراسي 2026-2027', 'السادس', 'أ');
+
+INSERT INTO student_academic_enrollments (student_id, academic_year_id, class_id)
+SELECT st.id, ay.id, c.id
+FROM seed_student_enrollments sse
+JOIN students st ON st.academic_no = sse.student_academic_no
+JOIN academic_years ay ON ay.name = sse.academic_year_name
+JOIN classes c ON c.academic_year_id = ay.id AND c.class_name = sse.class_name AND c.section = sse.section
+ON CONFLICT (student_id, academic_year_id) DO UPDATE
+SET
+  class_id = EXCLUDED.class_id,
+  updated_at = CURRENT_TIMESTAMP;
+
 CREATE TEMP TABLE seed_student_parents (
   student_academic_no varchar(50) NOT NULL,
   parent_email text NOT NULL,
@@ -421,15 +512,12 @@ CREATE TEMP TABLE seed_student_parents (
 
 INSERT INTO seed_student_parents (student_academic_no, parent_email, relation_type, is_primary)
 VALUES
-  ('SEED-STU-001', 'seed-parent-01@ishraf.local', 'father', true),
-  ('SEED-STU-002', 'seed-parent-01@ishraf.local', 'father', true),
-  ('SEED-STU-003', 'seed-parent-01@ishraf.local', 'father', true),
-  ('SEED-STU-004', 'seed-parent-02@ishraf.local', 'mother', true),
-  ('SEED-STU-005', 'seed-parent-02@ishraf.local', 'mother', true),
-  ('SEED-STU-006', 'seed-parent-02@ishraf.local', 'mother', true),
-  ('SEED-STU-007', 'seed-parent-03@ishraf.local', 'guardian', true),
-  ('SEED-STU-008', 'seed-parent-03@ishraf.local', 'guardian', true),
-  ('SEED-STU-009', 'seed-parent-03@ishraf.local', 'guardian', true);
+  ('AR-STU-401', 'khaled-alarami@ishraf.local', 'father', true),
+  ('AR-STU-402', 'khaled-alarami@ishraf.local', 'father', true),
+  ('AR-STU-403', 'khaled-alarami@ishraf.local', 'father', true),
+  ('AR-STU-501', 'khaled-alarami@ishraf.local', 'father', true),
+  ('AR-STU-502', 'khaled-alarami@ishraf.local', 'father', true),
+  ('AR-STU-503', 'khaled-alarami@ishraf.local', 'father', true);
 
 INSERT INTO student_parents (student_id, parent_id, relation_type, is_primary)
 SELECT st.id, p.id, ssp.relation_type, ssp.is_primary
@@ -463,9 +551,9 @@ CREATE TEMP TABLE seed_student_promotions (
 
 INSERT INTO seed_student_promotions (student_academic_no, from_class_name, from_section, to_class_name, to_section, academic_year_name, promoted_at, notes)
 VALUES
-  ('SEED-STU-004', 'SEED-A', 'A', 'SEED-B', 'A', 'SEED AY 2025-2026', TIMESTAMPTZ '2025-09-05 08:00:00+03', '[Seed PR-01] Promotion history'),
-  ('SEED-STU-005', 'SEED-A', 'A', 'SEED-B', 'A', 'SEED AY 2025-2026', TIMESTAMPTZ '2025-09-05 08:05:00+03', '[Seed PR-02] Promotion history'),
-  ('SEED-STU-006', 'SEED-A', 'A', 'SEED-B', 'A', 'SEED AY 2025-2026', TIMESTAMPTZ '2025-09-05 08:10:00+03', '[Seed PR-03] Promotion history');
+  ('AR-STU-501', 'الرابع', 'أ', 'الخامس', 'أ', 'العام الدراسي 2025-2026', TIMESTAMPTZ '2025-09-05 08:00:00+03', '[تهيئة:ترقية-01] ترقية مع بداية العام الدراسي.'),
+  ('AR-STU-502', 'الرابع', 'أ', 'الخامس', 'أ', 'العام الدراسي 2025-2026', TIMESTAMPTZ '2025-09-05 08:05:00+03', '[تهيئة:ترقية-02] ترقية مع بداية العام الدراسي.'),
+  ('AR-STU-503', 'الرابع', 'أ', 'الخامس', 'أ', 'العام الدراسي 2025-2026', TIMESTAMPTZ '2025-09-05 08:10:00+03', '[تهيئة:ترقية-03] ترقية مع بداية العام الدراسي.');
 
 INSERT INTO student_promotions (student_id, from_class_id, to_class_id, academic_year_id, promoted_at, notes)
 SELECT st.id, fc.id, tc.id, ay.id, ssp.promoted_at, ssp.notes
@@ -489,25 +577,22 @@ CREATE TEMP TABLE seed_assessment_types (
 
 INSERT INTO seed_assessment_types (code, name, description, is_active)
 VALUES
-  ('exam', 'Exam', 'Formal exams', true),
-  ('quiz', 'Quiz', 'Short quizzes', true),
-  ('homework', 'Homework', 'Homework assessments', true),
-  ('attendance', 'Attendance', 'Attendance-based assessment', true),
-  ('behavior', 'Behavior', 'Behavioral assessment', true),
-  ('participation', 'Participation', 'Participation assessment', true);
+  ('exam', 'اختبار', 'اختبار تحصيلي رئيسي داخل الفصل', true),
+  ('quiz', 'اختبار قصير', 'اختبار قصير لقياس الفهم السريع', true),
+  ('participation', 'مشاركة صفية', 'تقييم المشاركة والواجبات الشفهية', true);
 
 INSERT INTO assessment_types (code, name, description, is_active)
 SELECT code, name, description, is_active
 FROM seed_assessment_types
 ON CONFLICT DO NOTHING;
 
-UPDATE assessment_types a
+UPDATE assessment_types at
 SET
   name = sat.name,
   description = sat.description,
   is_active = sat.is_active
 FROM seed_assessment_types sat
-WHERE a.code = sat.code;
+WHERE at.code = sat.code;
 
 CREATE TEMP TABLE seed_behavior_categories (
   code varchar(30) PRIMARY KEY,
@@ -519,14 +604,11 @@ CREATE TEMP TABLE seed_behavior_categories (
 
 INSERT INTO seed_behavior_categories (code, name, behavior_type, default_severity, is_active)
 VALUES
-  ('respect', 'Respect', 'positive', 1, true),
-  ('participation', 'Participation', 'positive', 1, true),
-  ('leadership', 'Leadership', 'positive', 2, true),
-  ('discipline', 'Discipline', 'positive', 1, true),
-  ('lateness', 'Lateness', 'negative', 2, true),
-  ('disruption', 'Disruption', 'negative', 3, true),
-  ('bullying', 'Bullying', 'negative', 5, true),
-  ('absence_misconduct', 'Absence Misconduct', 'negative', 3, true);
+  ('lateness', 'تأخر صباحي', 'negative', 2, true),
+  ('participation', 'مشاركة إيجابية', 'positive', 1, true),
+  ('disruption', 'إزعاج أثناء الحصة', 'negative', 3, true),
+  ('leadership', 'قيادة إيجابية', 'positive', 2, true),
+  ('homework_neglect', 'إهمال الواجب', 'negative', 2, true);
 
 INSERT INTO behavior_categories (code, name, behavior_type, default_severity, is_active)
 SELECT code, name, behavior_type, default_severity, is_active
@@ -567,9 +649,8 @@ INSERT INTO seed_assessments (
   academic_year_name, semester_name, description, max_score, weight, assessment_date, is_published
 )
 VALUES
-  ('[Seed AST-01] Grade 1 Mathematics Diagnostic', 'exam', 'SEED-A', 'A', 'SEED-MATH-G1', 'seed-teacher-01@ishraf.local', 'SEED AY 2025-2026', 'SEED Semester 2', 'Seed assessment for class 1 mathematics', 100, 30, DATE '2026-03-10', true),
-  ('[Seed AST-02] Grade 2 Science Quiz', 'quiz', 'SEED-B', 'A', 'SEED-SCI-G2', 'seed-teacher-02@ishraf.local', 'SEED AY 2025-2026', 'SEED Semester 2', 'Seed science quiz for class 2', 25, 10, DATE '2026-03-11', true),
-  ('[Seed AST-03] Grade 3 Arabic Review', 'participation', 'SEED-C', 'A', 'SEED-AR-G3', 'seed-teacher-03@ishraf.local', 'SEED AY 2025-2026', 'SEED Semester 2', 'Seed Arabic review for class 3', 20, 5, DATE '2026-03-12', true);
+  ('[تهيئة:تقييم-01] اختبار تشخيصي في اللغة العربية - الصف الرابع أ', 'exam', 'الرابع', 'أ', 'AR-G4', 'marwan-amin-shaban@ishraf.local', 'العام الدراسي 2025-2026', 'الفصل الثاني', 'اختبار تأسيسي لقياس مهارات القراءة والفهم في بداية النصف الثاني.', 100, 30, DATE '2026-03-16', true),
+  ('[تهيئة:تقييم-02] اختبار قصير في العلوم - الصف الخامس أ', 'quiz', 'الخامس', 'أ', 'SC-G5', 'marwan-amin-shaban@ishraf.local', 'العام الدراسي 2025-2026', 'الفصل الثاني', 'اختبار قصير حول دورة الماء وأثرها في البيئة.', 25, 10, DATE '2026-03-18', true);
 
 INSERT INTO assessments (
   assessment_type_id, class_id, subject_id, teacher_id, academic_year_id, semester_id,
@@ -627,15 +708,12 @@ CREATE TEMP TABLE seed_student_assessments (
 
 INSERT INTO seed_student_assessments (assessment_title, student_academic_no, score, remarks, graded_at)
 VALUES
-  ('[Seed AST-01] Grade 1 Mathematics Diagnostic', 'SEED-STU-001', 78, 'Good baseline', TIMESTAMPTZ '2026-03-10 10:00:00+03'),
-  ('[Seed AST-01] Grade 1 Mathematics Diagnostic', 'SEED-STU-002', 84, 'Strong performance', TIMESTAMPTZ '2026-03-10 10:02:00+03'),
-  ('[Seed AST-01] Grade 1 Mathematics Diagnostic', 'SEED-STU-003', 66, 'Needs reinforcement', TIMESTAMPTZ '2026-03-10 10:04:00+03'),
-  ('[Seed AST-02] Grade 2 Science Quiz', 'SEED-STU-004', 20, 'Solid work', TIMESTAMPTZ '2026-03-11 10:00:00+03'),
-  ('[Seed AST-02] Grade 2 Science Quiz', 'SEED-STU-005', 18, 'Late but accurate', TIMESTAMPTZ '2026-03-11 10:02:00+03'),
-  ('[Seed AST-02] Grade 2 Science Quiz', 'SEED-STU-006', 22, 'Excellent recall', TIMESTAMPTZ '2026-03-11 10:04:00+03'),
-  ('[Seed AST-03] Grade 3 Arabic Review', 'SEED-STU-007', 16, 'Strong reading', TIMESTAMPTZ '2026-03-12 10:00:00+03'),
-  ('[Seed AST-03] Grade 3 Arabic Review', 'SEED-STU-008', 14, 'Good effort', TIMESTAMPTZ '2026-03-12 10:02:00+03'),
-  ('[Seed AST-03] Grade 3 Arabic Review', 'SEED-STU-009', 12, 'Needs vocabulary practice', TIMESTAMPTZ '2026-03-12 10:04:00+03');
+  ('[تهيئة:تقييم-01] اختبار تشخيصي في اللغة العربية - الصف الرابع أ', 'AR-STU-401', 86, 'قراءة جيدة مع حاجة بسيطة لتحسين الهمزات.', TIMESTAMPTZ '2026-03-16 10:15:00+03'),
+  ('[تهيئة:تقييم-01] اختبار تشخيصي في اللغة العربية - الصف الرابع أ', 'AR-STU-402', 92, 'أداء قوي جدًا في الفهم القرائي.', TIMESTAMPTZ '2026-03-16 10:17:00+03'),
+  ('[تهيئة:تقييم-01] اختبار تشخيصي في اللغة العربية - الصف الرابع أ', 'AR-STU-403', 74, 'يحتاج إلى مراجعة علامات الترقيم.', TIMESTAMPTZ '2026-03-16 10:19:00+03'),
+  ('[تهيئة:تقييم-02] اختبار قصير في العلوم - الصف الخامس أ', 'AR-STU-501', 21, 'إجابة دقيقة ومنظمة.', TIMESTAMPTZ '2026-03-18 11:05:00+03'),
+  ('[تهيئة:تقييم-02] اختبار قصير في العلوم - الصف الخامس أ', 'AR-STU-502', 18, 'فهم جيد مع بعض الأخطاء في المصطلحات.', TIMESTAMPTZ '2026-03-18 11:07:00+03'),
+  ('[تهيئة:تقييم-02] اختبار قصير في العلوم - الصف الخامس أ', 'AR-STU-503', 23, 'ممتازة في الشرح العلمي.', TIMESTAMPTZ '2026-03-18 11:09:00+03');
 
 INSERT INTO student_assessments (assessment_id, student_id, score, remarks, graded_at)
 SELECT a.id, st.id, ssa.score, ssa.remarks, ssa.graded_at
@@ -670,9 +748,8 @@ CREATE TEMP TABLE seed_attendance_sessions (
 
 INSERT INTO seed_attendance_sessions (title, class_name, section, subject_code, teacher_email, academic_year_name, semester_name, session_date, period_no, notes)
 VALUES
-  ('[Seed ATS-01] Grade 1 Morning Attendance', 'SEED-A', 'A', 'SEED-MATH-G1', 'seed-teacher-01@ishraf.local', 'SEED AY 2025-2026', 'SEED Semester 2', DATE '2026-03-13', 1, 'Seed attendance session 01'),
-  ('[Seed ATS-02] Grade 2 Science Attendance', 'SEED-B', 'A', 'SEED-SCI-G2', 'seed-teacher-02@ishraf.local', 'SEED AY 2025-2026', 'SEED Semester 2', DATE '2026-03-14', 2, 'Seed attendance session 02'),
-  ('[Seed ATS-03] Grade 3 Arabic Attendance', 'SEED-C', 'A', 'SEED-AR-G3', 'seed-teacher-03@ishraf.local', 'SEED AY 2025-2026', 'SEED Semester 2', DATE '2026-03-15', 3, 'Seed attendance session 03');
+  ('[تهيئة:حضور-01] الحصة الأولى - اللغة العربية - الصف الرابع أ', 'الرابع', 'أ', 'AR-G4', 'marwan-amin-shaban@ishraf.local', 'العام الدراسي 2025-2026', 'الفصل الثاني', DATE '2026-03-19', 1, 'جلسة حضور صباحية لمتابعة الانضباط والقراءة.'),
+  ('[تهيئة:حضور-02] الحصة الثانية - العلوم - الصف الخامس أ', 'الخامس', 'أ', 'SC-G5', 'marwan-amin-shaban@ishraf.local', 'العام الدراسي 2025-2026', 'الفصل الثاني', DATE '2026-03-20', 2, 'جلسة حضور مرتبطة بتجربة صفية في مادة العلوم.');
 
 INSERT INTO attendance_sessions (
   class_id, subject_id, teacher_id, academic_year_id, semester_id,
@@ -720,15 +797,12 @@ CREATE TEMP TABLE seed_attendance (
 
 INSERT INTO seed_attendance (session_title, student_academic_no, status, notes, recorded_at)
 VALUES
-  ('[Seed ATS-01] Grade 1 Morning Attendance', 'SEED-STU-001', 'absent', '[Seed ATT-01] Absent sample', TIMESTAMPTZ '2026-03-13 08:10:00+03'),
-  ('[Seed ATS-01] Grade 1 Morning Attendance', 'SEED-STU-002', 'present', '[Seed ATT-02] Present sample', TIMESTAMPTZ '2026-03-13 08:11:00+03'),
-  ('[Seed ATS-01] Grade 1 Morning Attendance', 'SEED-STU-003', 'present', '[Seed ATT-03] Present sample', TIMESTAMPTZ '2026-03-13 08:12:00+03'),
-  ('[Seed ATS-02] Grade 2 Science Attendance', 'SEED-STU-004', 'present', '[Seed ATT-04] Present sample', TIMESTAMPTZ '2026-03-14 09:10:00+03'),
-  ('[Seed ATS-02] Grade 2 Science Attendance', 'SEED-STU-005', 'late', '[Seed ATT-05] Late sample', TIMESTAMPTZ '2026-03-14 09:11:00+03'),
-  ('[Seed ATS-02] Grade 2 Science Attendance', 'SEED-STU-006', 'present', '[Seed ATT-06] Present sample', TIMESTAMPTZ '2026-03-14 09:12:00+03'),
-  ('[Seed ATS-03] Grade 3 Arabic Attendance', 'SEED-STU-007', 'present', '[Seed ATT-07] Present sample', TIMESTAMPTZ '2026-03-15 10:10:00+03'),
-  ('[Seed ATS-03] Grade 3 Arabic Attendance', 'SEED-STU-008', 'present', '[Seed ATT-08] Present sample', TIMESTAMPTZ '2026-03-15 10:11:00+03'),
-  ('[Seed ATS-03] Grade 3 Arabic Attendance', 'SEED-STU-009', 'excused', '[Seed ATT-09] Excused sample', TIMESTAMPTZ '2026-03-15 10:12:00+03');
+  ('[تهيئة:حضور-01] الحصة الأولى - اللغة العربية - الصف الرابع أ', 'AR-STU-401', 'late', '[تهيئة:سجل-حضور-01] وصل متأخرًا خمس دقائق.', TIMESTAMPTZ '2026-03-19 08:06:00+03'),
+  ('[تهيئة:حضور-01] الحصة الأولى - اللغة العربية - الصف الرابع أ', 'AR-STU-402', 'present', '[تهيئة:سجل-حضور-02] حاضر ومنضبط.', TIMESTAMPTZ '2026-03-19 08:07:00+03'),
+  ('[تهيئة:حضور-01] الحصة الأولى - اللغة العربية - الصف الرابع أ', 'AR-STU-403', 'absent', '[تهيئة:سجل-حضور-03] غياب بدون عذر.', TIMESTAMPTZ '2026-03-19 08:08:00+03'),
+  ('[تهيئة:حضور-02] الحصة الثانية - العلوم - الصف الخامس أ', 'AR-STU-501', 'present', '[تهيئة:سجل-حضور-04] مشاركة جيدة أثناء التجربة.', TIMESTAMPTZ '2026-03-20 09:12:00+03'),
+  ('[تهيئة:حضور-02] الحصة الثانية - العلوم - الصف الخامس أ', 'AR-STU-502', 'excused', '[تهيئة:سجل-حضور-05] عذر صحي موثق.', TIMESTAMPTZ '2026-03-20 09:13:00+03'),
+  ('[تهيئة:حضور-02] الحصة الثانية - العلوم - الصف الخامس أ', 'AR-STU-503', 'present', '[تهيئة:سجل-حضور-06] حضرت الجلسة كاملة.', TIMESTAMPTZ '2026-03-20 09:14:00+03');
 
 INSERT INTO attendance (attendance_session_id, student_id, status, notes, recorded_at)
 SELECT ats.id, st.id, sa.status, sa.notes, sa.recorded_at
@@ -763,9 +837,8 @@ CREATE TEMP TABLE seed_homework (
 
 INSERT INTO seed_homework (title, teacher_email, class_name, section, subject_code, academic_year_name, semester_name, description, assigned_date, due_date)
 VALUES
-  ('[Seed HW-01] Grade 1 Math Practice', 'seed-teacher-01@ishraf.local', 'SEED-A', 'A', 'SEED-MATH-G1', 'SEED AY 2025-2026', 'SEED Semester 2', 'Practice addition and subtraction', DATE '2026-03-16', DATE '2026-03-20'),
-  ('[Seed HW-02] Grade 2 Science Observation', 'seed-teacher-02@ishraf.local', 'SEED-B', 'A', 'SEED-SCI-G2', 'SEED AY 2025-2026', 'SEED Semester 2', 'Observe plant growth at home', DATE '2026-03-16', DATE '2026-03-21'),
-  ('[Seed HW-03] Grade 3 Arabic Reading', 'seed-teacher-03@ishraf.local', 'SEED-C', 'A', 'SEED-AR-G3', 'SEED AY 2025-2026', 'SEED Semester 2', 'Read and summarize the short passage', DATE '2026-03-17', DATE '2026-03-22');
+  ('[تهيئة:واجب-01] واجب القراءة المنزلية - الصف الرابع أ', 'marwan-amin-shaban@ishraf.local', 'الرابع', 'أ', 'AR-G4', 'العام الدراسي 2025-2026', 'الفصل الثاني', 'قراءة نص قصير عن الصدق وكتابة خمس جمل تلخص الفكرة الرئيسة.', DATE '2026-03-21', DATE '2026-03-25'),
+  ('[تهيئة:واجب-02] واجب الملاحظة العلمية - الصف الخامس أ', 'marwan-amin-shaban@ishraf.local', 'الخامس', 'أ', 'SC-G5', 'العام الدراسي 2025-2026', 'الفصل الثاني', 'ملاحظة تبخر الماء في المنزل وكتابة ثلاث نتائج مختصرة.', DATE '2026-03-22', DATE '2026-03-26');
 
 INSERT INTO homework (
   teacher_id, class_id, subject_id, academic_year_id, semester_id,
@@ -818,15 +891,12 @@ CREATE TEMP TABLE seed_homework_submissions (
 
 INSERT INTO seed_homework_submissions (homework_title, student_academic_no, status, submitted_at, notes)
 VALUES
-  ('[Seed HW-01] Grade 1 Math Practice', 'SEED-STU-001', 'not_submitted', NULL, '[Seed HWS-01] Pending'),
-  ('[Seed HW-01] Grade 1 Math Practice', 'SEED-STU-002', 'submitted', TIMESTAMPTZ '2026-03-18 17:00:00+03', '[Seed HWS-02] Submitted on time'),
-  ('[Seed HW-01] Grade 1 Math Practice', 'SEED-STU-003', 'late', TIMESTAMPTZ '2026-03-21 08:00:00+03', '[Seed HWS-03] Late submission'),
-  ('[Seed HW-02] Grade 2 Science Observation', 'SEED-STU-004', 'submitted', TIMESTAMPTZ '2026-03-20 18:00:00+03', '[Seed HWS-04] Submitted'),
-  ('[Seed HW-02] Grade 2 Science Observation', 'SEED-STU-005', 'not_submitted', NULL, '[Seed HWS-05] Missing'),
-  ('[Seed HW-02] Grade 2 Science Observation', 'SEED-STU-006', 'submitted', TIMESTAMPTZ '2026-03-20 19:00:00+03', '[Seed HWS-06] Submitted'),
-  ('[Seed HW-03] Grade 3 Arabic Reading', 'SEED-STU-007', 'submitted', TIMESTAMPTZ '2026-03-21 17:30:00+03', '[Seed HWS-07] Submitted'),
-  ('[Seed HW-03] Grade 3 Arabic Reading', 'SEED-STU-008', 'late', TIMESTAMPTZ '2026-03-23 08:00:00+03', '[Seed HWS-08] Late'),
-  ('[Seed HW-03] Grade 3 Arabic Reading', 'SEED-STU-009', 'not_submitted', NULL, '[Seed HWS-09] Pending');
+  ('[تهيئة:واجب-01] واجب القراءة المنزلية - الصف الرابع أ', 'AR-STU-401', 'submitted', TIMESTAMPTZ '2026-03-24 18:15:00+03', '[تهيئة:تسليم-01] سُلِّم في الوقت المحدد.'),
+  ('[تهيئة:واجب-01] واجب القراءة المنزلية - الصف الرابع أ', 'AR-STU-402', 'submitted', TIMESTAMPTZ '2026-03-24 19:00:00+03', '[تهيئة:تسليم-02] ملخص منظم وواضح.'),
+  ('[تهيئة:واجب-01] واجب القراءة المنزلية - الصف الرابع أ', 'AR-STU-403', 'late', TIMESTAMPTZ '2026-03-26 08:30:00+03', '[تهيئة:تسليم-03] تأخر في التسليم يومًا واحدًا.'),
+  ('[تهيئة:واجب-02] واجب الملاحظة العلمية - الصف الخامس أ', 'AR-STU-501', 'submitted', TIMESTAMPTZ '2026-03-25 17:40:00+03', '[تهيئة:تسليم-04] إجابة علمية دقيقة.'),
+  ('[تهيئة:واجب-02] واجب الملاحظة العلمية - الصف الخامس أ', 'AR-STU-502', 'not_submitted', NULL, '[تهيئة:تسليم-05] لم يصل التسليم حتى الآن.'),
+  ('[تهيئة:واجب-02] واجب الملاحظة العلمية - الصف الخامس أ', 'AR-STU-503', 'submitted', TIMESTAMPTZ '2026-03-25 18:05:00+03', '[تهيئة:تسليم-06] تسليم ممتاز مع ملاحظات إضافية.');
 
 INSERT INTO homework_submissions (homework_id, student_id, status, submitted_at, notes)
 SELECT h.id, st.id, shs.status, shs.submitted_at, shs.notes
@@ -864,12 +934,10 @@ INSERT INTO seed_behavior_records (
   academic_year_name, semester_name, description, severity, behavior_date
 )
 VALUES
-  ('BR-01', 'SEED-STU-001', 'lateness', 'teacher', 'seed-teacher-01@ishraf.local', 'SEED AY 2025-2026', 'SEED Semester 2', '[Seed BR-01] Repeated lateness noted by teacher', 2, DATE '2026-03-13'),
-  ('BR-02', 'SEED-STU-002', 'respect', 'teacher', 'seed-teacher-01@ishraf.local', 'SEED AY 2025-2026', 'SEED Semester 2', '[Seed BR-02] Positive respectful participation', 1, DATE '2026-03-13'),
-  ('BR-03', 'SEED-STU-004', 'disruption', 'supervisor', 'seed-supervisor-02@ishraf.local', 'SEED AY 2025-2026', 'SEED Semester 2', '[Seed BR-03] Disruption observed during supervision', 3, DATE '2026-03-14'),
-  ('BR-04', 'SEED-STU-005', 'leadership', 'supervisor', 'seed-supervisor-02@ishraf.local', 'SEED AY 2025-2026', 'SEED Semester 2', '[Seed BR-04] Leadership shown in group work', 2, DATE '2026-03-14'),
-  ('BR-05', 'SEED-STU-007', 'bullying', 'teacher', 'seed-teacher-03@ishraf.local', 'SEED AY 2025-2026', 'SEED Semester 2', '[Seed BR-05] Bullying incident recorded for testing', 5, DATE '2026-03-15'),
-  ('BR-06', 'SEED-STU-008', 'participation', 'supervisor', 'seed-supervisor-03@ishraf.local', 'SEED AY 2025-2026', 'SEED Semester 2', '[Seed BR-06] Strong participation in supervised activity', 1, DATE '2026-03-15');
+  ('BR-AR-01', 'AR-STU-401', 'lateness', 'teacher', 'marwan-amin-shaban@ishraf.local', 'العام الدراسي 2025-2026', 'الفصل الثاني', '[تهيئة:سلوك-01] تأخر متكرر في بداية الحصة الأولى.', 2, DATE '2026-03-19'),
+  ('BR-AR-02', 'AR-STU-402', 'participation', 'supervisor', 'idris-mashwir@ishraf.local', 'العام الدراسي 2025-2026', 'الفصل الثاني', '[تهيئة:سلوك-02] مشاركة إيجابية وتعاون واضح مع الزميلات.', 1, DATE '2026-03-20'),
+  ('BR-AR-03', 'AR-STU-501', 'disruption', 'supervisor', 'bassam-ali-ali-nuhailah@ishraf.local', 'العام الدراسي 2025-2026', 'الفصل الثاني', '[تهيئة:سلوك-03] مقاطعة متكررة أثناء الشرح العملي.', 3, DATE '2026-03-21'),
+  ('BR-AR-04', 'AR-STU-502', 'leadership', 'teacher', 'marwan-amin-shaban@ishraf.local', 'العام الدراسي 2025-2026', 'الفصل الثاني', '[تهيئة:سلوك-04] قاد مجموعة العمل بهدوء وتنظيم.', 2, DATE '2026-03-21');
 
 INSERT INTO behavior_records (
   student_id, behavior_category_id, teacher_id, supervisor_id,
@@ -914,9 +982,7 @@ CREATE TEMP TABLE seed_buses (
 
 INSERT INTO seed_buses (plate_number, driver_email, capacity, status)
 VALUES
-  ('SEED-BUS-001', 'seed-driver-01@ishraf.local', 30, 'active'),
-  ('SEED-BUS-002', 'seed-driver-02@ishraf.local', 30, 'active'),
-  ('SEED-BUS-003', 'seed-driver-03@ishraf.local', 30, 'active');
+  ('BUS-HILAL-01', 'hilal-abdullah-almolsi@ishraf.local', 28, 'active');
 
 INSERT INTO buses (plate_number, driver_id, capacity, status)
 SELECT sb.plate_number, d.id, sb.capacity, sb.status
@@ -945,9 +1011,7 @@ CREATE TEMP TABLE seed_routes (
 
 INSERT INTO seed_routes (route_name, start_point, end_point, estimated_duration_minutes, is_active)
 VALUES
-  ('SEED-ROUTE-01', 'North District', 'Campus Gate', 35, true),
-  ('SEED-ROUTE-02', 'Central District', 'Campus Gate', 40, true),
-  ('SEED-ROUTE-03', 'South District', 'Campus Gate', 45, true);
+  ('خط حي النهضة - بوابة المدرسة', 'حي النهضة', 'بوابة المدرسة', 35, true);
 
 INSERT INTO routes (route_name, start_point, end_point, estimated_duration_minutes, is_active)
 SELECT route_name, start_point, end_point, estimated_duration_minutes, is_active
@@ -973,9 +1037,7 @@ CREATE TEMP TABLE seed_transport_route_assignments (
 
 INSERT INTO seed_transport_route_assignments (bus_plate, route_name, start_date, end_date, is_active)
 VALUES
-  ('SEED-BUS-001', 'SEED-ROUTE-01', DATE '2026-01-01', NULL, true),
-  ('SEED-BUS-002', 'SEED-ROUTE-02', DATE '2026-01-01', NULL, true),
-  ('SEED-BUS-003', 'SEED-ROUTE-03', DATE '2026-01-01', NULL, true);
+  ('BUS-HILAL-01', 'خط حي النهضة - بوابة المدرسة', DATE '2026-02-01', NULL, true);
 
 INSERT INTO transport_route_assignments (bus_id, route_id, start_date, end_date, is_active)
 SELECT b.id, r.id, stra.start_date, stra.end_date, stra.is_active
@@ -1011,15 +1073,9 @@ CREATE TEMP TABLE seed_bus_stops (
 
 INSERT INTO seed_bus_stops (route_name, stop_name, latitude, longitude, stop_order)
 VALUES
-  ('SEED-ROUTE-01', 'Seed Stop 01-1', 15.4101000, 44.2001000, 1),
-  ('SEED-ROUTE-01', 'Seed Stop 01-2', 15.4201000, 44.2101000, 2),
-  ('SEED-ROUTE-01', 'Seed Stop 01-3', 15.4301000, 44.2201000, 3),
-  ('SEED-ROUTE-02', 'Seed Stop 02-1', 15.5101000, 44.3001000, 1),
-  ('SEED-ROUTE-02', 'Seed Stop 02-2', 15.5201000, 44.3101000, 2),
-  ('SEED-ROUTE-02', 'Seed Stop 02-3', 15.5301000, 44.3201000, 3),
-  ('SEED-ROUTE-03', 'Seed Stop 03-1', 15.6101000, 44.4001000, 1),
-  ('SEED-ROUTE-03', 'Seed Stop 03-2', 15.6201000, 44.4101000, 2),
-  ('SEED-ROUTE-03', 'Seed Stop 03-3', 15.6301000, 44.4201000, 3);
+  ('خط حي النهضة - بوابة المدرسة', 'محطة مسجد الرحمة', 15.4101000, 44.2001000, 1),
+  ('خط حي النهضة - بوابة المدرسة', 'محطة السوق الشرقي', 15.4186000, 44.2084000, 2),
+  ('خط حي النهضة - بوابة المدرسة', 'بوابة المدرسة', 15.4253000, 44.2155000, 3);
 
 INSERT INTO bus_stops (route_id, stop_name, latitude, longitude, stop_order)
 SELECT r.id, sbs.stop_name, sbs.latitude, sbs.longitude, sbs.stop_order
@@ -1048,15 +1104,12 @@ CREATE TEMP TABLE seed_student_bus_assignments (
 
 INSERT INTO seed_student_bus_assignments (student_academic_no, route_name, stop_order, start_date, end_date, is_active)
 VALUES
-  ('SEED-STU-001', 'SEED-ROUTE-01', 1, DATE '2026-01-01', NULL, true),
-  ('SEED-STU-002', 'SEED-ROUTE-01', 2, DATE '2026-01-01', NULL, true),
-  ('SEED-STU-003', 'SEED-ROUTE-01', 3, DATE '2026-01-01', NULL, true),
-  ('SEED-STU-004', 'SEED-ROUTE-02', 1, DATE '2026-01-01', NULL, true),
-  ('SEED-STU-005', 'SEED-ROUTE-02', 2, DATE '2026-01-01', NULL, true),
-  ('SEED-STU-006', 'SEED-ROUTE-02', 3, DATE '2026-01-01', NULL, true),
-  ('SEED-STU-007', 'SEED-ROUTE-03', 1, DATE '2026-01-01', NULL, true),
-  ('SEED-STU-008', 'SEED-ROUTE-03', 2, DATE '2026-01-01', NULL, true),
-  ('SEED-STU-009', 'SEED-ROUTE-03', 3, DATE '2026-01-01', NULL, true);
+  ('AR-STU-401', 'خط حي النهضة - بوابة المدرسة', 1, DATE '2026-02-01', NULL, true),
+  ('AR-STU-402', 'خط حي النهضة - بوابة المدرسة', 2, DATE '2026-02-01', NULL, true),
+  ('AR-STU-403', 'خط حي النهضة - بوابة المدرسة', 3, DATE '2026-02-01', NULL, true),
+  ('AR-STU-501', 'خط حي النهضة - بوابة المدرسة', 1, DATE '2026-02-01', NULL, true),
+  ('AR-STU-502', 'خط حي النهضة - بوابة المدرسة', 2, DATE '2026-02-01', NULL, true),
+  ('AR-STU-503', 'خط حي النهضة - بوابة المدرسة', 3, DATE '2026-02-01', NULL, true);
 
 INSERT INTO student_bus_assignments (student_id, route_id, stop_id, start_date, end_date, is_active)
 SELECT st.id, r.id, bs.id, ssba.start_date, ssba.end_date, ssba.is_active
@@ -1100,15 +1153,12 @@ INSERT INTO seed_student_transport_home_locations (
   student_academic_no, address_label, address_text, latitude, longitude, status, notes
 )
 VALUES
-  ('SEED-STU-001', 'Seed Home 001', 'Seed Home Address 001', 15.4111000, 44.2011000, 'approved', '[Seed HL-01] Approved home location'),
-  ('SEED-STU-002', 'Seed Home 002', 'Seed Home Address 002', 15.4211000, 44.2111000, 'approved', '[Seed HL-02] Approved home location'),
-  ('SEED-STU-003', 'Seed Home 003', 'Seed Home Address 003', 15.4311000, 44.2211000, 'approved', '[Seed HL-03] Approved home location'),
-  ('SEED-STU-004', 'Seed Home 004', 'Seed Home Address 004', 15.5111000, 44.3011000, 'approved', '[Seed HL-04] Approved home location'),
-  ('SEED-STU-005', 'Seed Home 005', 'Seed Home Address 005', 15.5211000, 44.3111000, 'approved', '[Seed HL-05] Approved home location'),
-  ('SEED-STU-006', 'Seed Home 006', 'Seed Home Address 006', 15.5311000, 44.3211000, 'approved', '[Seed HL-06] Approved home location'),
-  ('SEED-STU-007', 'Seed Home 007', 'Seed Home Address 007', 15.6111000, 44.4011000, 'approved', '[Seed HL-07] Approved home location'),
-  ('SEED-STU-008', 'Seed Home 008', 'Seed Home Address 008', 15.6211000, 44.4111000, 'approved', '[Seed HL-08] Approved home location'),
-  ('SEED-STU-009', 'Seed Home 009', 'Seed Home Address 009', 15.6311000, 44.4211000, 'approved', '[Seed HL-09] Approved home location');
+  ('AR-STU-401', 'منزل أحمد', 'صنعاء - حي النهضة - جوار مسجد الرحمة', 15.4112000, 44.2011000, 'approved', '[تهيئة:منزل-01] موقع معتمد من الإدارة.'),
+  ('AR-STU-402', 'منزل ريم', 'صنعاء - حي النهضة - خلف السوق الشرقي', 15.4189000, 44.2091000, 'approved', '[تهيئة:منزل-02] موقع معتمد من الإدارة.'),
+  ('AR-STU-403', 'منزل يوسف', 'صنعاء - حي النهضة - شارع المدارس', 15.4249000, 44.2142000, 'approved', '[تهيئة:منزل-03] موقع معتمد من الإدارة.'),
+  ('AR-STU-501', 'منزل سارة', 'صنعاء - حي النهضة - جوار مسجد الرحمة', 15.4118000, 44.2015000, 'approved', '[تهيئة:منزل-04] موقع معتمد من الإدارة.'),
+  ('AR-STU-502', 'منزل عبد الرحمن', 'صنعاء - حي النهضة - خلف السوق الشرقي', 15.4192000, 44.2088000, 'approved', '[تهيئة:منزل-05] موقع معتمد من الإدارة.'),
+  ('AR-STU-503', 'منزل جنى', 'صنعاء - حي النهضة - شارع المدارس', 15.4251000, 44.2149000, 'approved', '[تهيئة:منزل-06] موقع معتمد من الإدارة.');
 
 INSERT INTO student_transport_home_locations (
   student_id,
@@ -1137,7 +1187,7 @@ SELECT
   shl.notes
 FROM seed_student_transport_home_locations shl
 JOIN students st ON st.academic_no = shl.student_academic_no
-JOIN users admin_user ON LOWER(admin_user.email) = LOWER('seed-admin-01@ishraf.local')
+JOIN users admin_user ON LOWER(admin_user.email) = LOWER('mod87521@gmail.com')
 ON CONFLICT (student_id) DO NOTHING;
 
 UPDATE student_transport_home_locations sthl
@@ -1154,7 +1204,7 @@ SET
   notes = shl.notes
 FROM seed_student_transport_home_locations shl
 JOIN students st ON st.academic_no = shl.student_academic_no
-JOIN users admin_user ON LOWER(admin_user.email) = LOWER('seed-admin-01@ishraf.local')
+JOIN users admin_user ON LOWER(admin_user.email) = LOWER('mod87521@gmail.com')
 WHERE sthl.student_id = st.id;
 
 CREATE TEMP TABLE seed_trips (
@@ -1170,9 +1220,8 @@ CREATE TEMP TABLE seed_trips (
 
 INSERT INTO seed_trips (bus_plate, route_name, trip_date, trip_type, trip_status, started_at, ended_at)
 VALUES
-  ('SEED-BUS-001', 'SEED-ROUTE-01', DATE '2026-03-20', 'pickup', 'scheduled', NULL, NULL),
-  ('SEED-BUS-002', 'SEED-ROUTE-02', DATE '2026-03-20', 'pickup', 'started', TIMESTAMPTZ '2026-03-20 06:30:00+03', NULL),
-  ('SEED-BUS-003', 'SEED-ROUTE-03', DATE '2026-03-20', 'dropoff', 'ended', TIMESTAMPTZ '2026-03-20 13:00:00+03', TIMESTAMPTZ '2026-03-20 14:15:00+03');
+  ('BUS-HILAL-01', 'خط حي النهضة - بوابة المدرسة', DATE '2026-03-31', 'pickup', 'ended', TIMESTAMPTZ '2026-03-31 06:15:00+03', TIMESTAMPTZ '2026-03-31 07:05:00+03'),
+  ('BUS-HILAL-01', 'خط حي النهضة - بوابة المدرسة', DATE '2026-03-31', 'dropoff', 'started', TIMESTAMPTZ '2026-03-31 12:45:00+03', NULL);
 
 INSERT INTO trips (bus_id, route_id, trip_date, trip_type, trip_status, started_at, ended_at)
 SELECT b.id, r.id, st.trip_date, st.trip_type, st.trip_status, st.started_at, st.ended_at
@@ -1275,9 +1324,9 @@ CREATE TEMP TABLE seed_bus_locations (
 
 INSERT INTO seed_bus_locations (bus_plate, route_name, trip_date, trip_type, latitude, longitude, recorded_at)
 VALUES
-  ('SEED-BUS-002', 'SEED-ROUTE-02', DATE '2026-03-20', 'pickup', 15.5151000, 44.3051000, TIMESTAMPTZ '2026-03-20 06:40:00+03'),
-  ('SEED-BUS-002', 'SEED-ROUTE-02', DATE '2026-03-20', 'pickup', 15.5221000, 44.3121000, TIMESTAMPTZ '2026-03-20 06:50:00+03'),
-  ('SEED-BUS-002', 'SEED-ROUTE-02', DATE '2026-03-20', 'pickup', 15.5281000, 44.3181000, TIMESTAMPTZ '2026-03-20 07:00:00+03');
+  ('BUS-HILAL-01', 'خط حي النهضة - بوابة المدرسة', DATE '2026-03-31', 'dropoff', 15.4201000, 44.2099000, TIMESTAMPTZ '2026-03-31 12:50:00+03'),
+  ('BUS-HILAL-01', 'خط حي النهضة - بوابة المدرسة', DATE '2026-03-31', 'dropoff', 15.4172000, 44.2067000, TIMESTAMPTZ '2026-03-31 13:00:00+03'),
+  ('BUS-HILAL-01', 'خط حي النهضة - بوابة المدرسة', DATE '2026-03-31', 'dropoff', 15.4124000, 44.2021000, TIMESTAMPTZ '2026-03-31 13:10:00+03');
 
 INSERT INTO bus_location_history (trip_id, latitude, longitude, recorded_at)
 SELECT tr.id, sbl.latitude, sbl.longitude, sbl.recorded_at
@@ -1307,12 +1356,16 @@ CREATE TEMP TABLE seed_trip_student_events (
 
 INSERT INTO seed_trip_student_events (seed_key, bus_plate, route_name, trip_date, trip_type, student_academic_no, event_type, stop_order, event_time, notes)
 VALUES
-  ('EVT-01', 'SEED-BUS-002', 'SEED-ROUTE-02', DATE '2026-03-20', 'pickup', 'SEED-STU-004', 'boarded', 1, TIMESTAMPTZ '2026-03-20 06:42:00+03', '[Seed EVT-01] Student boarded'),
-  ('EVT-02', 'SEED-BUS-002', 'SEED-ROUTE-02', DATE '2026-03-20', 'pickup', 'SEED-STU-005', 'boarded', 2, TIMESTAMPTZ '2026-03-20 06:51:00+03', '[Seed EVT-02] Student boarded'),
-  ('EVT-03', 'SEED-BUS-002', 'SEED-ROUTE-02', DATE '2026-03-20', 'pickup', 'SEED-STU-006', 'boarded', 3, TIMESTAMPTZ '2026-03-20 07:01:00+03', '[Seed EVT-03] Student boarded'),
-  ('EVT-04', 'SEED-BUS-003', 'SEED-ROUTE-03', DATE '2026-03-20', 'dropoff', 'SEED-STU-007', 'dropped_off', 2, TIMESTAMPTZ '2026-03-20 13:35:00+03', '[Seed EVT-04] Student dropped off'),
-  ('EVT-05', 'SEED-BUS-003', 'SEED-ROUTE-03', DATE '2026-03-20', 'dropoff', 'SEED-STU-008', 'dropped_off', 3, TIMESTAMPTZ '2026-03-20 13:50:00+03', '[Seed EVT-05] Student dropped off'),
-  ('EVT-06', 'SEED-BUS-003', 'SEED-ROUTE-03', DATE '2026-03-20', 'dropoff', 'SEED-STU-009', 'absent', NULL, TIMESTAMPTZ '2026-03-20 13:55:00+03', '[Seed EVT-06] Student absent');
+  ('EVT-AR-01', 'BUS-HILAL-01', 'خط حي النهضة - بوابة المدرسة', DATE '2026-03-31', 'pickup', 'AR-STU-401', 'boarded', 1, TIMESTAMPTZ '2026-03-31 06:20:00+03', '[تهيئة:نقل-حدث-01] صعد أحمد من المحطة الأولى.'),
+  ('EVT-AR-02', 'BUS-HILAL-01', 'خط حي النهضة - بوابة المدرسة', DATE '2026-03-31', 'pickup', 'AR-STU-402', 'boarded', 2, TIMESTAMPTZ '2026-03-31 06:28:00+03', '[تهيئة:نقل-حدث-02] صعدت ريم من المحطة الثانية.'),
+  ('EVT-AR-03', 'BUS-HILAL-01', 'خط حي النهضة - بوابة المدرسة', DATE '2026-03-31', 'pickup', 'AR-STU-403', 'boarded', 3, TIMESTAMPTZ '2026-03-31 06:35:00+03', '[تهيئة:نقل-حدث-03] صعد يوسف من بوابة المدرسة.'),
+  ('EVT-AR-04', 'BUS-HILAL-01', 'خط حي النهضة - بوابة المدرسة', DATE '2026-03-31', 'pickup', 'AR-STU-501', 'boarded', 1, TIMESTAMPTZ '2026-03-31 06:42:00+03', '[تهيئة:نقل-حدث-04] صعدت سارة من المحطة الأولى.'),
+  ('EVT-AR-05', 'BUS-HILAL-01', 'خط حي النهضة - بوابة المدرسة', DATE '2026-03-31', 'pickup', 'AR-STU-502', 'boarded', 2, TIMESTAMPTZ '2026-03-31 06:49:00+03', '[تهيئة:نقل-حدث-05] صعد عبد الرحمن من المحطة الثانية.'),
+  ('EVT-AR-06', 'BUS-HILAL-01', 'خط حي النهضة - بوابة المدرسة', DATE '2026-03-31', 'pickup', 'AR-STU-503', 'boarded', 3, TIMESTAMPTZ '2026-03-31 06:55:00+03', '[تهيئة:نقل-حدث-06] صعدت جنى من بوابة المدرسة.'),
+  ('EVT-AR-07', 'BUS-HILAL-01', 'خط حي النهضة - بوابة المدرسة', DATE '2026-03-31', 'dropoff', 'AR-STU-401', 'dropped_off', 1, TIMESTAMPTZ '2026-03-31 13:05:00+03', '[تهيئة:نقل-حدث-07] نزل أحمد في المحطة الأولى.'),
+  ('EVT-AR-08', 'BUS-HILAL-01', 'خط حي النهضة - بوابة المدرسة', DATE '2026-03-31', 'dropoff', 'AR-STU-402', 'dropped_off', 2, TIMESTAMPTZ '2026-03-31 13:12:00+03', '[تهيئة:نقل-حدث-08] نزلت ريم في المحطة الثانية.'),
+  ('EVT-AR-09', 'BUS-HILAL-01', 'خط حي النهضة - بوابة المدرسة', DATE '2026-03-31', 'dropoff', 'AR-STU-403', 'dropped_off', 3, TIMESTAMPTZ '2026-03-31 13:18:00+03', '[تهيئة:نقل-حدث-09] نزل يوسف عند بوابة المدرسة.'),
+  ('EVT-AR-10', 'BUS-HILAL-01', 'خط حي النهضة - بوابة المدرسة', DATE '2026-03-31', 'dropoff', 'AR-STU-502', 'absent', NULL, TIMESTAMPTZ '2026-03-31 13:20:00+03', '[تهيئة:نقل-حدث-10] عبد الرحمن غاب عن رحلة العودة.');
 
 INSERT INTO trip_student_events (trip_id, student_id, event_type, event_time, stop_id, notes)
 SELECT
@@ -1338,6 +1391,22 @@ WHERE NOT EXISTS (
 -- Communication
 -- =========================================================
 
+DELETE FROM announcement_target_roles
+WHERE announcement_id IN (
+  SELECT id
+  FROM announcements
+  WHERE title LIKE '[تهيئة:%'
+);
+
+DELETE FROM announcements
+WHERE title LIKE '[تهيئة:%';
+
+DELETE FROM notifications
+WHERE title LIKE '[تهيئة:%';
+
+DELETE FROM messages
+WHERE message_body LIKE '[تهيئة]%';
+
 CREATE TEMP TABLE seed_messages (
   seed_key text PRIMARY KEY,
   sender_email text NOT NULL,
@@ -1349,23 +1418,18 @@ CREATE TEMP TABLE seed_messages (
 
 INSERT INTO seed_messages (seed_key, sender_email, receiver_email, message_body, sent_at, read_at)
 VALUES
-  ('MSG-01', 'seed-teacher-01@ishraf.local', 'seed-parent-01@ishraf.local', '[Seed MSG-01] Weekly follow-up for student 001.', TIMESTAMPTZ '2026-03-18 09:00:00+03', TIMESTAMPTZ '2026-03-18 09:30:00+03'),
-  ('MSG-02', 'seed-parent-01@ishraf.local', 'seed-teacher-01@ishraf.local', '[Seed MSG-02] Thank you, I reviewed the update.', TIMESTAMPTZ '2026-03-18 09:40:00+03', TIMESTAMPTZ '2026-03-18 10:00:00+03'),
-  ('MSG-03', 'seed-admin-01@ishraf.local', 'seed-teacher-02@ishraf.local', '[Seed MSG-03] Please review the new science quiz setup.', TIMESTAMPTZ '2026-03-18 10:15:00+03', NULL),
-  ('MSG-04', 'seed-driver-02@ishraf.local', 'seed-admin-01@ishraf.local', '[Seed MSG-04] Route 02 started successfully.', TIMESTAMPTZ '2026-03-20 06:35:00+03', TIMESTAMPTZ '2026-03-20 06:40:00+03'),
-  ('MSG-05', 'seed-supervisor-02@ishraf.local', 'seed-admin-02@ishraf.local', '[Seed MSG-05] Behavior review completed for class SEED-B.', TIMESTAMPTZ '2026-03-19 11:00:00+03', NULL),
-  ('MSG-06', 'seed-parent-03@ishraf.local', 'seed-supervisor-03@ishraf.local', '[Seed MSG-06] Requesting a short behavior summary update.', TIMESTAMPTZ '2026-03-19 12:00:00+03', NULL);
+  ('MSG-AR-01', 'marwan-amin-shaban@ishraf.local', 'khaled-alarami@ishraf.local', '[تهيئة] متابعة الحضور: أحمد تأخر اليوم عن الحصة الأولى ونحتاج تعاون الأسرة.', TIMESTAMPTZ '2026-03-19 11:00:00+03', TIMESTAMPTZ '2026-03-19 11:20:00+03'),
+  ('MSG-AR-02', 'khaled-alarami@ishraf.local', 'marwan-amin-shaban@ishraf.local', '[تهيئة] شكرًا، سأتابع الأمر معه هذا المساء وأوافيك بالمستجدات.', TIMESTAMPTZ '2026-03-19 11:35:00+03', TIMESTAMPTZ '2026-03-19 12:00:00+03'),
+  ('MSG-AR-03', 'mod87521@gmail.com', 'idris-mashwir@ishraf.local', '[تهيئة] يرجى مراجعة ملاحظات السلوك للصف الرابع أ قبل نهاية اليوم.', TIMESTAMPTZ '2026-03-20 08:30:00+03', NULL),
+  ('MSG-AR-04', 'bassam-ali-ali-nuhailah@ishraf.local', 'mod87521@gmail.com', '[تهيئة] تم تحديث متابعة الصف الخامس أ واعتماد جميع الملاحظات.', TIMESTAMPTZ '2026-03-21 10:15:00+03', NULL),
+  ('MSG-AR-05', 'hilal-abdullah-almolsi@ishraf.local', 'mod87521@gmail.com', '[تهيئة] انطلقت رحلة الظهيرة من بوابة المدرسة وتم تسجيل أولى النقاط الميدانية.', TIMESTAMPTZ '2026-03-31 12:47:00+03', TIMESTAMPTZ '2026-03-31 12:55:00+03'),
+  ('MSG-AR-06', 'mod87521@gmail.com', 'marwan-amin-shaban@ishraf.local', '[تهيئة] تم اعتماد الخطة التشغيلية الحالية للفصل الثاني ويمكنك المتابعة على النظام.', TIMESTAMPTZ '2026-03-18 08:05:00+03', NULL);
 
 INSERT INTO messages (sender_user_id, receiver_user_id, message_body, sent_at, read_at)
 SELECT su.id, ru.id, sm.message_body, sm.sent_at, sm.read_at
 FROM seed_messages sm
 JOIN users su ON LOWER(su.email) = LOWER(sm.sender_email)
-JOIN users ru ON LOWER(ru.email) = LOWER(sm.receiver_email)
-WHERE NOT EXISTS (
-  SELECT 1
-  FROM messages m
-  WHERE m.message_body = sm.message_body
-);
+JOIN users ru ON LOWER(ru.email) = LOWER(sm.receiver_email);
 
 CREATE TEMP TABLE seed_announcements (
   title varchar(150) PRIMARY KEY,
@@ -1378,19 +1442,32 @@ CREATE TEMP TABLE seed_announcements (
 
 INSERT INTO seed_announcements (title, created_by_email, content, target_role, published_at, expires_at)
 VALUES
-  ('[Seed ANN-01] General platform notice', 'seed-admin-01@ishraf.local', 'This is a general announcement for all users during frontend development.', NULL, TIMESTAMPTZ '2026-03-18 08:00:00+03', NULL),
-  ('[Seed ANN-02] Teachers only reminder', 'seed-admin-01@ishraf.local', 'Please review attendance and homework entries before the end of the week.', 'teacher', TIMESTAMPTZ '2026-03-18 08:15:00+03', TIMESTAMPTZ '2026-04-15 23:59:59+03'),
-  ('[Seed ANN-03] Parents only reminder', 'seed-admin-02@ishraf.local', 'Please monitor notifications and homework submissions regularly.', 'parent', TIMESTAMPTZ '2026-03-18 08:30:00+03', TIMESTAMPTZ '2026-04-15 23:59:59+03');
+  ('[تهيئة:إعلان-01] إطلاق البيئة العربية التجريبية', 'mod87521@gmail.com', 'تم تجهيز بيئة عربية متكاملة تشمل الهيكل الأكاديمي والطلاب والتشغيل اليومي والنقل والتواصل.', NULL, TIMESTAMPTZ '2026-03-18 07:45:00+03', NULL),
+  ('[تهيئة:إعلان-02] متابعة الانضباط والحصص', 'mod87521@gmail.com', 'يرجى من المعلمين والمشرفين مراجعة الحضور والسلوك يوميًا ضمن السياق الأكاديمي النشط.', NULL, TIMESTAMPTZ '2026-03-18 08:00:00+03', TIMESTAMPTZ '2026-04-15 23:59:59+03'),
+  ('[تهيئة:إعلان-03] متابعة الأسرة للواجبات', 'mod87521@gmail.com', 'يرجى من أولياء الأمور متابعة الواجبات المنزلية والإشعارات بشكل يومي.', 'parent', TIMESTAMPTZ '2026-03-18 08:10:00+03', TIMESTAMPTZ '2026-04-15 23:59:59+03');
 
 INSERT INTO announcements (created_by, title, content, target_role, published_at, expires_at)
 SELECT u.id, sa.title, sa.content, sa.target_role, sa.published_at, sa.expires_at
 FROM seed_announcements sa
-JOIN users u ON LOWER(u.email) = LOWER(sa.created_by_email)
-WHERE NOT EXISTS (
-  SELECT 1
-  FROM announcements a
-  WHERE a.title = sa.title
-);
+JOIN users u ON LOWER(u.email) = LOWER(sa.created_by_email);
+
+CREATE TEMP TABLE seed_announcement_target_roles (
+  announcement_title varchar(150) NOT NULL,
+  target_role varchar(30) NOT NULL,
+  PRIMARY KEY (announcement_title, target_role)
+) ON COMMIT DROP;
+
+INSERT INTO seed_announcement_target_roles (announcement_title, target_role)
+VALUES
+  ('[تهيئة:إعلان-02] متابعة الانضباط والحصص', 'teacher'),
+  ('[تهيئة:إعلان-02] متابعة الانضباط والحصص', 'supervisor'),
+  ('[تهيئة:إعلان-03] متابعة الأسرة للواجبات', 'parent');
+
+INSERT INTO announcement_target_roles (announcement_id, target_role)
+SELECT a.id, satr.target_role
+FROM seed_announcement_target_roles satr
+JOIN announcements a ON a.title = satr.announcement_title
+ON CONFLICT (announcement_id, target_role) DO NOTHING;
 
 CREATE TEMP TABLE seed_notifications (
   title varchar(150) PRIMARY KEY,
@@ -1405,24 +1482,16 @@ CREATE TEMP TABLE seed_notifications (
 
 INSERT INTO seed_notifications (title, user_email, message, notification_type, reference_type, reference_id, is_read, created_at)
 VALUES
-  ('[Seed NTF-01] Parent attendance alert', 'seed-parent-01@ishraf.local', 'Student 001 was marked absent in the seed attendance dataset.', 'attendance_absent', 'attendance_record', NULL, false, TIMESTAMPTZ '2026-03-13 08:20:00+03'),
-  ('[Seed NTF-02] Parent behavior alert', 'seed-parent-02@ishraf.local', 'A behavior note was recorded for Student 004.', 'behavior_negative', 'behavior_record', NULL, false, TIMESTAMPTZ '2026-03-14 11:30:00+03'),
-  ('[Seed NTF-03] Parent transport alert', 'seed-parent-03@ishraf.local', 'Student 007 transport activity was updated.', 'transport_student_dropped_off', 'trip_student_event', NULL, true, TIMESTAMPTZ '2026-03-20 13:40:00+03'),
-  ('[Seed NTF-04] Teacher message reminder', 'seed-teacher-01@ishraf.local', 'You have unread communication items in the seed dataset.', 'communication_unread', 'message', NULL, false, TIMESTAMPTZ '2026-03-18 09:45:00+03'),
-  ('[Seed NTF-05] Teacher operations reminder', 'seed-teacher-02@ishraf.local', 'Seed assessments and homework are available for review.', 'system_alert', NULL, NULL, false, TIMESTAMPTZ '2026-03-18 10:20:00+03'),
-  ('[Seed NTF-06] Teacher dashboard note', 'seed-teacher-03@ishraf.local', 'Recent seed behavior and attendance data are ready.', 'system_alert', NULL, NULL, true, TIMESTAMPTZ '2026-03-18 10:25:00+03'),
-  ('[Seed NTF-07] Supervisor review note', 'seed-supervisor-02@ishraf.local', 'Behavior review items were seeded for class SEED-B.', 'system_alert', NULL, NULL, false, TIMESTAMPTZ '2026-03-19 11:05:00+03'),
-  ('[Seed NTF-08] Driver trip note', 'seed-driver-02@ishraf.local', 'Your seed trip is currently marked as started.', 'transport_trip_started', 'trip', NULL, false, TIMESTAMPTZ '2026-03-20 06:32:00+03'),
-  ('[Seed NTF-09] Admin inbox note', 'seed-admin-01@ishraf.local', 'Seed messages, trips, and reporting data are available.', 'system_alert', NULL, NULL, false, TIMESTAMPTZ '2026-03-20 07:10:00+03');
+  ('[تهيئة:إشعار-01] تنبيه حضور ولي الأمر', 'khaled-alarami@ishraf.local', 'تم تسجيل غياب يوسف خالد العرامي في حصة اللغة العربية.', 'attendance_absent', 'attendance_record', NULL, false, TIMESTAMPTZ '2026-03-19 08:20:00+03'),
+  ('[تهيئة:إشعار-02] تنبيه سلوك ولي الأمر', 'khaled-alarami@ishraf.local', 'تمت إضافة ملاحظة سلوكية تتعلق بسارة خالد العرامي.', 'behavior_negative', 'behavior_record', NULL, false, TIMESTAMPTZ '2026-03-21 10:45:00+03'),
+  ('[تهيئة:إشعار-03] تذكير للمعلم', 'marwan-amin-shaban@ishraf.local', 'لديك رسائل غير مقروءة ومهام تشغيلية محدثة للفصل الثاني.', 'communication_unread', 'message', NULL, false, TIMESTAMPTZ '2026-03-19 11:40:00+03'),
+  ('[تهيئة:إشعار-04] تنبيه للمشرف', 'idris-mashwir@ishraf.local', 'توجد ملاحظة سلوك إيجابية جديدة في الصف الرابع أ بحاجة للمراجعة.', 'system_alert', NULL, NULL, false, TIMESTAMPTZ '2026-03-20 09:10:00+03'),
+  ('[تهيئة:إشعار-05] تنبيه للسائق', 'hilal-abdullah-almolsi@ishraf.local', 'رحلة العودة النشطة لهذا اليوم قيد المتابعة الميدانية.', 'transport_trip_started', 'trip', NULL, false, TIMESTAMPTZ '2026-03-31 12:46:00+03'),
+  ('[تهيئة:إشعار-06] ملاحظة للأدمن', 'mod87521@gmail.com', 'تمت تهيئة البيئة العربية الكاملة وأصبحت جاهزة لاختبارات الفرونت.', 'system_alert', NULL, NULL, false, TIMESTAMPTZ '2026-03-31 14:00:00+03');
 
 INSERT INTO notifications (user_id, title, message, notification_type, reference_type, reference_id, is_read, created_at)
 SELECT u.id, sn.title, sn.message, sn.notification_type, sn.reference_type, sn.reference_id, sn.is_read, sn.created_at
 FROM seed_notifications sn
-JOIN users u ON LOWER(u.email) = LOWER(sn.user_email)
-WHERE NOT EXISTS (
-  SELECT 1
-  FROM notifications n
-  WHERE n.title = sn.title
-);
+JOIN users u ON LOWER(u.email) = LOWER(sn.user_email);
 
 COMMIT;
