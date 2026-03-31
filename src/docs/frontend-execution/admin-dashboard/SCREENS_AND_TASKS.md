@@ -2,18 +2,18 @@
 
 ## ترتيب التنفيذ المقترح
 
-1. auth + app shell
-2. dashboard overview
+1. auth + app shell + `Active Academic Context`
+2. dashboard كـ `Admin Workbench`
 3. users
-4. academic structure
-5. students + parents + promotions
+4. academic management
+5. students onboarding + detail + parents + planning
 6. attendance
 7. assessments
 8. behavior
-9. transport
-10. communication
-11. reporting
-12. homework
+9. homework
+10. reporting + monitoring
+11. transport
+12. communication
 
 ## الشاشات المطلوبة
 
@@ -33,10 +33,11 @@
 المهام:
 
 - عرض `admin dashboard summary`
-- عرض أحدث الطلاب
-- عرض أحدث الإعلانات
-- عرض الرحلات النشطة
-- ربط البطاقات بمسارات التفاصيل
+- عرض `active academic context`
+- عرض readiness checklist
+- عرض next required action
+- عرض quick actions للإعداد والتشغيل
+- إبقاء summary cards وrecent items أسفل workbench وليس بدلًا عنه
 
 ### 3. إدارة المستخدمين
 
@@ -64,6 +65,10 @@
 - create-subject flow must support a two-step path when semester availability is required:
   - create `subject`
   - then create one or more `subject-offerings`
+- كل صفحة يجب أن تعرض:
+  - ما الذي تعتمد عليه
+  - ما الخطوة التالية بعدها
+  - CTA مباشر للانتقال للكيان التالي في السلسلة
 
 ### 5. إدارة الطلاب
 
@@ -75,6 +80,17 @@
 - set primary parent
 - promote student
 - filters and pagination
+- create student يجب أن يعمل كـ onboarding flow:
+  - الهوية + enrollment الحالية
+  - ربط ولي الأمر
+  - الموقع المنزلي/النقل عند الحاجة
+- detail page يجب أن تفصل بين:
+  - الحالة الحالية
+  - history/planning
+  - الوالدين
+  - السلوك
+  - الواجبات
+  - النقل
 
 ### 6. إدارة الحضور
 
@@ -170,3 +186,8 @@
   - duplicate academic number
   - duplicate parent link
   - duplicate assessment/attendance constraints
+- اعتمدوا:
+  - `Unavailable`
+  - `Setup required`
+  - `Empty state`
+  كحالات مختلفة، ولا تدمجوها في حالة عامة واحدة

@@ -6,6 +6,10 @@
 - لذلك التوقع الافتراضي لم يعد `empty state` في السطوح الأساسية، بل وجود بيانات تشغيلية فعلية
 - مرجع الحالة الحية الحالي أصبح:
   - `src/docs/STAGING_FRONTEND_SEED.md`
+- مرجع التغطية المتوقع لكل شاشة أصبح:
+  - `src/docs/frontend-execution/admin-dashboard/ADMIN_DASHBOARD_SEED_COVERAGE_MATRIX.md`
+- مرجع الهجرة المؤسسية للوحة أصبح:
+  - `src/docs/frontend-execution/admin-dashboard/ADMIN_WORKBENCH_AND_ACTIVE_CONTEXT_MIGRATION.md`
 
 ## Happy Paths
 
@@ -43,6 +47,8 @@
 - reporting summaries قد تعود zero-safe وليست أخطاء
 - student reporting وstudent homework وstudent behavior لا يجب أن تفسر empty data على أنها `404`
 - transport summary قد لا يحتوي active trips
+- غياب `active context` يجب أن يظهر كـ `Unavailable` وليس empty state
+- prerequisites الناقصة يجب أن تظهر كـ `Setup required` وليس empty state
 
 ## Pagination / Filtering Cases
 

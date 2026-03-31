@@ -7,6 +7,17 @@
 - empty state لا تساوي unavailable state:
   - غياب `active context` = surface غير جاهزة
   - وجود `active context` بلا بيانات = empty state عادية
+
+## قاعدة تنفيذية مهمة
+
+- لا تُنفذ الشاشات كصفحات منفصلة غير مترابطة فقط
+- اعتمدوا نمط:
+  - `Admin Workbench`
+  - ثم `workflow-first pages`
+- المرجع التنفيذي لذلك:
+  - `src/docs/frontend-execution/admin-dashboard/ADMIN_WORKBENCH_AND_ACTIVE_CONTEXT_MIGRATION.md`
+  - `src/docs/frontend-execution/admin-dashboard/ADMIN_DASHBOARD_SEED_COVERAGE_MATRIX.md`
+
 ## Auth
 
 | Method + Path | Purpose | Used In | Role | Required Auth | Important Request Fields | Important Response Fields | Frontend Notes / Constraints | Source Reference |

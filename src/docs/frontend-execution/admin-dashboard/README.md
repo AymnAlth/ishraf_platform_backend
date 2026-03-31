@@ -52,7 +52,20 @@
 - `src/docs/LEGACY_DOC_ALIGNMENT.md`
 - `src/docs/transport/admin-dashboard-transport-handoff.md`
 - `src/modules/*/routes/*.routes.ts`
+- [ترحيل اللوحة إلى Workbench والسياق النشط](./ADMIN_WORKBENCH_AND_ACTIVE_CONTEXT_MIGRATION.md)
+- [مصفوفة تغطية seed للشاشات](./ADMIN_DASHBOARD_SEED_COVERAGE_MATRIX.md)
 - [شاشات ومهام لوحة الإدارة](./SCREENS_AND_TASKS.md)
 - [خريطة الـ endpoints](./ENDPOINT_MAP.md)
 - [مذكرة مواءمة العقود الإدارية](./ATTENDANCE_BEHAVIOR_ROUTE_ALIGNMENT.md)
 - [التحقق والقبول](./QA_AND_ACCEPTANCE.md)
+
+## قواعد تنفيذ مهمة
+
+- لا تبدأوا من الشاشات المتفرقة مباشرة؛ ابدؤوا من:
+  - `Active Academic Context`
+  - ثم `Admin Workbench`
+- اعتبروا `dashboard` هي المدخل المؤسسي الجديد، لا مجرد summary surface
+- ميّزوا دائمًا بين:
+  - `Academic Management`
+  - `Daily Operations`
+- اعتمدوا `src/docs/STAGING_FRONTEND_SEED.md` لتحديد ما الذي يجب أن يظهر الآن فعليًا على staging
