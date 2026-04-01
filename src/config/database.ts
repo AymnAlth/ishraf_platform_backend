@@ -50,7 +50,8 @@ export const databaseTables = {
   messages: `${databaseConfig.schema}.messages`,
   announcements: `${databaseConfig.schema}.announcements`,
   announcementTargetRoles: `${databaseConfig.schema}.announcement_target_roles`,
-  notifications: `${databaseConfig.schema}.notifications`
+  notifications: `${databaseConfig.schema}.notifications`,
+  schoolOnboardingImportRuns: `${databaseConfig.schema}.school_onboarding_import_runs`
 } as const;
 
 export const databaseViews = {

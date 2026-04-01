@@ -1,15 +1,15 @@
 # OpenAPI / Postman Audit
 
-- Audit date: 2026-03-30
-- Runtime endpoint count: 146
-- Runtime changes during this reconciliation: 10 new endpoint(s)
+- Audit date: 2026-04-01
+- Runtime endpoint count: 150
+- Runtime changes during this reconciliation: 14 new endpoint(s)
 
 ## Coverage Summary
 
 | Artifact | Before | After |
 | --- | --- | --- |
-| Master OpenAPI | 140/146 | 146/146 |
-| Master Postman | 140/146 | 146/146 |
+| Master OpenAPI | 150/150 | 150/150 |
+| Master Postman | 150/150 | 150/150 |
 | Auth OpenAPI | 7/7 | 7/7 |
 | Auth Postman | 7/7 | 7/7 |
 
@@ -20,13 +20,14 @@
 | Health | 2 | 2/2 | 2/2 | 2/2 | 2/2 |
 | Auth | 7 | 7/7 | 7/7 | 7/7 | 7/7 |
 | Users | 5 | 5/5 | 5/5 | 5/5 | 5/5 |
-| Academic Structure | 32 | 26/32 | 26/32 | 32/32 | 32/32 |
+| Academic Structure | 32 | 32/32 | 32/32 | 32/32 | 32/32 |
 | Students | 13 | 13/13 | 13/13 | 13/13 | 13/13 |
 | Attendance | 5 | 5/5 | 5/5 | 5/5 | 5/5 |
 | Assessments | 8 | 8/8 | 8/8 | 8/8 | 8/8 |
 | Behavior | 7 | 7/7 | 7/7 | 7/7 | 7/7 |
 | Transport | 26 | 26/26 | 26/26 | 26/26 | 26/26 |
 | Communication | 14 | 14/14 | 14/14 | 14/14 | 14/14 |
+| Admin Imports | 4 | 4/4 | 4/4 | 4/4 | 4/4 |
 | Homework | 5 | 5/5 | 5/5 | 5/5 | 5/5 |
 | Reporting | 22 | 22/22 | 22/22 | 22/22 | 22/22 |
 
@@ -42,15 +43,14 @@
 - `GET /reporting/admin-preview/supervisors/:supervisorUserId/dashboard`
 - `POST /communication/messages/bulk`
 - `POST /communication/notifications/bulk`
+- `POST /admin-imports/school-onboarding/dry-run`
+- `POST /admin-imports/school-onboarding/apply`
+- `GET /admin-imports/school-onboarding/history`
+- `GET /admin-imports/school-onboarding/history/:importId`
 
 ## Runtime Endpoints Missing From Master OpenAPI Before This Update
 
-- `PATCH /academic-structure/classes/:id`
-- `PATCH /academic-structure/subjects/:id`
-- `GET /academic-structure/supervisor-assignments/:id`
-- `PATCH /academic-structure/supervisor-assignments/:id`
-- `GET /academic-structure/teacher-assignments/:id`
-- `PATCH /academic-structure/teacher-assignments/:id`
+- none
 
 ## Views, Events, Targets Alignment
 

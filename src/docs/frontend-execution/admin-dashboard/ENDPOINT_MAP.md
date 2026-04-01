@@ -177,6 +177,15 @@
 | `GET /communication/notifications/me` | my notifications | notification center | `admin` | Bearer | pagination, `isRead?`, `notificationType?` | `items`, `pagination`, `unreadCount` | paginated | `API_REFERENCE.md`, `src/modules/communication/routes/communication.routes.ts` |
 | `PATCH /communication/notifications/:notificationId/read` | mark notification read | notification center | `admin` | Bearer | path `notificationId` | updated state | owner only | `API_REFERENCE.md`, `src/modules/communication/routes/communication.routes.ts` |
 
+## Admin Imports
+
+| Method + Path | Purpose | Used In | Role | Required Auth | Important Request Fields | Important Response Fields | Frontend Notes / Constraints | Source Reference |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `POST /admin-imports/school-onboarding/dry-run` | server-side workbook validation and planning | school onboarding / validation preview handoff | `admin` | Bearer | `templateVersion`, `fileName`, `fileHash`, `fileSize?`, `config`, `workbook` | `importId`, `status`, `canApply`, `summary`, `sheetSummaries`, `issues`, `resolvedReferenceCounts`, `entityPlanCounts` | structured workbook JSON only; no raw Excel upload; canonical backend validator before any write | `API_REFERENCE.md`, `src/modules/admin-imports/routes/admin-imports.routes.ts` |
+| `POST /admin-imports/school-onboarding/apply` | apply a validated import | school onboarding / final import action | `admin` | Bearer | `dryRunId`, `fallbackPassword?`, `confirmActivateContext?` | `importId`, `status=applied`, `alreadyApplied?`, summary payload | requires validated dry-run; all-or-nothing; create-only v1; repeated apply is idempotent | `API_REFERENCE.md`, `src/modules/admin-imports/routes/admin-imports.routes.ts` |
+| `GET /admin-imports/school-onboarding/history` | import audit list | school onboarding / history drawer or audit list | `admin` | Bearer | `page`, `limit` | paginated dry-run/apply history | use this instead of local import memory; backend is the source of truth for audit | `API_REFERENCE.md`, `src/modules/admin-imports/routes/admin-imports.routes.ts` |
+| `GET /admin-imports/school-onboarding/history/:importId` | import audit detail | school onboarding / reopen prior result | `admin` | Bearer | path `importId` | one import run with `result`, `dryRunSourceId`, summary and issues | use to reopen prior dry-run/apply outputs without recomputing client-side | `API_REFERENCE.md`, `src/modules/admin-imports/routes/admin-imports.routes.ts` |
+
 ## Reporting
 
 | Method + Path | Purpose | Used In | Role | Required Auth | Important Request Fields | Important Response Fields | Frontend Notes / Constraints | Source Reference |

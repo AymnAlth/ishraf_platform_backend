@@ -32,12 +32,12 @@
       "DateString": {
         "type": "string",
         "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-        "example": "2026-03-30"
+        "example": "2026-04-01"
       },
       "DateTimeString": {
         "type": "string",
         "format": "date-time",
-        "example": "2026-03-30T12:00:00.000Z"
+        "example": "2026-04-01T12:00:00.000Z"
       },
       "GenericObject": {
         "type": "object",
@@ -346,12 +346,12 @@
           "startDate": {
             "type": "string",
             "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-            "example": "2026-03-30"
+            "example": "2026-04-01"
           },
           "endDate": {
             "type": "string",
             "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-            "example": "2026-03-30"
+            "example": "2026-04-01"
           },
           "isActive": {
             "type": "boolean"
@@ -381,12 +381,12 @@
           "startDate": {
             "type": "string",
             "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-            "example": "2026-03-30"
+            "example": "2026-04-01"
           },
           "endDate": {
             "type": "string",
             "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-            "example": "2026-03-30"
+            "example": "2026-04-01"
           },
           "isActive": {
             "type": "boolean"
@@ -408,12 +408,12 @@
           "startDate": {
             "type": "string",
             "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-            "example": "2026-03-30"
+            "example": "2026-04-01"
           },
           "endDate": {
             "type": "string",
             "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-            "example": "2026-03-30"
+            "example": "2026-04-01"
           },
           "isActive": {
             "type": "boolean"
@@ -443,12 +443,12 @@
           "startDate": {
             "type": "string",
             "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-            "example": "2026-03-30"
+            "example": "2026-04-01"
           },
           "endDate": {
             "type": "string",
             "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-            "example": "2026-03-30"
+            "example": "2026-04-01"
           },
           "isActive": {
             "type": "boolean"
@@ -899,7 +899,7 @@
           "description": "الوحدة الثانية",
           "maxScore": 20,
           "weight": 10,
-          "assessmentDate": "2026-03-30",
+          "assessmentDate": "2026-04-01",
           "isPublished": true
         }
       },
@@ -937,7 +937,7 @@
           "subjectId": "1",
           "academicYearId": "1",
           "semesterId": "1",
-          "sessionDate": "2026-03-30",
+          "sessionDate": "2026-04-01",
           "periodNo": 1,
           "title": "حصة الرياضيات",
           "notes": "اختبار سريع",
@@ -990,7 +990,7 @@
           "semesterId": "1",
           "description": "تأخر عن الطابور",
           "severity": 3,
-          "behaviorDate": "2026-03-30",
+          "behaviorDate": "2026-04-01",
           "teacherId": "47"
         }
       },
@@ -1040,7 +1040,7 @@
           "studentId": "1",
           "routeId": "1",
           "stopId": "1",
-          "startDate": "2026-03-30",
+          "startDate": "2026-04-01",
           "endDate": null
         }
       },
@@ -1048,7 +1048,7 @@
         "type": "object",
         "additionalProperties": true,
         "example": {
-          "endDate": "2026-03-30"
+          "endDate": "2026-04-01"
         }
       },
       "CreateTransportRouteAssignmentRequest": {
@@ -1057,7 +1057,7 @@
         "example": {
           "busId": "1",
           "routeId": "1",
-          "startDate": "2026-03-30",
+          "startDate": "2026-04-01",
           "endDate": null
         }
       },
@@ -1065,7 +1065,7 @@
         "type": "object",
         "additionalProperties": true,
         "example": {
-          "endDate": "2026-03-30"
+          "endDate": "2026-04-01"
         }
       },
       "CreateTripRequest": {
@@ -1074,7 +1074,7 @@
         "example": {
           "busId": "1",
           "routeId": "1",
-          "tripDate": "2026-03-30",
+          "tripDate": "2026-04-01",
           "tripType": "pickup"
         }
       },
@@ -1083,7 +1083,7 @@
         "additionalProperties": true,
         "example": {
           "routeAssignmentId": "1",
-          "tripDate": "2026-03-30",
+          "tripDate": "2026-04-01",
           "tripType": "pickup"
         }
       },
@@ -1192,7 +1192,7 @@
           "semesterId": "1",
           "title": "واجب الرياضيات 2",
           "description": "حل الصفحات 12-14",
-          "assignedDate": "2026-03-30",
+          "assignedDate": "2026-04-01",
           "dueDate": "2026-03-28"
         }
       },
@@ -1204,16 +1204,441 @@
             {
               "studentId": "1",
               "status": "submitted",
-              "submittedAt": "2026-03-30",
+              "submittedAt": "2026-04-01",
               "notes": "تم التسليم"
             },
             {
               "studentId": "2",
               "status": "late",
-              "submittedAt": "2026-03-30",
+              "submittedAt": "2026-04-01",
               "notes": "تسليم متأخر"
             }
           ]
+        }
+      },
+      "SchoolOnboardingDryRunRequest": {
+        "type": "object",
+        "additionalProperties": true,
+        "example": {
+          "templateVersion": "2026.04.phase-b",
+          "fileName": "school-onboarding-valid.json",
+          "fileHash": "sha256-valid-import-v1",
+          "fileSize": 1024,
+          "config": {
+            "activateAfterImport": false,
+            "targetAcademicYearName": "2026-2027",
+            "targetSemesterName": "الفصل الأول"
+          },
+          "workbook": {
+            "sheets": {
+              "README": {
+                "sheetId": "README",
+                "present": true,
+                "headers": [
+                  "section",
+                  "instruction"
+                ],
+                "rows": []
+              },
+              "CONFIG": {
+                "sheetId": "CONFIG",
+                "present": true,
+                "headers": [
+                  "setting_key",
+                  "setting_value",
+                  "edit_policy",
+                  "note"
+                ],
+                "rows": [
+                  {
+                    "rowNumber": 2,
+                    "values": {
+                      "setting_key": "activate_after_import",
+                      "setting_value": "false",
+                      "edit_policy": "frontend-driven",
+                      "note": "يضبط من الواجهة"
+                    }
+                  }
+                ]
+              },
+              "LOOKUPS_ENUMS": {
+                "sheetId": "LOOKUPS_ENUMS",
+                "present": true,
+                "headers": [
+                  "lookup_name",
+                  "allowed_value",
+                  "display_label"
+                ],
+                "rows": []
+              },
+              "REF_EXISTING_ACADEMIC": {
+                "sheetId": "REF_EXISTING_ACADEMIC",
+                "present": true,
+                "headers": [
+                  "entity_type",
+                  "parent_name",
+                  "code",
+                  "name",
+                  "secondary_name",
+                  "status"
+                ],
+                "rows": []
+              },
+              "REF_EXISTING_USERS": {
+                "sheetId": "REF_EXISTING_USERS",
+                "present": true,
+                "headers": [
+                  "role",
+                  "full_name",
+                  "phone",
+                  "email",
+                  "status"
+                ],
+                "rows": []
+              },
+              "AcademicYears": {
+                "sheetId": "AcademicYears",
+                "present": true,
+                "headers": [
+                  "year_name",
+                  "start_date",
+                  "end_date"
+                ],
+                "rows": [
+                  {
+                    "rowNumber": 2,
+                    "values": {
+                      "year_name": "2026-2027",
+                      "start_date": "2026-09-01",
+                      "end_date": "2027-06-30"
+                    }
+                  }
+                ]
+              },
+              "Semesters": {
+                "sheetId": "Semesters",
+                "present": true,
+                "headers": [
+                  "academic_year_name",
+                  "semester_name",
+                  "start_date",
+                  "end_date"
+                ],
+                "rows": [
+                  {
+                    "rowNumber": 2,
+                    "values": {
+                      "academic_year_name": "2026-2027",
+                      "semester_name": "الفصل الأول",
+                      "start_date": "2026-09-01",
+                      "end_date": "2027-01-31"
+                    }
+                  }
+                ]
+              },
+              "GradeLevels": {
+                "sheetId": "GradeLevels",
+                "present": true,
+                "headers": [
+                  "grade_level_name",
+                  "level_order"
+                ],
+                "rows": [
+                  {
+                    "rowNumber": 2,
+                    "values": {
+                      "grade_level_name": "الصف الرابع",
+                      "level_order": 4
+                    }
+                  }
+                ]
+              },
+              "Classes": {
+                "sheetId": "Classes",
+                "present": true,
+                "headers": [
+                  "academic_year_name",
+                  "grade_level_name",
+                  "class_name",
+                  "section",
+                  "capacity",
+                  "is_active"
+                ],
+                "rows": [
+                  {
+                    "rowNumber": 2,
+                    "values": {
+                      "academic_year_name": "2026-2027",
+                      "grade_level_name": "الصف الرابع",
+                      "class_name": "أ",
+                      "section": "علوم",
+                      "capacity": 35,
+                      "is_active": "true"
+                    }
+                  }
+                ]
+              },
+              "Subjects": {
+                "sheetId": "Subjects",
+                "present": true,
+                "headers": [
+                  "grade_level_name",
+                  "subject_code",
+                  "subject_name",
+                  "is_active"
+                ],
+                "rows": [
+                  {
+                    "rowNumber": 2,
+                    "values": {
+                      "grade_level_name": "الصف الرابع",
+                      "subject_code": "AR4",
+                      "subject_name": "اللغة العربية",
+                      "is_active": "true"
+                    }
+                  }
+                ]
+              },
+              "Users_Teachers": {
+                "sheetId": "Users_Teachers",
+                "present": true,
+                "headers": [
+                  "full_name",
+                  "phone",
+                  "email",
+                  "specialization",
+                  "qualification",
+                  "hire_date"
+                ],
+                "rows": [
+                  {
+                    "rowNumber": 2,
+                    "values": {
+                      "full_name": "المعلم سامي",
+                      "phone": "0900000101",
+                      "email": "teacher-import@example.com",
+                      "specialization": "لغة عربية",
+                      "qualification": "بكالوريوس",
+                      "hire_date": "2026-09-01"
+                    }
+                  }
+                ]
+              },
+              "Users_Supervisors": {
+                "sheetId": "Users_Supervisors",
+                "present": true,
+                "headers": [
+                  "full_name",
+                  "phone",
+                  "email",
+                  "department"
+                ],
+                "rows": []
+              },
+              "Users_Parents": {
+                "sheetId": "Users_Parents",
+                "present": true,
+                "headers": [
+                  "full_name",
+                  "phone",
+                  "email",
+                  "address"
+                ],
+                "rows": []
+              },
+              "Users_Drivers": {
+                "sheetId": "Users_Drivers",
+                "present": true,
+                "headers": [
+                  "full_name",
+                  "phone",
+                  "email",
+                  "license_number",
+                  "driver_status"
+                ],
+                "rows": []
+              },
+              "Students": {
+                "sheetId": "Students",
+                "present": true,
+                "headers": [
+                  "academic_number",
+                  "full_name",
+                  "gender",
+                  "date_of_birth",
+                  "status",
+                  "enrollment_date",
+                  "address"
+                ],
+                "rows": [
+                  {
+                    "rowNumber": 2,
+                    "values": {
+                      "academic_number": "STU-IMPORT-01",
+                      "full_name": "الطالب يحيى",
+                      "gender": "male",
+                      "date_of_birth": "2017-02-01",
+                      "status": "active",
+                      "enrollment_date": "2026-09-01",
+                      "address": "صنعاء"
+                    }
+                  }
+                ]
+              },
+              "StudentParentLinks": {
+                "sheetId": "StudentParentLinks",
+                "present": true,
+                "headers": [
+                  "student_academic_number",
+                  "parent_phone_or_email",
+                  "relation_type",
+                  "is_primary"
+                ],
+                "rows": []
+              },
+              "StudentEnrollments": {
+                "sheetId": "StudentEnrollments",
+                "present": true,
+                "headers": [
+                  "student_academic_number",
+                  "academic_year_name",
+                  "grade_level_name",
+                  "class_name",
+                  "section"
+                ],
+                "rows": [
+                  {
+                    "rowNumber": 2,
+                    "values": {
+                      "student_academic_number": "STU-IMPORT-01",
+                      "academic_year_name": "2026-2027",
+                      "grade_level_name": "الصف الرابع",
+                      "class_name": "أ",
+                      "section": "علوم"
+                    }
+                  }
+                ]
+              },
+              "SubjectOfferings": {
+                "sheetId": "SubjectOfferings",
+                "present": true,
+                "headers": [
+                  "academic_year_name",
+                  "semester_name",
+                  "grade_level_name",
+                  "subject_code",
+                  "is_active"
+                ],
+                "rows": []
+              },
+              "TeacherAssignments": {
+                "sheetId": "TeacherAssignments",
+                "present": true,
+                "headers": [
+                  "academic_year_name",
+                  "grade_level_name",
+                  "class_name",
+                  "section",
+                  "subject_code",
+                  "teacher_phone_or_email"
+                ],
+                "rows": []
+              },
+              "SupervisorAssignments": {
+                "sheetId": "SupervisorAssignments",
+                "present": true,
+                "headers": [
+                  "academic_year_name",
+                  "grade_level_name",
+                  "class_name",
+                  "section",
+                  "supervisor_phone_or_email"
+                ],
+                "rows": []
+              },
+              "Buses": {
+                "sheetId": "Buses",
+                "present": true,
+                "headers": [
+                  "plate_number",
+                  "capacity",
+                  "driver_phone_or_email",
+                  "status"
+                ],
+                "rows": []
+              },
+              "Routes": {
+                "sheetId": "Routes",
+                "present": true,
+                "headers": [
+                  "route_name",
+                  "start_point",
+                  "end_point",
+                  "estimated_duration_minutes",
+                  "is_active"
+                ],
+                "rows": []
+              },
+              "RouteStops": {
+                "sheetId": "RouteStops",
+                "present": true,
+                "headers": [
+                  "route_name",
+                  "stop_order",
+                  "stop_name",
+                  "latitude",
+                  "longitude"
+                ],
+                "rows": []
+              },
+              "RouteAssignments": {
+                "sheetId": "RouteAssignments",
+                "present": true,
+                "headers": [
+                  "bus_plate_number",
+                  "route_name",
+                  "start_date",
+                  "end_date"
+                ],
+                "rows": []
+              },
+              "StudentTransportAssignments": {
+                "sheetId": "StudentTransportAssignments",
+                "present": true,
+                "headers": [
+                  "student_academic_number",
+                  "route_name",
+                  "stop_order",
+                  "start_date",
+                  "end_date"
+                ],
+                "rows": []
+              },
+              "StudentHomeLocations": {
+                "sheetId": "StudentHomeLocations",
+                "present": true,
+                "headers": [
+                  "student_academic_number",
+                  "address_label",
+                  "address_text",
+                  "latitude",
+                  "longitude",
+                  "status",
+                  "notes"
+                ],
+                "rows": []
+              }
+            }
+          }
+        }
+      },
+      "SchoolOnboardingApplyRequest": {
+        "type": "object",
+        "additionalProperties": true,
+        "example": {
+          "dryRunId": "1",
+          "fallbackPassword": "ImportSeed123!",
+          "confirmActivateContext": false
         }
       }
     }
@@ -1494,8 +1919,8 @@
                     "phone": null,
                     "role": "admin",
                     "isActive": true,
-                    "createdAt": "2026-03-30T12:00:00.000Z",
-                    "updatedAt": "2026-03-30T12:00:00.000Z"
+                    "createdAt": "2026-04-01T12:00:00.000Z",
+                    "updatedAt": "2026-04-01T12:00:00.000Z"
                   }
                 }
               }
@@ -1686,8 +2111,8 @@
                     "phone": null,
                     "role": "admin",
                     "isActive": true,
-                    "createdAt": "2026-03-30T12:00:00.000Z",
-                    "updatedAt": "2026-03-30T12:00:00.000Z"
+                    "createdAt": "2026-04-01T12:00:00.000Z",
+                    "updatedAt": "2026-04-01T12:00:00.000Z"
                   }
                 }
               }
@@ -1785,8 +2210,8 @@
                     "phone": null,
                     "role": "admin",
                     "isActive": true,
-                    "createdAt": "2026-03-30T12:00:00.000Z",
-                    "updatedAt": "2026-03-30T12:00:00.000Z"
+                    "createdAt": "2026-04-01T12:00:00.000Z",
+                    "updatedAt": "2026-04-01T12:00:00.000Z"
                   }
                 }
               }

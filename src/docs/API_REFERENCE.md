@@ -8,11 +8,11 @@
   - `src/docs/openapi/ishraf-platform.openapi.json`
   - `src/docs/postman/ishraf-platform.postman_collection.json`
 - حالة التغطية الحالية:
-- `OpenAPI = 146/146`
-- `Postman = 146/146`
+- `OpenAPI = 150/150`
+- `Postman = 150/150`
 - هذا الملف يشرح العقود البشرية وقواعد الاستخدام والـ endpoints الأكثر أهمية للفرق، ويجب أن يبقى منسجمًا مع الكود و`OpenAPI/Postman` دون أن يحاول أن يكون clone حرفيًا لكل schema سطرًا بسطر.
 
-حالة البيئة المستضافة الحالية بتاريخ `2026-03-31`:
+حالة البيئة المستضافة الحالية بتاريخ `2026-04-01`:
 - حساب الأدمن الأساسي المحفوظ: `mod87521@gmail.com`
 - الحسابات الحالية نفسها موثقة في `src/docs/STAGING_FRONTEND_SEED.md`
 - توجد الآن dataset أكاديمية وتشغيلية عربية متكاملة على البيئة المستضافة
@@ -1585,6 +1585,301 @@ Authorization: Bearer <accessToken>
 }
 ```
 
+### Admin Imports Module
+
+#### مقدمة تشغيلية
+
+خدمة `School Onboarding Import` هي خدمة استيراد مؤسسية مخصصة للإدارة:
+
+- `admin-only`
+- `structured workbook payload` فقط
+- لا تدعم `raw Excel upload` في `v1`
+- `dry-run` ثم `apply`
+- `all-or-nothing`
+- `create-only v1`
+- مع `import audit trail` محفوظة في قاعدة البيانات
+
+هذه الخدمة لا تستبدل create endpoints اليومية، ولا يجب على الفرونت تنفيذ loops كتابية بدلًا عنها.
+
+المسارات الرسمية:
+
+- `POST /admin-imports/school-onboarding/dry-run`
+- `POST /admin-imports/school-onboarding/apply`
+- `GET /admin-imports/school-onboarding/history`
+- `GET /admin-imports/school-onboarding/history/:importId`
+
+#### POST `/admin-imports/school-onboarding/dry-run`
+
+الهدف: تنفيذ تحقق خادمي كامل على workbook منظمة، مع حل العلاقات الطبيعية داخل الخادم فقط، ثم حفظ نتيجة dry-run قابلة للمراجعة والتطبيق لاحقًا.
+
+```http
+POST /api/v1/admin-imports/school-onboarding/dry-run
+Authorization: Bearer <accessToken>
+Content-Type: application/json
+```
+
+مهم:
+- `workbook` هنا JSON منظمة ناتجة من parser الفرونت، وليست ملف Excel ثنائي
+- `templateVersion` يجب أن يطابق نسخة القالب الرسمية
+- `workbook.sheets` يجب أن تحتوي جميع أوراق القالب المعتمدة
+- `dry-run` لا تكتب بيانات الدومين نفسها
+- تحفظ فقط سجل import audit مع:
+  - `payload`
+  - `summary`
+  - `issues`
+  - `entity counts`
+
+مثال مختصر:
+
+```json
+{
+  "templateVersion": "2026.04.phase-b",
+  "fileName": "school-onboarding-valid.json",
+  "fileHash": "sha256-valid-import-v1",
+  "fileSize": 1024,
+  "config": {
+    "activateAfterImport": false,
+    "targetAcademicYearName": "2026-2027",
+    "targetSemesterName": "الفصل الأول"
+  },
+  "workbook": {
+    "sheets": {
+      "AcademicYears": {
+        "sheetId": "AcademicYears",
+        "present": true,
+        "headers": ["year_name", "start_date", "end_date"],
+        "rows": [
+          {
+            "rowNumber": 2,
+            "values": {
+              "year_name": "2026-2027",
+              "start_date": "2026-09-01",
+              "end_date": "2027-06-30"
+            }
+          }
+        ]
+      }
+    }
+  }
+}
+```
+
+نجاح `dry-run` قد يرجع:
+
+```json
+{
+  "success": true,
+  "message": "School onboarding dry-run completed",
+  "data": {
+    "importId": "1",
+    "mode": "dry-run",
+    "status": "validated",
+    "canApply": true,
+    "summary": {
+      "totalSheets": 26,
+      "presentSheets": 26,
+      "totalRows": 8,
+      "errorCount": 0,
+      "warningCount": 1
+    },
+    "sheetSummaries": [
+      {
+        "sheetId": "AcademicYears",
+        "rowCount": 1,
+        "errorCount": 0,
+        "warningCount": 0,
+        "present": true
+      }
+    ],
+    "issues": [
+      {
+        "level": "warning",
+        "code": "phone_password_policy_applied",
+        "sheetId": "Users_Teachers",
+        "rowNumber": 2,
+        "columnKey": "phone",
+        "message": "سيتم اشتقاق كلمة المرور من رقم الهاتف لهذا الحساب عند التطبيق",
+        "suggestedFix": "مرر fallbackPassword فقط إذا أردت استخدام كلمة مرور موحدة بدل الاشتقاق من الهاتف"
+      }
+    ],
+    "resolvedReferenceCounts": {
+      "academicYears": 1,
+      "semesters": 1,
+      "gradeLevels": 1,
+      "classes": 1,
+      "subjects": 1,
+      "teachers": 1,
+      "students": 1
+    },
+    "entityPlanCounts": {
+      "academicYears": 1,
+      "semesters": 1,
+      "gradeLevels": 1,
+      "classes": 1,
+      "subjects": 1,
+      "users": 1,
+      "students": 1,
+      "studentEnrollments": 1
+    }
+  }
+}
+```
+
+#### POST `/admin-imports/school-onboarding/apply`
+
+الهدف: تطبيق dry-run ناجحة داخل transaction واحدة.
+
+```http
+POST /api/v1/admin-imports/school-onboarding/apply
+Authorization: Bearer <accessToken>
+Content-Type: application/json
+```
+
+```json
+{
+  "dryRunId": "1",
+  "fallbackPassword": "ImportSeed123!",
+  "confirmActivateContext": false
+}
+```
+
+القواعد:
+- `apply` تتطلب `dryRunId` صحيحة و`validated`
+- الباك يعيد `re-validation` سريعة حساسة للتعارضات قبل الكتابة
+- إذا حدث conflict عند التطبيق:
+  - لا يتم commit جزئي
+- إذا أعيد استدعاء `apply` لنفس `dryRunId` بعد نجاح سابق:
+  - لا يكرر الكتابة
+  - يعيد نفس النتيجة مع `alreadyApplied=true`
+
+نجاح `apply`:
+
+```json
+{
+  "success": true,
+  "message": "School onboarding import applied",
+  "data": {
+    "importId": "2",
+    "mode": "apply",
+    "status": "applied",
+    "canApply": false,
+    "summary": {
+      "totalSheets": 26,
+      "presentSheets": 26,
+      "totalRows": 8,
+      "errorCount": 0,
+      "warningCount": 1
+    },
+    "sheetSummaries": [],
+    "issues": [],
+    "resolvedReferenceCounts": {
+      "academicYears": 1,
+      "semesters": 1
+    },
+    "entityPlanCounts": {
+      "academicYears": 1,
+      "semesters": 1,
+      "gradeLevels": 1,
+      "classes": 1,
+      "subjects": 1,
+      "users": 1,
+      "students": 1,
+      "studentEnrollments": 1
+    },
+    "alreadyApplied": false
+  }
+}
+```
+
+#### GET `/admin-imports/school-onboarding/history`
+
+الهدف: جلب سجل dry-run/apply السابق للمراجعة والإدارة.
+
+```http
+GET /api/v1/admin-imports/school-onboarding/history?page=1&limit=20
+Authorization: Bearer <accessToken>
+```
+
+يرجع Pagination عادية، وكل عنصر يحتوي:
+- `importId`
+- `mode`
+- `status`
+- `templateVersion`
+- `fileName`
+- `fileHash`
+- `submittedAt`
+- `appliedAt`
+- `submittedBy`
+- `canApply`
+- `summary`
+
+#### GET `/admin-imports/school-onboarding/history/:importId`
+
+الهدف: جلب سجل import واحد بالتفاصيل الكاملة، بما في ذلك:
+- `dryRunSourceId`
+- `result`
+- `issues`
+- `entity counts`
+
+```http
+GET /api/v1/admin-imports/school-onboarding/history/2
+Authorization: Bearer <accessToken>
+```
+
+#### حدود `v1`
+
+داخل النطاق:
+- years / semesters / grade levels / classes / subjects
+- teachers / supervisors / parents / drivers
+- students / parent links / enrollments
+- subject offerings / teacher assignments / supervisor assignments
+- buses / routes / route stops / route assignments
+- student transport assignments / student home locations
+
+خارج النطاق:
+- attendance
+- assessments
+- behavior
+- homework
+- trips
+- communication records
+- reporting outputs
+
+#### قواعد domain المعتمدة
+
+- `create-only`
+- لا `update existing`
+- لا `delete`
+- لا `sync`
+- لا `raw IDs`
+- جميع العلاقات الحساسة تُحل من natural/composite keys داخل الخادم فقط
+
+#### سلوك الأخطاء المتوقع
+
+أمثلة codes معتمدة:
+- `template_version_mismatch`
+- `missing_sheet`
+- `header_mismatch`
+- `duplicate_row_in_sheet`
+- `duplicate_existing_record`
+- `ambiguous_parent_reference`
+- `ambiguous_teacher_reference`
+- `ambiguous_supervisor_reference`
+- `missing_target_active_year_reference`
+- `missing_target_active_semester_reference`
+- `dry_run_required`
+- `dry_run_not_found`
+- `dry_run_stale`
+- `import_already_applied`
+
+#### سياسة كلمات المرور
+
+- كلمات المرور لا تُرسل داخل Excel
+- الحسابات الجديدة تعتمد على:
+  - اشتقاق من `phone` إذا أمكن
+  - أو `fallbackPassword` من طلب `apply`
+- يجب على الفرونت اعتبار backend هي المصدر النهائي لهذا القرار، لا parser المحلي
+
 ## Common Validation / Conflict Cases
 
 - `401 Unauthorized`
@@ -1669,6 +1964,14 @@ Authorization: Bearer <accessToken>
 - إنشاء behavior record يتطلب `behaviorCategoryId`, `academicYearId`, `semesterId`, `behaviorDate`.
 - لا يوجد حاليًا `actionTaken` في behavior records.
 - `GET /behavior/categories` لا يدعم `behaviorType` filter في v1.
+- في `School Onboarding Import`:
+  - لا ترسلوا ملفات Excel raw إلى الباك في `v1`
+  - لا تنفذوا loops كتابية من الفرونت
+  - المسار الرسمي هو:
+    - `dry-run`
+    - ثم `apply`
+  - `apply` تعتمد على `dryRunId` ناجحة ومحفوظة
+  - الخدمة `create-only` ولا تنفذ `update/delete/sync`
 - إذا احتجت توضيحًا موحدًا بسبب أخطاء `404` أو التباس عقود التقارير الإدارية فارجع إلى:
   - `src/docs/frontend-execution/admin-dashboard/ATTENDANCE_BEHAVIOR_ROUTE_ALIGNMENT.md`
 

@@ -57,7 +57,8 @@ export const registerMigrationSmokeTests = ({ pool }: MigrationSuiteContext): vo
               'messages',
               'announcements',
               'announcement_target_roles',
-              'notifications'
+              'notifications',
+              'school_onboarding_import_runs'
             )
         `
       );
@@ -86,6 +87,7 @@ export const registerMigrationSmokeTests = ({ pool }: MigrationSuiteContext): vo
         "parents",
         "password_reset_tokens",
         "routes",
+        "school_onboarding_import_runs",
         "semesters",
         "student_academic_enrollments",
         "student_assessments",
@@ -137,22 +139,37 @@ export const registerMigrationSmokeTests = ({ pool }: MigrationSuiteContext): vo
     async () => {
       runMigration("down");
 
-      const droppedTriggers = await pool.query<{ trigger_name: string }>(
+      const droppedImportTables = await pool.query<{ table_name: string }>(
+        `
+          SELECT table_name
+          FROM information_schema.tables
+          WHERE table_schema = 'public'
+            AND table_name = 'school_onboarding_import_runs'
+        `
+      );
+
+      expect(droppedImportTables.rows).toHaveLength(0);
+
+      const droppedImportTriggers = await pool.query<{ trigger_name: string }>(
         `
           SELECT trigger_name
           FROM information_schema.triggers
           WHERE trigger_schema = 'public'
-            AND event_object_table = 'students'
-            AND trigger_name IN (
-              'trg_students_sync_academic_enrollment'
-            )
+            AND event_object_table = 'school_onboarding_import_runs'
+            AND trigger_name = 'trg_school_onboarding_import_runs_set_updated_at'
         `
       );
 
-      expect(droppedTriggers.rows).toHaveLength(0);
+      expect(droppedImportTriggers.rows).toHaveLength(0);
 
       runMigration("up");
     },
     20_000
   );
 };
+
+
+
+
+
+

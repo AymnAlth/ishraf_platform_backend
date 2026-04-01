@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Ishraf Platform Backend API",
-    "_postman_id": "6ce2a7e1-34a3-4b64-8a96-1d2225bc3e92",
+    "_postman_id": "10fbcf77-697f-4472-a349-4ccf4cdefa10",
     "description": "Full Postman collection covering every live backend endpoint.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
@@ -132,6 +132,14 @@
     },
     {
       "key": "notificationId",
+      "value": ""
+    },
+    {
+      "key": "importId",
+      "value": ""
+    },
+    {
+      "key": "dryRunId",
       "value": ""
     },
     {
@@ -2157,17 +2165,17 @@
                 },
                 {
                   "key": "sessionDate",
-                  "value": "2026-03-30",
+                  "value": "2026-04-01",
                   "description": "Filter by exact session date."
                 },
                 {
                   "key": "dateFrom",
-                  "value": "2026-03-30",
+                  "value": "2026-04-01",
                   "description": "Filter from session date."
                 },
                 {
                   "key": "dateTo",
-                  "value": "2026-03-30",
+                  "value": "2026-04-01",
                   "description": "Filter to session date."
                 }
               ]
@@ -2202,7 +2210,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"classId\": \"1\",\n  \"subjectId\": \"1\",\n  \"academicYearId\": \"1\",\n  \"semesterId\": \"1\",\n  \"sessionDate\": \"2026-03-30\",\n  \"periodNo\": 1,\n  \"title\": \"حصة الرياضيات\",\n  \"notes\": \"اختبار سريع\",\n  \"teacherId\": \"47\"\n}"
+              "raw": "{\n  \"classId\": \"1\",\n  \"subjectId\": \"1\",\n  \"academicYearId\": \"1\",\n  \"semesterId\": \"1\",\n  \"sessionDate\": \"2026-04-01\",\n  \"periodNo\": 1,\n  \"title\": \"حصة الرياضيات\",\n  \"notes\": \"اختبار سريع\",\n  \"teacherId\": \"47\"\n}"
             }
           }
         },
@@ -2343,17 +2351,17 @@
                 },
                 {
                   "key": "assessmentDate",
-                  "value": "2026-03-30",
+                  "value": "2026-04-01",
                   "description": "Filter by exact assessment date."
                 },
                 {
                   "key": "dateFrom",
-                  "value": "2026-03-30",
+                  "value": "2026-04-01",
                   "description": "Filter from assessment date."
                 },
                 {
                   "key": "dateTo",
-                  "value": "2026-03-30",
+                  "value": "2026-04-01",
                   "description": "Filter to assessment date."
                 },
                 {
@@ -2392,7 +2400,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"assessmentTypeId\": \"1\",\n  \"classId\": \"1\",\n  \"subjectId\": \"1\",\n  \"teacherId\": \"47\",\n  \"academicYearId\": \"1\",\n  \"semesterId\": \"1\",\n  \"title\": \"اختبار قصير 2\",\n  \"description\": \"الوحدة الثانية\",\n  \"maxScore\": 20,\n  \"weight\": 10,\n  \"assessmentDate\": \"2026-03-30\",\n  \"isPublished\": true\n}"
+              "raw": "{\n  \"assessmentTypeId\": \"1\",\n  \"classId\": \"1\",\n  \"subjectId\": \"1\",\n  \"teacherId\": \"47\",\n  \"academicYearId\": \"1\",\n  \"semesterId\": \"1\",\n  \"title\": \"اختبار قصير 2\",\n  \"description\": \"الوحدة الثانية\",\n  \"maxScore\": 20,\n  \"weight\": 10,\n  \"assessmentDate\": \"2026-04-01\",\n  \"isPublished\": true\n}"
             }
           }
         },
@@ -2707,17 +2715,17 @@
                 },
                 {
                   "key": "behaviorDate",
-                  "value": "2026-03-30",
+                  "value": "2026-04-01",
                   "description": "Filter by exact behavior date."
                 },
                 {
                   "key": "dateFrom",
-                  "value": "2026-03-30",
+                  "value": "2026-04-01",
                   "description": "Filter from behavior date."
                 },
                 {
                   "key": "dateTo",
-                  "value": "2026-03-30",
+                  "value": "2026-04-01",
                   "description": "Filter to behavior date."
                 }
               ]
@@ -2752,7 +2760,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"studentId\": \"1\",\n  \"behaviorCategoryId\": \"1\",\n  \"academicYearId\": \"1\",\n  \"semesterId\": \"1\",\n  \"description\": \"تأخر عن الطابور\",\n  \"severity\": 3,\n  \"behaviorDate\": \"2026-03-30\",\n  \"teacherId\": \"47\"\n}"
+              "raw": "{\n  \"studentId\": \"1\",\n  \"behaviorCategoryId\": \"1\",\n  \"academicYearId\": \"1\",\n  \"semesterId\": \"1\",\n  \"description\": \"تأخر عن الطابور\",\n  \"severity\": 3,\n  \"behaviorDate\": \"2026-04-01\",\n  \"teacherId\": \"47\"\n}"
             }
           }
         },
@@ -2874,7 +2882,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"studentId\": \"1\",\n  \"routeId\": \"1\",\n  \"stopId\": \"1\",\n  \"startDate\": \"2026-03-30\",\n  \"endDate\": null\n}"
+              "raw": "{\n  \"studentId\": \"1\",\n  \"routeId\": \"1\",\n  \"stopId\": \"1\",\n  \"startDate\": \"2026-04-01\",\n  \"endDate\": null\n}"
             }
           }
         },
@@ -2908,7 +2916,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"endDate\": \"2026-03-30\"\n}"
+              "raw": "{\n  \"endDate\": \"2026-04-01\"\n}"
             }
           }
         },
@@ -3045,7 +3053,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"busId\": \"1\",\n  \"routeId\": \"1\",\n  \"startDate\": \"2026-03-30\",\n  \"endDate\": null\n}"
+              "raw": "{\n  \"busId\": \"1\",\n  \"routeId\": \"1\",\n  \"startDate\": \"2026-04-01\",\n  \"endDate\": null\n}"
             }
           }
         },
@@ -3079,7 +3087,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"endDate\": \"2026-03-30\"\n}"
+              "raw": "{\n  \"endDate\": \"2026-04-01\"\n}"
             }
           }
         },
@@ -3373,17 +3381,17 @@
                 },
                 {
                   "key": "tripDate",
-                  "value": "2026-03-30",
+                  "value": "2026-04-01",
                   "description": "Filter by exact trip date."
                 },
                 {
                   "key": "dateFrom",
-                  "value": "2026-03-30",
+                  "value": "2026-04-01",
                   "description": "Filter from trip date."
                 },
                 {
                   "key": "dateTo",
-                  "value": "2026-03-30",
+                  "value": "2026-04-01",
                   "description": "Filter to trip date."
                 }
               ]
@@ -3418,7 +3426,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"busId\": \"1\",\n  \"routeId\": \"1\",\n  \"tripDate\": \"2026-03-30\",\n  \"tripType\": \"pickup\"\n}"
+              "raw": "{\n  \"busId\": \"1\",\n  \"routeId\": \"1\",\n  \"tripDate\": \"2026-04-01\",\n  \"tripType\": \"pickup\"\n}"
             }
           }
         },
@@ -3659,7 +3667,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"routeAssignmentId\": \"1\",\n  \"tripDate\": \"2026-03-30\",\n  \"tripType\": \"pickup\"\n}"
+              "raw": "{\n  \"routeAssignmentId\": \"1\",\n  \"tripDate\": \"2026-04-01\",\n  \"tripType\": \"pickup\"\n}"
             }
           }
         }
@@ -4185,6 +4193,169 @@
       ]
     },
     {
+      "name": "Admin Imports",
+      "description": "Admin-only school onboarding import endpoints for dry-run, apply, and import audit history.",
+      "item": [
+        {
+          "name": "[NEW] Apply School Onboarding Import",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "Purpose: Apply a previously validated school onboarding dry-run in one all-or-nothing transaction, with idempotent retry semantics.\n\nRoles: admin\n\nAuth: Bearer access token required\n\nBody schema: SchoolOnboardingApplyRequest\n\nNote: [NEW] dryRunId must reference a validated dry-run result.\n\nNote: [NEW] Repeated apply calls for the same successful dryRunId return the previous apply result with alreadyApplied=true.\n\nNote: [NEW] The import is create-only in v1 and does not sync, update, or delete existing records.",
+            "url": {
+              "raw": "{{baseUrl}}/admin-imports/school-onboarding/apply",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin-imports",
+                "school-onboarding",
+                "apply"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dryRunId\": \"1\",\n  \"fallbackPassword\": \"ImportSeed123!\",\n  \"confirmActivateContext\": false\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (pm.response.code === 200 && json?.success && json?.data?.importId) {",
+                  "  pm.collectionVariables.set('importId', json.data.importId);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "[NEW] Run School Onboarding Dry-Run",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "Purpose: Validate a structured school onboarding workbook payload on the server, resolve natural keys, and persist an auditable dry-run result without writing domain data.\n\nRoles: admin\n\nAuth: Bearer access token required\n\nBody schema: SchoolOnboardingDryRunRequest\n\nNote: [NEW] This endpoint accepts structured workbook JSON, not raw Excel binary upload.\n\nNote: [NEW] v1 is create-only and blocks duplicate/conflicting existing records.\n\nNote: [NEW] The returned importId is the dryRunId required by the apply endpoint.",
+            "url": {
+              "raw": "{{baseUrl}}/admin-imports/school-onboarding/dry-run",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin-imports",
+                "school-onboarding",
+                "dry-run"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"templateVersion\": \"2026.04.phase-b\",\n  \"fileName\": \"school-onboarding-valid.json\",\n  \"fileHash\": \"sha256-valid-import-v1\",\n  \"fileSize\": 1024,\n  \"config\": {\n    \"activateAfterImport\": false,\n    \"targetAcademicYearName\": \"2026-2027\",\n    \"targetSemesterName\": \"الفصل الأول\"\n  },\n  \"workbook\": {\n    \"sheets\": {\n      \"README\": {\n        \"sheetId\": \"README\",\n        \"present\": true,\n        \"headers\": [\n          \"section\",\n          \"instruction\"\n        ],\n        \"rows\": []\n      },\n      \"CONFIG\": {\n        \"sheetId\": \"CONFIG\",\n        \"present\": true,\n        \"headers\": [\n          \"setting_key\",\n          \"setting_value\",\n          \"edit_policy\",\n          \"note\"\n        ],\n        \"rows\": [\n          {\n            \"rowNumber\": 2,\n            \"values\": {\n              \"setting_key\": \"activate_after_import\",\n              \"setting_value\": \"false\",\n              \"edit_policy\": \"frontend-driven\",\n              \"note\": \"يضبط من الواجهة\"\n            }\n          }\n        ]\n      },\n      \"LOOKUPS_ENUMS\": {\n        \"sheetId\": \"LOOKUPS_ENUMS\",\n        \"present\": true,\n        \"headers\": [\n          \"lookup_name\",\n          \"allowed_value\",\n          \"display_label\"\n        ],\n        \"rows\": []\n      },\n      \"REF_EXISTING_ACADEMIC\": {\n        \"sheetId\": \"REF_EXISTING_ACADEMIC\",\n        \"present\": true,\n        \"headers\": [\n          \"entity_type\",\n          \"parent_name\",\n          \"code\",\n          \"name\",\n          \"secondary_name\",\n          \"status\"\n        ],\n        \"rows\": []\n      },\n      \"REF_EXISTING_USERS\": {\n        \"sheetId\": \"REF_EXISTING_USERS\",\n        \"present\": true,\n        \"headers\": [\n          \"role\",\n          \"full_name\",\n          \"phone\",\n          \"email\",\n          \"status\"\n        ],\n        \"rows\": []\n      },\n      \"AcademicYears\": {\n        \"sheetId\": \"AcademicYears\",\n        \"present\": true,\n        \"headers\": [\n          \"year_name\",\n          \"start_date\",\n          \"end_date\"\n        ],\n        \"rows\": [\n          {\n            \"rowNumber\": 2,\n            \"values\": {\n              \"year_name\": \"2026-2027\",\n              \"start_date\": \"2026-09-01\",\n              \"end_date\": \"2027-06-30\"\n            }\n          }\n        ]\n      },\n      \"Semesters\": {\n        \"sheetId\": \"Semesters\",\n        \"present\": true,\n        \"headers\": [\n          \"academic_year_name\",\n          \"semester_name\",\n          \"start_date\",\n          \"end_date\"\n        ],\n        \"rows\": [\n          {\n            \"rowNumber\": 2,\n            \"values\": {\n              \"academic_year_name\": \"2026-2027\",\n              \"semester_name\": \"الفصل الأول\",\n              \"start_date\": \"2026-09-01\",\n              \"end_date\": \"2027-01-31\"\n            }\n          }\n        ]\n      },\n      \"GradeLevels\": {\n        \"sheetId\": \"GradeLevels\",\n        \"present\": true,\n        \"headers\": [\n          \"grade_level_name\",\n          \"level_order\"\n        ],\n        \"rows\": [\n          {\n            \"rowNumber\": 2,\n            \"values\": {\n              \"grade_level_name\": \"الصف الرابع\",\n              \"level_order\": 4\n            }\n          }\n        ]\n      },\n      \"Classes\": {\n        \"sheetId\": \"Classes\",\n        \"present\": true,\n        \"headers\": [\n          \"academic_year_name\",\n          \"grade_level_name\",\n          \"class_name\",\n          \"section\",\n          \"capacity\",\n          \"is_active\"\n        ],\n        \"rows\": [\n          {\n            \"rowNumber\": 2,\n            \"values\": {\n              \"academic_year_name\": \"2026-2027\",\n              \"grade_level_name\": \"الصف الرابع\",\n              \"class_name\": \"أ\",\n              \"section\": \"علوم\",\n              \"capacity\": 35,\n              \"is_active\": \"true\"\n            }\n          }\n        ]\n      },\n      \"Subjects\": {\n        \"sheetId\": \"Subjects\",\n        \"present\": true,\n        \"headers\": [\n          \"grade_level_name\",\n          \"subject_code\",\n          \"subject_name\",\n          \"is_active\"\n        ],\n        \"rows\": [\n          {\n            \"rowNumber\": 2,\n            \"values\": {\n              \"grade_level_name\": \"الصف الرابع\",\n              \"subject_code\": \"AR4\",\n              \"subject_name\": \"اللغة العربية\",\n              \"is_active\": \"true\"\n            }\n          }\n        ]\n      },\n      \"Users_Teachers\": {\n        \"sheetId\": \"Users_Teachers\",\n        \"present\": true,\n        \"headers\": [\n          \"full_name\",\n          \"phone\",\n          \"email\",\n          \"specialization\",\n          \"qualification\",\n          \"hire_date\"\n        ],\n        \"rows\": [\n          {\n            \"rowNumber\": 2,\n            \"values\": {\n              \"full_name\": \"المعلم سامي\",\n              \"phone\": \"0900000101\",\n              \"email\": \"teacher-import@example.com\",\n              \"specialization\": \"لغة عربية\",\n              \"qualification\": \"بكالوريوس\",\n              \"hire_date\": \"2026-09-01\"\n            }\n          }\n        ]\n      },\n      \"Users_Supervisors\": {\n        \"sheetId\": \"Users_Supervisors\",\n        \"present\": true,\n        \"headers\": [\n          \"full_name\",\n          \"phone\",\n          \"email\",\n          \"department\"\n        ],\n        \"rows\": []\n      },\n      \"Users_Parents\": {\n        \"sheetId\": \"Users_Parents\",\n        \"present\": true,\n        \"headers\": [\n          \"full_name\",\n          \"phone\",\n          \"email\",\n          \"address\"\n        ],\n        \"rows\": []\n      },\n      \"Users_Drivers\": {\n        \"sheetId\": \"Users_Drivers\",\n        \"present\": true,\n        \"headers\": [\n          \"full_name\",\n          \"phone\",\n          \"email\",\n          \"license_number\",\n          \"driver_status\"\n        ],\n        \"rows\": []\n      },\n      \"Students\": {\n        \"sheetId\": \"Students\",\n        \"present\": true,\n        \"headers\": [\n          \"academic_number\",\n          \"full_name\",\n          \"gender\",\n          \"date_of_birth\",\n          \"status\",\n          \"enrollment_date\",\n          \"address\"\n        ],\n        \"rows\": [\n          {\n            \"rowNumber\": 2,\n            \"values\": {\n              \"academic_number\": \"STU-IMPORT-01\",\n              \"full_name\": \"الطالب يحيى\",\n              \"gender\": \"male\",\n              \"date_of_birth\": \"2017-02-01\",\n              \"status\": \"active\",\n              \"enrollment_date\": \"2026-09-01\",\n              \"address\": \"صنعاء\"\n            }\n          }\n        ]\n      },\n      \"StudentParentLinks\": {\n        \"sheetId\": \"StudentParentLinks\",\n        \"present\": true,\n        \"headers\": [\n          \"student_academic_number\",\n          \"parent_phone_or_email\",\n          \"relation_type\",\n          \"is_primary\"\n        ],\n        \"rows\": []\n      },\n      \"StudentEnrollments\": {\n        \"sheetId\": \"StudentEnrollments\",\n        \"present\": true,\n        \"headers\": [\n          \"student_academic_number\",\n          \"academic_year_name\",\n          \"grade_level_name\",\n          \"class_name\",\n          \"section\"\n        ],\n        \"rows\": [\n          {\n            \"rowNumber\": 2,\n            \"values\": {\n              \"student_academic_number\": \"STU-IMPORT-01\",\n              \"academic_year_name\": \"2026-2027\",\n              \"grade_level_name\": \"الصف الرابع\",\n              \"class_name\": \"أ\",\n              \"section\": \"علوم\"\n            }\n          }\n        ]\n      },\n      \"SubjectOfferings\": {\n        \"sheetId\": \"SubjectOfferings\",\n        \"present\": true,\n        \"headers\": [\n          \"academic_year_name\",\n          \"semester_name\",\n          \"grade_level_name\",\n          \"subject_code\",\n          \"is_active\"\n        ],\n        \"rows\": []\n      },\n      \"TeacherAssignments\": {\n        \"sheetId\": \"TeacherAssignments\",\n        \"present\": true,\n        \"headers\": [\n          \"academic_year_name\",\n          \"grade_level_name\",\n          \"class_name\",\n          \"section\",\n          \"subject_code\",\n          \"teacher_phone_or_email\"\n        ],\n        \"rows\": []\n      },\n      \"SupervisorAssignments\": {\n        \"sheetId\": \"SupervisorAssignments\",\n        \"present\": true,\n        \"headers\": [\n          \"academic_year_name\",\n          \"grade_level_name\",\n          \"class_name\",\n          \"section\",\n          \"supervisor_phone_or_email\"\n        ],\n        \"rows\": []\n      },\n      \"Buses\": {\n        \"sheetId\": \"Buses\",\n        \"present\": true,\n        \"headers\": [\n          \"plate_number\",\n          \"capacity\",\n          \"driver_phone_or_email\",\n          \"status\"\n        ],\n        \"rows\": []\n      },\n      \"Routes\": {\n        \"sheetId\": \"Routes\",\n        \"present\": true,\n        \"headers\": [\n          \"route_name\",\n          \"start_point\",\n          \"end_point\",\n          \"estimated_duration_minutes\",\n          \"is_active\"\n        ],\n        \"rows\": []\n      },\n      \"RouteStops\": {\n        \"sheetId\": \"RouteStops\",\n        \"present\": true,\n        \"headers\": [\n          \"route_name\",\n          \"stop_order\",\n          \"stop_name\",\n          \"latitude\",\n          \"longitude\"\n        ],\n        \"rows\": []\n      },\n      \"RouteAssignments\": {\n        \"sheetId\": \"RouteAssignments\",\n        \"present\": true,\n        \"headers\": [\n          \"bus_plate_number\",\n          \"route_name\",\n          \"start_date\",\n          \"end_date\"\n        ],\n        \"rows\": []\n      },\n      \"StudentTransportAssignments\": {\n        \"sheetId\": \"StudentTransportAssignments\",\n        \"present\": true,\n        \"headers\": [\n          \"student_academic_number\",\n          \"route_name\",\n          \"stop_order\",\n          \"start_date\",\n          \"end_date\"\n        ],\n        \"rows\": []\n      },\n      \"StudentHomeLocations\": {\n        \"sheetId\": \"StudentHomeLocations\",\n        \"present\": true,\n        \"headers\": [\n          \"student_academic_number\",\n          \"address_label\",\n          \"address_text\",\n          \"latitude\",\n          \"longitude\",\n          \"status\",\n          \"notes\"\n        ],\n        \"rows\": []\n      }\n    }\n  }\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (pm.response.code === 200 && json?.success && json?.data?.importId) {",
+                  "  pm.collectionVariables.set('dryRunId', json.data.importId);",
+                  "  pm.collectionVariables.set('importId', json.data.importId);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "[NEW] List School Onboarding Import History",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "description": "Purpose: List persisted school onboarding dry-run and apply attempts with summary metadata for admin audit and retry flows.\n\nRoles: admin\n\nAuth: Bearer access token required\n\nQuery params: page, limit\n\nNote: [NEW] History is paginated and includes both dry-run and apply records.",
+            "url": {
+              "raw": "{{baseUrl}}/admin-imports/school-onboarding/history",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin-imports",
+                "school-onboarding",
+                "history"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Pagination page number."
+                },
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "description": "Pagination page size."
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "[NEW] Get School Onboarding Import History Detail",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "description": "Purpose: Return one persisted school onboarding import run, including its result summary, issues, entity counts, and dry-run linkage when applicable.\n\nRoles: admin\n\nAuth: Bearer access token required\n\nNote: [NEW] Use this to reopen dry-run results or applied audit records without recomputing them.",
+            "url": {
+              "raw": "{{baseUrl}}/admin-imports/school-onboarding/history/{{importId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin-imports",
+                "school-onboarding",
+                "history",
+                "{{importId}}"
+              ],
+              "query": []
+            }
+          }
+        }
+      ]
+    },
+    {
       "name": "Homework",
       "description": "Homework management, submission rosters, and student homework surfaces.",
       "item": [
@@ -4255,22 +4426,22 @@
                 },
                 {
                   "key": "assignedDate",
-                  "value": "2026-03-30",
+                  "value": "2026-04-01",
                   "description": "Filter by exact assigned date."
                 },
                 {
                   "key": "dueDate",
-                  "value": "2026-03-30",
+                  "value": "2026-04-01",
                   "description": "Filter by exact due date."
                 },
                 {
                   "key": "dateFrom",
-                  "value": "2026-03-30",
+                  "value": "2026-04-01",
                   "description": "Filter from date range."
                 },
                 {
                   "key": "dateTo",
-                  "value": "2026-03-30",
+                  "value": "2026-04-01",
                   "description": "Filter to date range."
                 }
               ]
@@ -4304,7 +4475,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"teacherId\": \"47\",\n  \"classId\": \"1\",\n  \"subjectId\": \"1\",\n  \"academicYearId\": \"1\",\n  \"semesterId\": \"1\",\n  \"title\": \"واجب الرياضيات 2\",\n  \"description\": \"حل الصفحات 12-14\",\n  \"assignedDate\": \"2026-03-30\",\n  \"dueDate\": \"2026-03-28\"\n}"
+              "raw": "{\n  \"teacherId\": \"47\",\n  \"classId\": \"1\",\n  \"subjectId\": \"1\",\n  \"academicYearId\": \"1\",\n  \"semesterId\": \"1\",\n  \"title\": \"واجب الرياضيات 2\",\n  \"description\": \"حل الصفحات 12-14\",\n  \"assignedDate\": \"2026-04-01\",\n  \"dueDate\": \"2026-03-28\"\n}"
             }
           }
         },
@@ -4361,7 +4532,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"records\": [\n    {\n      \"studentId\": \"1\",\n      \"status\": \"submitted\",\n      \"submittedAt\": \"2026-03-30\",\n      \"notes\": \"تم التسليم\"\n    },\n    {\n      \"studentId\": \"2\",\n      \"status\": \"late\",\n      \"submittedAt\": \"2026-03-30\",\n      \"notes\": \"تسليم متأخر\"\n    }\n  ]\n}"
+              "raw": "{\n  \"records\": [\n    {\n      \"studentId\": \"1\",\n      \"status\": \"submitted\",\n      \"submittedAt\": \"2026-04-01\",\n      \"notes\": \"تم التسليم\"\n    },\n    {\n      \"studentId\": \"2\",\n      \"status\": \"late\",\n      \"submittedAt\": \"2026-04-01\",\n      \"notes\": \"تسليم متأخر\"\n    }\n  ]\n}"
             }
           }
         },

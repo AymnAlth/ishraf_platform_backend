@@ -12,8 +12,8 @@ const API_SERVER_URL = "https://ishraf-platform-backend-staging.onrender.com/api
 const ROOT_SERVER_URL = "https://ishraf-platform-backend-staging.onrender.com";
 const LOCAL_API_SERVER_URL = "http://localhost:4000/api/v1";
 const LOCAL_ROOT_SERVER_URL = "http://localhost:4000";
-const TODAY = "2026-03-30";
-const NOW = "2026-03-30T12:00:00.000Z";
+const TODAY = "2026-04-01";
+const NOW = "2026-04-01T12:00:00.000Z";
 
 const ROOT_SERVERS = [
   { url: ROOT_SERVER_URL, description: "Hosted staging on Render" },
@@ -36,6 +36,7 @@ const TAG_ORDER = [
   "Behavior",
   "Transport",
   "Communication",
+  "Admin Imports",
   "Homework",
   "Reporting"
 ];
@@ -55,6 +56,8 @@ const tagDescriptions = {
     "Transport static data, assignments, trips, live locations, and trip student events.",
   Communication:
     "Direct messages, announcements, and notification center endpoints.",
+  "Admin Imports":
+    "Admin-only school onboarding import endpoints for dry-run, apply, and import audit history.",
   Homework: "Homework management, submission rosters, and student homework surfaces.",
   Reporting:
     "Role dashboards, student-scoped reports, transport summaries, and parent live-status endpoints."
@@ -106,6 +109,12 @@ const moduleSources = [
     routeFile: "src/modules/communication/routes/communication.routes.ts"
   },
   {
+    key: "admin-imports",
+    tag: "Admin Imports",
+    basePath: "/admin-imports",
+    routeFile: "src/modules/admin-imports/routes/admin-imports.routes.ts"
+  },
+  {
     key: "homework",
     tag: "Homework",
     basePath: "/homework",
@@ -128,6 +137,81 @@ const dateSchema = {
 };
 const dateTimeSchema = { type: "string", format: "date-time", example: NOW };
 const paginationExample = { page: 1, limit: 20, totalItems: 1, totalPages: 1 };
+const schoolOnboardingWorkbookExample = {
+  sheets: {
+    README: { sheetId: "README", present: true, headers: ["section", "instruction"], rows: [] },
+    CONFIG: {
+      sheetId: "CONFIG",
+      present: true,
+      headers: ["setting_key", "setting_value", "edit_policy", "note"],
+      rows: [{ rowNumber: 2, values: { setting_key: "activate_after_import", setting_value: "false", edit_policy: "frontend-driven", note: "يضبط من الواجهة" } }]
+    },
+    LOOKUPS_ENUMS: { sheetId: "LOOKUPS_ENUMS", present: true, headers: ["lookup_name", "allowed_value", "display_label"], rows: [] },
+    REF_EXISTING_ACADEMIC: { sheetId: "REF_EXISTING_ACADEMIC", present: true, headers: ["entity_type", "parent_name", "code", "name", "secondary_name", "status"], rows: [] },
+    REF_EXISTING_USERS: { sheetId: "REF_EXISTING_USERS", present: true, headers: ["role", "full_name", "phone", "email", "status"], rows: [] },
+    AcademicYears: {
+      sheetId: "AcademicYears",
+      present: true,
+      headers: ["year_name", "start_date", "end_date"],
+      rows: [{ rowNumber: 2, values: { year_name: "2026-2027", start_date: "2026-09-01", end_date: "2027-06-30" } }]
+    },
+    Semesters: {
+      sheetId: "Semesters",
+      present: true,
+      headers: ["academic_year_name", "semester_name", "start_date", "end_date"],
+      rows: [{ rowNumber: 2, values: { academic_year_name: "2026-2027", semester_name: "الفصل الأول", start_date: "2026-09-01", end_date: "2027-01-31" } }]
+    },
+    GradeLevels: {
+      sheetId: "GradeLevels",
+      present: true,
+      headers: ["grade_level_name", "level_order"],
+      rows: [{ rowNumber: 2, values: { grade_level_name: "الصف الرابع", level_order: 4 } }]
+    },
+    Classes: {
+      sheetId: "Classes",
+      present: true,
+      headers: ["academic_year_name", "grade_level_name", "class_name", "section", "capacity", "is_active"],
+      rows: [{ rowNumber: 2, values: { academic_year_name: "2026-2027", grade_level_name: "الصف الرابع", class_name: "أ", section: "علوم", capacity: 35, is_active: "true" } }]
+    },
+    Subjects: {
+      sheetId: "Subjects",
+      present: true,
+      headers: ["grade_level_name", "subject_code", "subject_name", "is_active"],
+      rows: [{ rowNumber: 2, values: { grade_level_name: "الصف الرابع", subject_code: "AR4", subject_name: "اللغة العربية", is_active: "true" } }]
+    },
+    Users_Teachers: {
+      sheetId: "Users_Teachers",
+      present: true,
+      headers: ["full_name", "phone", "email", "specialization", "qualification", "hire_date"],
+      rows: [{ rowNumber: 2, values: { full_name: "المعلم سامي", phone: "0900000101", email: "teacher-import@example.com", specialization: "لغة عربية", qualification: "بكالوريوس", hire_date: "2026-09-01" } }]
+    },
+    Users_Supervisors: { sheetId: "Users_Supervisors", present: true, headers: ["full_name", "phone", "email", "department"], rows: [] },
+    Users_Parents: { sheetId: "Users_Parents", present: true, headers: ["full_name", "phone", "email", "address"], rows: [] },
+    Users_Drivers: { sheetId: "Users_Drivers", present: true, headers: ["full_name", "phone", "email", "license_number", "driver_status"], rows: [] },
+    Students: {
+      sheetId: "Students",
+      present: true,
+      headers: ["academic_number", "full_name", "gender", "date_of_birth", "status", "enrollment_date", "address"],
+      rows: [{ rowNumber: 2, values: { academic_number: "STU-IMPORT-01", full_name: "الطالب يحيى", gender: "male", date_of_birth: "2017-02-01", status: "active", enrollment_date: "2026-09-01", address: "صنعاء" } }]
+    },
+    StudentParentLinks: { sheetId: "StudentParentLinks", present: true, headers: ["student_academic_number", "parent_phone_or_email", "relation_type", "is_primary"], rows: [] },
+    StudentEnrollments: {
+      sheetId: "StudentEnrollments",
+      present: true,
+      headers: ["student_academic_number", "academic_year_name", "grade_level_name", "class_name", "section"],
+      rows: [{ rowNumber: 2, values: { student_academic_number: "STU-IMPORT-01", academic_year_name: "2026-2027", grade_level_name: "الصف الرابع", class_name: "أ", section: "علوم" } }]
+    },
+    SubjectOfferings: { sheetId: "SubjectOfferings", present: true, headers: ["academic_year_name", "semester_name", "grade_level_name", "subject_code", "is_active"], rows: [] },
+    TeacherAssignments: { sheetId: "TeacherAssignments", present: true, headers: ["academic_year_name", "grade_level_name", "class_name", "section", "subject_code", "teacher_phone_or_email"], rows: [] },
+    SupervisorAssignments: { sheetId: "SupervisorAssignments", present: true, headers: ["academic_year_name", "grade_level_name", "class_name", "section", "supervisor_phone_or_email"], rows: [] },
+    Buses: { sheetId: "Buses", present: true, headers: ["plate_number", "capacity", "driver_phone_or_email", "status"], rows: [] },
+    Routes: { sheetId: "Routes", present: true, headers: ["route_name", "start_point", "end_point", "estimated_duration_minutes", "is_active"], rows: [] },
+    RouteStops: { sheetId: "RouteStops", present: true, headers: ["route_name", "stop_order", "stop_name", "latitude", "longitude"], rows: [] },
+    RouteAssignments: { sheetId: "RouteAssignments", present: true, headers: ["bus_plate_number", "route_name", "start_date", "end_date"], rows: [] },
+    StudentTransportAssignments: { sheetId: "StudentTransportAssignments", present: true, headers: ["student_academic_number", "route_name", "stop_order", "start_date", "end_date"], rows: [] },
+    StudentHomeLocations: { sheetId: "StudentHomeLocations", present: true, headers: ["student_academic_number", "address_label", "address_text", "latitude", "longitude", "status", "notes"], rows: [] }
+  }
+};
 
 const examples = {
   serviceStatus: { name: "Ishraf Platform Backend", environment: "staging" },
@@ -641,6 +725,141 @@ const examples = {
     successCount: 3,
     failedCount: 0,
     failedTargets: []
+  },
+  schoolOnboardingImport: {
+    importId: "1",
+    mode: "dry-run",
+    status: "validated",
+    canApply: true,
+    summary: {
+      totalSheets: 26,
+      presentSheets: 26,
+      totalRows: 8,
+      errorCount: 0,
+      warningCount: 1
+    },
+    sheetSummaries: [
+      {
+        sheetId: "AcademicYears",
+        rowCount: 1,
+        errorCount: 0,
+        warningCount: 0,
+        present: true
+      },
+      {
+        sheetId: "Students",
+        rowCount: 1,
+        errorCount: 0,
+        warningCount: 0,
+        present: true
+      }
+    ],
+    issues: [
+      {
+        level: "warning",
+        code: "phone_password_policy_applied",
+        sheetId: "Users_Teachers",
+        rowNumber: 2,
+        columnKey: "phone",
+        message: "سيتم اشتقاق كلمة المرور من رقم الهاتف لهذا الحساب عند التطبيق",
+        suggestedFix: "مرر fallbackPassword فقط إذا أردت استخدام كلمة مرور موحدة بدل الاشتقاق من الهاتف"
+      }
+    ],
+    resolvedReferenceCounts: {
+      academicYears: 1,
+      semesters: 1,
+      gradeLevels: 1,
+      classes: 1,
+      subjects: 1,
+      teachers: 1,
+      students: 1
+    },
+    entityPlanCounts: {
+      academicYears: 1,
+      semesters: 1,
+      gradeLevels: 1,
+      classes: 1,
+      subjects: 1,
+      users: 1,
+      students: 1,
+      studentEnrollments: 1
+    },
+    alreadyApplied: false
+  },
+  schoolOnboardingImportHistoryItem: {
+    importId: "1",
+    mode: "dry-run",
+    status: "validated",
+    templateVersion: "2026.04.phase-b",
+    fileName: "school-onboarding-valid.json",
+    fileHash: "sha256-valid-import-v1",
+    submittedAt: NOW,
+    appliedAt: null,
+    submittedBy: {
+      userId: "1",
+      fullName: "أيمن أحمد محسن الذاهبي"
+    },
+    canApply: true,
+    summary: {
+      totalSheets: 26,
+      presentSheets: 26,
+      totalRows: 8,
+      errorCount: 0,
+      warningCount: 1
+    }
+  },
+  schoolOnboardingImportHistoryDetail: {
+    importId: "2",
+    mode: "apply",
+    status: "applied",
+    templateVersion: "2026.04.phase-b",
+    fileName: "school-onboarding-valid.json",
+    fileHash: "sha256-valid-import-v1",
+    submittedAt: NOW,
+    appliedAt: NOW,
+    submittedBy: {
+      userId: "1",
+      fullName: "أيمن أحمد محسن الذاهبي"
+    },
+    canApply: false,
+    summary: {
+      totalSheets: 26,
+      presentSheets: 26,
+      totalRows: 8,
+      errorCount: 0,
+      warningCount: 1
+    },
+    dryRunSourceId: "1",
+    result: {
+      importId: "2",
+      mode: "apply",
+      status: "applied",
+      canApply: false,
+      summary: {
+        totalSheets: 26,
+        presentSheets: 26,
+        totalRows: 8,
+        errorCount: 0,
+        warningCount: 1
+      },
+      sheetSummaries: [],
+      issues: [],
+      resolvedReferenceCounts: {
+        academicYears: 1,
+        semesters: 1
+      },
+      entityPlanCounts: {
+        academicYears: 1,
+        semesters: 1,
+        gradeLevels: 1,
+        classes: 1,
+        subjects: 1,
+        users: 1,
+        students: 1,
+        studentEnrollments: 1
+      },
+      alreadyApplied: false
+    }
   },
   notification: {
     id: "1",
@@ -1667,7 +1886,30 @@ function addSchema(name, schema) {
   ["CreateNotificationRequest", { userId: "20", title: "إشعار يدوي", message: "رسالة إشعار يدوية", notificationType: "manual", referenceType: null, referenceId: null }],
   ["CreateBulkNotificationRequest", { userIds: ["20"], targetRoles: ["parent"], title: "إشعار جماعي", message: "هذا الإشعار يصل كملاحظات فردية", notificationType: "manual", referenceType: null, referenceId: null }],
   ["CreateHomeworkRequest", { teacherId: "47", classId: "1", subjectId: "1", academicYearId: "1", semesterId: "1", title: "واجب الرياضيات 2", description: "حل الصفحات 12-14", assignedDate: TODAY, dueDate: "2026-03-28" }],
-  ["SaveHomeworkSubmissionsRequest", { records: [{ studentId: "1", status: "submitted", submittedAt: TODAY, notes: "تم التسليم" }, { studentId: "2", status: "late", submittedAt: TODAY, notes: "تسليم متأخر" }] }]
+  ["SaveHomeworkSubmissionsRequest", { records: [{ studentId: "1", status: "submitted", submittedAt: TODAY, notes: "تم التسليم" }, { studentId: "2", status: "late", submittedAt: TODAY, notes: "تسليم متأخر" }] }],
+  [
+    "SchoolOnboardingDryRunRequest",
+    {
+      templateVersion: "2026.04.phase-b",
+      fileName: "school-onboarding-valid.json",
+      fileHash: "sha256-valid-import-v1",
+      fileSize: 1024,
+      config: {
+        activateAfterImport: false,
+        targetAcademicYearName: "2026-2027",
+        targetSemesterName: "الفصل الأول"
+      },
+      workbook: schoolOnboardingWorkbookExample
+    }
+  ],
+  [
+    "SchoolOnboardingApplyRequest",
+    {
+      dryRunId: "1",
+      fallbackPassword: "ImportSeed123!",
+      confirmActivateContext: false
+    }
+  ]
 ].forEach(([name, example]) => {
   addSchema(name, {
     type: "object",
@@ -1714,6 +1956,7 @@ function pathParamDescription(routePath, paramName) {
   if (paramName === "otherUserId") return "The other conversation participant user id.";
   if (paramName === "messageId") return "Message numeric string identifier.";
   if (paramName === "notificationId") return "Notification numeric string identifier.";
+  if (paramName === "importId") return "School onboarding import run numeric string identifier.";
   if (paramName === "parentId")
     return "Parent identifier. These student-parent endpoints accept either the parent user id from /users?role=parent or the underlying parent profile id.";
   if (routePath.startsWith("/users/:id")) return "User numeric string identifier.";
@@ -1843,6 +2086,7 @@ const recipientsQuery = [
   commonQuery.text("search", "Filter recipients by full name, email, or phone.", "Supervisor"),
   commonQuery.text("role", "Filter recipients by role.", "supervisor")
 ];
+const schoolOnboardingImportHistoryQuery = [commonQuery.page(), commonQuery.limit()];
 
 const endpoints = [
   makeEndpoint({ m: "GET", p: "/health", t: "Health", s: "Health", u: "Return liveness information for the deployed service.", auth: false, root: true, status: 200, e: "serviceStatus" }),
@@ -1969,6 +2213,10 @@ endpoints.push(
   makeEndpoint({ m: "POST", p: "/communication/notifications/bulk", t: "Communication", s: "[NEW] Create Bulk Notifications", u: "Create admin-only multi-target notifications in one all-or-nothing transaction with an authoritative delivery summary.", r: ["admin"], b: "CreateBulkNotificationRequest", e: "bulkDelivery", status: 201, notes: ["[NEW] At least one of userIds[] or targetRoles[] is required.", "[NEW] Audience resolution reuses the same available-recipient rules as GET /communication/recipients.", "[NEW] The response returns delivery summary metadata rather than the full notification list."] }),
   makeEndpoint({ m: "GET", p: "/communication/notifications/me", t: "Communication", s: "List My Notifications", u: "List notifications for the authenticated user with unreadCount metadata.", r: ["admin", "parent", "teacher", "supervisor", "driver"], q: notificationsQuery, kind: "paginated", e: "notification", status: 200, derived: "Notification lists rely on views such as vw_notification_details and vw_user_notification_summary." }),
   makeEndpoint({ m: "PATCH", p: "/communication/notifications/:notificationId/read", t: "Communication", s: "Mark Notification Read", u: "Mark one notification as read.", r: ["admin", "parent", "teacher", "supervisor", "driver"], e: "notification", status: 200 }),
+  makeEndpoint({ m: "POST", p: "/admin-imports/school-onboarding/dry-run", t: "Admin Imports", s: "[NEW] Run School Onboarding Dry-Run", u: "Validate a structured school onboarding workbook payload on the server, resolve natural keys, and persist an auditable dry-run result without writing domain data.", r: ["admin"], b: "SchoolOnboardingDryRunRequest", e: "schoolOnboardingImport", status: 200, notes: ["[NEW] This endpoint accepts structured workbook JSON, not raw Excel binary upload.", "[NEW] v1 is create-only and blocks duplicate/conflicting existing records.", "[NEW] The returned importId is the dryRunId required by the apply endpoint."] }),
+  makeEndpoint({ m: "POST", p: "/admin-imports/school-onboarding/apply", t: "Admin Imports", s: "[NEW] Apply School Onboarding Import", u: "Apply a previously validated school onboarding dry-run in one all-or-nothing transaction, with idempotent retry semantics.", r: ["admin"], b: "SchoolOnboardingApplyRequest", e: "schoolOnboardingImport", status: 200, notes: ["[NEW] dryRunId must reference a validated dry-run result.", "[NEW] Repeated apply calls for the same successful dryRunId return the previous apply result with alreadyApplied=true.", "[NEW] The import is create-only in v1 and does not sync, update, or delete existing records."] }),
+  makeEndpoint({ m: "GET", p: "/admin-imports/school-onboarding/history", t: "Admin Imports", s: "[NEW] List School Onboarding Import History", u: "List persisted school onboarding dry-run and apply attempts with summary metadata for admin audit and retry flows.", r: ["admin"], q: schoolOnboardingImportHistoryQuery, kind: "paginated", e: "schoolOnboardingImportHistoryItem", status: 200, notes: ["[NEW] History is paginated and includes both dry-run and apply records."] }),
+  makeEndpoint({ m: "GET", p: "/admin-imports/school-onboarding/history/:importId", t: "Admin Imports", s: "[NEW] Get School Onboarding Import History Detail", u: "Return one persisted school onboarding import run, including its result summary, issues, entity counts, and dry-run linkage when applicable.", r: ["admin"], e: "schoolOnboardingImportHistoryDetail", status: 200, notes: ["[NEW] Use this to reopen dry-run results or applied audit records without recomputing them."] }),
   makeEndpoint({ m: "POST", p: "/homework", t: "Homework", s: "Create Homework", u: "Create homework inside the active academic context. Teachers may omit teacherId and rely on the authenticated teacher profile. Admin teacherId accepts the teacher user id from /users?role=teacher or the legacy teacher profile id.", r: ["admin", "teacher"], b: "CreateHomeworkRequest", e: "homework", notes: ["academicYearId and semesterId may be omitted; the backend resolves the active academic context automatically.", "If academicYearId or semesterId is sent, it must match the active context.", "The selected subjectId must have an active subject offering for the resolved semester.", "Admin frontend flows should send teacherId as the teacher user id returned by GET /users?role=teacher."] }),
   makeEndpoint({ m: "GET", p: "/homework", t: "Homework", s: "List Homework", u: "List homework for the active academic context with pagination and academic filters.", r: ["admin", "teacher"], q: homeworkListQuery, kind: "paginated", e: "homework", status: 200, notes: ["This operational list is scoped to the active academic year and active semester.", "teacherId filter accepts the teacher user id returned by GET /users?role=teacher or the legacy teacher profile id. Prefer the user id in admin frontend flows."], derived: "Homework lists are enriched by SQL views such as vw_homework_details." }),
   makeEndpoint({ m: "GET", p: "/homework/students/:studentId", t: "Homework", s: "Get Student Homework", u: "Return homework assigned to one student. Parents are restricted to their linked children.", r: ["admin", "teacher", "parent"], e: "studentHomework", status: 200, notes: ["If the student exists but has no homework yet, the response remains 200 with items=[]."], derived: "Student homework uses view-backed projections such as vw_homework_details and vw_homework_submission_details." }),
@@ -2153,6 +2401,23 @@ function postmanEvents(entry) {
       "}"
     ] } }];
   }
+  if (entry.path === "/admin-imports/school-onboarding/dry-run") {
+    return [{ listen: "test", script: { type: "text/javascript", exec: [
+      "const json = pm.response.json();",
+      "if (pm.response.code === 200 && json?.success && json?.data?.importId) {",
+      "  pm.collectionVariables.set('dryRunId', json.data.importId);",
+      "  pm.collectionVariables.set('importId', json.data.importId);",
+      "}"
+    ] } }];
+  }
+  if (entry.path === "/admin-imports/school-onboarding/apply") {
+    return [{ listen: "test", script: { type: "text/javascript", exec: [
+      "const json = pm.response.json();",
+      "if (pm.response.code === 200 && json?.success && json?.data?.importId) {",
+      "  pm.collectionVariables.set('importId', json.data.importId);",
+      "}"
+    ] } }];
+  }
   return undefined;
 }
 
@@ -2203,6 +2468,8 @@ function buildCollection(name, description, subset) {
       { key: "tripId", value: "" },
       { key: "messageId", value: "" },
       { key: "notificationId", value: "" },
+      { key: "importId", value: "" },
+      { key: "dryRunId", value: "" },
       { key: "otherUserId", value: "47" },
       { key: "homeworkId", value: "" }
     ],
@@ -2269,7 +2536,7 @@ const viewNames = Array.from(new Set(migrationContent.match(/vw_[a-z_]+/g) ?? []
 const automationEvents = ["attendance_absent", "behavior_negative", "transport_trip_started", "transport_student_dropped_off"];
 const targetFields = ["communication.announcements.targetRole", "communication.announcements.targetRoles", "communication.notifications.notificationType", "behavior.categories.behaviorType", "transport.trip-events.eventType"];
 
-const moduleOrder = ["health", "auth", "users", "academic-structure", "students", "attendance", "assessments", "behavior", "transport", "communication", "homework", "reporting"];
+const moduleOrder = ["health", "auth", "users", "academic-structure", "students", "attendance", "assessments", "behavior", "transport", "communication", "admin-imports", "homework", "reporting"];
 const moduleTable = moduleOrder.map((key) => {
   const total = afterOpenApiByModule.get(key)?.total ?? 0;
   const tag = afterOpenApiByModule.get(key)?.tag ?? key;
@@ -2289,7 +2556,11 @@ const newRuntimeEndpoints = [
   "GET /reporting/admin-preview/teachers/:teacherUserId/dashboard",
   "GET /reporting/admin-preview/supervisors/:supervisorUserId/dashboard",
   "POST /communication/messages/bulk",
-  "POST /communication/notifications/bulk"
+  "POST /communication/notifications/bulk",
+  "POST /admin-imports/school-onboarding/dry-run",
+  "POST /admin-imports/school-onboarding/apply",
+  "GET /admin-imports/school-onboarding/history",
+  "GET /admin-imports/school-onboarding/history/:importId"
 ];
 const audit = `# OpenAPI / Postman Audit\n\n- Audit date: ${TODAY}\n- Runtime endpoint count: ${actualRoutes.length}\n- Runtime changes during this reconciliation: ${newRuntimeEndpoints.length > 0 ? `${newRuntimeEndpoints.length} new endpoint(s)` : "none"}\n\n## Coverage Summary\n\n| Artifact | Before | After |\n| --- | --- | --- |\n| Master OpenAPI | ${baseline.masterOpenApi.covered.length}/${actualRoutes.length} | ${final.masterOpenApi.covered.length}/${actualRoutes.length} |\n| Master Postman | ${baseline.masterPostman.covered.length}/${actualRoutes.length} | ${final.masterPostman.covered.length}/${actualRoutes.length} |\n| Auth OpenAPI | ${baseline.authOpenApi.covered.length}/7 | ${final.authOpenApi.covered.length}/7 |\n| Auth Postman | ${baseline.authPostman.covered.length}/7 | ${final.authPostman.covered.length}/7 |\n\n## Per-Module Coverage\n\n| Module | Actual | OpenAPI Before | Postman Before | OpenAPI After | Postman After |\n| --- | --- | --- | --- | --- | --- |\n${moduleTable}\n\n## [NEW] Runtime Endpoints Added In This Pass\n\n${newRuntimeEndpoints.map((route) => `- \`${route}\``).join("\n")}\n\n## Runtime Endpoints Missing From Master OpenAPI Before This Update\n\n${missingBefore}\n\n## Views, Events, Targets Alignment\n\n### SQL Views Referenced\n${viewNames.map((name) => `- \`${name}\``).join("\n")}\n\n### Automation Events Documented\n${automationEvents.map((name) => `- \`${name}\``).join("\n")}\n\n### Target / Event Fields Documented\n${targetFields.map((name) => `- \`${name}\``).join("\n")}\n\n## Reconciliation Notes\n\n- \`/health\` and \`/health/ready\` now use root-level servers instead of inheriting \`/api/v1\`.\n- The auth subset now covers all 7 live auth routes, including forgot-password and reset-password.\n- IDs in the auth subset were normalized to numeric-string ids instead of UUID assumptions.\n- The new admin-preview monitoring endpoints are marked with \`[NEW]\`-style audit visibility through this report and are documented as admin-only, read-only, and \`users.id\`-based surfaces.\n- Communication Phase 2 is now documented with admin-only bulk message and bulk notification delivery, plus additive \`targetRoles[]\` support for announcements.\n`;
 fs.writeFileSync(auditPath, audit);

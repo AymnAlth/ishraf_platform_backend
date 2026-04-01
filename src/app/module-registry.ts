@@ -3,6 +3,7 @@ import { assessmentsModule } from "../modules/assessments";
 import { attendanceModule } from "../modules/attendance";
 import { authModule } from "../modules/auth";
 import { academicStructureModule } from "../modules/academic-structure";
+import { adminImportsModule } from "../modules/admin-imports/module/admin-imports.module";
 import { behaviorModule } from "../modules/behavior";
 import { communicationModule } from "../modules/communication";
 import { homeworkModule } from "../modules/homework";
@@ -22,5 +23,6 @@ export const getRegisteredModules = (): AppModule[] => [
   transportModule,
   communicationModule,
   homeworkModule,
-  reportingModule
+  reportingModule,
+  adminImportsModule
 ];
