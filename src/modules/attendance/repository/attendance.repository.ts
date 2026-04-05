@@ -13,6 +13,7 @@ import type {
   AcademicYearReferenceRow,
   AttendanceRecordRow,
   AttendanceRecordUpdateInput,
+  AttendanceRecordUpsertRow,
   AttendanceRecordWriteInput,
   AttendanceSessionFilters,
   AttendanceSessionSortField,
@@ -38,24 +39,28 @@ const buildAssignments = (updates: Record<string, unknown>, startIndex = 2) => {
   };
 };
 
-const attendanceCountsSelect = `
-  SELECT
-    attendance_session_id,
-    COUNT(*) FILTER (WHERE status = 'present')::int AS present_count,
-    COUNT(*) FILTER (WHERE status = 'absent')::int AS absent_count,
-    COUNT(*) FILTER (WHERE status = 'late')::int AS late_count,
-    COUNT(*) FILTER (WHERE status = 'excused')::int AS excused_count,
-    COUNT(*)::int AS recorded_count
-  FROM ${databaseTables.attendance}
-  GROUP BY attendance_session_id
+const attendanceCountsLateralSelect = `
+  LEFT JOIN LATERAL (
+    SELECT
+      COUNT(*) FILTER (WHERE att.status = 'present')::int AS present_count,
+      COUNT(*) FILTER (WHERE att.status = 'absent')::int AS absent_count,
+      COUNT(*) FILTER (WHERE att.status = 'late')::int AS late_count,
+      COUNT(*) FILTER (WHERE att.status = 'excused')::int AS excused_count,
+      COUNT(*)::int AS recorded_count
+    FROM ${databaseTables.attendance} att
+    WHERE att.attendance_session_id = ats.id
+  ) ac ON true
 `;
 
-const attendanceRosterCountsSelect = `
-  SELECT
-    class_id,
-    COUNT(*) FILTER (WHERE student_status = 'active')::int AS expected_count
-  FROM ${databaseViews.classStudents}
-  GROUP BY class_id
+const attendanceRosterCountsLateralSelect = `
+  LEFT JOIN LATERAL (
+    SELECT COUNT(*)::int AS expected_count
+    FROM ${databaseTables.studentAcademicEnrollments} sae
+    JOIN ${databaseTables.students} st ON st.id = sae.student_id
+    WHERE sae.class_id = ats.class_id
+      AND sae.academic_year_id = ats.academic_year_id
+      AND st.status = 'active'
+  ) rc ON true
 `;
 
 const attendanceSessionReadSelect = `
@@ -97,10 +102,8 @@ const attendanceSessionReadSelect = `
   JOIN ${databaseTables.users} tu ON tu.id = t.user_id
   JOIN ${databaseTables.academicYears} ay ON ay.id = ats.academic_year_id
   JOIN ${databaseTables.semesters} sem ON sem.id = ats.semester_id
-  LEFT JOIN (${attendanceCountsSelect}) ac
-    ON ac.attendance_session_id = ats.id
-  LEFT JOIN (${attendanceRosterCountsSelect}) rc
-    ON rc.class_id = ats.class_id
+  ${attendanceCountsLateralSelect}
+  ${attendanceRosterCountsLateralSelect}
 `;
 
 const teacherProfileSelect = `
@@ -490,23 +493,26 @@ export class AttendanceRepository {
     const result = await queryable.query<AttendanceSessionStudentRow>(
       `
         SELECT
-          cs.student_id AS "studentId",
-          cs.academic_no AS "academicNo",
-          cs.student_name AS "fullName",
-          cs.student_status AS "studentStatus",
-          ad.attendance_id AS "attendanceId",
-          ad.status AS "attendanceStatus",
-          ad.notes,
-          ad.recorded_at AS "recordedAt"
+          st.id AS "studentId",
+          st.academic_no AS "academicNo",
+          st.full_name AS "fullName",
+          st.status AS "studentStatus",
+          att.id AS "attendanceId",
+          att.status AS "attendanceStatus",
+          att.notes,
+          att.recorded_at AS "recordedAt"
         FROM ${databaseTables.attendanceSessions} ats
-        JOIN ${databaseViews.classStudents} cs
-          ON cs.class_id = ats.class_id
-        LEFT JOIN ${databaseViews.attendanceDetails} ad
-          ON ad.attendance_session_id = ats.id
-         AND ad.student_id = cs.student_id
+        JOIN ${databaseTables.studentAcademicEnrollments} sae
+          ON sae.class_id = ats.class_id
+         AND sae.academic_year_id = ats.academic_year_id
+        JOIN ${databaseTables.students} st
+          ON st.id = sae.student_id
+        LEFT JOIN ${databaseTables.attendance} att
+          ON att.attendance_session_id = ats.id
+         AND att.student_id = st.id
         WHERE ats.id = $1
-          AND cs.student_status = 'active'
-        ORDER BY cs.academic_no ASC, cs.student_id ASC
+          AND st.status = 'active'
+        ORDER BY st.academic_no ASC, st.id ASC
       `,
       [sessionId]
     );
@@ -518,26 +524,53 @@ export class AttendanceRepository {
     sessionId: string,
     records: AttendanceRecordWriteInput[],
     queryable: Queryable = db
-  ): Promise<void> {
-    for (const record of records) {
-      await queryable.query(
-        `
-          INSERT INTO ${databaseTables.attendance} (
-            attendance_session_id,
-            student_id,
-            status,
-            notes
-          )
-          VALUES ($1, $2, $3, $4)
-          ON CONFLICT (attendance_session_id, student_id)
-          DO UPDATE SET
-            status = EXCLUDED.status,
-            notes = EXCLUDED.notes,
-            recorded_at = NOW()
-        `,
-        [sessionId, record.studentId, record.status, record.notes ?? null]
-      );
+  ): Promise<AttendanceRecordUpsertRow[]> {
+    if (records.length === 0) {
+      return [];
     }
+
+    const serializedRecords = JSON.stringify(
+      records.map((record) => ({
+        student_id: record.studentId,
+        status: record.status,
+        notes: record.notes ?? null
+      }))
+    );
+
+    const result = await queryable.query<AttendanceRecordUpsertRow>(
+      `
+        INSERT INTO ${databaseTables.attendance} (
+          attendance_session_id,
+          student_id,
+          status,
+          notes
+        )
+        SELECT
+          $1::bigint,
+          input.student_id,
+          input.status,
+          input.notes
+        FROM jsonb_to_recordset($2::jsonb) AS input(
+          student_id bigint,
+          status text,
+          notes text
+        )
+        ON CONFLICT (attendance_session_id, student_id)
+        DO UPDATE SET
+          status = EXCLUDED.status,
+          notes = EXCLUDED.notes,
+          recorded_at = NOW()
+        RETURNING
+          id AS "attendanceId",
+          student_id AS "studentId",
+          status,
+          notes,
+          recorded_at AS "recordedAt"
+      `,
+      [sessionId, serializedRecords]
+    );
+
+    return result.rows;
   }
 
   async findAttendanceRecordById(

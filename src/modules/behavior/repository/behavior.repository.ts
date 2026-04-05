@@ -7,7 +7,7 @@ import {
   buildOrderByClause,
   buildPaginationWindow
 } from "../../../common/utils/pagination.util";
-import { databaseTables, databaseViews } from "../../../config/database";
+import { databaseTables } from "../../../config/database";
 import { db } from "../../../database/db";
 import type {
   AcademicYearReferenceRow,
@@ -60,47 +60,56 @@ const supervisorProfileSelect = `
 
 const studentReferenceSelect = `
   SELECT
-    sp.student_id AS "studentId",
-    sp.academic_no AS "academicNo",
-    sp.student_name AS "fullName",
-    sp.class_id AS "classId",
-    sp.class_name AS "className",
-    sp.section,
-    sp.academic_year_id AS "academicYearId",
-    sp.academic_year_name AS "academicYearName"
-  FROM ${databaseViews.studentProfiles} sp
+    st.id AS "studentId",
+    st.academic_no AS "academicNo",
+    st.full_name AS "fullName",
+    c.id AS "classId",
+    c.class_name AS "className",
+    c.section,
+    ay.id AS "academicYearId",
+    ay.name AS "academicYearName"
+  FROM ${databaseTables.students} st
+  JOIN ${databaseTables.classes} c ON c.id = st.class_id
+  JOIN ${databaseTables.academicYears} ay ON ay.id = c.academic_year_id
 `;
 
 const behaviorRecordReadSelect = `
   SELECT
-    bd.behavior_record_id AS id,
-    bd.student_id AS "studentId",
-    bd.academic_no AS "academicNo",
-    bd.student_name AS "studentFullName",
-    bd.behavior_category_id AS "behaviorCategoryId",
-    bd.behavior_code AS "behaviorCode",
-    bd.behavior_name AS "behaviorName",
-    bd.behavior_type AS "behaviorType",
-    bd.severity,
-    bd.description,
-    bd.behavior_date AS "behaviorDate",
-    bd.teacher_id AS "teacherId",
-    bd.teacher_name AS "teacherFullName",
-    bd.supervisor_id AS "supervisorId",
-    bd.supervisor_name AS "supervisorFullName",
-    bd.academic_year_id AS "academicYearId",
-    bd.academic_year_name AS "academicYearName",
-    bd.semester_id AS "semesterId",
-    bd.semester_name AS "semesterName",
+    br.id AS id,
+    st.id AS "studentId",
+    st.academic_no AS "academicNo",
+    st.full_name AS "studentFullName",
+    bc.id AS "behaviorCategoryId",
+    bc.code AS "behaviorCode",
+    bc.name AS "behaviorName",
+    bc.behavior_type AS "behaviorType",
+    br.severity,
+    br.description,
+    br.behavior_date AS "behaviorDate",
+    br.teacher_id AS "teacherId",
+    tu.full_name AS "teacherFullName",
+    br.supervisor_id AS "supervisorId",
+    su.full_name AS "supervisorFullName",
+    ay.id AS "academicYearId",
+    ay.name AS "academicYearName",
+    sem.id AS "semesterId",
+    sem.name AS "semesterName",
     br.created_at AS "createdAt"
-  FROM ${databaseViews.behaviorDetails} bd
-  JOIN ${databaseTables.behaviorRecords} br ON br.id = bd.behavior_record_id
+  FROM ${databaseTables.behaviorRecords} br
+  JOIN ${databaseTables.students} st ON st.id = br.student_id
+  JOIN ${databaseTables.behaviorCategories} bc ON bc.id = br.behavior_category_id
+  LEFT JOIN ${databaseTables.teachers} t ON t.id = br.teacher_id
+  LEFT JOIN ${databaseTables.users} tu ON tu.id = t.user_id
+  LEFT JOIN ${databaseTables.supervisors} sp ON sp.id = br.supervisor_id
+  LEFT JOIN ${databaseTables.users} su ON su.id = sp.user_id
+  JOIN ${databaseTables.academicYears} ay ON ay.id = br.academic_year_id
+  JOIN ${databaseTables.semesters} sem ON sem.id = br.semester_id
 `;
 
 const behaviorSortColumns = {
-  behaviorDate: ["bd.behavior_date", "br.created_at"],
+  behaviorDate: ["br.behavior_date", "br.created_at"],
   createdAt: "br.created_at",
-  severity: ["bd.severity", "bd.behavior_date"]
+  severity: ["br.severity", "br.behavior_date"]
 } as const;
 
 export class BehaviorRepository {
@@ -241,7 +250,7 @@ export class BehaviorRepository {
     const result = await queryable.query<StudentBehaviorReferenceRow>(
       `
         ${studentReferenceSelect}
-        WHERE sp.student_id = $1
+        WHERE st.id = $1
         LIMIT 1
       `,
       [studentId]
@@ -383,59 +392,59 @@ export class BehaviorRepository {
     };
 
     if (scope.teacherId) {
-      addCondition("bd.teacher_id = ?", scope.teacherId);
+      addCondition("br.teacher_id = ?", scope.teacherId);
     }
 
     if (scope.supervisorId) {
-      addCondition("bd.supervisor_id = ?", scope.supervisorId);
+      addCondition("br.supervisor_id = ?", scope.supervisorId);
     }
 
     if (filters.studentId) {
-      addCondition("bd.student_id = ?", filters.studentId);
+      addCondition("br.student_id = ?", filters.studentId);
     }
 
     if (filters.behaviorCategoryId) {
-      addCondition("bd.behavior_category_id = ?", filters.behaviorCategoryId);
+      addCondition("br.behavior_category_id = ?", filters.behaviorCategoryId);
     }
 
     if (filters.behaviorType) {
-      addCondition("bd.behavior_type = ?", filters.behaviorType);
+      addCondition("bc.behavior_type = ?", filters.behaviorType);
     }
 
     if (filters.academicYearId) {
-      addCondition("bd.academic_year_id = ?", filters.academicYearId);
+      addCondition("br.academic_year_id = ?", filters.academicYearId);
     }
 
     if (filters.semesterId) {
-      addCondition("bd.semester_id = ?", filters.semesterId);
+      addCondition("br.semester_id = ?", filters.semesterId);
     }
 
     if (filters.teacherId) {
-      addCondition("bd.teacher_id = ?", filters.teacherId);
+      addCondition("br.teacher_id = ?", filters.teacherId);
     }
 
     if (filters.supervisorId) {
-      addCondition("bd.supervisor_id = ?", filters.supervisorId);
+      addCondition("br.supervisor_id = ?", filters.supervisorId);
     }
 
     if (filters.behaviorDate) {
-      addCondition("bd.behavior_date = ?::date", filters.behaviorDate);
+      addCondition("br.behavior_date = ?::date", filters.behaviorDate);
     }
 
     if (filters.dateFrom) {
-      addCondition("bd.behavior_date >= ?::date", filters.dateFrom);
+      addCondition("br.behavior_date >= ?::date", filters.dateFrom);
     }
 
     if (filters.dateTo) {
-      addCondition("bd.behavior_date <= ?::date", filters.dateTo);
+      addCondition("br.behavior_date <= ?::date", filters.dateTo);
     }
 
     const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
     const countResult = await queryable.query<{ total: string }>(
       `
         SELECT COUNT(*)::text AS total
-        FROM ${databaseViews.behaviorDetails} bd
-        JOIN ${databaseTables.behaviorRecords} br ON br.id = bd.behavior_record_id
+        FROM ${databaseTables.behaviorRecords} br
+        JOIN ${databaseTables.behaviorCategories} bc ON bc.id = br.behavior_category_id
         ${whereClause}
       `,
       values
@@ -446,7 +455,7 @@ export class BehaviorRepository {
       behaviorSortColumns,
       filters.sortBy,
       filters.sortOrder,
-      ["bd.behavior_record_id"]
+      ["br.id"]
     );
     const result = await queryable.query<BehaviorRecordRow>(
       `
@@ -471,7 +480,7 @@ export class BehaviorRepository {
     const result = await queryable.query<BehaviorRecordRow>(
       `
         ${behaviorRecordReadSelect}
-        WHERE bd.behavior_record_id = $1
+        WHERE br.id = $1
         LIMIT 1
       `,
       [behaviorRecordId]
@@ -519,8 +528,19 @@ export class BehaviorRepository {
           COALESCE(SUM(positive_count), 0)::int AS "positiveCount",
           COALESCE(SUM(negative_count), 0)::int AS "negativeCount",
           COALESCE(SUM(negative_severity_total), 0)::int AS "negativeSeverityTotal"
-        FROM ${databaseViews.studentBehaviorSummary}
-        WHERE student_id = $1
+        FROM (
+          SELECT
+            COUNT(br.id)::int AS total_behavior_records,
+            COUNT(*) FILTER (WHERE bc.behavior_type = 'positive')::int AS positive_count,
+            COUNT(*) FILTER (WHERE bc.behavior_type = 'negative')::int AS negative_count,
+            COALESCE(
+              SUM(br.severity) FILTER (WHERE bc.behavior_type = 'negative'),
+              0
+            )::int AS negative_severity_total
+          FROM ${databaseTables.behaviorRecords} br
+          JOIN ${databaseTables.behaviorCategories} bc ON bc.id = br.behavior_category_id
+          WHERE br.student_id = $1
+        ) summary
       `,
       [studentId]
     );

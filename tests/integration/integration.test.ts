@@ -1,5 +1,7 @@
 import { afterAll, beforeAll, beforeEach, describe } from "vitest";
 
+import { queryPerformanceAuditService } from "../../src/common/services/query-performance-audit.service";
+import { requestPerformanceAuditService } from "../../src/common/services/request-performance-audit.service";
 import { db } from "../../src/database/db";
 import { createIntegrationTestContext } from "../helpers/integration-context";
 import { registerAccessIntegrationTests } from "./access/access.integration";
@@ -56,6 +58,8 @@ describeIfDatabase("API integration", () => {
   });
 
   afterAll(async () => {
+    requestPerformanceAuditService.flushNow();
+    queryPerformanceAuditService.flushNow();
     runMigration("down");
     await pool.end();
     await db.close();

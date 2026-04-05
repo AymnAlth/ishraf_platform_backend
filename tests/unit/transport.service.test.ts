@@ -243,6 +243,10 @@ describe("TransportService", () => {
     upsertStudentHomeLocation: vi.fn(),
     deleteStudentHomeLocation: vi.fn()
   };
+  const profileResolutionServiceMock = {
+    findDriverProfileByUserId: vi.fn(),
+    requireDriverProfile: vi.fn()
+  };
 
   let transportService: TransportService;
   const automationMock = {
@@ -255,7 +259,7 @@ describe("TransportService", () => {
   beforeEach(() => {
     transportService = new TransportService(
       repositoryMock as unknown as TransportRepository,
-      undefined,
+      profileResolutionServiceMock as never,
       undefined,
       automationMock as unknown as AutomationPort
     );
@@ -271,8 +275,27 @@ describe("TransportService", () => {
     });
 
     Object.values(repositoryMock).forEach((mockFn) => mockFn.mockReset());
+    Object.values(profileResolutionServiceMock).forEach((mockFn) => mockFn.mockReset());
     Object.values(automationMock).forEach((mockFn) => mockFn.mockReset());
     vi.mocked(repositoryMock.findDriverProfileByUserId).mockResolvedValue(driverRow());
+    vi.mocked(profileResolutionServiceMock.findDriverProfileByUserId).mockResolvedValue({
+      driverId: "1",
+      userId: "1004",
+      fullName: "Ali Driver",
+      email: "driver@example.com",
+      phone: "01000000004",
+      licenseNumber: "DRV-001",
+      driverStatus: "active"
+    });
+    vi.mocked(profileResolutionServiceMock.requireDriverProfile).mockResolvedValue({
+      driverId: "1",
+      userId: "1004",
+      fullName: "Ali Driver",
+      email: "driver@example.com",
+      phone: "01000000004",
+      licenseNumber: "DRV-001",
+      driverStatus: "active"
+    });
     vi.mocked(repositoryMock.hasDriverBusOwnership).mockResolvedValue(true);
     vi.mocked(repositoryMock.hasDriverTripOwnership).mockResolvedValue(true);
     vi.mocked(repositoryMock.hasDriverRouteAssignmentOwnership).mockResolvedValue(true);
@@ -303,7 +326,15 @@ describe("TransportService", () => {
 
   it("creates buses when admin sends the driver user id instead of the driver profile id", async () => {
     vi.mocked(repositoryMock.findDriverById).mockResolvedValue(null);
-    vi.mocked(repositoryMock.findDriverProfileByUserId).mockResolvedValue(driverRow());
+    vi.mocked(profileResolutionServiceMock.findDriverProfileByUserId).mockResolvedValue({
+      driverId: "1",
+      userId: "1004",
+      fullName: "Ali Driver",
+      email: "driver@example.com",
+      phone: "01000000004",
+      licenseNumber: "DRV-001",
+      driverStatus: "active"
+    });
     vi.mocked(repositoryMock.createBus).mockResolvedValue("1");
     vi.mocked(repositoryMock.findBusById).mockResolvedValue(busRow());
 
@@ -322,7 +353,7 @@ describe("TransportService", () => {
     );
 
     expect(response.id).toBe("1");
-    expect(repositoryMock.findDriverProfileByUserId).toHaveBeenCalledWith("1004");
+    expect(profileResolutionServiceMock.findDriverProfileByUserId).toHaveBeenCalledWith("1004");
     expect(repositoryMock.createBus).toHaveBeenCalledWith(
       expect.objectContaining({
         driverId: "1"
@@ -333,7 +364,7 @@ describe("TransportService", () => {
 
   it("rejects bus creation when the provided id does not belong to a driver profile or driver user", async () => {
     vi.mocked(repositoryMock.findDriverById).mockResolvedValue(null);
-    vi.mocked(repositoryMock.findDriverProfileByUserId).mockResolvedValue(null);
+    vi.mocked(profileResolutionServiceMock.findDriverProfileByUserId).mockResolvedValue(null);
 
     await expect(
       transportService.createBus(

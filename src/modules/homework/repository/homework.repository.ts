@@ -28,48 +28,52 @@ import type {
 
 const mapSingleRow = <T extends QueryResultRow>(rows: T[]): T | null => rows[0] ?? null;
 
-const submissionSummarySelect = `
-  SELECT
-    hs.homework_id,
-    COUNT(*) FILTER (WHERE hs.status = 'submitted')::int AS "submittedCount",
-    COUNT(*) FILTER (WHERE hs.status = 'not_submitted')::int AS "notSubmittedCount",
-    COUNT(*) FILTER (WHERE hs.status = 'late')::int AS "lateCount",
-    COUNT(*)::int AS "recordedCount"
-  FROM ${databaseTables.homeworkSubmissions} hs
-  GROUP BY hs.homework_id
+const submissionSummaryLateralSelect = `
+  LEFT JOIN LATERAL (
+    SELECT
+      COUNT(*) FILTER (WHERE hs.status = 'submitted')::int AS "submittedCount",
+      COUNT(*) FILTER (WHERE hs.status = 'not_submitted')::int AS "notSubmittedCount",
+      COUNT(*) FILTER (WHERE hs.status = 'late')::int AS "lateCount",
+      COUNT(*)::int AS "recordedCount"
+    FROM ${databaseTables.homeworkSubmissions} hs
+    WHERE hs.homework_id = h.id
+  ) ss ON true
 `;
 
-const rosterCountsSelect = `
-  SELECT
-    class_id,
-    COUNT(*) FILTER (WHERE student_status = 'active')::int AS "expectedCount"
-  FROM ${databaseViews.classStudents}
-  GROUP BY class_id
+const rosterCountsLateralSelect = `
+  LEFT JOIN LATERAL (
+    SELECT COUNT(*)::int AS "expectedCount"
+    FROM ${databaseTables.studentAcademicEnrollments} sae
+    JOIN ${databaseTables.students} st ON st.id = sae.student_id
+    WHERE sae.class_id = h.class_id
+      AND sae.academic_year_id = h.academic_year_id
+      AND st.status = 'active'
+  ) rc ON true
 `;
 
 const homeworkReadSelect = `
   SELECT
-    hd.homework_id AS id,
-    hd.title,
-    hd.description,
-    hd.assigned_date AS "assignedDate",
-    hd.due_date AS "dueDate",
-    hd.class_id AS "classId",
-    hd.class_name AS "className",
-    hd.section,
+    h.id,
+    h.title,
+    h.description,
+    h.assigned_date AS "assignedDate",
+    h.due_date AS "dueDate",
+    h.class_id AS "classId",
+    c.class_name AS "className",
+    c.section,
     c.grade_level_id AS "gradeLevelId",
     gl.name AS "gradeLevelName",
-    hd.subject_id AS "subjectId",
-    hd.subject_name AS "subjectName",
-    hd.teacher_id AS "teacherId",
+    h.subject_id AS "subjectId",
+    subj.name AS "subjectName",
+    h.teacher_id AS "teacherId",
     t.user_id AS "teacherUserId",
-    hd.teacher_name AS "teacherFullName",
+    tu.full_name AS "teacherFullName",
     tu.email AS "teacherEmail",
     tu.phone AS "teacherPhone",
-    hd.academic_year_id AS "academicYearId",
-    hd.academic_year_name AS "academicYearName",
-    hd.semester_id AS "semesterId",
-    hd.semester_name AS "semesterName",
+    h.academic_year_id AS "academicYearId",
+    ay.name AS "academicYearName",
+    h.semester_id AS "semesterId",
+    sem.name AS "semesterName",
     h.created_at AS "createdAt",
     h.updated_at AS "updatedAt",
     COALESCE(ss."submittedCount", 0)::int AS "submittedCount",
@@ -77,14 +81,16 @@ const homeworkReadSelect = `
     COALESCE(ss."lateCount", 0)::int AS "lateCount",
     COALESCE(ss."recordedCount", 0)::int AS "recordedCount",
     COALESCE(rc."expectedCount", 0)::int AS "expectedCount"
-  FROM ${databaseViews.homeworkDetails} hd
-  JOIN ${databaseTables.homework} h ON h.id = hd.homework_id
-  JOIN ${databaseTables.classes} c ON c.id = hd.class_id
+  FROM ${databaseTables.homework} h
+  JOIN ${databaseTables.classes} c ON c.id = h.class_id
   JOIN ${databaseTables.gradeLevels} gl ON gl.id = c.grade_level_id
-  JOIN ${databaseTables.teachers} t ON t.id = hd.teacher_id
+  JOIN ${databaseTables.subjects} subj ON subj.id = h.subject_id
+  JOIN ${databaseTables.teachers} t ON t.id = h.teacher_id
   JOIN ${databaseTables.users} tu ON tu.id = t.user_id
-  LEFT JOIN (${submissionSummarySelect}) ss ON ss.homework_id = hd.homework_id
-  LEFT JOIN (${rosterCountsSelect}) rc ON rc.class_id = hd.class_id
+  JOIN ${databaseTables.academicYears} ay ON ay.id = h.academic_year_id
+  JOIN ${databaseTables.semesters} sem ON sem.id = h.semester_id
+  ${submissionSummaryLateralSelect}
+  ${rosterCountsLateralSelect}
 `;
 
 const studentHomeworkSelect = `
@@ -379,22 +385,26 @@ export class HomeworkRepository {
     const result = await queryable.query<HomeworkSubmissionRosterRow>(
       `
         SELECT
-          cs.student_id AS "studentId",
+          cs.id AS "studentId",
           cs.academic_no AS "academicNo",
-          cs.student_name AS "fullName",
-          cs.student_status AS "studentStatus",
+          cs.full_name AS "fullName",
+          cs.status AS "studentStatus",
           hs.id AS "submissionId",
           hs.status,
           hs.submitted_at AS "submittedAt",
           hs.notes
         FROM ${databaseTables.homework} h
-        JOIN ${databaseViews.classStudents} cs ON cs.class_id = h.class_id
+        JOIN ${databaseTables.studentAcademicEnrollments} sae
+          ON sae.class_id = h.class_id
+         AND sae.academic_year_id = h.academic_year_id
+        JOIN ${databaseTables.students} cs
+          ON cs.id = sae.student_id
         LEFT JOIN ${databaseTables.homeworkSubmissions} hs
           ON hs.homework_id = h.id
-         AND hs.student_id = cs.student_id
+         AND hs.student_id = cs.id
         WHERE h.id = $1
-          AND cs.student_status = 'active'
-        ORDER BY cs.academic_no ASC, cs.student_id ASC
+          AND cs.status = 'active'
+        ORDER BY cs.academic_no ASC, cs.id ASC
       `,
       [homeworkId]
     );
@@ -407,46 +417,56 @@ export class HomeworkRepository {
     records: HomeworkSubmissionWriteInput[],
     queryable: Queryable = db
   ): Promise<void> {
-    for (const record of records) {
-      await queryable.query(
-        `
-          INSERT INTO ${databaseTables.homeworkSubmissions} (
-            homework_id,
-            student_id,
-            status,
-            submitted_at,
-            notes
-          )
-          VALUES (
-            $1,
-            $2,
-            $3::varchar(30),
-            CASE
-              WHEN $5::timestamptz IS NOT NULL THEN $5::timestamptz
-              WHEN $3::varchar(30) IN ('submitted', 'late') THEN NOW()
-              ELSE NULL
-            END,
-            $4::text
-          )
-          ON CONFLICT (homework_id, student_id)
-          DO UPDATE SET
-            status = EXCLUDED.status,
-            submitted_at = CASE
-              WHEN $5::timestamptz IS NOT NULL THEN $5::timestamptz
-              WHEN EXCLUDED.status IN ('submitted', 'late') THEN NOW()
-              ELSE NULL
-            END,
-            notes = EXCLUDED.notes
-        `,
-        [
-          homeworkId,
-          record.studentId,
-          record.status,
-          record.notes ?? null,
-          record.submittedAt ?? null
-        ]
-      );
+    if (records.length === 0) {
+      return;
     }
+
+    const serializedRecords = JSON.stringify(
+      records.map((record) => ({
+        student_id: record.studentId,
+        status: record.status,
+        notes: record.notes ?? null,
+        submitted_at: record.submittedAt ?? null
+      }))
+    );
+
+    await queryable.query(
+      `
+        INSERT INTO ${databaseTables.homeworkSubmissions} (
+          homework_id,
+          student_id,
+          status,
+          submitted_at,
+          notes
+        )
+        SELECT
+          $1::bigint,
+          input.student_id,
+          input.status::varchar(30),
+          CASE
+            WHEN input.submitted_at IS NOT NULL THEN input.submitted_at
+            WHEN input.status IN ('submitted', 'late') THEN NOW()
+            ELSE NULL
+          END,
+          input.notes
+        FROM jsonb_to_recordset($2::jsonb) AS input(
+          student_id bigint,
+          status text,
+          notes text,
+          submitted_at timestamptz
+        )
+        ON CONFLICT (homework_id, student_id)
+        DO UPDATE SET
+          status = EXCLUDED.status,
+          submitted_at = CASE
+            WHEN EXCLUDED.submitted_at IS NOT NULL THEN EXCLUDED.submitted_at
+            WHEN EXCLUDED.status IN ('submitted', 'late') THEN NOW()
+            ELSE NULL
+          END,
+          notes = EXCLUDED.notes
+      `,
+      [homeworkId, serializedRecords]
+    );
   }
 
   async findStudentById(
@@ -510,9 +530,4 @@ export class HomeworkRepository {
     return result.rows;
   }
 }
-
-
-
-
-
 

@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import type { Queryable } from "../../../src/common/interfaces/queryable.interface";
 import { ProfileResolutionService } from "../../../src/common/services/profile-resolution.service";
+import { requestMemoService } from "../../../src/common/services/request-memo.service";
 
 const createQueryable = (rows: unknown[]): Queryable & { query: ReturnType<typeof vi.fn> } => ({
   query: vi.fn().mockResolvedValue({
@@ -84,6 +85,27 @@ describe("ProfileResolutionService", () => {
       });
     });
 
+    it("memoizes the same parent profile lookup within a request scope", async () => {
+      const queryable = createQueryable([
+        {
+          parentId: "12",
+          userId: "42",
+          fullName: "Parent Name",
+          email: "parent@example.com",
+          phone: "700000012",
+          address: "Main Street",
+          relationType: "father"
+        }
+      ]);
+
+      await requestMemoService.run(async () => {
+        await service.findParentProfileByUserId("42", queryable);
+        await service.findParentProfileByUserId("42", queryable);
+      });
+
+      expect(queryable.query).toHaveBeenCalledTimes(1);
+    });
+
     it("throws a domain-aware not found error when a parent profile is missing", async () => {
       const queryable = createQueryable([]);
 
@@ -158,6 +180,28 @@ describe("ProfileResolutionService", () => {
         qualification: "Bachelor",
         hireDate: "2025-09-01"
       });
+    });
+
+    it("memoizes the same teacher profile lookup within a request scope", async () => {
+      const queryable = createQueryable([
+        {
+          teacherId: "7",
+          userId: "3",
+          fullName: "Teacher Name",
+          email: "teacher@example.com",
+          phone: "700000001",
+          specialization: "Mathematics",
+          qualification: "Bachelor",
+          hireDate: "2025-09-01"
+        }
+      ]);
+
+      await requestMemoService.run(async () => {
+        await service.findTeacherProfileByUserId("3", queryable);
+        await service.findTeacherProfileByUserId("3", queryable);
+      });
+
+      expect(queryable.query).toHaveBeenCalledTimes(1);
     });
 
     it("throws a domain-aware not found error when a teacher profile is missing", async () => {

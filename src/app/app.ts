@@ -4,6 +4,8 @@ import helmet from "helmet";
 
 import { buildErrorResponse } from "../common/base/http-response";
 import { errorHandler } from "../common/middlewares/error-handler";
+import { requestExecutionContextMiddleware } from "../common/middlewares/request-execution-context.middleware";
+import { requestMemoMiddleware } from "../common/middlewares/request-memo.middleware";
 import { requestLoggerMiddleware } from "../common/middlewares/request-logger.middleware";
 import { env } from "../config/env";
 import { buildCorsOptions } from "../config/http";
@@ -18,6 +20,8 @@ export const createApp = (): Express => {
   app.use(cors(buildCorsOptions(env)));
   app.use(express.json({ limit: env.REQUEST_BODY_LIMIT }));
   app.use(express.urlencoded({ extended: true, limit: env.REQUEST_BODY_LIMIT }));
+  app.use(requestExecutionContextMiddleware);
+  app.use(requestMemoMiddleware);
   app.use(requestLoggerMiddleware);
   app.use(createRoutes());
 

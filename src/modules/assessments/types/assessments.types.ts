@@ -145,6 +145,14 @@ export interface StudentAssessmentUpdateInput {
   remarks?: string | null;
 }
 
+export interface StudentAssessmentUpsertRow {
+  studentAssessmentId: string;
+  studentId: string;
+  score: number | string;
+  remarks: string | null;
+  gradedAt: Date;
+}
+
 export interface AssessmentFilters {
   assessmentTypeId?: string;
   classId?: string;

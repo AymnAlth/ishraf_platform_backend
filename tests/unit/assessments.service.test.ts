@@ -179,6 +179,7 @@ describe("AssessmentsService", () => {
     updateStudentAssessment: vi.fn()
   };
   const profileResolutionServiceMock = {
+    requireTeacherProfile: vi.fn(),
     requireTeacherProfileIdentifier: vi.fn()
   };
   const activeAcademicContextServiceMock = {
@@ -313,7 +314,16 @@ describe("AssessmentsService", () => {
   });
 
   it("rejects teachers that send teacherId in create assessment payloads", async () => {
-    vi.mocked(repositoryMock.findTeacherProfileByUserId).mockResolvedValue(teacherProfile());
+    vi.mocked(profileResolutionServiceMock.requireTeacherProfile).mockResolvedValue({
+      teacherId: "1",
+      userId: "1002",
+      fullName: "Sara Teacher",
+      email: "teacher@example.com",
+      phone: "700000003",
+      specialization: null,
+      qualification: null,
+      hireDate: null
+    });
     vi.mocked(repositoryMock.findAssessmentTypeById).mockResolvedValue(assessmentTypeRow());
     vi.mocked(repositoryMock.findClassById).mockResolvedValue(classRow());
     vi.mocked(repositoryMock.findSubjectById).mockResolvedValue(subjectRow());
@@ -473,8 +483,75 @@ describe("AssessmentsService", () => {
     ).rejects.toBeInstanceOf(ValidationError);
   });
 
+  it("saves assessment scores without rereading the assessment or roster after bulk upsert", async () => {
+    vi.mocked(repositoryMock.findAssessmentById).mockResolvedValue(assessmentRow());
+    vi.mocked(repositoryMock.listAssessmentScores).mockResolvedValue([
+      rosterRow({
+        studentId: "1"
+      }),
+      rosterRow({
+        studentId: "2",
+        academicNo: "STU-1002",
+        fullName: "Student Two"
+      })
+    ]);
+    vi.mocked(repositoryMock.upsertStudentAssessments).mockResolvedValue([
+      {
+        studentAssessmentId: "101",
+        studentId: "1",
+        score: 90,
+        remarks: "Excellent",
+        gradedAt: new Date("2026-03-13T12:00:00.000Z")
+      }
+    ]);
+
+    const response = await assessmentsService.saveAssessmentScores(
+      {
+        userId: "1001",
+        role: "admin",
+        email: "admin@example.com",
+        isActive: true
+      },
+      "10",
+      {
+        records: [
+          {
+            studentId: "1",
+            score: 90,
+            remarks: "Excellent"
+          }
+        ]
+      }
+    );
+
+    expect(response.students[0]).toMatchObject({
+      studentId: "1",
+      studentAssessmentId: "101",
+      score: 90,
+      remarks: "Excellent",
+      percentage: 90
+    });
+    expect(response.summary).toMatchObject({
+      gradedCount: 1,
+      expectedCount: 2,
+      averageScore: 90,
+      averagePercentage: 90
+    });
+    expect(repositoryMock.findAssessmentById).toHaveBeenCalledTimes(1);
+    expect(repositoryMock.listAssessmentScores).toHaveBeenCalledTimes(1);
+  });
+
   it("updates one student assessment and blocks teachers from editing other teachers' records", async () => {
-    vi.mocked(repositoryMock.findTeacherProfileByUserId).mockResolvedValue(teacherProfile());
+    vi.mocked(profileResolutionServiceMock.requireTeacherProfile).mockResolvedValue({
+      teacherId: "1",
+      userId: "1002",
+      fullName: "Sara Teacher",
+      email: "teacher@example.com",
+      phone: "700000003",
+      specialization: null,
+      qualification: null,
+      hireDate: null
+    });
     vi.mocked(repositoryMock.findStudentAssessmentById)
       .mockResolvedValueOnce(
         studentAssessmentRow({

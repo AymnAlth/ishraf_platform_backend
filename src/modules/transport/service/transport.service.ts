@@ -221,7 +221,8 @@ export class TransportService {
       return driverByProfileId.driverId;
     }
 
-    const driverByUserId = await this.transportRepository.findDriverProfileByUserId(driverId);
+    const driverByUserId =
+      await this.profileResolutionService.findDriverProfileByUserId(driverId);
 
     return assertFound(driverByUserId, "Driver").driverId;
   }
@@ -931,25 +932,7 @@ export class TransportService {
       return null;
     }
 
-    if (typeof this.transportRepository.findDriverProfileByUserId !== "function") {
-      return null;
-    }
-
-    const driver = await this.transportRepository.findDriverProfileByUserId(authUser.userId);
-
-    if (driver) {
-      return {
-        driverId: driver.driverId,
-        userId: driver.driverUserId,
-        fullName: driver.driverFullName,
-        email: driver.driverEmail,
-        phone: driver.driverPhone,
-        licenseNumber: "",
-        driverStatus: "active"
-      };
-    }
-
-    throw new NotFoundError("Driver profile not found");
+    return this.profileResolutionService.requireDriverProfile(authUser.userId);
   }
 
   private async assertDriverTripOwnership(

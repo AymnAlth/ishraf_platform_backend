@@ -598,39 +598,11 @@ export class BehaviorService {
   }
 
   private async resolveTeacherProfile(userId: string): Promise<TeacherProfile> {
-    const teacher = await this.behaviorRepository.findTeacherProfileByUserId(userId);
-
-    if (teacher) {
-      return {
-        teacherId: teacher.teacherId,
-        userId: teacher.teacherUserId,
-        fullName: teacher.teacherFullName,
-        email: teacher.teacherEmail,
-        phone: teacher.teacherPhone,
-        specialization: null,
-        qualification: null,
-        hireDate: null
-      };
-    }
-
-    throw new NotFoundError("Teacher profile not found");
+    return this.profileResolutionService.requireTeacherProfile(userId);
   }
 
   private async resolveSupervisorProfile(userId: string): Promise<SupervisorProfile> {
-    const supervisor = await this.behaviorRepository.findSupervisorProfileByUserId(userId);
-
-    if (supervisor) {
-      return {
-        supervisorId: supervisor.supervisorId,
-        userId: supervisor.supervisorUserId,
-        fullName: supervisor.supervisorFullName,
-        email: supervisor.supervisorEmail,
-        phone: supervisor.supervisorPhone,
-        department: null
-      };
-    }
-
-    throw new NotFoundError("Supervisor profile not found");
+    return this.profileResolutionService.requireSupervisorProfile(userId);
   }
 
   private async assertTeacherAssignment(

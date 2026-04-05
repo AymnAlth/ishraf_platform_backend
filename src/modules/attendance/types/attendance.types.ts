@@ -135,6 +135,14 @@ export interface AttendanceRecordUpdateInput {
   notes?: string | null;
 }
 
+export interface AttendanceRecordUpsertRow {
+  attendanceId: string;
+  studentId: string;
+  status: AttendanceStatus;
+  notes: string | null;
+  recordedAt: Date;
+}
+
 export interface AttendanceSessionFilters {
   page: number;
   limit: number;

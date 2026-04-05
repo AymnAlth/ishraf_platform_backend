@@ -16,6 +16,8 @@
     "test": "vitest run",
     "test:unit": "vitest run tests/unit",
     "test:integration": "tsx tests/setup/run-integration-tests.ts",
+    "test:integration:perf": "tsx src/scripts/audit-endpoint-performance.ts",
+    "test:integration:perf:sql": "tsx src/scripts/audit-query-performance.ts",
     "test:db:bootstrap": "tsx tests/setup/reset-test-db.ts --bootstrap-only",
     "test:db:reset": "tsx tests/setup/reset-test-db.ts",
     "deploy:bootstrap-admin": "tsx src/scripts/bootstrap-admin.ts",

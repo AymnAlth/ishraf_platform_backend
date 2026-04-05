@@ -139,7 +139,48 @@ export const registerMigrationSmokeTests = ({ pool }: MigrationSuiteContext): vo
     async () => {
       runMigration("down");
 
-      const droppedImportTables = await pool.query<{ table_name: string }>(
+      const rosterIndexes = await pool.query<{ indexname: string }>(
+        `
+          SELECT indexname
+          FROM pg_indexes
+          WHERE schemaname = 'public'
+            AND indexname = 'idx_student_academic_enrollments_class_year_student'
+        `
+      );
+
+      expect(rosterIndexes.rows).toHaveLength(1);
+
+      const behaviorPerformanceIndexes = await pool.query<{ indexname: string }>(
+        `
+          SELECT indexname
+          FROM pg_indexes
+          WHERE schemaname = 'public'
+            AND indexname IN (
+              'idx_behavior_records_student_year_semester_date',
+              'idx_behavior_records_teacher_year_semester_date',
+              'idx_behavior_records_supervisor_year_semester_date'
+            )
+        `
+      );
+
+      expect(behaviorPerformanceIndexes.rows).toHaveLength(0);
+
+      const previousPerformanceIndexes = await pool.query<{ indexname: string }>(
+        `
+          SELECT indexname
+          FROM pg_indexes
+          WHERE schemaname = 'public'
+            AND indexname IN (
+              'idx_attendance_sessions_teacher_year_semester_date',
+              'idx_assessments_teacher_year_semester_date',
+              'idx_homework_teacher_year_semester_due_date'
+            )
+        `
+      );
+
+      expect(previousPerformanceIndexes.rows).toHaveLength(3);
+
+      const importTables = await pool.query<{ table_name: string }>(
         `
           SELECT table_name
           FROM information_schema.tables
@@ -148,19 +189,7 @@ export const registerMigrationSmokeTests = ({ pool }: MigrationSuiteContext): vo
         `
       );
 
-      expect(droppedImportTables.rows).toHaveLength(0);
-
-      const droppedImportTriggers = await pool.query<{ trigger_name: string }>(
-        `
-          SELECT trigger_name
-          FROM information_schema.triggers
-          WHERE trigger_schema = 'public'
-            AND event_object_table = 'school_onboarding_import_runs'
-            AND trigger_name = 'trg_school_onboarding_import_runs_set_updated_at'
-        `
-      );
-
-      expect(droppedImportTriggers.rows).toHaveLength(0);
+      expect(importTables.rows).toHaveLength(1);
 
       runMigration("up");
     },

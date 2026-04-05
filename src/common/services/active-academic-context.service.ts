@@ -3,6 +3,7 @@ import { ValidationError } from "../errors/validation-error";
 import type { Queryable } from "../interfaces/queryable.interface";
 import { databaseViews } from "../../config/database";
 import { db } from "../../database/db";
+import { requestMemoService } from "./request-memo.service";
 
 export interface ActiveAcademicContext {
   academicYearId: string;
@@ -66,27 +67,32 @@ export class ActiveAcademicContextService {
   async getActiveContext(
     queryable: Queryable = db
   ): Promise<ActiveAcademicContext | null> {
-    const result = await queryable.query<ActiveAcademicContext>(
-      `
-        SELECT
-          academic_year_id AS "academicYearId",
-          academic_year_name AS "academicYearName",
-          academic_year_start_date AS "academicYearStartDate",
-          academic_year_end_date AS "academicYearEndDate",
-          academic_year_created_at AS "academicYearCreatedAt",
-          academic_year_updated_at AS "academicYearUpdatedAt",
-          semester_id AS "semesterId",
-          semester_name AS "semesterName",
-          semester_start_date AS "semesterStartDate",
-          semester_end_date AS "semesterEndDate",
-          semester_created_at AS "semesterCreatedAt",
-          semester_updated_at AS "semesterUpdatedAt"
-        FROM ${databaseViews.activeAcademicContext}
-        LIMIT 1
-      `
-    );
+    return requestMemoService.memoize(
+      `active-academic-context:${requestMemoService.getQueryableMemoKey(queryable)}`,
+      async () => {
+        const result = await queryable.query<ActiveAcademicContext>(
+          `
+            SELECT
+              academic_year_id AS "academicYearId",
+              academic_year_name AS "academicYearName",
+              academic_year_start_date AS "academicYearStartDate",
+              academic_year_end_date AS "academicYearEndDate",
+              academic_year_created_at AS "academicYearCreatedAt",
+              academic_year_updated_at AS "academicYearUpdatedAt",
+              semester_id AS "semesterId",
+              semester_name AS "semesterName",
+              semester_start_date AS "semesterStartDate",
+              semester_end_date AS "semesterEndDate",
+              semester_created_at AS "semesterCreatedAt",
+              semester_updated_at AS "semesterUpdatedAt"
+            FROM ${databaseViews.activeAcademicContext}
+            LIMIT 1
+          `
+        );
 
-    return result.rows[0] ?? null;
+        return result.rows[0] ?? null;
+      }
+    );
   }
 
   async requireActiveContext(

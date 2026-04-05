@@ -87,8 +87,11 @@ describe("ReportingService", () => {
     findStudentById: vi.fn(),
     listStudentParents: vi.fn(),
     findStudentAttendanceSummary: vi.fn(),
+    listStudentAttendanceSummaries: vi.fn(),
     listStudentAssessmentSummaries: vi.fn(),
+    listStudentAssessmentSummariesByStudentIds: vi.fn(),
     findStudentBehaviorSummary: vi.fn(),
+    listStudentBehaviorSummaries: vi.fn(),
     listChildrenForParent: vi.fn(),
     listLatestNotificationsByUserId: vi.fn(),
     findNotificationSummaryByUserId: vi.fn(),
@@ -245,9 +248,9 @@ describe("ReportingService", () => {
       parentProfile()
     );
     vi.mocked(repositoryMock.listChildrenForParent).mockResolvedValue([studentRow()]);
-    vi.mocked(repositoryMock.findStudentAttendanceSummary).mockResolvedValue(null);
-    vi.mocked(repositoryMock.listStudentAssessmentSummaries).mockResolvedValue([]);
-    vi.mocked(repositoryMock.findStudentBehaviorSummary).mockResolvedValue(null);
+    vi.mocked(repositoryMock.listStudentAttendanceSummaries).mockResolvedValue([]);
+    vi.mocked(repositoryMock.listStudentAssessmentSummariesByStudentIds).mockResolvedValue([]);
+    vi.mocked(repositoryMock.listStudentBehaviorSummaries).mockResolvedValue([]);
     vi.mocked(repositoryMock.listLatestNotificationsByUserId).mockResolvedValue([]);
     vi.mocked(repositoryMock.findNotificationSummaryByUserId).mockResolvedValue({
       totalNotifications: "0",
@@ -262,6 +265,16 @@ describe("ReportingService", () => {
     });
 
     expect(repositoryMock.listChildrenForParent).toHaveBeenCalledWith("1");
+    expect(repositoryMock.findStudentAttendanceSummary).not.toHaveBeenCalled();
+    expect(repositoryMock.listStudentAssessmentSummaries).not.toHaveBeenCalled();
+    expect(repositoryMock.findStudentBehaviorSummary).not.toHaveBeenCalled();
+    expect(repositoryMock.listStudentAttendanceSummaries).toHaveBeenCalledWith(["1"], "1", "2");
+    expect(repositoryMock.listStudentAssessmentSummariesByStudentIds).toHaveBeenCalledWith(
+      ["1"],
+      "1",
+      "2"
+    );
+    expect(repositoryMock.listStudentBehaviorSummaries).toHaveBeenCalledWith(["1"], "1", "2");
     expect(response.children).toHaveLength(1);
     expect(response.parent.parentId).toBe("1");
   });
@@ -306,9 +319,9 @@ describe("ReportingService", () => {
       parentProfile({ userId: "2001" })
     );
     vi.mocked(repositoryMock.listChildrenForParent).mockResolvedValue([studentRow()]);
-    vi.mocked(repositoryMock.findStudentAttendanceSummary).mockResolvedValue(null);
-    vi.mocked(repositoryMock.listStudentAssessmentSummaries).mockResolvedValue([]);
-    vi.mocked(repositoryMock.findStudentBehaviorSummary).mockResolvedValue(null);
+    vi.mocked(repositoryMock.listStudentAttendanceSummaries).mockResolvedValue([]);
+    vi.mocked(repositoryMock.listStudentAssessmentSummariesByStudentIds).mockResolvedValue([]);
+    vi.mocked(repositoryMock.listStudentBehaviorSummaries).mockResolvedValue([]);
     vi.mocked(repositoryMock.listLatestNotificationsByUserId).mockResolvedValue([]);
     vi.mocked(repositoryMock.findNotificationSummaryByUserId).mockResolvedValue({
       totalNotifications: "0",
@@ -328,6 +341,9 @@ describe("ReportingService", () => {
     expect(profileResolutionServiceMock.findParentProfileByUserId).toHaveBeenCalledWith("2001");
     expect(repositoryMock.listChildrenForParent).toHaveBeenCalledWith("1");
     expect(repositoryMock.listLatestNotificationsByUserId).toHaveBeenCalledWith("2001", 5);
+    expect(repositoryMock.findStudentAttendanceSummary).not.toHaveBeenCalled();
+    expect(repositoryMock.listStudentAssessmentSummaries).not.toHaveBeenCalled();
+    expect(repositoryMock.findStudentBehaviorSummary).not.toHaveBeenCalled();
     expect(response.parent.userId).toBe("2001");
     expect(response.children).toHaveLength(1);
   });
@@ -382,7 +398,10 @@ describe("ReportingService", () => {
       supervisorProfile({ userId: "4001" })
     );
     vi.mocked(repositoryMock.listSupervisorAssignments).mockResolvedValue([]);
-    vi.mocked(repositoryMock.listStudentsForSupervisor).mockResolvedValue([]);
+    vi.mocked(repositoryMock.listStudentsForSupervisor).mockResolvedValue([studentRow()]);
+    vi.mocked(repositoryMock.listStudentAttendanceSummaries).mockResolvedValue([]);
+    vi.mocked(repositoryMock.listStudentAssessmentSummariesByStudentIds).mockResolvedValue([]);
+    vi.mocked(repositoryMock.listStudentBehaviorSummaries).mockResolvedValue([]);
     vi.mocked(repositoryMock.listRecentSupervisorBehaviorRecords).mockResolvedValue([]);
 
     const response = await reportingService.getAdminPreviewSupervisorDashboard(
@@ -398,6 +417,10 @@ describe("ReportingService", () => {
     expect(profileResolutionServiceMock.findSupervisorProfileByUserId).toHaveBeenCalledWith(
       "4001"
     );
+    expect(repositoryMock.findStudentAttendanceSummary).not.toHaveBeenCalled();
+    expect(repositoryMock.listStudentAssessmentSummaries).not.toHaveBeenCalled();
+    expect(repositoryMock.findStudentBehaviorSummary).not.toHaveBeenCalled();
+    expect(repositoryMock.listStudentAttendanceSummaries).toHaveBeenCalledWith(["1"], "1", "2");
     expect(response.supervisor.userId).toBe("4001");
   });
 

@@ -38,7 +38,10 @@ import {
 import type { ReportingRepository } from "../repository/reporting.repository";
 import type {
   ActivePeriodRow,
-  ReportingStudentRow
+  ReportingStudentRow,
+  StudentAssessmentSummaryRow,
+  StudentAttendanceSummaryRow,
+  StudentBehaviorSummaryRow
 } from "../types/reporting.types";
 import type {
   ParentProfile,
@@ -58,6 +61,12 @@ const assertFound = <T>(value: T | null, label: string): T => {
 };
 
 const toIsoString = (value: Date): string => value.toISOString();
+
+type StudentSummaryMaps = {
+  attendanceByStudentId: Map<string, StudentAttendanceSummaryRow>;
+  assessmentByStudentId: Map<string, StudentAssessmentSummaryRow[]>;
+  behaviorByStudentId: Map<string, StudentBehaviorSummaryRow>;
+};
 
 export class ReportingService {
   constructor(
@@ -392,29 +401,15 @@ export class ReportingService {
     parentUserId: string
   ): Promise<ReportingParentDashboardResponseDto> {
     const children = await this.reportingRepository.listChildrenForParent(parent.parentId);
+    const summaryMaps = await this.buildStudentSummaryMaps(activePeriod, children);
 
-    const childDtos = await Promise.all(
-      children.map(async (child) => {
-        const [attendanceSummary, assessmentSummary, behaviorSummary] = await Promise.all([
-          this.reportingRepository.findStudentAttendanceSummary(
-            child.studentId,
-            activePeriod.academicYearId,
-            activePeriod.semesterId
-          ),
-          this.reportingRepository.listStudentAssessmentSummaries(
-            child.studentId,
-            activePeriod.academicYearId,
-            activePeriod.semesterId
-          ),
-          this.reportingRepository.findStudentBehaviorSummary(
-            child.studentId,
-            activePeriod.academicYearId,
-            activePeriod.semesterId
-          )
-        ]);
-
-        return toParentChildDto(child, attendanceSummary, behaviorSummary, assessmentSummary);
-      })
+    const childDtos = children.map((child) =>
+      toParentChildDto(
+        child,
+        summaryMaps.attendanceByStudentId.get(child.studentId) ?? null,
+        summaryMaps.behaviorByStudentId.get(child.studentId) ?? null,
+        summaryMaps.assessmentByStudentId.get(child.studentId) ?? []
+      )
     );
 
     const [notifications, notificationSummary] = await Promise.all([
@@ -482,42 +477,27 @@ export class ReportingService {
         supervisor.supervisorId,
         activePeriod.academicYearId
       ),
-      this.reportingRepository.listRecentSupervisorBehaviorRecords(
-        supervisor.supervisorId,
-        activePeriod.academicYearId,
-        activePeriod.semesterId,
-        RECENT_LIMIT
+        this.reportingRepository.listRecentSupervisorBehaviorRecords(
+          supervisor.supervisorId,
+          activePeriod.academicYearId,
+          activePeriod.semesterId,
+          RECENT_LIMIT
+        )
+      ]);
+    const summaryMaps = await this.buildStudentSummaryMaps(activePeriod, students);
+
+    const studentSummaries = students.map((student) => ({
+      student: toReportingStudentDto(student),
+      attendanceSummary: toAttendanceSummaryDto(
+        summaryMaps.attendanceByStudentId.get(student.studentId) ?? null
+      ),
+      behaviorSummary: toBehaviorSummaryDto(
+        summaryMaps.behaviorByStudentId.get(student.studentId) ?? null
+      ),
+      assessmentSummary: toAssessmentSummaryDto(
+        summaryMaps.assessmentByStudentId.get(student.studentId) ?? []
       )
-    ]);
-
-    const studentSummaries = await Promise.all(
-      students.map(async (student) => {
-        const [attendanceSummary, assessmentSummary, behaviorSummary] = await Promise.all([
-          this.reportingRepository.findStudentAttendanceSummary(
-            student.studentId,
-            activePeriod.academicYearId,
-            activePeriod.semesterId
-          ),
-          this.reportingRepository.listStudentAssessmentSummaries(
-            student.studentId,
-            activePeriod.academicYearId,
-            activePeriod.semesterId
-          ),
-          this.reportingRepository.findStudentBehaviorSummary(
-            student.studentId,
-            activePeriod.academicYearId,
-            activePeriod.semesterId
-          )
-        ]);
-
-        return {
-          student: toReportingStudentDto(student),
-          attendanceSummary: toAttendanceSummaryDto(attendanceSummary),
-          behaviorSummary: toBehaviorSummaryDto(behaviorSummary),
-          assessmentSummary: toAssessmentSummaryDto(assessmentSummary)
-        };
-      })
-    );
+    }));
 
     return {
       supervisor: {
@@ -807,5 +787,49 @@ export class ReportingService {
     return activeTrips.map((trip) =>
       toTransportTripDto(trip, eventsByTripId.get(trip.tripId) ?? [])
     );
+  }
+
+  private async buildStudentSummaryMaps(
+    activePeriod: ActivePeriodRow,
+    students: ReportingStudentRow[]
+  ): Promise<StudentSummaryMaps> {
+    const studentIds = students.map((student) => student.studentId);
+    const [attendanceRows, assessmentRows, behaviorRows] = await Promise.all([
+      this.reportingRepository.listStudentAttendanceSummaries(
+        studentIds,
+        activePeriod.academicYearId,
+        activePeriod.semesterId
+      ),
+      this.reportingRepository.listStudentAssessmentSummariesByStudentIds(
+        studentIds,
+        activePeriod.academicYearId,
+        activePeriod.semesterId
+      ),
+      this.reportingRepository.listStudentBehaviorSummaries(
+        studentIds,
+        activePeriod.academicYearId,
+        activePeriod.semesterId
+      )
+    ]);
+
+    const attendanceByStudentId = new Map(
+      attendanceRows.map((row) => [row.studentId, row] as const)
+    );
+    const behaviorByStudentId = new Map(
+      behaviorRows.map((row) => [row.studentId, row] as const)
+    );
+    const assessmentByStudentId = new Map<string, StudentAssessmentSummaryRow[]>();
+
+    for (const row of assessmentRows) {
+      const studentAssessmentRows = assessmentByStudentId.get(row.studentId) ?? [];
+      studentAssessmentRows.push(row);
+      assessmentByStudentId.set(row.studentId, studentAssessmentRows);
+    }
+
+    return {
+      attendanceByStudentId,
+      assessmentByStudentId,
+      behaviorByStudentId
+    };
   }
 }

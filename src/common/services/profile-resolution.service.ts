@@ -11,6 +11,7 @@ import type {
 } from "../types/profile.types";
 import { databaseTables } from "../../config/database";
 import { db } from "../../database/db";
+import { requestMemoService } from "./request-memo.service";
 
 const mapSingleRow = <T extends QueryResultRow>(rows: T[]): T | null => rows[0] ?? null;
 
@@ -112,100 +113,128 @@ const resolveFlexibleProfileIdentifier = <T>(
 };
 
 export class ProfileResolutionService {
+  private async memoizedLookup<T>(
+    kind: string,
+    identifier: string,
+    queryable: Queryable,
+    factory: () => Promise<T | null>
+  ): Promise<T | null> {
+    const memoKey = `profile-resolution:${kind}:${identifier}:${requestMemoService.getQueryableMemoKey(queryable)}`;
+
+    return requestMemoService.memoize(memoKey, factory);
+  }
+
   async findParentProfileByUserId(
     userId: string,
     queryable: Queryable = db
   ): Promise<ParentProfile | null> {
-    const result = await queryable.query<ParentProfile>(
-      `
-        ${parentProfileSelect}
-        WHERE u.id = $1
-        LIMIT 1
-      `,
-      [userId]
-    );
+    return this.memoizedLookup("parent:user-id", userId, queryable, async () => {
+      const result = await queryable.query<ParentProfile>(
+        `
+          ${parentProfileSelect}
+          WHERE u.id = $1
+          LIMIT 1
+        `,
+        [userId]
+      );
 
-    return mapSingleRow(result.rows);
+      return mapSingleRow(result.rows);
+    });
   }
 
   async findTeacherProfileByUserId(
     userId: string,
     queryable: Queryable = db
   ): Promise<TeacherProfile | null> {
-    const result = await queryable.query<TeacherProfile>(
-      `
-        ${teacherProfileSelect}
-        WHERE u.id = $1
-        LIMIT 1
-      `,
-      [userId]
-    );
+    return this.memoizedLookup("teacher:user-id", userId, queryable, async () => {
+      const result = await queryable.query<TeacherProfile>(
+        `
+          ${teacherProfileSelect}
+          WHERE u.id = $1
+          LIMIT 1
+        `,
+        [userId]
+      );
 
-    return mapSingleRow(result.rows);
+      return mapSingleRow(result.rows);
+    });
   }
 
   async findTeacherProfileById(
     teacherId: string,
     queryable: Queryable = db
   ): Promise<TeacherProfile | null> {
-    const result = await queryable.query<TeacherProfile>(
-      `
-        ${teacherProfileSelect}
-        WHERE t.id = $1
-        LIMIT 1
-      `,
-      [teacherId]
-    );
+    return this.memoizedLookup("teacher:profile-id", teacherId, queryable, async () => {
+      const result = await queryable.query<TeacherProfile>(
+        `
+          ${teacherProfileSelect}
+          WHERE t.id = $1
+          LIMIT 1
+        `,
+        [teacherId]
+      );
 
-    return mapSingleRow(result.rows);
+      return mapSingleRow(result.rows);
+    });
   }
 
   async findSupervisorProfileByUserId(
     userId: string,
     queryable: Queryable = db
   ): Promise<SupervisorProfile | null> {
-    const result = await queryable.query<SupervisorProfile>(
-      `
-        ${supervisorProfileSelect}
-        WHERE u.id = $1
-        LIMIT 1
-      `,
-      [userId]
-    );
+    return this.memoizedLookup("supervisor:user-id", userId, queryable, async () => {
+      const result = await queryable.query<SupervisorProfile>(
+        `
+          ${supervisorProfileSelect}
+          WHERE u.id = $1
+          LIMIT 1
+        `,
+        [userId]
+      );
 
-    return mapSingleRow(result.rows);
+      return mapSingleRow(result.rows);
+    });
   }
 
   async findSupervisorProfileById(
     supervisorId: string,
     queryable: Queryable = db
   ): Promise<SupervisorProfile | null> {
-    const result = await queryable.query<SupervisorProfile>(
-      `
-        ${supervisorProfileSelect}
-        WHERE s.id = $1
-        LIMIT 1
-      `,
-      [supervisorId]
-    );
+    return this.memoizedLookup(
+      "supervisor:profile-id",
+      supervisorId,
+      queryable,
+      async () => {
+        const result = await queryable.query<SupervisorProfile>(
+          `
+            ${supervisorProfileSelect}
+            WHERE s.id = $1
+            LIMIT 1
+          `,
+          [supervisorId]
+        );
 
-    return mapSingleRow(result.rows);
+        return mapSingleRow(result.rows);
+      }
+    );
   }
 
   async findDriverProfileByUserId(
     userId: string,
     queryable: Queryable = db
   ): Promise<DriverProfile | null> {
-    const result = await queryable.query<DriverProfile>(
-      `
-        ${driverProfileSelect}
-        WHERE u.id = $1
-        LIMIT 1
-      `,
-      [userId]
-    );
+    return this.memoizedLookup("driver:user-id", userId, queryable, async () => {
+      const result = await queryable.query<DriverProfile>(
+        `
+          ${driverProfileSelect}
+          WHERE u.id = $1
+          LIMIT 1
+        `,
+        [userId]
+      );
 
-    return mapSingleRow(result.rows);
+      return mapSingleRow(result.rows);
+    });
   }
 
   async requireParentProfile(

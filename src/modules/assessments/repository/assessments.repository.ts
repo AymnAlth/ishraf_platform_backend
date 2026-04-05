@@ -22,6 +22,7 @@ import type {
   SemesterReferenceRow,
   StudentAssessmentRow,
   StudentAssessmentUpdateInput,
+  StudentAssessmentUpsertRow,
   StudentAssessmentWriteInput,
   SubjectReferenceRow,
   TeacherProfileRow
@@ -38,23 +39,26 @@ const buildAssignments = (updates: Record<string, unknown>, startIndex = 2) => {
   };
 };
 
-const assessmentAggregateSelect = `
-  SELECT
-    sa.assessment_id,
-    COUNT(sa.id)::int AS graded_count,
-    ROUND(AVG(sa.score), 2) AS average_score,
-    ROUND(AVG((sa.score / NULLIF(a.max_score, 0)) * 100), 2) AS average_percentage
-  FROM ${databaseTables.studentAssessments} sa
-  JOIN ${databaseTables.assessments} a ON a.id = sa.assessment_id
-  GROUP BY sa.assessment_id
+const assessmentAggregateLateralSelect = `
+  LEFT JOIN LATERAL (
+    SELECT
+      COUNT(sa.id)::int AS graded_count,
+      ROUND(AVG(sa.score), 2) AS average_score,
+      ROUND(AVG((sa.score / NULLIF(a.max_score, 0)) * 100), 2) AS average_percentage
+    FROM ${databaseTables.studentAssessments} sa
+    WHERE sa.assessment_id = a.id
+  ) agg ON true
 `;
 
-const assessmentRosterCountsSelect = `
-  SELECT
-    class_id,
-    COUNT(*) FILTER (WHERE student_status = 'active')::int AS expected_count
-  FROM ${databaseViews.classStudents}
-  GROUP BY class_id
+const assessmentRosterCountsLateralSelect = `
+  LEFT JOIN LATERAL (
+    SELECT COUNT(*)::int AS expected_count
+    FROM ${databaseTables.studentAcademicEnrollments} sae
+    JOIN ${databaseTables.students} st ON st.id = sae.student_id
+    WHERE sae.class_id = a.class_id
+      AND sae.academic_year_id = a.academic_year_id
+      AND st.status = 'active'
+  ) roster ON true
 `;
 
 const assessmentReadSelect = `
@@ -101,10 +105,8 @@ const assessmentReadSelect = `
   JOIN ${databaseTables.users} tu ON tu.id = t.user_id
   JOIN ${databaseTables.academicYears} ay ON ay.id = a.academic_year_id
   JOIN ${databaseTables.semesters} sem ON sem.id = a.semester_id
-  LEFT JOIN (${assessmentAggregateSelect}) agg
-    ON agg.assessment_id = a.id
-  LEFT JOIN (${assessmentRosterCountsSelect}) roster
-    ON roster.class_id = a.class_id
+  ${assessmentAggregateLateralSelect}
+  ${assessmentRosterCountsLateralSelect}
 `;
 
 const teacherProfileSelect = `
@@ -506,24 +508,27 @@ export class AssessmentsRepository {
     const result = await queryable.query<AssessmentScoreRosterRow>(
       `
         SELECT
-          cs.student_id AS "studentId",
-          cs.academic_no AS "academicNo",
-          cs.student_name AS "fullName",
-          cs.student_status AS "studentStatus",
-          sad.student_assessment_id AS "studentAssessmentId",
-          sad.score,
-          sad.remarks,
-          sad.graded_at AS "gradedAt",
-          sad.score_percentage AS "percentage"
+          st.id AS "studentId",
+          st.academic_no AS "academicNo",
+          st.full_name AS "fullName",
+          st.status AS "studentStatus",
+          sa.id AS "studentAssessmentId",
+          sa.score,
+          sa.remarks,
+          sa.graded_at AS "gradedAt",
+          ROUND((sa.score / NULLIF(a.max_score, 0)) * 100, 2) AS "percentage"
         FROM ${databaseTables.assessments} a
-        JOIN ${databaseViews.classStudents} cs
-          ON cs.class_id = a.class_id
-        LEFT JOIN ${databaseViews.studentAssessmentDetails} sad
-          ON sad.assessment_id = a.id
-         AND sad.student_id = cs.student_id
+        JOIN ${databaseTables.studentAcademicEnrollments} sae
+          ON sae.class_id = a.class_id
+         AND sae.academic_year_id = a.academic_year_id
+        JOIN ${databaseTables.students} st
+          ON st.id = sae.student_id
+        LEFT JOIN ${databaseTables.studentAssessments} sa
+          ON sa.assessment_id = a.id
+         AND sa.student_id = st.id
         WHERE a.id = $1
-          AND cs.student_status = 'active'
-        ORDER BY cs.academic_no ASC, cs.student_id ASC
+          AND st.status = 'active'
+        ORDER BY st.academic_no ASC, st.id ASC
       `,
       [assessmentId]
     );
@@ -535,27 +540,55 @@ export class AssessmentsRepository {
     assessmentId: string,
     records: StudentAssessmentWriteInput[],
     queryable: Queryable = db
-  ): Promise<void> {
-    for (const record of records) {
-      await queryable.query(
-        `
-          INSERT INTO ${databaseTables.studentAssessments} (
-            assessment_id,
-            student_id,
-            score,
-            remarks,
-            graded_at
-          )
-          VALUES ($1, $2, $3, $4, NOW())
-          ON CONFLICT (assessment_id, student_id)
-          DO UPDATE SET
-            score = EXCLUDED.score,
-            remarks = EXCLUDED.remarks,
-            graded_at = NOW()
-        `,
-        [assessmentId, record.studentId, record.score, record.remarks ?? null]
-      );
+  ): Promise<StudentAssessmentUpsertRow[]> {
+    if (records.length === 0) {
+      return [];
     }
+
+    const serializedRecords = JSON.stringify(
+      records.map((record) => ({
+        student_id: record.studentId,
+        score: record.score,
+        remarks: record.remarks ?? null
+      }))
+    );
+
+    const result = await queryable.query<StudentAssessmentUpsertRow>(
+      `
+        INSERT INTO ${databaseTables.studentAssessments} (
+          assessment_id,
+          student_id,
+          score,
+          remarks,
+          graded_at
+        )
+        SELECT
+          $1::bigint,
+          input.student_id,
+          input.score,
+          input.remarks,
+          NOW()
+        FROM jsonb_to_recordset($2::jsonb) AS input(
+          student_id bigint,
+          score numeric(6,2),
+          remarks text
+        )
+        ON CONFLICT (assessment_id, student_id)
+        DO UPDATE SET
+          score = EXCLUDED.score,
+          remarks = EXCLUDED.remarks,
+          graded_at = NOW()
+        RETURNING
+          id AS "studentAssessmentId",
+          student_id AS "studentId",
+          score,
+          remarks,
+          graded_at AS "gradedAt"
+      `,
+      [assessmentId, serializedRecords]
+    );
+
+    return result.rows;
   }
 
   async findStudentAssessmentById(

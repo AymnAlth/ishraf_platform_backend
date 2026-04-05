@@ -35,6 +35,7 @@ import type {
   ClassReferenceRow,
   SemesterReferenceRow,
   StudentAssessmentRow,
+  StudentAssessmentUpsertRow,
   SubjectReferenceRow
 } from "../types/assessments.types";
 
@@ -187,6 +188,61 @@ const assertStudentsBelongToAssessmentRoster = (
       }))
     ]);
   }
+};
+
+const roundToTwo = (value: number): number => Number(value.toFixed(2));
+
+const mergeAssessmentRoster = (
+  roster: AssessmentScoreRosterRow[],
+  upsertedRows: StudentAssessmentUpsertRow[],
+  maxScore: number
+): AssessmentScoreRosterRow[] => {
+  const upsertedByStudentId = new Map(
+    upsertedRows.map((row) => [row.studentId, row] as const)
+  );
+
+  return roster.map((student) => {
+    const nextRow = upsertedByStudentId.get(student.studentId);
+
+    if (!nextRow) {
+      return student;
+    }
+
+    const numericScore = Number(nextRow.score);
+
+    return {
+      ...student,
+      studentAssessmentId: nextRow.studentAssessmentId,
+      score: numericScore,
+      remarks: nextRow.remarks,
+      gradedAt: nextRow.gradedAt,
+      percentage: maxScore === 0 ? null : roundToTwo((numericScore / maxScore) * 100)
+    };
+  });
+};
+
+const applyAssessmentSummary = (
+  assessment: AssessmentRow,
+  roster: AssessmentScoreRosterRow[]
+): AssessmentRow => {
+  const gradedStudents = roster.filter((student) => student.studentAssessmentId !== null);
+  const numericScores = gradedStudents.map((student) => Number(student.score ?? 0));
+  const averageScore =
+    numericScores.length === 0
+      ? null
+      : roundToTwo(
+          numericScores.reduce((total, score) => total + score, 0) / numericScores.length
+        );
+  const maxScore = Number(assessment.maxScore);
+
+  return {
+    ...assessment,
+    gradedCount: gradedStudents.length,
+    expectedCount: roster.length,
+    averageScore,
+    averagePercentage:
+      averageScore === null || maxScore === 0 ? null : roundToTwo((averageScore / maxScore) * 100)
+  };
 };
 
 export class AssessmentsService {
@@ -380,19 +436,19 @@ export class AssessmentsService {
         payload.records.map((record) => record.studentId)
       );
 
-      await this.assessmentsRepository.upsertStudentAssessments(assessmentId, payload.records, client);
-
-      const updatedAssessment = assertFound(
-        await this.assessmentsRepository.findAssessmentById(assessmentId, client),
-        "Assessment"
-      );
-      const updatedRoster = await this.assessmentsRepository.listAssessmentScores(
+      const upsertedRows = await this.assessmentsRepository.upsertStudentAssessments(
         assessmentId,
+        payload.records,
         client
+      );
+      const updatedRoster = mergeAssessmentRoster(
+        roster,
+        upsertedRows,
+        Number(assessment.maxScore)
       );
 
       return {
-        assessment: updatedAssessment,
+        assessment: applyAssessmentSummary(assessment, updatedRoster),
         roster: updatedRoster
       };
     });
@@ -511,22 +567,7 @@ export class AssessmentsService {
   }
 
   private async resolveTeacherProfile(userId: string): Promise<TeacherProfile> {
-    const teacher = await this.assessmentsRepository.findTeacherProfileByUserId(userId);
-
-    if (teacher) {
-      return {
-        teacherId: teacher.teacherId,
-        userId: teacher.teacherUserId,
-        fullName: teacher.teacherFullName,
-        email: teacher.teacherEmail,
-        phone: teacher.teacherPhone,
-        specialization: null,
-        qualification: null,
-        hireDate: null
-      };
-    }
-
-    throw new NotFoundError("Teacher profile not found");
+    return this.profileResolutionService.requireTeacherProfile(userId);
   }
 
   private async assertTeacherAssignment(

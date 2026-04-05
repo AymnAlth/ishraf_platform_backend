@@ -26,6 +26,7 @@ import {
 import type { AttendanceRepository } from "../repository/attendance.repository";
 import type {
   AttendanceRecordRow,
+  AttendanceRecordUpsertRow,
   AttendanceSessionRow,
   AttendanceSessionStudentRow,
   ClassReferenceRow,
@@ -176,6 +177,76 @@ const assertFullSnapshotRecords = (
   }
 };
 
+const mergeAttendanceRoster = (
+  roster: AttendanceSessionStudentRow[],
+  upsertedRecords: AttendanceRecordUpsertRow[]
+): AttendanceSessionStudentRow[] => {
+  const recordsByStudentId = new Map(
+    upsertedRecords.map((record) => [record.studentId, record] as const)
+  );
+
+  return roster.map((student) => {
+    const nextRecord = recordsByStudentId.get(student.studentId);
+
+    if (!nextRecord) {
+      return student;
+    }
+
+    return {
+      ...student,
+      attendanceId: nextRecord.attendanceId,
+      attendanceStatus: nextRecord.status,
+      notes: nextRecord.notes,
+      recordedAt: nextRecord.recordedAt
+    };
+  });
+};
+
+const applyAttendanceCounts = (
+  session: AttendanceSessionRow,
+  students: AttendanceSessionStudentRow[]
+): AttendanceSessionRow => {
+  const counts = students.reduce(
+    (totals, student) => {
+      if (student.attendanceStatus === null) {
+        return totals;
+      }
+
+      totals.recordedCount += 1;
+
+      switch (student.attendanceStatus) {
+        case "present":
+          totals.presentCount += 1;
+          break;
+        case "absent":
+          totals.absentCount += 1;
+          break;
+        case "late":
+          totals.lateCount += 1;
+          break;
+        case "excused":
+          totals.excusedCount += 1;
+          break;
+      }
+
+      return totals;
+    },
+    {
+      presentCount: 0,
+      absentCount: 0,
+      lateCount: 0,
+      excusedCount: 0,
+      recordedCount: 0
+    }
+  );
+
+  return {
+    ...session,
+    ...counts,
+    expectedCount: students.length
+  };
+};
+
 export class AttendanceService {
   constructor(
     private readonly attendanceRepository: AttendanceRepository,
@@ -313,7 +384,7 @@ export class AttendanceService {
     sessionId: string,
     payload: SaveAttendanceRecordsRequestDto
   ): Promise<AttendanceSessionDetailResponseDto> {
-    await this.getAuthorizedSession(authUser, sessionId);
+    const { session } = await this.getAuthorizedSession(authUser, sessionId);
 
     const sessionDetail = await db.withTransaction(async (client) => {
       const roster = await this.attendanceRepository.listAttendanceSessionStudents(sessionId, client);
@@ -323,19 +394,15 @@ export class AttendanceService {
         payload.records.map((record) => record.studentId)
       );
 
-      await this.attendanceRepository.upsertAttendanceRecords(sessionId, payload.records, client);
-
-      const session = assertFound(
-        await this.attendanceRepository.findAttendanceSessionById(sessionId, client),
-        "Attendance session"
-      );
-      const students = await this.attendanceRepository.listAttendanceSessionStudents(
+      const upsertedRecords = await this.attendanceRepository.upsertAttendanceRecords(
         sessionId,
+        payload.records,
         client
       );
+      const students = mergeAttendanceRoster(roster, upsertedRecords);
 
       return {
-        session,
+        session: applyAttendanceCounts(session, students),
         students
       };
     });
@@ -510,39 +577,11 @@ export class AttendanceService {
   }
 
   private async resolveTeacherProfile(userId: string): Promise<TeacherProfile> {
-    const teacher = await this.attendanceRepository.findTeacherProfileByUserId(userId);
-
-    if (teacher) {
-      return {
-        teacherId: teacher.teacherId,
-        userId: teacher.teacherUserId,
-        fullName: teacher.teacherFullName,
-        email: teacher.teacherEmail,
-        phone: teacher.teacherPhone,
-        specialization: null,
-        qualification: null,
-        hireDate: null
-      };
-    }
-
-    throw new NotFoundError("Teacher profile not found");
+    return this.profileResolutionService.requireTeacherProfile(userId);
   }
 
   private async resolveSupervisorProfile(userId: string): Promise<SupervisorProfile> {
-    const supervisor = await this.attendanceRepository.findSupervisorProfileByUserId(userId);
-
-    if (supervisor) {
-      return {
-        supervisorId: supervisor.supervisorId,
-        userId: supervisor.supervisorUserId,
-        fullName: supervisor.supervisorFullName,
-        email: supervisor.supervisorEmail,
-        phone: supervisor.supervisorPhone,
-        department: null
-      };
-    }
-
-    throw new NotFoundError("Supervisor profile not found");
+    return this.profileResolutionService.requireSupervisorProfile(userId);
   }
 
   private async assertTeacherAssignment(
