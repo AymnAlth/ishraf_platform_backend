@@ -1,174 +1,158 @@
-# القواعد المشتركة للفرونت إند
+# Common Frontend Rules
 
-هذا الملف يثبت القواعد المشتركة التي يجب أن تعتمدها جميع فرق الفرونت.
+هذه الوثيقة هي القواعد المشتركة التي يجب أن يلتزم بها أي مستهلك للباك الحالي: `admin-dashboard`, `teacher-app`, `supervisor-app`, `parent-app`, `driver-app`.
 
-## الروابط الأساسية
+## 1. المصدر المعياري للعقود
 
-- Public root URL: `https://ishraf-platform-backend-staging.onrender.com`
-- Public API base URL: `https://ishraf-platform-backend-staging.onrender.com/api/v1`
+- الكود في `src/modules/*/{routes,controller,service,dto,validator,types}` هو المصدر الوحيد للحقيقة.
+- `src/docs/openapi/*.json` و`src/docs/postman/*.json` هما الطبقة المعيارية المولدة من نفس الحقيقة.
+- ملفات `frontend-execution/*` هي handoff تشغيلية تشرح المنطق التنفيذي، وليست مصدرًا بديلًا للعقد.
 
-Health endpoints خارج `api/v1`:
+## 2. Envelope الاستجابات
 
-- `GET /health`
-- `GET /health/ready`
+كل الاستجابات تستخدم envelope ثابتة:
 
-## شكل الاستجابة القياسي
+- نجاح:
+  - `success: true`
+  - `message: string`
+  - `data: object | array | null`
+- خطأ:
+  - `success: false`
+  - `message: string`
+  - `errors: Array<{ field?: string | null; code?: string | null; message: string }>`
 
-كل الاستجابات تعتمد envelope موحدًا:
+الواجهة يجب أن تبني تعاملها على envelope نفسها، لا على payload خام مفترضة.
 
-### Success
+## 3. Policy المعرفات
 
-```json
-{
-  "success": true,
-  "message": "Request completed successfully",
-  "data": {}
-}
-```
+- كل المعرفات في JSON تظهر كسلاسل رقمية مثل `"1"`.
+- لا تعتمد الواجهة على UUID assumptions.
+- في surfaces الحديثة المرتبطة بالمعلمين والمشرفين والسائقين وأولياء الأمور:
+  - المرجع المفضل هو `users.id`
+  - وليس profile ids القديمة
+- بعض endpoints ما زالت تقبل legacy profile ids للتوافق الخلفي، لكن الواجهة الجديدة يجب أن ترسل `users.id` متى كان ذلك موثقًا.
 
-### Error
+## 4. Active Academic Context
 
-```json
-{
-  "success": false,
-  "message": "Validation failed",
-  "errors": [
-    {
-      "field": "email",
-      "code": "VALIDATION_ERROR",
-      "message": "Email must be a valid email address"
-    }
-  ]
-}
-```
+`Active Academic Context` هو الزوج:
 
-## قواعد المعرفات والأنواع
+- `active academic year`
+- `active semester`
 
-- جميع `id` values تعامل في الفرونت على أنها `string`
-- لا تعتمد على تحويل `id` إلى `number`
-- الحقول التاريخية قد تعاد بصيغة `date-only` أو `datetime`
-- تعامل مع التواريخ المعادة كما هي، ولا تفترض timezone محلية إلا إذا كانت الشاشة تعرض وقتًا فعليًا
+ويحكم السطوح التشغيلية اليومية التالية:
 
-## قواعد المصادقة
+- attendance
+- assessments
+- behavior
+- homework
+- reporting اليومية
 
-- كل المسارات المحمية تتطلب:
+### 4.1 كيف يتصرف الباك
 
-```http
-Authorization: Bearer <accessToken>
-```
+- إذا لم ترسل الواجهة `academicYearId` و`semesterId` في surface تشغيلية تدعم السياق النشط:
+  - الباك يحل القيم تلقائيًا من `GET /academic-structure/context/active`
+- إذا أرسلت الواجهة واحدة أو كلتا القيمتين:
+  - يجب أن تطابقا السياق النشط
+  - وإلا يفشل الطلب
+- إذا لم يكن هناك `active academic year + active semester` مضبوطين أصلًا:
+  - يفشل الطلب تشغيليًا بدل أن يعمل على سنة/فصل عشوائي
 
-- عند انتهاء صلاحية `accessToken`:
-  - جرّب `refresh`
-  - ثم أعد الطلب الأصلي
-  - وإن فشل `refresh` انقل المستخدم إلى شاشة تسجيل الدخول
+### 4.2 أكواد الأخطاء المرتبطة
 
-## قواعد pagination / sorting / filters
+| Code | Status | المعنى التشغيلي |
+| --- | --- | --- |
+| `ACADEMIC_CONTEXT_NOT_CONFIGURED` | `409` | لا توجد سنة وفصل نشطان، لذلك surface التشغيل اليومي غير متاحة بعد |
+| `ACTIVE_ACADEMIC_YEAR_ONLY` | `400` | `academicYearId` المرسلة لا تطابق السنة النشطة |
+| `ACTIVE_SEMESTER_ONLY` | `400` | `semesterId` المرسلة لا تطابق الفصل النشط |
 
-القوائم المفعّل عليها pagination تعيد:
+### 4.3 ماذا يجب أن يفعل الفرونت
 
-```json
-{
-  "data": {
-    "items": [],
-    "pagination": {
-      "page": 1,
-      "limit": 20,
-      "totalItems": 0,
-      "totalPages": 0
-    }
-  }
-}
-```
+- عند `409 ACADEMIC_CONTEXT_NOT_CONFIGURED`:
+  - اعرض `Unavailable / Setup required`
+  - لا تعرض empty state عادية
+- عند `ACTIVE_ACADEMIC_YEAR_ONLY` أو `ACTIVE_SEMESTER_ONLY`:
+  - اعتبرها mismatch في state المحلية
+  - أعد تحميل active context
+  - لا تحاول force override من الفرونت
 
-بعض المسارات تضيف `unreadCount` داخل `data`.
+## 5. Enums & Constants
 
-القواعد العامة:
+### 5.1 Attendance
 
-- `page` الافتراضي: `1`
-- `limit` الافتراضي: `20`
-- `limit` الأقصى: `100`
-- `sortOrder`: `asc` أو `desc`
-- `sortBy` يجب أن يكون ضمن whitelist الخاصة بكل endpoint
+| Enum | Allowed values | الاستخدام |
+| --- | --- | --- |
+| `ATTENDANCE_STATUS` | `present`, `absent`, `late`, `excused` | حالات سجل الحضور |
 
-## قواعد role scoping
+### 5.2 Homework
 
-- لا تعتمد أي واجهة على مجرد إخفاء الزر فقط
-- كل تطبيق يجب أن يفترض أن الباك سيفرض الـ role access والـ ownership
-- التطبيق يجب أن يترجم `403` و`404` و`409` إلى رسائل استخدام مفهومة
+| Enum | Allowed values | الاستخدام |
+| --- | --- | --- |
+| `HOMEWORK_SUBMISSION_STATUS` | `submitted`, `not_submitted`, `late` | حالات تسليم الواجب على مستوى الطالب |
 
-## دلالات الأخطاء الموحدة
+### 5.3 Transport
 
-- `401`
-  - التوثيق مفقود أو منتهي أو غير صالح
-- `403`
-  - المستخدم موثق، لكنه خارج الصلاحية أو الـ scope أو الـ ownership
-- `404`
-  - route غير موجود فعلًا
-  - أو المورد الأساسي نفسه غير موجود
-  - أو prerequisite نظامي مفقود مثل `active academic period`
-- `200` مع empty state أو zero-safe payload
-  - عندما يكون المورد الأساسي موجودًا لكن لا توجد بيانات مرتبطة بعد
+| Enum | Allowed values | الاستخدام |
+| --- | --- | --- |
+| `BUS_STATUS` | `active`, `inactive`, `maintenance` | حالة الحافلة |
+| `TRIP_TYPE` | `pickup`, `dropoff` | نوع الرحلة |
+| `TRIP_STATUS` | `scheduled`, `started`, `ended`, `cancelled` | حالة الرحلة |
+| `TRIP_STUDENT_EVENT_TYPE` | `boarded`, `dropped_off`, `absent` | نوع حدث الطالب داخل الرحلة |
+| `HOME_LOCATION_STATUS` | `pending`, `approved`, `rejected` | حالة موقع المنزل |
 
-قواعد ثابتة:
+## 6. Domain Error Handling
 
-- لا تفسر `404` على أنه "لا توجد بيانات بعد" بشكل تلقائي
-- لا تفسر `403` على أنه route غير موجود
-- في student-scoped reporting وstudent homework وstudent behavior:
-  - الطالب الموجود بدون بيانات مرتبطة يجب أن يعيد `200` مع arrays فارغة أو summary صفرية
+الفرونت يجب أن يميز بين أنواع الأخطاء، لا أن يعاملها كلها كرسالة نصية واحدة.
 
-## ownership rules المهمة
+| HTTP status | المعنى |
+| --- | --- |
+| `400` | Validation أو domain rule failure مع `errors[]` قابلة للعرض أو الربط بالحقول |
+| `401` | الجلسة غير موجودة أو منتهية |
+| `403` | المستخدم مسجل، لكن الدور أو الملكية لا يسمحان بالوصول |
+| `404` | المورد غير موجود أو غير مرئي للمستخدم الحالي |
+| `409` | الحالة الحالية للنظام تمنع التنفيذ الآن، مثل غياب active context |
 
-- `parent` لا يقرأ أي `studentId` إلا عبر parent-owned endpoints
-- `teacher` و`supervisor` يعملان ضمن assignments الحالية فقط
-- `driver` يعمل ضمن الرحلات والحافلات المملوكة له بحسب ownership enforcement الحالي
-- `admin` هو السطح الوحيد ذو إدارة شاملة عبر معظم الوحدات
+### 6.1 400 validation/domain envelope
 
-## قواعد تشغيل النقل
+أغلب business-rule errors تأتي ضمن:
 
-- لا تعتمدوا على "عنوان الطالب" النصي في أي منطق نقل داخل الفرونت
-- النقل في Wave 1 مبني على:
-  - `route`
-  - `bus_stops`
-  - `student_bus_assignments`
-  - `trips`
-  - `trip_student_events`
-- في تطبيق السائق:
-  - `GET /transport/trips/:id` يعيد تفاصيل الرحلة وليس roster الطلاب
-  - `GET /transport/trips/:id/events` يعيد الأحداث المسجلة فقط
-  - `GET /transport/trips/:id/students` هو مصدر الحقيقة للـ roster
+- `message`
+- `errors[].field`
+- `errors[].code`
+- `errors[].message`
 
-## قواعد recipients في الرسائل
+الواجهة يجب أن تعتمد `errors[].code` للتمييز البرمجي متى كان ذلك متاحًا.
 
-- `GET /communication/recipients` هو surface القراءة الرسمية لبناء اختيار المستلم
-- لا تعتمد الواجهات على إدخال `receiverUserId` يدويًا
-- في السياسة الحالية لـ Wave 1:
-  - يعاد المستخدمون النشطون فقط
-  - ويستثنى المستخدم الحالي
-  - ولا توجد role directory أدق من ذلك
-  - وهذه هي السياسة الرسمية المعتمدة حاليًا
+## 7. Role Enforcement
 
-## قواعد empty states
+- لا تعتمد الواجهة على الإخفاء البصري فقط.
+- `403` جزء طبيعي من العقد عندما يحاول دور الوصول إلى surface غير مخصصة له.
+- بعض الحالات domain-level تبدو للمستخدم كأنها forbidden بينما هي فعليًا ownership denial. اعرضها بصيغة "غير مسموح لك الوصول لهذا المورد".
 
-كل فريق فرونت يجب أن يجهز empty states واضحة لـ:
+## 8. No Frontend Workarounds
 
-- لا توجد عناصر بعد
-- لا توجد نتائج مطابقة للفلترة
-- لا توجد بيانات summary بعد
-- لا توجد رحلة نشطة
-- لا توجد إشعارات أو رسائل
+ممنوع تعويض gaps الهيكلية عبر:
 
-## ملاحظات تشغيلية على الاستضافة
+- loops كتابية متعددة
+- fake rollback
+- local conflict resolution غير authoritative
+- محاولة حل العلاقات الحساسة خارج الخادم
 
-- البيئة الحالية مخصصة للتطوير المرحلي للفرونت وليست production customer rollout
-- الاستضافة الحالية على Render free/staging، لذلك:
-  - قد يوجد `cold start` عند أول طلب بعد خمول
-  - لا تعتمدوا على response time ثابت جدًا في التقييم البصري
-- قاعدة البيانات الحالية على Neon
+الأمثلة الواضحة:
 
-## مراجع مرتبطة
+- `communication/messages/bulk`
+- `communication/notifications/bulk`
+- `admin-imports/school-onboarding/*`
 
-- [قواعد المصادقة والجلسات](./AUTH_AND_SESSION_RULES.md)
-- [تسلسل التنفيذ](./DELIVERY_SEQUENCE.md)
-- [مواءمة العقود الإدارية](../admin-dashboard/ATTENDANCE_BEHAVIOR_ROUTE_ALIGNMENT.md)
-- `src/docs/API_REFERENCE.md`
-- `src/docs/openapi/ishraf-platform.openapi.json`
+## 9. Root vs API routes
+
+- `/health` و`/health/ready` خارج `/api/v1`
+- بقية المسارات تحت `/api/v1`
+
+## 10. Empty vs Unavailable
+
+| الحالة | كيف تفسرها الواجهة |
+| --- | --- |
+| `200` مع بيانات فارغة | empty state طبيعية |
+| `401/403` | auth أو role/ownership issue |
+| `404` | المورد غير موجود أو غير مرئي |
+| `409` | surface غير متاحة الآن بسبب حالة domain |

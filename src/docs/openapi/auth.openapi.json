@@ -32,12 +32,12 @@
       "DateString": {
         "type": "string",
         "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-        "example": "2026-04-01"
+        "example": "2026-04-06"
       },
       "DateTimeString": {
         "type": "string",
         "format": "date-time",
-        "example": "2026-04-01T12:00:00.000Z"
+        "example": "2026-04-06T00:41:00.653Z"
       },
       "GenericObject": {
         "type": "object",
@@ -346,12 +346,12 @@
           "startDate": {
             "type": "string",
             "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-            "example": "2026-04-01"
+            "example": "2026-04-06"
           },
           "endDate": {
             "type": "string",
             "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-            "example": "2026-04-01"
+            "example": "2026-04-06"
           },
           "isActive": {
             "type": "boolean"
@@ -381,12 +381,12 @@
           "startDate": {
             "type": "string",
             "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-            "example": "2026-04-01"
+            "example": "2026-04-06"
           },
           "endDate": {
             "type": "string",
             "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-            "example": "2026-04-01"
+            "example": "2026-04-06"
           },
           "isActive": {
             "type": "boolean"
@@ -408,12 +408,12 @@
           "startDate": {
             "type": "string",
             "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-            "example": "2026-04-01"
+            "example": "2026-04-06"
           },
           "endDate": {
             "type": "string",
             "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-            "example": "2026-04-01"
+            "example": "2026-04-06"
           },
           "isActive": {
             "type": "boolean"
@@ -443,12 +443,12 @@
           "startDate": {
             "type": "string",
             "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-            "example": "2026-04-01"
+            "example": "2026-04-06"
           },
           "endDate": {
             "type": "string",
             "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-            "example": "2026-04-01"
+            "example": "2026-04-06"
           },
           "isActive": {
             "type": "boolean"
@@ -887,7 +887,81 @@
       },
       "CreateAssessmentRequest": {
         "type": "object",
-        "additionalProperties": true,
+        "properties": {
+          "assessmentTypeId": {
+            "type": "string",
+            "pattern": "^[0-9]+$",
+            "example": "1"
+          },
+          "classId": {
+            "type": "string",
+            "pattern": "^[0-9]+$",
+            "example": "1"
+          },
+          "subjectId": {
+            "type": "string",
+            "pattern": "^[0-9]+$",
+            "example": "1"
+          },
+          "teacherId": {
+            "type": "string",
+            "pattern": "^[0-9]+$",
+            "example": "1",
+            "description": "Admin flows must send teacherId. Teacher flows must omit this field and let the backend derive it from the authenticated teacher."
+          },
+          "academicYearId": {
+            "type": "string",
+            "pattern": "^[0-9]+$",
+            "example": "1",
+            "description": "Optional operational field. If omitted, the backend resolves the active academic year. If sent, it must match the active academic year."
+          },
+          "semesterId": {
+            "type": "string",
+            "pattern": "^[0-9]+$",
+            "example": "1",
+            "description": "Optional operational field. If omitted, the backend resolves the active semester. If sent, it must match the active semester."
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "maxScore": {
+            "type": "number",
+            "minimum": 0
+          },
+          "weight": {
+            "type": "number",
+            "minimum": 0
+          },
+          "assessmentDate": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+            "example": "2026-04-06"
+          },
+          "isPublished": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "assessmentTypeId",
+          "classId",
+          "subjectId",
+          "title",
+          "maxScore",
+          "assessmentDate"
+        ],
+        "additionalProperties": false,
         "example": {
           "assessmentTypeId": "1",
           "classId": "1",
@@ -899,13 +973,51 @@
           "description": "الوحدة الثانية",
           "maxScore": 20,
           "weight": 10,
-          "assessmentDate": "2026-04-01",
+          "assessmentDate": "2026-04-06",
           "isPublished": true
         }
       },
       "SaveAssessmentScoresRequest": {
         "type": "object",
-        "additionalProperties": true,
+        "properties": {
+          "records": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "properties": {
+                "studentId": {
+                  "type": "string",
+                  "pattern": "^[0-9]+$",
+                  "example": "1"
+                },
+                "score": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "remarks": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "studentId",
+                "score"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "records"
+        ],
+        "additionalProperties": false,
         "example": {
           "records": [
             {
@@ -931,13 +1043,78 @@
       },
       "CreateAttendanceSessionRequest": {
         "type": "object",
-        "additionalProperties": true,
+        "properties": {
+          "classId": {
+            "type": "string",
+            "pattern": "^[0-9]+$",
+            "example": "1"
+          },
+          "subjectId": {
+            "type": "string",
+            "pattern": "^[0-9]+$",
+            "example": "1"
+          },
+          "academicYearId": {
+            "type": "string",
+            "pattern": "^[0-9]+$",
+            "example": "1",
+            "description": "Optional operational field. If omitted, the backend resolves the active academic year. If sent, it must match the active academic year."
+          },
+          "semesterId": {
+            "type": "string",
+            "pattern": "^[0-9]+$",
+            "example": "1",
+            "description": "Optional operational field. If omitted, the backend resolves the active semester. If sent, it must match the active semester."
+          },
+          "sessionDate": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+            "example": "2026-04-06"
+          },
+          "periodNo": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "teacherId": {
+            "type": "string",
+            "pattern": "^[0-9]+$",
+            "example": "1",
+            "description": "Admin flows must send teacherId. Teacher flows must omit this field and let the backend derive it from the authenticated teacher."
+          }
+        },
+        "required": [
+          "classId",
+          "subjectId",
+          "sessionDate",
+          "periodNo"
+        ],
+        "additionalProperties": false,
         "example": {
           "classId": "1",
           "subjectId": "1",
           "academicYearId": "1",
           "semesterId": "1",
-          "sessionDate": "2026-04-01",
+          "sessionDate": "2026-04-06",
           "periodNo": 1,
           "title": "حصة الرياضيات",
           "notes": "اختبار سريع",
@@ -946,7 +1123,52 @@
       },
       "SaveAttendanceRecordsRequest": {
         "type": "object",
-        "additionalProperties": true,
+        "properties": {
+          "records": {
+            "type": "array",
+            "minItems": 1,
+            "description": "Full roster snapshot. Every active student in the session roster must appear exactly once.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "studentId": {
+                  "type": "string",
+                  "pattern": "^[0-9]+$",
+                  "example": "1"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "present",
+                    "absent",
+                    "late",
+                    "excused"
+                  ],
+                  "example": "present"
+                },
+                "notes": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "studentId",
+                "status"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "records"
+        ],
+        "additionalProperties": false,
         "example": {
           "records": [
             {
@@ -990,7 +1212,7 @@
           "semesterId": "1",
           "description": "تأخر عن الطابور",
           "severity": 3,
-          "behaviorDate": "2026-04-01",
+          "behaviorDate": "2026-04-06",
           "teacherId": "47"
         }
       },
@@ -1004,7 +1226,36 @@
       },
       "CreateBusRequest": {
         "type": "object",
-        "additionalProperties": true,
+        "properties": {
+          "plateNumber": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 50
+          },
+          "driverId": {
+            "type": "string",
+            "pattern": "^[0-9]+$",
+            "example": "1"
+          },
+          "capacity": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "active",
+              "inactive",
+              "maintenance"
+            ],
+            "example": "active"
+          }
+        },
+        "required": [
+          "plateNumber",
+          "capacity"
+        ],
+        "additionalProperties": false,
         "example": {
           "plateNumber": "SEED-1004",
           "driverId": "1004",
@@ -1040,7 +1291,7 @@
           "studentId": "1",
           "routeId": "1",
           "stopId": "1",
-          "startDate": "2026-04-01",
+          "startDate": "2026-04-06",
           "endDate": null
         }
       },
@@ -1048,7 +1299,7 @@
         "type": "object",
         "additionalProperties": true,
         "example": {
-          "endDate": "2026-04-01"
+          "endDate": "2026-04-06"
         }
       },
       "CreateTransportRouteAssignmentRequest": {
@@ -1057,7 +1308,7 @@
         "example": {
           "busId": "1",
           "routeId": "1",
-          "startDate": "2026-04-01",
+          "startDate": "2026-04-06",
           "endDate": null
         }
       },
@@ -1065,31 +1316,99 @@
         "type": "object",
         "additionalProperties": true,
         "example": {
-          "endDate": "2026-04-01"
+          "endDate": "2026-04-06"
         }
       },
       "CreateTripRequest": {
         "type": "object",
-        "additionalProperties": true,
+        "properties": {
+          "busId": {
+            "type": "string",
+            "pattern": "^[0-9]+$",
+            "example": "1"
+          },
+          "routeId": {
+            "type": "string",
+            "pattern": "^[0-9]+$",
+            "example": "1"
+          },
+          "tripDate": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+            "example": "2026-04-06"
+          },
+          "tripType": {
+            "type": "string",
+            "enum": [
+              "pickup",
+              "dropoff"
+            ],
+            "example": "pickup"
+          }
+        },
+        "required": [
+          "busId",
+          "routeId",
+          "tripDate",
+          "tripType"
+        ],
+        "additionalProperties": false,
         "example": {
           "busId": "1",
           "routeId": "1",
-          "tripDate": "2026-04-01",
+          "tripDate": "2026-04-06",
           "tripType": "pickup"
         }
       },
       "EnsureDailyTripRequest": {
         "type": "object",
-        "additionalProperties": true,
+        "properties": {
+          "routeAssignmentId": {
+            "type": "string",
+            "pattern": "^[0-9]+$",
+            "example": "1"
+          },
+          "tripDate": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+            "example": "2026-04-06"
+          },
+          "tripType": {
+            "type": "string",
+            "enum": [
+              "pickup",
+              "dropoff"
+            ],
+            "example": "pickup"
+          }
+        },
+        "required": [
+          "routeAssignmentId",
+          "tripDate",
+          "tripType"
+        ],
+        "additionalProperties": false,
         "example": {
           "routeAssignmentId": "1",
-          "tripDate": "2026-04-01",
+          "tripDate": "2026-04-06",
           "tripType": "pickup"
         }
       },
       "RecordTripLocationRequest": {
         "type": "object",
-        "additionalProperties": true,
+        "properties": {
+          "latitude": {
+            "type": "number"
+          },
+          "longitude": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "latitude",
+          "longitude"
+        ],
+        "additionalProperties": false,
         "example": {
           "latitude": 15.3694,
           "longitude": 44.191
@@ -1097,7 +1416,42 @@
       },
       "CreateTripStudentEventRequest": {
         "type": "object",
-        "additionalProperties": true,
+        "properties": {
+          "studentId": {
+            "type": "string",
+            "pattern": "^[0-9]+$",
+            "example": "1"
+          },
+          "eventType": {
+            "type": "string",
+            "enum": [
+              "boarded",
+              "dropped_off",
+              "absent"
+            ],
+            "example": "dropped_off"
+          },
+          "stopId": {
+            "type": "string",
+            "pattern": "^[0-9]+$",
+            "example": "1"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "studentId",
+          "eventType"
+        ],
+        "additionalProperties": false,
         "example": {
           "studentId": "1",
           "eventType": "dropped_off",
@@ -1107,7 +1461,58 @@
       },
       "SaveStudentHomeLocationRequest": {
         "type": "object",
-        "additionalProperties": true,
+        "properties": {
+          "addressLabel": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "addressText": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "latitude": {
+            "type": "number"
+          },
+          "longitude": {
+            "type": "number"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "approved",
+              "rejected"
+            ],
+            "example": "approved"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "latitude",
+          "longitude"
+        ],
+        "additionalProperties": false,
         "example": {
           "addressLabel": "Student Home 1",
           "addressText": "Nearby the local market",
@@ -1183,7 +1588,69 @@
       },
       "CreateHomeworkRequest": {
         "type": "object",
-        "additionalProperties": true,
+        "properties": {
+          "teacherId": {
+            "type": "string",
+            "pattern": "^[0-9]+$",
+            "example": "1",
+            "description": "Admin flows must send teacherId. Teacher flows must omit this field and let the backend derive it from the authenticated teacher."
+          },
+          "classId": {
+            "type": "string",
+            "pattern": "^[0-9]+$",
+            "example": "1"
+          },
+          "subjectId": {
+            "type": "string",
+            "pattern": "^[0-9]+$",
+            "example": "1"
+          },
+          "academicYearId": {
+            "type": "string",
+            "pattern": "^[0-9]+$",
+            "example": "1",
+            "description": "Optional operational field. If omitted, the backend resolves the active academic year. If sent, it must match the active academic year."
+          },
+          "semesterId": {
+            "type": "string",
+            "pattern": "^[0-9]+$",
+            "example": "1",
+            "description": "Optional operational field. If omitted, the backend resolves the active semester. If sent, it must match the active semester."
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "assignedDate": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+            "example": "2026-04-06"
+          },
+          "dueDate": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+            "example": "2026-04-06"
+          }
+        },
+        "required": [
+          "classId",
+          "subjectId",
+          "title",
+          "assignedDate",
+          "dueDate"
+        ],
+        "additionalProperties": false,
         "example": {
           "teacherId": "47",
           "classId": "1",
@@ -1192,25 +1659,80 @@
           "semesterId": "1",
           "title": "واجب الرياضيات 2",
           "description": "حل الصفحات 12-14",
-          "assignedDate": "2026-04-01",
+          "assignedDate": "2026-04-06",
           "dueDate": "2026-03-28"
         }
       },
       "SaveHomeworkSubmissionsRequest": {
         "type": "object",
-        "additionalProperties": true,
+        "properties": {
+          "records": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "properties": {
+                "studentId": {
+                  "type": "string",
+                  "pattern": "^[0-9]+$",
+                  "example": "1"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "submitted",
+                    "not_submitted",
+                    "late"
+                  ],
+                  "example": "submitted"
+                },
+                "submittedAt": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                      "example": "2026-04-06"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "notes": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "studentId",
+                "status"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "records"
+        ],
+        "additionalProperties": false,
         "example": {
           "records": [
             {
               "studentId": "1",
               "status": "submitted",
-              "submittedAt": "2026-04-01",
+              "submittedAt": "2026-04-06",
               "notes": "تم التسليم"
             },
             {
               "studentId": "2",
               "status": "late",
-              "submittedAt": "2026-04-01",
+              "submittedAt": "2026-04-06",
               "notes": "تسليم متأخر"
             }
           ]
@@ -1218,7 +1740,55 @@
       },
       "SchoolOnboardingDryRunRequest": {
         "type": "object",
-        "additionalProperties": true,
+        "properties": {
+          "templateVersion": {
+            "type": "string",
+            "minLength": 1
+          },
+          "fileName": {
+            "type": "string",
+            "minLength": 1
+          },
+          "fileHash": {
+            "type": "string",
+            "minLength": 1
+          },
+          "fileSize": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "config": {
+            "type": "object",
+            "properties": {
+              "activateAfterImport": {
+                "type": "boolean"
+              },
+              "targetAcademicYearName": {
+                "type": "string"
+              },
+              "targetSemesterName": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "activateAfterImport"
+            ],
+            "additionalProperties": false
+          },
+          "workbook": {
+            "type": "object",
+            "description": "Structured workbook JSON. The backend does not accept raw Excel binary upload in v1.",
+            "additionalProperties": true
+          }
+        },
+        "required": [
+          "templateVersion",
+          "fileName",
+          "fileHash",
+          "config",
+          "workbook"
+        ],
+        "additionalProperties": false,
         "example": {
           "templateVersion": "2026.04.phase-b",
           "fileName": "school-onboarding-valid.json",
@@ -1634,7 +2204,25 @@
       },
       "SchoolOnboardingApplyRequest": {
         "type": "object",
-        "additionalProperties": true,
+        "properties": {
+          "dryRunId": {
+            "type": "string",
+            "pattern": "^[0-9]+$",
+            "example": "1",
+            "description": "Must reference a validated dry-run result."
+          },
+          "fallbackPassword": {
+            "type": "string",
+            "minLength": 1
+          },
+          "confirmActivateContext": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "dryRunId"
+        ],
+        "additionalProperties": false,
         "example": {
           "dryRunId": "1",
           "fallbackPassword": "ImportSeed123!",
@@ -1919,8 +2507,8 @@
                     "phone": null,
                     "role": "admin",
                     "isActive": true,
-                    "createdAt": "2026-04-01T12:00:00.000Z",
-                    "updatedAt": "2026-04-01T12:00:00.000Z"
+                    "createdAt": "2026-04-06T00:41:00.653Z",
+                    "updatedAt": "2026-04-06T00:41:00.653Z"
                   }
                 }
               }
@@ -2111,8 +2699,8 @@
                     "phone": null,
                     "role": "admin",
                     "isActive": true,
-                    "createdAt": "2026-04-01T12:00:00.000Z",
-                    "updatedAt": "2026-04-01T12:00:00.000Z"
+                    "createdAt": "2026-04-06T00:41:00.653Z",
+                    "updatedAt": "2026-04-06T00:41:00.653Z"
                   }
                 }
               }
@@ -2210,8 +2798,8 @@
                     "phone": null,
                     "role": "admin",
                     "isActive": true,
-                    "createdAt": "2026-04-01T12:00:00.000Z",
-                    "updatedAt": "2026-04-01T12:00:00.000Z"
+                    "createdAt": "2026-04-06T00:41:00.653Z",
+                    "updatedAt": "2026-04-06T00:41:00.653Z"
                   }
                 }
               }

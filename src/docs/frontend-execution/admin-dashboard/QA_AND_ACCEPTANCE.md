@@ -1,74 +1,60 @@
-# التحقق والقبول للوحة الإدارة
+# Admin Dashboard QA And Acceptance
 
-## Current Staging Data State
+## Auth and bootstrap
 
-- البيئة المستضافة الحالية تحتوي على الحسابات المرجعية الحالية + dataset عربية جاهزة
-- لذلك التوقع الافتراضي لم يعد `empty state` في السطوح الأساسية، بل وجود بيانات تشغيلية فعلية
-- مرجع الحالة الحية الحالي أصبح:
-  - `src/docs/STAGING_FRONTEND_SEED.md`
-- مرجع التغطية المتوقع لكل شاشة أصبح:
-  - `src/docs/frontend-execution/admin-dashboard/ADMIN_DASHBOARD_SEED_COVERAGE_MATRIX.md`
-- مرجع الهجرة المؤسسية للوحة أصبح:
-  - `src/docs/frontend-execution/admin-dashboard/ADMIN_WORKBENCH_AND_ACTIVE_CONTEXT_MIGRATION.md`
+- admin can login and call `GET /auth/me`
+- readiness checks load successfully
+- dashboard loads only after bootstrap completes
 
-## Happy Paths
+## Active context
 
-- admin يستطيع login ثم الوصول إلى shell اللوحة
-- dashboard يعرض summary وقوائم مختصرة بدون أخطاء
-- create/list/edit user تعمل بنجاح
-- academic structure flows تعمل بالترتيب الصحيح
-- create student ثم link parent ثم set primary ثم promote تعمل
-- attendance session يمكن إنشاؤها ثم حفظ records ثم تعديل سجل فردي
-- assessment type ثم assessment ثم scores تعمل
-- behavior categories ثم records تعمل
-- transport setup ثم assignments ثم trips تعمل
-- communication admin flows تعمل
-- reporting student profile/reports تعمل
-- homework create/list/detail/update تعمل
+- `GET /academic-structure/context/active` loads during bootstrap
+- `PATCH /academic-structure/context/active` works for admin only
+- daily academic surfaces:
+  - accept omitted `academicYearId` and `semesterId`
+  - reject mismatching ids with validation errors
+  - return `409 ACADEMIC_CONTEXT_NOT_CONFIGURED` when active context is missing
 
-## Negative / Authorization Cases
+## Daily operations
 
-- أي مستخدم غير `admin` يُمنع من أسطح الإدارة الحصرية
-- parent أو teacher لا يستطيعان دخول `/users/*`
-- parent أو teacher لا يستطيعان إدارة `academic-structure`
-- conflicts مثل duplicate email أو academic number تظهر كرسائل واضحة
+- admin-created attendance session requires `teacherId`
+- admin-created assessment requires `teacherId`
+- admin-created homework requires `teacherId`
+- attendance roster save fails when:
+  - a student is duplicated
+  - a roster student is missing
+  - a foreign student is included
+- assessment score save fails when:
+  - a score exceeds `maxScore`
+  - a student is duplicated
+  - a foreign student is included
+- homework submission save fails when:
+  - a student is duplicated
+  - a foreign student is included
 
-## Ownership / Domain Cases
+## Transport
 
-- تعيين parent مكرر لنفس الطالب يجب أن يُرفض
-- attendance session مكررة لنفس السياق يجب أن تُرفض
-- assessment score مكرر لنفس الطالب في نفس التقييم يجب أن يُرفض
-- transport assignment الثاني النشط لنفس الطالب يجب أن يُرفض
-- route stop التي لا تطابق route يجب أن تُرفض
+- admin-only transport management surfaces work
+- trip live operations are reachable by admin
+- transport domain errors are surfaced correctly for invalid state/date/route/stop combinations
+- home locations with `approved` state are the only ones that should be considered driver-visible in roster semantics
 
-## Empty States
+## Reporting
 
-- قوائم users/students/trips/homework/announcements قد تعود فارغة ويجب عرض empty state واضح
-- reporting summaries قد تعود zero-safe وليست أخطاء
-- student reporting وstudent homework وstudent behavior لا يجب أن تفسر empty data على أنها `404`
-- transport summary قد لا يحتوي active trips
-- غياب `active context` يجب أن يظهر كـ `Unavailable` وليس empty state
-- prerequisites الناقصة يجب أن تظهر كـ `Setup required` وليس empty state
+- admin dashboard returns successfully
+- admin preview parent/teacher/supervisor routes are read-only and reachable
+- student profile and per-student summaries load
 
-## Pagination / Filtering Cases
+## School onboarding import
 
-- users list
-- students list
-- attendance sessions list
-- assessments list
-- behavior records list
-- transport trips list
-- communication inbox/sent/notifications
-- homework list
+- `dry-run` returns structured result with `status`, `canApply`, `summary`, and `issues`
+- `apply` rejects missing or invalid `dryRunId`
+- repeated apply on the same successful dry-run returns `alreadyApplied=true`
+- history list/detail are readable by admin
 
-## Auth / Session Handling
+## Negative acceptance
 
-- refresh success يعيد المستخدم إلى العمل دون فقدان السياق
-- refresh failure يعيد إلى login
-- login / forgot-password / reset-password قد تعيد `429`
-- change-password يجب أن يعالج session invalidation بشكل سليم
-- ميّزوا بوضوح بين:
-  - `401` توثيق مفقود أو منتهي
-  - `403` عدم صلاحية
-  - `404` route أو مورد أساسي غير موجود
-  - `200` مع empty state عندما لا توجد بيانات مرتبطة بعد
+- non-admin tokens receive `403` on admin-only surfaces
+- frontend does not need loops to simulate:
+  - bulk communication
+  - school onboarding import

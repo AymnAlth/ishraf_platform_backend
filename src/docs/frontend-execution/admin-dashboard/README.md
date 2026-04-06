@@ -1,71 +1,56 @@
-# دليل تنفيذ لوحة الإدارة
+# Admin Dashboard Backend Contract
 
-هذا الدليل مخصص لفريق بناء لوحة تحكم الإدارة.
+الدور المستهدف: `admin`
 
-## الهدف
+هذه الحزمة تشرح التكامل التنفيذي للوحة الإدارة مع الباك الحالي. الهدف هنا ليس مجرد listing للمسارات، بل توضيح:
 
-بناء لوحة مركزية تدير:
+- ما الذي يدار من لوحة الإدارة
+- ما الذي يعتمد على `Active Academic Context`
+- متى تكون الـ surfaces إدارية فقط
+- ومتى تدخل في التشغيل اليومي
 
-- المستخدمين
-- الهيكل الأكاديمي
-- الطلاب وربط أولياء الأمور
-- العمليات اليومية
-- النقل
-- التواصل
-- التقارير
-- الواجبات
+## النطاق
 
-## المستخدم المستهدف
+لوحة الإدارة هي المستهلك الكامل لـ:
 
-- `admin`
+- `users`
+- `academic-structure`
+- `students`
+- `admin-imports`
 
-## رابط العمل
+كما أنها تستهلك أيضًا:
 
-- `https://ishraf-platform-backend-staging.onrender.com`
-- `https://ishraf-platform-backend-staging.onrender.com/api/v1`
+- `attendance`
+- `assessments`
+- `behavior`
+- `homework`
+- `transport`
+- `communication`
+- `reporting`
 
-## ملاحظة عن البيئة الحالية
+## القواعد المؤثرة
 
-- البيئة المستضافة الحالية تحتوي على الحسابات المرجعية الحالية الموثقة في `src/docs/STAGING_FRONTEND_SEED.md`
-- كما تحتوي على dataset عربية أكاديمية وتشغيلية جاهزة للاختبار
-- اعتمدوا `src/docs/STAGING_FRONTEND_SEED.md` كمرجع نهائي للحسابات والبيانات الحالية على staging
+- السطوح اليومية تعتمد `Active Academic Context`.
+- `users.id` هي المرجع المعتمد في السطوح الحديثة الخاصة بالمعلمين والمشرفين والسائقين وأولياء الأمور.
+- في `attendance` و`assessments` و`homework`:
+  - admin-created request يجب أن ترسل `teacherId`
+  - ويفضل أن تكون `teacherId = users.id`
+- `admin-preview` surfaces في reporting هي read-only فقط.
+- `school onboarding import` لا تُنفذ عبر loops من الفرونت؛ التسلسل الرسمي هو:
+  - `dry-run`
+  - `apply`
+  - `history`
 
-## داخل النطاق
+## الحدود بين الإدارة والتشغيل
 
-- كل شاشات الإدارة التشغيلية المذكورة في `Wave 1`
-- جميع مسارات الإدارة الجاهزة في الباك الحالي
-- الربط مع الـ dashboards والتقارير والإشعارات اليدوية
+- صفحات `academic-structure`, `users`, `students`, `admin-imports` هي surfaces إدارية بحتة.
+- `attendance`, `assessments`, `behavior`, `homework`, و`reporting` هي surfaces تشغيل يومي لكنها متاحة أيضًا للإدارة.
+- `transport` ينقسم إلى:
+  - surfaces إدارية: buses, routes, stops, assignments, route assignments, home locations
+  - surfaces live operations: trips, locations, trip events
 
-## خارج النطاق
+## الملفات الحية هنا
 
-- Firebase / FCM / realtime transport
-- Google Maps / ETA
-- AI analytics
-- 2FA
-- advanced system settings
-- CSV import إذا لم يعد مطلوبًا تشغيليًا
-
-## المستندات المصدر
-
-- `src/docs/BACKEND_WAVE1_STATUS.md`
-- `src/docs/API_REFERENCE.md`
-- `src/docs/LEGACY_DOC_ALIGNMENT.md`
-- `src/docs/transport/admin-dashboard-transport-handoff.md`
-- `src/modules/*/routes/*.routes.ts`
-- [ترحيل اللوحة إلى Workbench والسياق النشط](./ADMIN_WORKBENCH_AND_ACTIVE_CONTEXT_MIGRATION.md)
-- [مصفوفة تغطية seed للشاشات](./ADMIN_DASHBOARD_SEED_COVERAGE_MATRIX.md)
-- [شاشات ومهام لوحة الإدارة](./SCREENS_AND_TASKS.md)
-- [خريطة الـ endpoints](./ENDPOINT_MAP.md)
-- [مذكرة مواءمة العقود الإدارية](./ATTENDANCE_BEHAVIOR_ROUTE_ALIGNMENT.md)
-- [التحقق والقبول](./QA_AND_ACCEPTANCE.md)
-
-## قواعد تنفيذ مهمة
-
-- لا تبدأوا من الشاشات المتفرقة مباشرة؛ ابدؤوا من:
-  - `Active Academic Context`
-  - ثم `Admin Workbench`
-- اعتبروا `dashboard` هي المدخل المؤسسي الجديد، لا مجرد summary surface
-- ميّزوا دائمًا بين:
-  - `Academic Management`
-  - `Daily Operations`
-- اعتمدوا `src/docs/STAGING_FRONTEND_SEED.md` لتحديد ما الذي يجب أن يظهر الآن فعليًا على staging
+- `ENDPOINT_MAP.md`
+- `SCREENS_AND_TASKS.md`
+- `QA_AND_ACCEPTANCE.md`

@@ -1,31 +1,19 @@
-# التحقق والقبول لتطبيق المشرف
+# Supervisor App QA And Acceptance
 
-## Happy Paths
+## Happy paths
 
-- supervisor login ثم dashboard load
-- dashboard يعرض الصفوف التابعة له
-- behavior list/create/update تعمل داخل النطاق
-- attendance sessions list/detail تعمل
-- update attendance record يعمل ضمن النطاق
-- student reports تعمل للطلاب داخل الصفوف التابعة
-- communication surfaces تعمل
+- supervisor login succeeds
+- supervisor dashboard loads
+- supervisor can list/get attendance sessions within accessible scope
+- supervisor can update attendance records within supervised class-year scope
+- behavior create/list/update routes succeed for accessible students
+- student reporting surfaces load for accessible students
+- messaging, announcements, notifications work
 
-## Negative / Scope Cases
+## Expected denials
 
-- supervisor لا يستطيع الوصول إلى admin-only endpoints
-- supervisor لا يستطيع create attendance session
-- supervisor لا يصل إلى student/report/session خارج الصفوف المسندة
-
-## Empty States
-
-- لا توجد صفوف مسندة
-- لا توجد سجلات سلوكية بعد
-- لا توجد sessions
-- لا توجد تقارير بعد
-- لا توجد رسائل أو إشعارات
-
-## Auth / Session Cases
-
-- refresh success/failure
-- `429` على login/forgot/reset
-- change-password then relogin
+- supervisor cannot create attendance sessions
+- supervisor cannot access admin-only modules
+- supervisor cannot access teacher-only dashboard
+- supervisor cannot manage announcements or bulk communication endpoints
+- supervisor cannot read reports for students outside supervised class-year assignments

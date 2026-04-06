@@ -1,43 +1,32 @@
-# التحقق والقبول لتطبيق المعلم
+# Teacher App QA And Acceptance
 
-## Happy Paths
+## Happy paths
 
-- teacher login ثم dashboard load بنجاح
-- create attendance session ثم save records
-- create assessment ثم save scores
-- create behavior record ثم edit record
-- create homework ثم view detail ثم update submissions
-- send message ثم ظهورها في sent/conversation
-- notifications تظهر وتُعلَّم كمقروءة
-- active announcements تظهر حسب الدور
+- teacher login succeeds
+- teacher dashboard loads
+- teacher can create attendance session without `teacherId`
+- teacher can save attendance roster only when payload covers the full roster exactly once
+- teacher can create assessment without `teacherId`
+- teacher can save scores for roster students only
+- teacher can create behavior records for accessible students
+- teacher can create homework without `teacherId`
+- teacher can save homework submissions for roster students only
+- student reporting surfaces load for teacher-accessible students
+- messaging and notifications work
 
-## Negative / Authorization Cases
+## Expected validation failures
 
-- teacher لا يستطيع الوصول إلى admin-only endpoints
-- teacher لا يرى أو يعدل بيانات خارج assignments الخاصة به
-- create session/assessment/behavior/homework خارج النطاق يجب أن يفشل برسالة مفهومة
+- sending `teacherId` in teacher-created assessment returns `TEACHER_ID_NOT_ALLOWED`
+- sending `teacherId` in teacher-created homework returns `TEACHER_ID_NOT_ALLOWED`
+- attendance payload with duplicates returns `ATTENDANCE_DUPLICATE_STUDENT`
+- attendance payload missing a roster student returns `ATTENDANCE_ROSTER_STUDENT_MISSING`
+- attendance payload containing a foreign student returns `ATTENDANCE_ROSTER_STUDENT_NOT_ALLOWED`
+- score above `maxScore` returns `ASSESSMENT_SCORE_EXCEEDS_MAX_SCORE`
+- score payload with a foreign student returns `STUDENT_ASSESSMENT_STUDENT_NOT_ALLOWED`
+- homework payload with a foreign student returns `HOMEWORK_SUBMISSION_STUDENT_NOT_ALLOWED`
 
-## Empty States
+## Expected denials
 
-- dashboard بلا بيانات
-- لا توجد attendance sessions
-- لا توجد assessments
-- لا توجد behavior records
-- لا توجد homework items
-- inbox/notifications فارغة
-
-## Pagination / Filtering Cases
-
-- attendance sessions
-- assessments
-- behavior records
-- messages inbox/sent/conversation
-- notifications
-- homework list
-
-## Auth / Session Cases
-
-- access token منتهي ثم refresh success
-- refresh failure ثم redirect إلى login
-- change password ثم إعادة مصادقة
-- `429` على login/forgot/reset يعالج برسالة واضحة
+- teacher cannot access admin-only `users`, `academic-structure`, `students`, `admin-imports`
+- teacher cannot manage announcements or bulk communication endpoints
+- teacher cannot access admin preview reporting

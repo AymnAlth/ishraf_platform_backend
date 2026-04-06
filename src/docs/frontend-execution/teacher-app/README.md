@@ -1,50 +1,32 @@
-# دليل تنفيذ تطبيق المعلم
+# Teacher App Backend Contract
 
-هذا الدليل مخصص لفريق بناء تطبيق المعلم.
+الدور المستهدف: `teacher`
 
-## الهدف
+هذا المجلد يشرح السطوح التي يستهلكها تطبيق المعلم من الباك الحالي مع التركيز على المنطق التشغيلي، لا مجرد المسارات.
 
-تمكين المعلم من تنفيذ العمل اليومي داخل الصف عبر:
+## النطاق
 
-- dashboard
 - attendance
 - assessments
 - behavior
 - homework
+- reporting
 - communication
+- auth
 
-## المستخدم المستهدف
+## القواعد المؤثرة
 
-- `teacher`
+- السطوح اليومية تعمل داخل `Active Academic Context`.
+- في `attendance`, `assessments`, `homework`:
+  - teacher-created requests يجب ألا ترسل `teacherId`
+  - الباك يحل المعلم من الجلسة الحالية
+- attendance save تستخدم full snapshot للـ roster.
+- assessments/homework submission saves لا تقبل طلابًا خارج roster.
+- reporting على الطلاب ليس عامًا؛ المعلم يرى فقط الطلاب المرتبطين بتكليفه في السنة النشطة.
 
-## رابط العمل
+## Enums المهمة
 
-- `https://ishraf-platform-backend-staging.onrender.com`
-- `https://ishraf-platform-backend-staging.onrender.com/api/v1`
-
-## داخل النطاق
-
-- شاشات المعلم اليومية المرتبطة مباشرة بالصف والمادة والتواصل
-- الشاشات المبنية على teacher-owned assignments الحالية
-
-## خارج النطاق
-
-- user management
-- academic structure management
-- transport admin screens
-- parent-only or admin-only reporting surfaces
-- Firebase / FCM / ETA / AI analytics
-
-## المستندات المصدر
-
-- `src/docs/BACKEND_WAVE1_STATUS.md`
-- `src/docs/API_REFERENCE.md`
-- `src/modules/attendance/routes/attendance.routes.ts`
-- `src/modules/assessments/routes/assessments.routes.ts`
-- `src/modules/behavior/routes/behavior.routes.ts`
-- `src/modules/homework/routes/homework.routes.ts`
-- `src/modules/communication/routes/communication.routes.ts`
-- `src/modules/reporting/routes/reporting.routes.ts`
-- [شاشات ومهام التطبيق](./SCREENS_AND_TASKS.md)
-- [خريطة الـ endpoints](./ENDPOINT_MAP.md)
-- [التحقق والقبول](./QA_AND_ACCEPTANCE.md)
+| Enum | Values |
+| --- | --- |
+| `ATTENDANCE_STATUS` | `present`, `absent`, `late`, `excused` |
+| `HOMEWORK_SUBMISSION_STATUS` | `submitted`, `not_submitted`, `late` |

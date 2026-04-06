@@ -1,51 +1,29 @@
-# دليل تنفيذ تطبيق السائق
+# Driver App Backend Contract
 
-هذا الدليل مخصص لفريق بناء تطبيق السائق.
+الدور المستهدف: `driver`
 
-## الهدف
+هذا المجلد يشرح منطق النقل الذي يحتاجه تطبيق السائق قبل المسارات. السائق لا يدير كل transport module؛ بل يستهلك جزءًا تشغيليًا محكومًا بالملكية والحالة.
 
-تمكين السائق من تنفيذ التشغيل اليومي للرحلات عبر:
+## النطاق
 
-- trip list/detail
-- trip roster
-- start / end trip
-- location updates
-- trip student events
-- transport summary
-- communication + recipients directory
+- transport
+- reporting transport summary
+- communication
+- auth
 
-## المستخدم المستهدف
+## Enums المهمة
 
-- `driver`
+| Enum | Values |
+| --- | --- |
+| `BUS_STATUS` | `active`, `inactive`, `maintenance` |
+| `TRIP_TYPE` | `pickup`, `dropoff` |
+| `TRIP_STATUS` | `scheduled`, `started`, `ended`, `cancelled` |
+| `TRIP_STUDENT_EVENT_TYPE` | `boarded`, `dropped_off`, `absent` |
+| `HOME_LOCATION_STATUS` | `pending`, `approved`, `rejected` |
 
-## رابط العمل
+## القواعد المؤثرة
 
-- `https://ishraf-platform-backend-staging.onrender.com`
-- `https://ishraf-platform-backend-staging.onrender.com/api/v1`
-
-## داخل النطاق
-
-- الرحلات المملوكة للسائق ضمن ownership enforcement الحالي
-- tracking وstudent events عبر polling/API calls
-- roster الطلاب لكل رحلة عبر endpoint مستقل
-- اختيار المستلمين عبر endpoint رسمي بدل الإدخال اليدوي
-- communication surfaces العامة للدور
-
-## خارج النطاق
-
-- Firebase / realtime transport
-- Google Maps / ETA
-- stop proximity alerts
-- admin transport setup
-
-## المستندات المصدر
-
-- `src/docs/BACKEND_WAVE1_STATUS.md`
-- `src/docs/API_REFERENCE.md`
-- `src/docs/transport/driver-app-transport-handoff.md`
-- `src/modules/transport/routes/transport.routes.ts`
-- `src/modules/reporting/routes/reporting.routes.ts`
-- `src/modules/communication/routes/communication.routes.ts`
-- [شاشات ومهام التطبيق](./SCREENS_AND_TASKS.md)
-- [خريطة الـ endpoints](./ENDPOINT_MAP.md)
-- [التحقق والقبول](./QA_AND_ACCEPTANCE.md)
+- السائق لا يرى كل route assignments؛ فقط `GET /transport/route-assignments/me`.
+- السائق لا يرى كل الرحلات؛ list/detail/roster/start/end/location/event كلها ownership-scoped.
+- `ensure-daily` هي surface التشغيل المفضلة لإنشاء أو إعادة استخدام رحلة اليوم.
+- `homeLocation` لا تدخل في roster السائق إلا إذا كانت `approved`.

@@ -1,171 +1,110 @@
-# Render + Neon Deployment Guide
+# Deploying To Render + Neon
 
-هذه الوثيقة تشرح طريقة نشر **بيئة staging** من الباك إند على:
+هذا الملف يصف التشغيل المرجعي الحالي للباك إند على:
 
-- **Render Web Service**
-- **Neon Postgres**
+- Render للتطبيق
+- Neon لقاعدة البيانات PostgreSQL
 
-هذه البيئة مخصصة لتطوير الفرونت، وليست إطلاق production نهائي للعملاء.
+## الملفات المرجعية
 
-البيئة المستضافة الحالية:
+- `render.yaml`
+- `.env.render.example`
+- `.env.example`
+- `src/scripts/smoke-deploy.ts`
 
-- `PUBLIC_ROOT_URL=https://ishraf-platform-backend-staging.onrender.com`
-- `PUBLIC_API_BASE_URL=https://ishraf-platform-backend-staging.onrender.com/api/v1`
-- قاعدة البيانات الفعلية تعمل عبر Neon من خلال:
-  - `DATABASE_URL`
-  - `DATABASE_URL_MIGRATIONS`
+## متغيرات البيئة الأساسية
 
-مهم:
-- لا تضع connection strings الحقيقية داخل ملفات التوثيق
-- احتفظ بها داخل `.env` المحلي وداخل Render env vars فقط
+يجب ضبط المتغيرات التالية في Render:
 
-للاختبار العملي بعد النشر باستخدام Postman وOpenAPI:
-
-- `src/docs/TESTING_WITH_OPENAPI_AND_POSTMAN.md`
-
-## 1. قبل البدء
-
-- تأكد أن المشروع يمر محليًا:
-  - `pnpm build`
-  - `pnpm lint`
-  - `pnpm test`
-  - `pnpm test:integration`
-- استخدم Node `24.13.1` كما هو مثبت في `.node-version`.
-- لا تستخدم قاعدة التطوير المحلية على Render أو Neon.
-
-## 2. إعداد Neon
-
-- أنشئ مشروع Neon جديد مخصصًا لـ staging.
-- انسخ **pooled connection string** وضعها في:
-  - `DATABASE_URL`
-- انسخ **direct connection string** وضعها في:
-  - `DATABASE_URL_MIGRATIONS`
-- اضبط:
-  - `DATABASE_SCHEMA=public`
-
-القاعدة:
-- التطبيق وقت التشغيل يستخدم `DATABASE_URL`
-- الـ migrations تستخدم `DATABASE_URL_MIGRATIONS` إن كانت موجودة
-
-## 3. إعداد Render
-
-- أنشئ Web Service جديدة من نفس المستودع.
-- استخدم ملف `render.yaml` الموجود في المشروع.
-- اجعل البيئة:
-  - `NODE_ENV=production`
-- استخدم Health Check:
-  - `/health/ready`
-
-## 4. Environment Variables
-
-الحد الأدنى المطلوب على Render:
-
+- `NODE_ENV=production`
+- `APP_NAME`
+- `API_PREFIX=/api/v1`
 - `PUBLIC_ROOT_URL`
 - `PUBLIC_API_BASE_URL`
 - `DATABASE_URL`
 - `DATABASE_URL_MIGRATIONS`
+- `DATABASE_SCHEMA`
 - `ACCESS_TOKEN_SECRET`
+- `ACCESS_TOKEN_TTL_MINUTES`
 - `REFRESH_TOKEN_SECRET`
+- `REFRESH_TOKEN_TTL_DAYS`
+- `PASSWORD_RESET_TOKEN_TTL_MINUTES`
 - `CORS_ALLOWED_ORIGINS`
+- `TRUST_PROXY`
+- `REQUEST_BODY_LIMIT`
+- `AUTH_LOGIN_RATE_LIMIT_MAX`
+- `AUTH_LOGIN_RATE_LIMIT_WINDOW_MS`
+- `AUTH_PASSWORD_RESET_RATE_LIMIT_MAX`
+- `AUTH_PASSWORD_RESET_RATE_LIMIT_WINDOW_MS`
+- `AUTH_EXPOSE_RESET_TOKEN_IN_RESPONSE`
+- `LOG_LEVEL`
 
-بقية القيم الموصى بها موجودة في:
+## اتصال قاعدة البيانات
 
-- `.env.render.example`
+- `DATABASE_URL` للاتصال pooled runtime
+- `DATABASE_URL_MIGRATIONS` للاتصال المباشر المخصص للهجرات والمهام الإدارية
 
-قيم مهمة في staging:
+## أوامر التشغيل الأساسية
 
-- `DATABASE_SCHEMA=public`
-- `TRUST_PROXY=true`
-- `AUTH_EXPOSE_RESET_TOKEN_IN_RESPONSE=false`
-- `LOG_LEVEL=info`
+### بناء محلي
 
-القيم الحالية الموصى بها للروابط العامة:
-
-```text
-PUBLIC_ROOT_URL=https://ishraf-platform-backend-staging.onrender.com
-PUBLIC_API_BASE_URL=https://ishraf-platform-backend-staging.onrender.com/api/v1
+```powershell
+pnpm.cmd build
 ```
 
-## 5. تشغيل الـ Migrations
+### تطبيق الهجرات
 
-لا تعتمد في هذه المرحلة على `preDeploy` أو أي خطوة مخفية داخل الاستضافة.
-
-شغّل migrations يدويًا ضد Neon direct URL:
-
-```bash
-pnpm db:migrate
+```powershell
+pnpm.cmd db:migrate
 ```
 
-تأكد أن:
+### فحص smoke بعد النشر
 
-- `DATABASE_URL_MIGRATIONS` يشير إلى Neon direct connection
-- `DATABASE_SCHEMA=public`
-
-أعد تشغيل هذه الخطوة بعد أي schema change جديد قبل اعتماد النشر.
-
-## 6. إنشاء أول Admin
-
-بعد نجاح الـ migrations، أنشئ أول admin مرة واحدة فقط:
-
-```bash
-pnpm deploy:bootstrap-admin
+```powershell
+pnpm.cmd deploy:smoke
 ```
 
-المتغيرات المطلوبة:
+## أوامر تشغيلية إضافية
+
+### Bootstrap admin
+
+```powershell
+pnpm.cmd deploy:bootstrap-admin
+```
+
+يعتمد على متغيرات:
 
 - `BOOTSTRAP_ADMIN_EMAIL`
 - `BOOTSTRAP_ADMIN_PASSWORD`
 - `BOOTSTRAP_ADMIN_FULL_NAME`
-- `BOOTSTRAP_ADMIN_PHONE` اختياري
-- `BOOTSTRAP_ADMIN_RESET_PASSWORD=false` افتراضيًا
+- `BOOTSTRAP_ADMIN_PHONE`
+- `BOOTSTRAP_ADMIN_RESET_PASSWORD`
 
-ملاحظات:
+### Seed عربية لواجهة الفرونت
 
-- الـ script idempotent
-- إذا كان البريد موجودًا بدور غير `admin` فسيفشل صراحة
-- لا يغير كلمة المرور للحساب الموجود إلا إذا فعلت:
-  - `BOOTSTRAP_ADMIN_RESET_PASSWORD=true`
-
-## 7. Smoke Check بعد النشر
-
-بعد أن يصبح رابط Render متاحًا:
-
-```bash
-pnpm deploy:smoke
+```powershell
+pnpm.cmd deploy:seed-frontend-data
 ```
 
-المتغيرات:
+### إعادة القاعدة إلى minimal accounts
 
-- `SMOKE_BASE_URL=https://ishraf-platform-backend-staging.onrender.com`
-- `SMOKE_ADMIN_EMAIL` اختياري
-- `SMOKE_ADMIN_PASSWORD` اختياري
-
-الـ script يتحقق من:
-
-- `GET /health`
-- `GET /health/ready`
-- `POST /api/v1/auth/login` إذا زودته ببيانات admin
-
-## 8. CORS أثناء تطوير الفرونت
-
-اجعل `CORS_ALLOWED_ORIGINS` تحتوي فقط على origins المصرح بها، مثل:
-
-```text
-http://localhost:3000,http://localhost:5173,https://<frontend-preview-domain>
+```powershell
+pnpm.cmd deploy:reset-minimal-accounts
 ```
 
-إذا كانت القيمة فارغة في `production` فسيفشل startup عمدًا.
+## سياسة النشر
 
-## 9. ملاحظات تشغيلية مهمة
+- لا تنشر قبل:
+  - `pnpm.cmd build`
+  - tests المناسبة للتغيير
+  - `pnpm.cmd db:migrate` إذا كانت هناك migrations
+- بعد أي نشر أو migration على البيئة:
+  - شغّل `pnpm.cmd deploy:smoke`
 
-- `GET /health` هو liveness بسيط
-- `GET /health/ready` يتحقق من جاهزية قاعدة البيانات
-- الـ forgot/reset password flows موجودة، لكن staging لا يعيد `resetToken` ما دام:
-  - `AUTH_EXPOSE_RESET_TOKEN_IN_RESPONSE=false`
-- rate limiting الحالي in-memory ومناسب لنسخة Render single-instance فقط
+## ملاحظات
 
-## 10. حدود بيئة الاستضافة المجانية
-
-- قد توجد cold starts على Render free
-- لا يوجد realtime transport أو FCM أو ETA في هذه المرحلة
-- هذه البيئة تصلح لتطوير الفرونت واختبارات التشغيل الأساسية، لا لحمولة إنتاجية حقيقية
+- لا توثّق connection strings الفعلية في أي ملف repo.
+- المرجع الرسمي لمسارات الـ API بعد النشر يبقى:
+  - `/health`
+  - `/health/ready`
+  - و`/api/v1/*` حسب OpenAPI/Postman.

@@ -12,8 +12,14 @@ const API_SERVER_URL = "https://ishraf-platform-backend-staging.onrender.com/api
 const ROOT_SERVER_URL = "https://ishraf-platform-backend-staging.onrender.com";
 const LOCAL_API_SERVER_URL = "http://localhost:4000/api/v1";
 const LOCAL_ROOT_SERVER_URL = "http://localhost:4000";
-const TODAY = "2026-04-01";
-const NOW = "2026-04-01T12:00:00.000Z";
+const runtimeNow = new Date();
+const TODAY = new Intl.DateTimeFormat("en-CA", {
+  timeZone: "Asia/Aden",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit"
+}).format(runtimeNow);
+const NOW = runtimeNow.toISOString();
 
 const ROOT_SERVERS = [
   { url: ROOT_SERVER_URL, description: "Hosted staging on Render" },
@@ -136,6 +142,13 @@ const dateSchema = {
   example: TODAY
 };
 const dateTimeSchema = { type: "string", format: "date-time", example: NOW };
+const ATTENDANCE_STATUS_VALUES = ["present", "absent", "late", "excused"];
+const HOMEWORK_SUBMISSION_STATUS_VALUES = ["submitted", "not_submitted", "late"];
+const BUS_STATUS_VALUES = ["active", "inactive", "maintenance"];
+const TRIP_TYPE_VALUES = ["pickup", "dropoff"];
+const TRIP_STATUS_VALUES = ["scheduled", "started", "ended", "cancelled"];
+const TRIP_STUDENT_EVENT_TYPE_VALUES = ["boarded", "dropped_off", "absent"];
+const HOME_LOCATION_STATUS_VALUES = ["pending", "approved", "rejected"];
 const paginationExample = { page: 1, limit: 20, totalItems: 1, totalPages: 1 };
 const schoolOnboardingWorkbookExample = {
   sheets: {
@@ -1918,6 +1931,303 @@ function addSchema(name, schema) {
   });
 });
 
+addSchema("CreateAssessmentRequest", {
+  type: "object",
+  properties: {
+    assessmentTypeId: clone(numericIdSchema),
+    classId: clone(numericIdSchema),
+    subjectId: clone(numericIdSchema),
+    teacherId: {
+      ...clone(numericIdSchema),
+      description:
+        "Admin flows must send teacherId. Teacher flows must omit this field and let the backend derive it from the authenticated teacher."
+    },
+    academicYearId: {
+      ...clone(numericIdSchema),
+      description:
+        "Optional operational field. If omitted, the backend resolves the active academic year. If sent, it must match the active academic year."
+    },
+    semesterId: {
+      ...clone(numericIdSchema),
+      description:
+        "Optional operational field. If omitted, the backend resolves the active semester. If sent, it must match the active semester."
+    },
+    title: { type: "string", minLength: 1, maxLength: 200 },
+    description: { anyOf: [{ type: "string" }, { type: "null" }] },
+    maxScore: { type: "number", minimum: 0 },
+    weight: { type: "number", minimum: 0 },
+    assessmentDate: clone(dateSchema),
+    isPublished: { type: "boolean" }
+  },
+  required: ["assessmentTypeId", "classId", "subjectId", "title", "maxScore", "assessmentDate"],
+  additionalProperties: false,
+  example: componentSchemas.CreateAssessmentRequest.example
+});
+
+addSchema("SaveAssessmentScoresRequest", {
+  type: "object",
+  properties: {
+    records: {
+      type: "array",
+      minItems: 1,
+      items: {
+        type: "object",
+        properties: {
+          studentId: clone(numericIdSchema),
+          score: { type: "number", minimum: 0 },
+          remarks: { anyOf: [{ type: "string" }, { type: "null" }] }
+        },
+        required: ["studentId", "score"],
+        additionalProperties: false
+      }
+    }
+  },
+  required: ["records"],
+  additionalProperties: false,
+  example: componentSchemas.SaveAssessmentScoresRequest.example
+});
+
+addSchema("CreateAttendanceSessionRequest", {
+  type: "object",
+  properties: {
+    classId: clone(numericIdSchema),
+    subjectId: clone(numericIdSchema),
+    academicYearId: {
+      ...clone(numericIdSchema),
+      description:
+        "Optional operational field. If omitted, the backend resolves the active academic year. If sent, it must match the active academic year."
+    },
+    semesterId: {
+      ...clone(numericIdSchema),
+      description:
+        "Optional operational field. If omitted, the backend resolves the active semester. If sent, it must match the active semester."
+    },
+    sessionDate: clone(dateSchema),
+    periodNo: { type: "integer", minimum: 1 },
+    title: { anyOf: [{ type: "string" }, { type: "null" }] },
+    notes: { anyOf: [{ type: "string" }, { type: "null" }] },
+    teacherId: {
+      ...clone(numericIdSchema),
+      description:
+        "Admin flows must send teacherId. Teacher flows must omit this field and let the backend derive it from the authenticated teacher."
+    }
+  },
+  required: ["classId", "subjectId", "sessionDate", "periodNo"],
+  additionalProperties: false,
+  example: componentSchemas.CreateAttendanceSessionRequest.example
+});
+
+addSchema("SaveAttendanceRecordsRequest", {
+  type: "object",
+  properties: {
+    records: {
+      type: "array",
+      minItems: 1,
+      description:
+        "Full roster snapshot. Every active student in the session roster must appear exactly once.",
+      items: {
+        type: "object",
+        properties: {
+          studentId: clone(numericIdSchema),
+          status: { type: "string", enum: ATTENDANCE_STATUS_VALUES, example: "present" },
+          notes: { anyOf: [{ type: "string" }, { type: "null" }] }
+        },
+        required: ["studentId", "status"],
+        additionalProperties: false
+      }
+    }
+  },
+  required: ["records"],
+  additionalProperties: false,
+  example: componentSchemas.SaveAttendanceRecordsRequest.example
+});
+
+addSchema("CreateHomeworkRequest", {
+  type: "object",
+  properties: {
+    teacherId: {
+      ...clone(numericIdSchema),
+      description:
+        "Admin flows must send teacherId. Teacher flows must omit this field and let the backend derive it from the authenticated teacher."
+    },
+    classId: clone(numericIdSchema),
+    subjectId: clone(numericIdSchema),
+    academicYearId: {
+      ...clone(numericIdSchema),
+      description:
+        "Optional operational field. If omitted, the backend resolves the active academic year. If sent, it must match the active academic year."
+    },
+    semesterId: {
+      ...clone(numericIdSchema),
+      description:
+        "Optional operational field. If omitted, the backend resolves the active semester. If sent, it must match the active semester."
+    },
+    title: { type: "string", minLength: 1, maxLength: 200 },
+    description: { anyOf: [{ type: "string" }, { type: "null" }] },
+    assignedDate: clone(dateSchema),
+    dueDate: clone(dateSchema)
+  },
+  required: ["classId", "subjectId", "title", "assignedDate", "dueDate"],
+  additionalProperties: false,
+  example: componentSchemas.CreateHomeworkRequest.example
+});
+
+addSchema("SaveHomeworkSubmissionsRequest", {
+  type: "object",
+  properties: {
+    records: {
+      type: "array",
+      minItems: 1,
+      items: {
+        type: "object",
+        properties: {
+          studentId: clone(numericIdSchema),
+          status: {
+            type: "string",
+            enum: HOMEWORK_SUBMISSION_STATUS_VALUES,
+            example: "submitted"
+          },
+          submittedAt: { anyOf: [clone(dateSchema), { type: "null" }] },
+          notes: { anyOf: [{ type: "string" }, { type: "null" }] }
+        },
+        required: ["studentId", "status"],
+        additionalProperties: false
+      }
+    }
+  },
+  required: ["records"],
+  additionalProperties: false,
+  example: componentSchemas.SaveHomeworkSubmissionsRequest.example
+});
+
+addSchema("CreateBusRequest", {
+  type: "object",
+  properties: {
+    plateNumber: { type: "string", minLength: 1, maxLength: 50 },
+    driverId: clone(numericIdSchema),
+    capacity: { type: "integer", minimum: 1 },
+    status: { type: "string", enum: BUS_STATUS_VALUES, example: "active" }
+  },
+  required: ["plateNumber", "capacity"],
+  additionalProperties: false,
+  example: componentSchemas.CreateBusRequest.example
+});
+
+addSchema("CreateTripRequest", {
+  type: "object",
+  properties: {
+    busId: clone(numericIdSchema),
+    routeId: clone(numericIdSchema),
+    tripDate: clone(dateSchema),
+    tripType: { type: "string", enum: TRIP_TYPE_VALUES, example: "pickup" }
+  },
+  required: ["busId", "routeId", "tripDate", "tripType"],
+  additionalProperties: false,
+  example: componentSchemas.CreateTripRequest.example
+});
+
+addSchema("EnsureDailyTripRequest", {
+  type: "object",
+  properties: {
+    routeAssignmentId: clone(numericIdSchema),
+    tripDate: clone(dateSchema),
+    tripType: { type: "string", enum: TRIP_TYPE_VALUES, example: "pickup" }
+  },
+  required: ["routeAssignmentId", "tripDate", "tripType"],
+  additionalProperties: false,
+  example: componentSchemas.EnsureDailyTripRequest.example
+});
+
+addSchema("RecordTripLocationRequest", {
+  type: "object",
+  properties: {
+    latitude: { type: "number" },
+    longitude: { type: "number" }
+  },
+  required: ["latitude", "longitude"],
+  additionalProperties: false,
+  example: componentSchemas.RecordTripLocationRequest.example
+});
+
+addSchema("CreateTripStudentEventRequest", {
+  type: "object",
+  properties: {
+    studentId: clone(numericIdSchema),
+    eventType: {
+      type: "string",
+      enum: TRIP_STUDENT_EVENT_TYPE_VALUES,
+      example: "dropped_off"
+    },
+    stopId: clone(numericIdSchema),
+    notes: { anyOf: [{ type: "string" }, { type: "null" }] }
+  },
+  required: ["studentId", "eventType"],
+  additionalProperties: false,
+  example: componentSchemas.CreateTripStudentEventRequest.example
+});
+
+addSchema("SaveStudentHomeLocationRequest", {
+  type: "object",
+  properties: {
+    addressLabel: { anyOf: [{ type: "string" }, { type: "null" }] },
+    addressText: { anyOf: [{ type: "string" }, { type: "null" }] },
+    latitude: { type: "number" },
+    longitude: { type: "number" },
+    status: {
+      type: "string",
+      enum: HOME_LOCATION_STATUS_VALUES,
+      example: "approved"
+    },
+    notes: { anyOf: [{ type: "string" }, { type: "null" }] }
+  },
+  required: ["latitude", "longitude"],
+  additionalProperties: false,
+  example: componentSchemas.SaveStudentHomeLocationRequest.example
+});
+
+addSchema("SchoolOnboardingDryRunRequest", {
+  type: "object",
+  properties: {
+    templateVersion: { type: "string", minLength: 1 },
+    fileName: { type: "string", minLength: 1 },
+    fileHash: { type: "string", minLength: 1 },
+    fileSize: { type: "integer", minimum: 0 },
+    config: {
+      type: "object",
+      properties: {
+        activateAfterImport: { type: "boolean" },
+        targetAcademicYearName: { type: "string" },
+        targetSemesterName: { type: "string" }
+      },
+      required: ["activateAfterImport"],
+      additionalProperties: false
+    },
+    workbook: {
+      type: "object",
+      description: "Structured workbook JSON. The backend does not accept raw Excel binary upload in v1.",
+      additionalProperties: true
+    }
+  },
+  required: ["templateVersion", "fileName", "fileHash", "config", "workbook"],
+  additionalProperties: false,
+  example: componentSchemas.SchoolOnboardingDryRunRequest.example
+});
+
+addSchema("SchoolOnboardingApplyRequest", {
+  type: "object",
+  properties: {
+    dryRunId: {
+      ...clone(numericIdSchema),
+      description: "Must reference a validated dry-run result."
+    },
+    fallbackPassword: { type: "string", minLength: 1 },
+    confirmActivateContext: { type: "boolean" }
+  },
+  required: ["dryRunId"],
+  additionalProperties: false,
+  example: componentSchemas.SchoolOnboardingApplyRequest.example
+});
+
 function qp(name, schema, description) {
   return { name, in: "query", required: false, schema, description };
 }
@@ -2153,16 +2463,16 @@ endpoints.push(
   makeEndpoint({ m: "POST", p: "/students/:id/promotions", t: "Students", s: "Promote Student", u: "Promote a student to another class for a target academic year while writing structured enrollment state and promotion history.", b: "PromoteStudentRequest", e: "student", notes: ["The promotion writes the target academic enrollment even when the target year is not active yet.", "students.class_id is only synchronized immediately when the target year is the active academic year."] }),
   makeEndpoint({ m: "POST", p: "/assessments/types", t: "Assessments", s: "Create Assessment Type", u: "Create a reusable assessment type.", b: "CreateAssessmentTypeRequest", e: "assessment" }),
   makeEndpoint({ m: "GET", p: "/assessments/types", t: "Assessments", s: "List Assessment Types", u: "List assessment types.", r: ["admin", "teacher"], kind: "array", e: "assessment", status: 200 }),
-  makeEndpoint({ m: "POST", p: "/assessments", t: "Assessments", s: "Create Assessment", u: "Create an assessment inside the active academic context. Teachers may omit teacherId and rely on the authenticated teacher profile. Admin teacherId accepts the teacher user id from /users?role=teacher or the legacy teacher profile id.", r: ["admin", "teacher"], b: "CreateAssessmentRequest", e: "assessment", notes: ["academicYearId and semesterId may be omitted; the backend resolves the active academic context automatically.", "If academicYearId or semesterId is sent, it must match the active context.", "The selected subjectId must have an active subject offering for the resolved semester.", "Admin frontend flows should send teacherId as the teacher user id returned by GET /users?role=teacher."] }),
+  makeEndpoint({ m: "POST", p: "/assessments", t: "Assessments", s: "Create Assessment", u: "Create an assessment inside the active academic context. Teachers must omit teacherId and rely on the authenticated teacher profile. Admin teacherId accepts the teacher user id from /users?role=teacher or the legacy teacher profile id.", r: ["admin", "teacher"], b: "CreateAssessmentRequest", e: "assessment", notes: ["academicYearId and semesterId may be omitted; the backend resolves the active academic context automatically.", "If academicYearId or semesterId is sent, it must match the active context.", "The selected subjectId must have an active subject offering for the resolved semester.", "Admin frontend flows should send teacherId as the teacher user id returned by GET /users?role=teacher.", "Teacher frontend flows must not send teacherId; the backend returns TEACHER_ID_NOT_ALLOWED if it is present.", "Relevant domain errors include CLASS_YEAR_MISMATCH, SEMESTER_YEAR_MISMATCH, SUBJECT_GRADE_LEVEL_MISMATCH, SUBJECT_NOT_OFFERED_IN_SEMESTER, TEACHER_ID_REQUIRED, TEACHER_ID_NOT_ALLOWED, and ACADEMIC_CONTEXT_NOT_CONFIGURED."] }),
   makeEndpoint({ m: "GET", p: "/assessments", t: "Assessments", s: "List Assessments", u: "List assessments for the active academic context with pagination and filters.", r: ["admin", "teacher"], q: assessmentListQuery, kind: "paginated", e: "assessment", status: 200, notes: ["This operational list is scoped to the active academic year and active semester.", "teacherId filter accepts the teacher user id returned by GET /users?role=teacher or the legacy teacher profile id. Prefer the user id in admin frontend flows."] }),
   makeEndpoint({ m: "GET", p: "/assessments/:id", t: "Assessments", s: "Get Assessment", u: "Return one assessment detail record.", r: ["admin", "teacher"], e: "assessment", status: 200 }),
   makeEndpoint({ m: "GET", p: "/assessments/:id/scores", t: "Assessments", s: "Get Assessment Scores", u: "Return the score roster for one assessment.", r: ["admin", "teacher"], kind: "array", e: "assessmentScore", status: 200 }),
-  makeEndpoint({ m: "PUT", p: "/assessments/:id/scores", t: "Assessments", s: "Save Assessment Scores", u: "Create or update the full score roster for an assessment.", r: ["admin", "teacher"], b: "SaveAssessmentScoresRequest", kind: "array", e: "assessmentScore", status: 200 }),
+  makeEndpoint({ m: "PUT", p: "/assessments/:id/scores", t: "Assessments", s: "Save Assessment Scores", u: "Create or update score rows for one assessment roster.", r: ["admin", "teacher"], b: "SaveAssessmentScoresRequest", kind: "array", e: "assessmentScore", status: 200, notes: ["The payload does not need to include every student in the roster.", "Every submitted studentId must belong to the assessment roster.", "Relevant domain errors include ASSESSMENT_SCORE_EXCEEDS_MAX_SCORE, STUDENT_ASSESSMENT_DUPLICATE_STUDENT, and STUDENT_ASSESSMENT_STUDENT_NOT_ALLOWED."] }),
   makeEndpoint({ m: "PATCH", p: "/assessments/scores/:studentAssessmentId", t: "Assessments", s: "Update Student Assessment Score", u: "Update one student score row.", r: ["admin", "teacher"], b: "UpdateStudentAssessmentScoreRequest", e: "assessmentScore", status: 200 }),
-  makeEndpoint({ m: "POST", p: "/attendance/sessions", t: "Attendance", s: "Create Attendance Session", u: "Create an attendance session inside the active academic context. Admin teacherId accepts the teacher user id from /users?role=teacher or the legacy teacher profile id.", r: ["admin", "teacher"], b: "CreateAttendanceSessionRequest", e: "attendanceSession", notes: ["academicYearId and semesterId may be omitted; the backend resolves the active academic context automatically.", "If academicYearId or semesterId is sent, it must match the active context.", "The selected subjectId must have an active subject offering for the resolved semester.", "Admin frontend flows should send teacherId as the teacher user id returned by GET /users?role=teacher."] }),
+  makeEndpoint({ m: "POST", p: "/attendance/sessions", t: "Attendance", s: "Create Attendance Session", u: "Create an attendance session inside the active academic context. Admin teacherId accepts the teacher user id from /users?role=teacher or the legacy teacher profile id. Teacher flows must omit teacherId.", r: ["admin", "teacher"], b: "CreateAttendanceSessionRequest", e: "attendanceSession", notes: ["academicYearId and semesterId may be omitted; the backend resolves the active academic context automatically.", "If academicYearId or semesterId is sent, it must match the active context.", "The selected subjectId must have an active subject offering for the resolved semester.", "Admin frontend flows should send teacherId as the teacher user id returned by GET /users?role=teacher.", "Relevant domain errors include CLASS_YEAR_MISMATCH, SEMESTER_YEAR_MISMATCH, SUBJECT_GRADE_LEVEL_MISMATCH, SUBJECT_NOT_OFFERED_IN_SEMESTER, TEACHER_ID_REQUIRED, and ACADEMIC_CONTEXT_NOT_CONFIGURED."] }),
   makeEndpoint({ m: "GET", p: "/attendance/sessions", t: "Attendance", s: "List Attendance Sessions", u: "List attendance sessions for the active academic context with pagination. There is no root /attendance endpoint.", r: ["admin", "teacher", "supervisor"], q: attendanceListQuery, kind: "paginated", e: "attendanceSession", status: 200, notes: ["Empty collections return 200 with items=[] and pagination metadata.", "This operational list is scoped to the active academic year and active semester.", "teacherId filter accepts the teacher user id returned by GET /users?role=teacher or the legacy teacher profile id. Prefer the user id in admin frontend flows."] }),
   makeEndpoint({ m: "GET", p: "/attendance/sessions/:id", t: "Attendance", s: "Get Attendance Session", u: "Return one attendance session including its student roster.", r: ["admin", "teacher", "supervisor"], e: "attendanceSession", status: 200 }),
-  makeEndpoint({ m: "PUT", p: "/attendance/sessions/:id/records", t: "Attendance", s: "Save Attendance Records", u: "Save the full attendance roster snapshot for one session.", r: ["admin", "teacher", "supervisor"], b: "SaveAttendanceRecordsRequest", kind: "array", e: "attendanceRecord", status: 200, side: "Any newly absent record can trigger parent notifications through the internal automation service." }),
+  makeEndpoint({ m: "PUT", p: "/attendance/sessions/:id/records", t: "Attendance", s: "Save Attendance Records", u: "Save the full attendance roster snapshot for one session.", r: ["admin", "teacher", "supervisor"], b: "SaveAttendanceRecordsRequest", kind: "array", e: "attendanceRecord", status: 200, notes: ["This payload is a full snapshot: every active student in the session roster must appear exactly once.", "Relevant domain errors include ATTENDANCE_DUPLICATE_STUDENT, ATTENDANCE_ROSTER_STUDENT_MISSING, and ATTENDANCE_ROSTER_STUDENT_NOT_ALLOWED."], side: "Any newly absent record can trigger parent notifications through the internal automation service." }),
   makeEndpoint({ m: "PATCH", p: "/attendance/records/:attendanceId", t: "Attendance", s: "Update Attendance Record", u: "Update one attendance record status or notes.", r: ["admin", "teacher", "supervisor"], b: "UpdateAttendanceRecordRequest", e: "attendanceRecord", status: 200, side: "If the record changes into absent, the internal automation service may create notifications for linked parents." }),
   makeEndpoint({ m: "POST", p: "/behavior/categories", t: "Behavior", s: "Create Behavior Category", u: "Create a behavior category definition.", b: "CreateBehaviorCategoryRequest", e: "behaviorCategory" }),
   makeEndpoint({ m: "GET", p: "/behavior/categories", t: "Behavior", s: "List Behavior Categories", u: "List behavior categories used in behavior forms. There is no behaviorType query filter in v1.", r: ["admin", "teacher", "supervisor"], kind: "array", e: "behaviorCategory", status: 200 }),
@@ -2184,15 +2494,15 @@ endpoints.push(
   makeEndpoint({ m: "GET", p: "/transport/route-assignments", t: "Transport", s: "List Route Assignments", u: "List recurring bus-to-route assignments for admin transport management.", kind: "array", e: "routeAssignment", status: 200 }),
   makeEndpoint({ m: "GET", p: "/transport/route-assignments/me", t: "Transport", s: "List My Route Assignments", u: "Return the active recurring route assignments owned by the authenticated driver.", r: ["driver"], kind: "array", e: "routeAssignment", status: 200 }),
   makeEndpoint({ m: "PATCH", p: "/transport/route-assignments/:id/deactivate", t: "Transport", s: "Deactivate Route Assignment", u: "Deactivate a recurring bus-to-route assignment. Legacy trips remain intact.", b: "DeactivateTransportRouteAssignmentRequest", e: "routeAssignment", status: 200 }),
-  makeEndpoint({ m: "POST", p: "/transport/trips", t: "Transport", s: "Create Trip", u: "Create a trip for a bus and route. Drivers and admins can create trips.", r: ["admin", "driver"], b: "CreateTripRequest", e: "trip" }),
-  makeEndpoint({ m: "POST", p: "/transport/trips/ensure-daily", t: "Transport", s: "Ensure Daily Trip", u: "Create or reuse the operational trip for one route assignment, trip date, and trip type without creating duplicates.", r: ["admin", "driver"], b: "EnsureDailyTripRequest", e: "ensureDailyTrip", status: 200, notes: ["If a matching trip already exists for the same bus, route, tripDate, and tripType, the response remains 200 with created=false.", "This is the preferred driver-facing daily trip flow. POST /transport/trips remains a legacy fallback."], derived: "The endpoint reuses the natural uniqueness of bus + route + tripDate + tripType." }),
+  makeEndpoint({ m: "POST", p: "/transport/trips", t: "Transport", s: "Create Trip", u: "Create a trip for a bus and route. Drivers and admins can create trips.", r: ["admin", "driver"], b: "CreateTripRequest", e: "trip", notes: ["Driver access is ownership-scoped to buses they are allowed to operate."] }),
+  makeEndpoint({ m: "POST", p: "/transport/trips/ensure-daily", t: "Transport", s: "Ensure Daily Trip", u: "Create or reuse the operational trip for one route assignment, trip date, and trip type without creating duplicates.", r: ["admin", "driver"], b: "EnsureDailyTripRequest", e: "ensureDailyTrip", status: 200, notes: ["If a matching trip already exists for the same bus, route, tripDate, and tripType, the response remains 200 with created=false.", "This is the preferred driver-facing daily trip flow. POST /transport/trips remains a legacy fallback.", "routeAssignmentId must be active for the requested tripDate or the request fails with TRANSPORT_ROUTE_ASSIGNMENT_NOT_ACTIVE_FOR_TRIP_DATE."], derived: "The endpoint reuses the natural uniqueness of bus + route + tripDate + tripType." }),
   makeEndpoint({ m: "GET", p: "/transport/trips", t: "Transport", s: "List Trips", u: "List trips with pagination. Drivers only see trips within their scope.", r: ["admin", "driver"], q: tripListQuery, kind: "paginated", e: "trip", status: 200 }),
   makeEndpoint({ m: "GET", p: "/transport/trips/:id", t: "Transport", s: "Get Trip", u: "Return one trip detail including latest location, route stops, and event summary.", r: ["admin", "driver"], e: "tripDetail", status: 200, derived: "Trip detail aggregates transport views such as vw_trip_details, vw_route_stops, and vw_latest_trip_location." }),
   makeEndpoint({ m: "GET", p: "/transport/trips/:id/students", t: "Transport", s: "Get Trip Student Roster", u: "Return the full student roster for one trip, including assigned stop coordinates, the latest event state inside the same trip, and approved home location when available.", r: ["admin", "driver"], q: tripRosterQuery, e: "tripRoster", status: 200, notes: ["The roster returns all students assigned to the trip route for the trip date, even when no trip event has been recorded yet.", "If the trip exists but has no eligible students, the response remains 200 with students=[].", "Only approved homeLocation data is exposed to the driver-facing roster."], derived: "Roster rows are derived from trip-date transport assignments, route stop coordinates, approved student_transport_home_locations, and the latest trip_student_events row per student inside the same trip." }),
-  makeEndpoint({ m: "POST", p: "/transport/trips/:id/start", t: "Transport", s: "Start Trip", u: "Mark a scheduled trip as started.", r: ["admin", "driver"], e: "trip", status: 200, side: "Trip start triggers parent notifications per assigned student through the internal automation service." }),
-  makeEndpoint({ m: "POST", p: "/transport/trips/:id/end", t: "Transport", s: "End Trip", u: "Mark a trip as ended.", r: ["admin", "driver"], e: "trip", status: 200 }),
-  makeEndpoint({ m: "POST", p: "/transport/trips/:id/locations", t: "Transport", s: "Record Trip Location", u: "Record one location point for a started trip.", r: ["admin", "driver"], b: "RecordTripLocationRequest", e: "trip", status: 201 }),
-  makeEndpoint({ m: "POST", p: "/transport/trips/:id/events", t: "Transport", s: "Create Trip Student Event", u: "Create one trip student event. stopId is required for boarded and dropped_off events, and must be omitted for absent.", r: ["admin", "driver"], b: "CreateTripStudentEventRequest", e: "tripEvent", status: 201, notes: ["Trip student event validation is trip-date aware: the student must have a transport assignment covering the trip date and route."], side: "Dropped-off events trigger parent notifications through the internal automation service." }),
+  makeEndpoint({ m: "POST", p: "/transport/trips/:id/start", t: "Transport", s: "Start Trip", u: "Mark a scheduled trip as started.", r: ["admin", "driver"], e: "trip", status: 200, notes: ["The trip must currently be scheduled. Otherwise the request fails with TRIP_STATUS_START_INVALID."], side: "Trip start triggers parent notifications per assigned student through the internal automation service." }),
+  makeEndpoint({ m: "POST", p: "/transport/trips/:id/end", t: "Transport", s: "End Trip", u: "Mark a trip as ended.", r: ["admin", "driver"], e: "trip", status: 200, notes: ["The trip must currently be started. Otherwise the request fails with TRIP_STATUS_END_INVALID."] }),
+  makeEndpoint({ m: "POST", p: "/transport/trips/:id/locations", t: "Transport", s: "Record Trip Location", u: "Record one location point for a started trip.", r: ["admin", "driver"], b: "RecordTripLocationRequest", e: "trip", status: 201, notes: ["Locations are only accepted while the trip is started. Invalid state returns TRIP_LOCATION_STATUS_INVALID."] }),
+  makeEndpoint({ m: "POST", p: "/transport/trips/:id/events", t: "Transport", s: "Create Trip Student Event", u: "Create one trip student event. stopId is required for boarded and dropped_off events, and must be omitted for absent.", r: ["admin", "driver"], b: "CreateTripStudentEventRequest", e: "tripEvent", status: 201, notes: ["Trip student event validation is trip-date aware: the student must have a transport assignment covering the trip date and route.", "Events are only accepted while the trip is started or ended. Invalid state returns TRIP_EVENT_STATUS_INVALID.", "A mismatching route assignment or stop produces STUDENT_TRIP_DATE_ASSIGNMENT_NOT_FOUND, TRIP_STUDENT_ROUTE_MISMATCH, or TRIP_EVENT_STOP_ROUTE_MISMATCH."], side: "Dropped-off events trigger parent notifications through the internal automation service." }),
   makeEndpoint({ m: "GET", p: "/transport/trips/:id/events", t: "Transport", s: "List Trip Events", u: "List student events recorded for a trip.", r: ["admin", "driver"], kind: "array", e: "tripEvent", status: 200 }),
   makeEndpoint({ m: "GET", p: "/transport/students/:studentId/home-location", t: "Transport", s: "Get Student Home Location", u: "Return the current saved home location reference for one student. In this round the endpoint is admin-only.", e: "studentHomeLocation", status: 200, notes: ["If the student exists but no home location has been saved yet, the response remains 200 with homeLocation=null."] }),
   makeEndpoint({ m: "PUT", p: "/transport/students/:studentId/home-location", t: "Transport", s: "Save Student Home Location", u: "Create or update the current student home location reference. v1 uses admin as the submitting source.", b: "SaveStudentHomeLocationRequest", e: "studentHomeLocation", status: 200, notes: ["Admin may save pending, approved, or rejected locations. Only approved locations appear in the driver roster."] }),
@@ -2213,15 +2523,15 @@ endpoints.push(
   makeEndpoint({ m: "POST", p: "/communication/notifications/bulk", t: "Communication", s: "[NEW] Create Bulk Notifications", u: "Create admin-only multi-target notifications in one all-or-nothing transaction with an authoritative delivery summary.", r: ["admin"], b: "CreateBulkNotificationRequest", e: "bulkDelivery", status: 201, notes: ["[NEW] At least one of userIds[] or targetRoles[] is required.", "[NEW] Audience resolution reuses the same available-recipient rules as GET /communication/recipients.", "[NEW] The response returns delivery summary metadata rather than the full notification list."] }),
   makeEndpoint({ m: "GET", p: "/communication/notifications/me", t: "Communication", s: "List My Notifications", u: "List notifications for the authenticated user with unreadCount metadata.", r: ["admin", "parent", "teacher", "supervisor", "driver"], q: notificationsQuery, kind: "paginated", e: "notification", status: 200, derived: "Notification lists rely on views such as vw_notification_details and vw_user_notification_summary." }),
   makeEndpoint({ m: "PATCH", p: "/communication/notifications/:notificationId/read", t: "Communication", s: "Mark Notification Read", u: "Mark one notification as read.", r: ["admin", "parent", "teacher", "supervisor", "driver"], e: "notification", status: 200 }),
-  makeEndpoint({ m: "POST", p: "/admin-imports/school-onboarding/dry-run", t: "Admin Imports", s: "[NEW] Run School Onboarding Dry-Run", u: "Validate a structured school onboarding workbook payload on the server, resolve natural keys, and persist an auditable dry-run result without writing domain data.", r: ["admin"], b: "SchoolOnboardingDryRunRequest", e: "schoolOnboardingImport", status: 200, notes: ["[NEW] This endpoint accepts structured workbook JSON, not raw Excel binary upload.", "[NEW] v1 is create-only and blocks duplicate/conflicting existing records.", "[NEW] The returned importId is the dryRunId required by the apply endpoint."] }),
-  makeEndpoint({ m: "POST", p: "/admin-imports/school-onboarding/apply", t: "Admin Imports", s: "[NEW] Apply School Onboarding Import", u: "Apply a previously validated school onboarding dry-run in one all-or-nothing transaction, with idempotent retry semantics.", r: ["admin"], b: "SchoolOnboardingApplyRequest", e: "schoolOnboardingImport", status: 200, notes: ["[NEW] dryRunId must reference a validated dry-run result.", "[NEW] Repeated apply calls for the same successful dryRunId return the previous apply result with alreadyApplied=true.", "[NEW] The import is create-only in v1 and does not sync, update, or delete existing records."] }),
-  makeEndpoint({ m: "GET", p: "/admin-imports/school-onboarding/history", t: "Admin Imports", s: "[NEW] List School Onboarding Import History", u: "List persisted school onboarding dry-run and apply attempts with summary metadata for admin audit and retry flows.", r: ["admin"], q: schoolOnboardingImportHistoryQuery, kind: "paginated", e: "schoolOnboardingImportHistoryItem", status: 200, notes: ["[NEW] History is paginated and includes both dry-run and apply records."] }),
-  makeEndpoint({ m: "GET", p: "/admin-imports/school-onboarding/history/:importId", t: "Admin Imports", s: "[NEW] Get School Onboarding Import History Detail", u: "Return one persisted school onboarding import run, including its result summary, issues, entity counts, and dry-run linkage when applicable.", r: ["admin"], e: "schoolOnboardingImportHistoryDetail", status: 200, notes: ["[NEW] Use this to reopen dry-run results or applied audit records without recomputing them."] }),
-  makeEndpoint({ m: "POST", p: "/homework", t: "Homework", s: "Create Homework", u: "Create homework inside the active academic context. Teachers may omit teacherId and rely on the authenticated teacher profile. Admin teacherId accepts the teacher user id from /users?role=teacher or the legacy teacher profile id.", r: ["admin", "teacher"], b: "CreateHomeworkRequest", e: "homework", notes: ["academicYearId and semesterId may be omitted; the backend resolves the active academic context automatically.", "If academicYearId or semesterId is sent, it must match the active context.", "The selected subjectId must have an active subject offering for the resolved semester.", "Admin frontend flows should send teacherId as the teacher user id returned by GET /users?role=teacher."] }),
+  makeEndpoint({ m: "POST", p: "/admin-imports/school-onboarding/dry-run", t: "Admin Imports", s: "[NEW] Run School Onboarding Dry-Run", u: "Validate a structured school onboarding workbook payload on the server, resolve natural keys, and persist an auditable dry-run result without writing domain data.", r: ["admin"], b: "SchoolOnboardingDryRunRequest", e: "schoolOnboardingImport", status: 200, notes: ["[NEW] This endpoint accepts structured workbook JSON, not raw Excel binary upload.", "[NEW] v1 is create-only and blocks duplicate/conflicting existing records.", "[NEW] The returned importId is the dryRunId required by the apply endpoint.", "[NEW] Frontend should key the result screen off status, canApply, summary, sheetSummaries, and issues."] }),
+  makeEndpoint({ m: "POST", p: "/admin-imports/school-onboarding/apply", t: "Admin Imports", s: "[NEW] Apply School Onboarding Import", u: "Apply a previously validated school onboarding dry-run in one all-or-nothing transaction, with idempotent retry semantics.", r: ["admin"], b: "SchoolOnboardingApplyRequest", e: "schoolOnboardingImport", status: 200, notes: ["[NEW] dryRunId must reference a validated dry-run result.", "[NEW] Repeated apply calls for the same successful dryRunId return the previous apply result with alreadyApplied=true.", "[NEW] The import is create-only in v1 and does not sync, update, or delete existing records.", "[NEW] If dryRunId does not reference a validated dry-run, the request fails before writing anything."] }),
+  makeEndpoint({ m: "GET", p: "/admin-imports/school-onboarding/history", t: "Admin Imports", s: "[NEW] List School Onboarding Import History", u: "List persisted school onboarding dry-run and apply attempts with summary metadata for admin audit and retry flows.", r: ["admin"], q: schoolOnboardingImportHistoryQuery, kind: "paginated", e: "schoolOnboardingImportHistoryItem", status: 200, notes: ["[NEW] History is paginated and includes both dry-run and apply records.", "[NEW] Each row includes status, canApply, and summary metadata."] }),
+  makeEndpoint({ m: "GET", p: "/admin-imports/school-onboarding/history/:importId", t: "Admin Imports", s: "[NEW] Get School Onboarding Import History Detail", u: "Return one persisted school onboarding import run, including its result summary, issues, entity counts, and dry-run linkage when applicable.", r: ["admin"], e: "schoolOnboardingImportHistoryDetail", status: 200, notes: ["[NEW] Use this to reopen dry-run results or applied audit records without recomputing them.", "[NEW] The nested result includes status, canApply, summary, issues, and alreadyApplied when relevant."] }),
+  makeEndpoint({ m: "POST", p: "/homework", t: "Homework", s: "Create Homework", u: "Create homework inside the active academic context. Teachers must omit teacherId and rely on the authenticated teacher profile. Admin teacherId accepts the teacher user id from /users?role=teacher or the legacy teacher profile id.", r: ["admin", "teacher"], b: "CreateHomeworkRequest", e: "homework", notes: ["academicYearId and semesterId may be omitted; the backend resolves the active academic context automatically.", "If academicYearId or semesterId is sent, it must match the active context.", "The selected subjectId must have an active subject offering for the resolved semester.", "Admin frontend flows should send teacherId as the teacher user id returned by GET /users?role=teacher.", "Teacher frontend flows must not send teacherId; the backend returns TEACHER_ID_NOT_ALLOWED if it is present.", "Relevant domain errors include CLASS_YEAR_MISMATCH, SEMESTER_YEAR_MISMATCH, SUBJECT_GRADE_LEVEL_MISMATCH, SUBJECT_NOT_OFFERED_IN_SEMESTER, TEACHER_ID_REQUIRED, TEACHER_ID_NOT_ALLOWED, and ACADEMIC_CONTEXT_NOT_CONFIGURED."] }),
   makeEndpoint({ m: "GET", p: "/homework", t: "Homework", s: "List Homework", u: "List homework for the active academic context with pagination and academic filters.", r: ["admin", "teacher"], q: homeworkListQuery, kind: "paginated", e: "homework", status: 200, notes: ["This operational list is scoped to the active academic year and active semester.", "teacherId filter accepts the teacher user id returned by GET /users?role=teacher or the legacy teacher profile id. Prefer the user id in admin frontend flows."], derived: "Homework lists are enriched by SQL views such as vw_homework_details." }),
   makeEndpoint({ m: "GET", p: "/homework/students/:studentId", t: "Homework", s: "Get Student Homework", u: "Return homework assigned to one student. Parents are restricted to their linked children.", r: ["admin", "teacher", "parent"], e: "studentHomework", status: 200, notes: ["If the student exists but has no homework yet, the response remains 200 with items=[]."], derived: "Student homework uses view-backed projections such as vw_homework_details and vw_homework_submission_details." }),
   makeEndpoint({ m: "GET", p: "/homework/:id", t: "Homework", s: "Get Homework", u: "Return one homework detail including roster-level submission summary.", r: ["admin", "teacher"], e: "homework", status: 200, derived: "Homework detail is enriched through SQL views such as vw_homework_details and vw_homework_submission_details." }),
-  makeEndpoint({ m: "PUT", p: "/homework/:id/submissions", t: "Homework", s: "Save Homework Submissions", u: "Create or update the homework submission roster.", r: ["admin", "teacher"], b: "SaveHomeworkSubmissionsRequest", kind: "array", e: "studentHomework", status: 200 }),
+  makeEndpoint({ m: "PUT", p: "/homework/:id/submissions", t: "Homework", s: "Save Homework Submissions", u: "Create or update the homework submission roster.", r: ["admin", "teacher"], b: "SaveHomeworkSubmissionsRequest", kind: "array", e: "studentHomework", status: 200, notes: ["Only students in the homework roster are allowed.", "Relevant domain errors include HOMEWORK_SUBMISSION_DUPLICATE_STUDENT and HOMEWORK_SUBMISSION_STUDENT_NOT_ALLOWED."] }),
   makeEndpoint({ m: "GET", p: "/reporting/students/:studentId/profile", t: "Reporting", s: "Get Student Profile Report", u: "Return the full student profile payload used in admin and staff reporting screens.", r: ["admin", "teacher", "supervisor"], e: "studentProfileReport", status: 200, notes: ["If the student exists but has no related attendance, assessment, or behavior rows yet, the response stays 200 with zero-safe summaries."], derived: "This payload combines view-backed projections such as vw_student_profiles, vw_student_attendance_summary, vw_student_assessment_summary, and vw_student_behavior_summary." }),
   makeEndpoint({ m: "GET", p: "/reporting/students/:studentId/reports/attendance-summary", t: "Reporting", s: "Get Student Attendance Summary", u: "Return the student attendance summary used in charts and cards.", r: ["admin", "teacher", "supervisor"], e: "attendanceSummaryReport", status: 200, notes: ["No data yet returns 200 with zero-safe totals, not 404."], derived: "Derived from summary views such as vw_student_attendance_summary." }),
   makeEndpoint({ m: "GET", p: "/reporting/students/:studentId/reports/assessment-summary", t: "Reporting", s: "Get Student Assessment Summary", u: "Return the student assessment summary. Use assessmentSummary.subjects[] rather than items[].", r: ["admin", "teacher", "supervisor"], e: "assessmentSummaryReport", status: 200, notes: ["No data yet returns 200 with zero-safe overall metrics and an empty subjects array."], derived: "Derived from summary views such as vw_student_assessment_summary." }),
@@ -2234,13 +2544,13 @@ endpoints.push(
   makeEndpoint({ m: "GET", p: "/reporting/admin-preview/parents/:parentUserId/students/:studentId/transport/live-status", t: "Reporting", s: "Get Admin Preview Parent Child Transport Live Status", u: "Return the canonical parent transport live-status surface for one linked child under a selected parent user.", r: ["admin"], e: "parentTransportLiveStatus", status: 200, notes: ["Admin-only, read-only preview surface.", "Requires parent-child linkage or returns 404 Student not linked to parent.", "Wave 1 is polling-based and does not include Firebase or ETA."], derived: "This response is view-backed and combines active assignment, active trip live status, latest location, and recent event projections." }),
   makeEndpoint({ m: "GET", p: "/reporting/admin-preview/teachers/:teacherUserId/dashboard", t: "Reporting", s: "Get Admin Preview Teacher Dashboard", u: "Return the canonical teacher dashboard surface for admin monitoring, starting from the selected teacher user account.", r: ["admin"], e: "teacherDashboard", status: 200, notes: ["Admin-only, read-only preview surface.", "Path identifier is the teacher users.id from /users?role=teacher.", "Use this instead of reconstructing teacher dashboard parity from multiple admin endpoints."] }),
   makeEndpoint({ m: "GET", p: "/reporting/admin-preview/supervisors/:supervisorUserId/dashboard", t: "Reporting", s: "Get Admin Preview Supervisor Dashboard", u: "Return the canonical supervisor dashboard surface for admin monitoring, starting from the selected supervisor user account.", r: ["admin"], e: "supervisorDashboard", status: 200, notes: ["Admin-only, read-only preview surface.", "Path identifier is the supervisor users.id from /users?role=supervisor.", "Use this instead of reconstructing supervisor dashboard parity from multiple admin endpoints."] }),
-  makeEndpoint({ m: "GET", p: "/reporting/dashboards/parent/me", t: "Reporting", s: "Get Parent Dashboard", u: "Return the parent dashboard summary surface.", r: ["parent"], e: "parentDashboard", status: 200 }),
-  makeEndpoint({ m: "GET", p: "/reporting/dashboards/parent/me/students/:studentId/profile", t: "Reporting", s: "Get Parent Child Profile", u: "Return the child profile payload for the authenticated parent.", r: ["parent"], e: "studentProfileReport", status: 200 }),
-  makeEndpoint({ m: "GET", p: "/reporting/dashboards/parent/me/students/:studentId/reports/attendance-summary", t: "Reporting", s: "Get Parent Child Attendance Summary", u: "Return the child attendance summary for the authenticated parent.", r: ["parent"], e: "attendanceSummaryReport", status: 200 }),
-  makeEndpoint({ m: "GET", p: "/reporting/dashboards/parent/me/students/:studentId/reports/assessment-summary", t: "Reporting", s: "Get Parent Child Assessment Summary", u: "Return the child assessment summary for the authenticated parent.", r: ["parent"], e: "assessmentSummaryReport", status: 200 }),
-  makeEndpoint({ m: "GET", p: "/reporting/dashboards/parent/me/students/:studentId/reports/behavior-summary", t: "Reporting", s: "Get Parent Child Behavior Summary", u: "Return the child behavior summary for the authenticated parent.", r: ["parent"], e: "behaviorSummaryReport", status: 200 }),
+  makeEndpoint({ m: "GET", p: "/reporting/dashboards/parent/me", t: "Reporting", s: "Get Parent Dashboard", u: "Return the parent dashboard summary surface.", r: ["parent"], e: "parentDashboard", status: 200, notes: ["The dashboard only includes students linked to the authenticated parent profile."] }),
+  makeEndpoint({ m: "GET", p: "/reporting/dashboards/parent/me/students/:studentId/profile", t: "Reporting", s: "Get Parent Child Profile", u: "Return the child profile payload for the authenticated parent.", r: ["parent"], e: "studentProfileReport", status: 200, notes: ["The child must be linked to the authenticated parent or the request is denied."] }),
+  makeEndpoint({ m: "GET", p: "/reporting/dashboards/parent/me/students/:studentId/reports/attendance-summary", t: "Reporting", s: "Get Parent Child Attendance Summary", u: "Return the child attendance summary for the authenticated parent.", r: ["parent"], e: "attendanceSummaryReport", status: 200, notes: ["The child must be linked to the authenticated parent or the request is denied."] }),
+  makeEndpoint({ m: "GET", p: "/reporting/dashboards/parent/me/students/:studentId/reports/assessment-summary", t: "Reporting", s: "Get Parent Child Assessment Summary", u: "Return the child assessment summary for the authenticated parent.", r: ["parent"], e: "assessmentSummaryReport", status: 200, notes: ["The child must be linked to the authenticated parent or the request is denied."] }),
+  makeEndpoint({ m: "GET", p: "/reporting/dashboards/parent/me/students/:studentId/reports/behavior-summary", t: "Reporting", s: "Get Parent Child Behavior Summary", u: "Return the child behavior summary for the authenticated parent.", r: ["parent"], e: "behaviorSummaryReport", status: 200, notes: ["The child must be linked to the authenticated parent or the request is denied."] }),
   makeEndpoint({ m: "GET", p: "/reporting/dashboards/teacher/me", t: "Reporting", s: "Get Teacher Dashboard", u: "Return the teacher dashboard surface.", r: ["teacher"], e: "teacherDashboard", status: 200 }),
-  makeEndpoint({ m: "GET", p: "/reporting/dashboards/supervisor/me", t: "Reporting", s: "Get Supervisor Dashboard", u: "Return the supervisor dashboard surface.", r: ["supervisor"], e: "supervisorDashboard", status: 200 }),
+  makeEndpoint({ m: "GET", p: "/reporting/dashboards/supervisor/me", t: "Reporting", s: "Get Supervisor Dashboard", u: "Return the supervisor dashboard surface.", r: ["supervisor"], e: "supervisorDashboard", status: 200, notes: ["Supervisor student access is limited to class-year assignments owned by the authenticated supervisor."] }),
   makeEndpoint({ m: "GET", p: "/reporting/dashboards/admin/me", t: "Reporting", s: "Get Admin Dashboard", u: "Return the admin dashboard surface.", r: ["admin"], e: "adminDashboard", status: 200 }),
   makeEndpoint({ m: "GET", p: "/reporting/transport/summary", t: "Reporting", s: "Get Transport Summary", u: "Return the transport summary surface shared by admin and driver.", r: ["admin", "driver"], e: "transportSummary", status: 200, derived: "Transport summaries rely on views such as vw_trip_details, vw_latest_trip_location, vw_active_trip_live_status, and vw_trip_student_event_details." }),
   makeEndpoint({ m: "GET", p: "/reporting/transport/parent/me/students/:studentId/live-status", t: "Reporting", s: "Get Parent Child Transport Live Status", u: "Return the transport live status for one linked child. Wave 1 is polling-based and does not include Firebase or ETA.", r: ["parent"], e: "parentTransportLiveStatus", status: 200, derived: "This response is view-backed and combines active assignment, active trip live status, latest location, and recent event projections." })
@@ -2531,7 +2841,11 @@ const beforeOpenApiByModule = coverageByModule(actualRoutes, collectOpenApiRoute
 const beforePostmanByModule = coverageByModule(actualRoutes, collectPostmanRoutes(baselineMasterCollection));
 const afterOpenApiByModule = coverageByModule(actualRoutes, collectOpenApiRoutes(finalMasterSpec));
 const afterPostmanByModule = coverageByModule(actualRoutes, collectPostmanRoutes(finalMasterCollection));
-const migrationContent = fs.readFileSync(path.join(root, "src", "database", "migrations", "1730000000000_init_auth_schema.js"), "utf8");
+const migrationsDir = path.join(root, "src", "database", "migrations");
+const migrationContent = fs.readdirSync(migrationsDir)
+  .filter((fileName) => fileName.endsWith(".js"))
+  .map((fileName) => fs.readFileSync(path.join(migrationsDir, fileName), "utf8"))
+  .join("\n");
 const viewNames = Array.from(new Set(migrationContent.match(/vw_[a-z_]+/g) ?? [])).sort();
 const automationEvents = ["attendance_absent", "behavior_negative", "transport_trip_started", "transport_student_dropped_off"];
 const targetFields = ["communication.announcements.targetRole", "communication.announcements.targetRoles", "communication.notifications.notificationType", "behavior.categories.behaviorType", "transport.trip-events.eventType"];
@@ -2546,23 +2860,7 @@ const moduleTable = moduleOrder.map((key) => {
 const missingBefore = baseline.masterOpenApi.missing.length > 0
   ? baseline.masterOpenApi.missing.map((route) => `- \`${route.method} ${route.path}\``).join("\n")
   : "- none";
-const newRuntimeEndpoints = [
-  "GET /reporting/admin-preview/parents/:parentUserId/dashboard",
-  "GET /reporting/admin-preview/parents/:parentUserId/students/:studentId/profile",
-  "GET /reporting/admin-preview/parents/:parentUserId/students/:studentId/reports/attendance-summary",
-  "GET /reporting/admin-preview/parents/:parentUserId/students/:studentId/reports/assessment-summary",
-  "GET /reporting/admin-preview/parents/:parentUserId/students/:studentId/reports/behavior-summary",
-  "GET /reporting/admin-preview/parents/:parentUserId/students/:studentId/transport/live-status",
-  "GET /reporting/admin-preview/teachers/:teacherUserId/dashboard",
-  "GET /reporting/admin-preview/supervisors/:supervisorUserId/dashboard",
-  "POST /communication/messages/bulk",
-  "POST /communication/notifications/bulk",
-  "POST /admin-imports/school-onboarding/dry-run",
-  "POST /admin-imports/school-onboarding/apply",
-  "GET /admin-imports/school-onboarding/history",
-  "GET /admin-imports/school-onboarding/history/:importId"
-];
-const audit = `# OpenAPI / Postman Audit\n\n- Audit date: ${TODAY}\n- Runtime endpoint count: ${actualRoutes.length}\n- Runtime changes during this reconciliation: ${newRuntimeEndpoints.length > 0 ? `${newRuntimeEndpoints.length} new endpoint(s)` : "none"}\n\n## Coverage Summary\n\n| Artifact | Before | After |\n| --- | --- | --- |\n| Master OpenAPI | ${baseline.masterOpenApi.covered.length}/${actualRoutes.length} | ${final.masterOpenApi.covered.length}/${actualRoutes.length} |\n| Master Postman | ${baseline.masterPostman.covered.length}/${actualRoutes.length} | ${final.masterPostman.covered.length}/${actualRoutes.length} |\n| Auth OpenAPI | ${baseline.authOpenApi.covered.length}/7 | ${final.authOpenApi.covered.length}/7 |\n| Auth Postman | ${baseline.authPostman.covered.length}/7 | ${final.authPostman.covered.length}/7 |\n\n## Per-Module Coverage\n\n| Module | Actual | OpenAPI Before | Postman Before | OpenAPI After | Postman After |\n| --- | --- | --- | --- | --- | --- |\n${moduleTable}\n\n## [NEW] Runtime Endpoints Added In This Pass\n\n${newRuntimeEndpoints.map((route) => `- \`${route}\``).join("\n")}\n\n## Runtime Endpoints Missing From Master OpenAPI Before This Update\n\n${missingBefore}\n\n## Views, Events, Targets Alignment\n\n### SQL Views Referenced\n${viewNames.map((name) => `- \`${name}\``).join("\n")}\n\n### Automation Events Documented\n${automationEvents.map((name) => `- \`${name}\``).join("\n")}\n\n### Target / Event Fields Documented\n${targetFields.map((name) => `- \`${name}\``).join("\n")}\n\n## Reconciliation Notes\n\n- \`/health\` and \`/health/ready\` now use root-level servers instead of inheriting \`/api/v1\`.\n- The auth subset now covers all 7 live auth routes, including forgot-password and reset-password.\n- IDs in the auth subset were normalized to numeric-string ids instead of UUID assumptions.\n- The new admin-preview monitoring endpoints are marked with \`[NEW]\`-style audit visibility through this report and are documented as admin-only, read-only, and \`users.id\`-based surfaces.\n- Communication Phase 2 is now documented with admin-only bulk message and bulk notification delivery, plus additive \`targetRoles[]\` support for announcements.\n`;
+const audit = `# OpenAPI / Postman Audit\n\n- Audit date: ${TODAY}\n- Runtime endpoint count: ${actualRoutes.length}\n- Scope: root health endpoints plus every router registered in \`src/app/module-registry.ts\`\n\n## Coverage Summary\n\n| Artifact | Before | After |\n| --- | --- | --- |\n| Master OpenAPI | ${baseline.masterOpenApi.covered.length}/${actualRoutes.length} | ${final.masterOpenApi.covered.length}/${actualRoutes.length} |\n| Master Postman | ${baseline.masterPostman.covered.length}/${actualRoutes.length} | ${final.masterPostman.covered.length}/${actualRoutes.length} |\n| Auth OpenAPI | ${baseline.authOpenApi.covered.length}/7 | ${final.authOpenApi.covered.length}/7 |\n| Auth Postman | ${baseline.authPostman.covered.length}/7 | ${final.authPostman.covered.length}/7 |\n\n## Per-Module Coverage\n\n| Module | Actual | OpenAPI Before | Postman Before | OpenAPI After | Postman After |\n| --- | --- | --- | --- | --- | --- |\n${moduleTable}\n\n## Runtime Endpoints Missing From Master OpenAPI Before This Update\n\n${missingBefore}\n\n## Route Extraction Rules\n\n- Runtime routes are extracted from the registered route files defined in \`scripts/reconcile-openapi-postman.mjs\`.\n- \`/health\` and \`/health/ready\` are documented as root-level servers outside \`/api/v1\`.\n- The auth subset documents only the live auth router surface.\n- Manual schema examples inside the reconciliation script must stay aligned with validators, DTOs, and mappers in \`src/modules\`.\n\n## Views, Events, Targets Alignment\n\n### SQL Views Referenced\n${viewNames.map((name) => `- \`${name}\``).join("\n")}\n\n### Automation Events Documented\n${automationEvents.map((name) => `- \`${name}\``).join("\n")}\n\n### Target / Event Fields Documented\n${targetFields.map((name) => `- \`${name}\``).join("\n")}\n`;
 fs.writeFileSync(auditPath, audit);
 console.log(`Master OpenAPI: ${final.masterOpenApi.covered.length}/${actualRoutes.length}`);
 console.log(`Master Postman: ${final.masterPostman.covered.length}/${actualRoutes.length}`);

@@ -1,167 +1,51 @@
-# تسلسل التنفيذ بين الفرق
+# Delivery Sequence
 
-هذا الملف يحدد ترتيب التنفيذ العملي حتى لا تبدأ الفرق من الأسطح التابعة قبل اكتمال الأسطح المؤسسة.
+هذا هو التسلسل المقترح لاستهلاك الباك الحالي دون الالتفاف على العقود.
 
-## القاعدة العامة
+## 1. ابدأ بالعقود المعيارية
 
-ابدأوا بما يفتح بقية الشاشات، لا بما يبدو أسهل بصريًا.
+- `src/docs/API_REFERENCE.md`
+- `src/docs/openapi/ishraf-platform.openapi.json`
+- `src/docs/postman/ishraf-platform.postman_collection.json`
 
-## المرحلة 1: Shared Frontend Foundation
+## 2. فعّل auth أولًا
 
-يجب إنجاز ما يلي أولًا على مستوى مشترك:
+- login
+- me
+- refresh
+- logout
 
-- network client موحد
-- token handling
-- auth guards
-- error handling موحد
-- pagination table/list primitives
-- role-based app entry routing
-- shared design tokens/components الأساسية
+## 3. انتقل إلى ملفات التطبيق المستهلك
 
-هذه المرحلة تخدم جميع الفرق.
+اختر واحدًا من:
 
-## المرحلة 2: Admin Auth + Admin Dashboard Shell
+- `admin-dashboard`
+- `teacher-app`
+- `supervisor-app`
+- `parent-app`
+- `driver-app`
 
-الهدف:
+واقرأ بالترتيب:
 
-- تثبيت login/session/admin navigation
-- بناء shell اللوحة
-- تفعيل dashboard overview
+1. `README.md`
+2. `ENDPOINT_MAP.md`
+3. `SCREENS_AND_TASKS.md`
+4. `QA_AND_ACCEPTANCE.md`
 
-السبب:
+## 4. عند تغير العقد
 
-- لوحة الإدارة هي المصدر العملي لإدارة master data
-- بقية التطبيقات تعتمد على بيانات ومستخدمين وهيكل أكاديمي صحيح
+بعد أي تغيير backend:
 
-## المرحلة 3: Admin Master Data
+```powershell
+node scripts/reconcile-openapi-postman.mjs
+pnpm.cmd build
+```
 
-يبنى هنا:
+ثم حدّث فقط handoff الحية التي تأثرت.
 
-- users
-- academic structure
-- students
-- parent linking
-- teacher assignments
-- supervisor assignments
+## 5. ما لا نستخدمه
 
-بعد اكتمال هذه المرحلة تصبح بقية التطبيقات قابلة للاختبار بشكل عملي.
-
-## المرحلة 4: Daily Operations
-
-يبنى هنا بالتوازي المنضبط:
-
-- attendance
-- assessments
-- behavior
-- homework
-
-هذه المرحلة تفتح:
-
-- teacher app
-- أجزاء كبيرة من supervisor app
-- تقارير student profile
-- parent-facing summaries
-
-## المرحلة 5: Communication Surfaces
-
-يبنى هنا:
-
-- inbox / sent / conversation
-- notifications center
-- active announcements
-
-هذه المرحلة مشتركة بين جميع التطبيقات تقريبًا.
-
-## المرحلة 6: Transport Flows
-
-يبنى هنا:
-
-- admin transport management
-- driver trip operations
-- parent transport live status
-
-مهم:
-
-- لا تُخططوا لأي realtime/Firebase أو ETA في `Wave 1`
-- اعتمدوا على polling والـ endpoints الحالية فقط
-
-## المرحلة 7: Reporting Surfaces
-
-يبنى هنا:
-
-- parent dashboard
-- teacher dashboard
-- supervisor dashboard
-- admin dashboard enrichments
-- student profile/report screens
-
-هذه المرحلة تعتمد على نضج master data والعمليات اليومية.
-
-## ترتيب التنفيذ داخل الفرق
-
-### فريق لوحة الإدارة
-
-1. auth + shell
-2. dashboard
-3. users
-4. academic structure
-5. students + linking + promotions
-6. operations
-7. transport
-8. communication
-9. reporting
-10. homework
-
-### فريق تطبيق المعلم
-
-1. auth + app shell
-2. teacher dashboard
-3. attendance
-4. assessments
-5. behavior
-6. homework
-7. communication
-
-### فريق تطبيق ولي الأمر
-
-1. auth + app shell
-2. parent dashboard
-3. child profile shell
-4. child reports
-5. homework
-6. transport live status
-7. communication
-
-### فريق تطبيق المشرف
-
-1. auth + app shell
-2. supervisor dashboard
-3. behavior
-4. attendance oversight
-5. student reports
-6. communication
-
-### فريق تطبيق السائق
-
-1. auth + app shell
-2. trip list/detail
-3. trip start/end
-4. location updates
-5. student events
-6. transport summary
-7. communication
-
-## ما يمكن تأجيله داخل الفرونت
-
-يمكن تأجيل polish أو enhancements التالية إلى ما بعد MVP الداخلي:
-
-- advanced filters الثانوية
-- analytics visual polish
-- offline sync
-- push notifications UI العميقة
-- map/ETA experiences
-
-## مراجع مرتبطة
-
-- [مصفوفة التنفيذ](../management/EXECUTION_MATRIX.md)
-- [تأكيد حالة الباك](../BACKEND_STATUS_CONFIRMATION.md)
+- docs تاريخية
+- temp responses
+- backlog/request files
+- flows غير مدعومة في الكود

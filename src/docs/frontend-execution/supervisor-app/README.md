@@ -1,47 +1,26 @@
-# دليل تنفيذ تطبيق المشرف
+# Supervisor App Backend Contract
 
-هذا الدليل مخصص لفريق بناء تطبيق المشرف.
+الدور المستهدف: `supervisor`
 
-## الهدف
+هذا المجلد يوضح surfaces المشرف مع التركيز على ownership والقواعد التشغيلية، وليس مجرد listing للمسارات.
 
-تمكين المشرف من متابعة الصفوف المسندة إليه عبر:
+## النطاق
 
-- supervisor dashboard
-- attendance oversight
-- behavior operations
-- student reporting access
+- attendance
+- behavior
+- reporting
 - communication
+- auth
 
-## المستخدم المستهدف
+## القواعد المؤثرة
 
-- `supervisor`
+- المشرف لا ينشئ attendance sessions.
+- المشرف يستطيع update attendance records داخل الصفوف/السنوات التي هو مكلّف بها.
+- student reporting access ليس عامًا؛ يخضع `assertSupervisorAssignedToClassYear`.
+- السطوح اليومية التي تعتمد السنة/الفصل النشطين تتأثر بـ `Active Academic Context`.
 
-## رابط العمل
+## Enums المهمة
 
-- `https://ishraf-platform-backend-staging.onrender.com`
-- `https://ishraf-platform-backend-staging.onrender.com/api/v1`
-
-## داخل النطاق
-
-- الشاشات المرتبطة بالصفوف المسندة للمشرف
-- student reporting access ضمن scope التوزيعات
-- behavior وattendance surfaces التي يملك الوصول إليها
-
-## خارج النطاق
-
-- admin-only master data management
-- create attendance session كعملية مستقلة
-- transport operations
-- realtime / maps / analytics
-
-## المستندات المصدر
-
-- `src/docs/BACKEND_WAVE1_STATUS.md`
-- `src/docs/API_REFERENCE.md`
-- `src/modules/reporting/routes/reporting.routes.ts`
-- `src/modules/attendance/routes/attendance.routes.ts`
-- `src/modules/behavior/routes/behavior.routes.ts`
-- `src/modules/communication/routes/communication.routes.ts`
-- [شاشات ومهام التطبيق](./SCREENS_AND_TASKS.md)
-- [خريطة الـ endpoints](./ENDPOINT_MAP.md)
-- [التحقق والقبول](./QA_AND_ACCEPTANCE.md)
+| Enum | Values |
+| --- | --- |
+| `ATTENDANCE_STATUS` | `present`, `absent`, `late`, `excused` |

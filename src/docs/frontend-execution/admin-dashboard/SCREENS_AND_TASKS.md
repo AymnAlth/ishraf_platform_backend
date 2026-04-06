@@ -1,193 +1,153 @@
-# شاشات ومهام لوحة الإدارة
+# Admin Dashboard Screens And Tasks
 
-## ترتيب التنفيذ المقترح
+## 1. Session and bootstrap
 
-1. auth + app shell + `Active Academic Context`
-2. dashboard كـ `Admin Workbench`
-3. users
-4. academic management
-5. students onboarding + detail + parents + planning
-6. attendance
-7. assessments
-8. behavior
-9. homework
-10. reporting + monitoring
-11. transport
-12. communication
+1. login
+2. hydrate current user with `GET /auth/me`
+3. check readiness through `/health` and `/health/ready`
+4. load `GET /academic-structure/context/active`
+5. load `GET /reporting/dashboards/admin/me`
 
-## الشاشات المطلوبة
+قاعدة:
 
-### 1. شاشة تسجيل الدخول والجلسة
+- إذا كانت السطوح اليومية جزءًا من الشاشة، اقرأ `active context` قبل أي attendance/assessments/behavior/homework/reporting يومية.
 
-المهام:
+## 2. User management
 
-- login
-- forgot password
-- reset password
-- logout
-- change password
-- session bootstrap عبر `me`
+1. list users by role
+2. create or update user
+3. use `PATCH /users/:id/status` للتفعيل/التعطيل
+4. خذ `users.id` من هذه surfaces عند الربط مع:
+   - teachers
+   - supervisors
+   - drivers
+   - parents
 
-### 2. لوحة الإدارة الرئيسية
+## 3. Academic setup
 
-المهام:
+الترتيب المؤسسي:
 
-- عرض `admin dashboard summary`
-- عرض `active academic context`
-- عرض readiness checklist
-- عرض next required action
-- عرض quick actions للإعداد والتشغيل
-- إبقاء summary cards وrecent items أسفل workbench وليس بدلًا عنه
+1. create/review academic years
+2. create/review semesters
+3. set active context
+4. manage grade levels
+5. manage classes
+6. manage subjects
+7. manage subject offerings
+8. manage teacher assignments
+9. manage supervisor assignments
 
-### 3. إدارة المستخدمين
+قاعدة:
 
-المهام:
+- لا تنتقل إلى surfaces التشغيل اليومية قبل ضبط `Active Academic Context`.
 
-- قائمة المستخدمين
-- create user
-- user detail
-- edit user
-- activate/deactivate user
-- filter by role and active status
+## 4. Student lifecycle
 
-### 4. إدارة الهيكل الأكاديمي
+1. create student
+2. link parent
+3. inspect student detail
+4. manage academic enrollments
+5. use promotions when needed
 
-المهام:
+قاعدة:
 
-- academic years list/create/update/activate
-- semesters create/list/update
-- grade levels create/list
-- classes create/list/detail
-- subjects create/list/detail
-- subject offerings create/list/detail/update activation
-- teacher assignments create/list
-- supervisor assignments create/list
-- create-subject flow must support a two-step path when semester availability is required:
-  - create `subject`
-  - then create one or more `subject-offerings`
-- كل صفحة يجب أن تعرض:
-  - ما الذي تعتمد عليه
-  - ما الخطوة التالية بعدها
-  - CTA مباشر للانتقال للكيان التالي في السلسلة
+- enrollment planning يتم عبر enrollments/promotions surfaces، وليس عبر تغيير UI assumptions على `students.class_id`.
 
-### 5. إدارة الطلاب
+## 5. Daily operations
 
-المهام:
+### 5.1 Attendance
 
-- students list/create/detail/update
-- link parent
-- list linked parents
-- set primary parent
-- promote student
-- filters and pagination
-- create student يجب أن يعمل كـ onboarding flow:
-  - الهوية + enrollment الحالية
-  - ربط ولي الأمر
-  - الموقع المنزلي/النقل عند الحاجة
-- detail page يجب أن تفصل بين:
-  - الحالة الحالية
-  - history/planning
-  - الوالدين
-  - السلوك
-  - الواجبات
-  - النقل
+1. حمّل classes, subjects, teachers
+2. أنشئ session عبر `POST /attendance/sessions`
+3. افتح `GET /attendance/sessions/:id`
+4. احفظ roster كاملة عبر `PUT /attendance/sessions/:id/records`
+5. استخدم `PATCH /attendance/records/:attendanceId` للتعديل الفردي فقط
 
-### 6. إدارة الحضور
+قواعد:
 
-المهام:
+- admin يجب أن ترسل `teacherId`.
+- يمكن إغفال `academicYearId` و`semesterId`; الباك يحلهما من active context.
+- إذا أُرسلتا، يجب أن تطابقا السياق النشط.
 
-- create attendance session
-- list sessions
-- session detail
-- bulk save attendance records
-- single attendance record update
+### 5.2 Assessments
 
-### 7. إدارة التقييمات
+1. حمّل assessment types, classes, subjects, teachers
+2. أنشئ assessment عبر `POST /assessments`
+3. افتح `GET /assessments/:id/scores`
+4. احفظ الدرجات عبر `PUT /assessments/:id/scores`
+5. استخدم `PATCH /assessments/scores/:studentAssessmentId` للتعديل الفردي
 
-المهام:
+قواعد:
 
-- assessment types create/list
-- assessments create/list/detail
-- view scores
-- bulk save scores
-- update single score
+- admin يجب أن ترسل `teacherId`.
+- scores لا تقبل طلابًا خارج roster الاختبار.
 
-### 8. إدارة السلوك
+### 5.3 Behavior
 
-المهام:
+1. حمّل behavior categories
+2. أنشئ behavior record
+3. راجع timeline أو detail
+4. عدل السجل عند الحاجة
 
-- behavior categories create/list
-- behavior records create/list/detail/update
-- student behavior timeline
+### 5.4 Homework
 
-### 9. إدارة النقل
+1. حمّل classes, subjects, teachers
+2. أنشئ homework
+3. افتح detail/roster
+4. احفظ submissions عبر `PUT /homework/:id/submissions`
 
-المهام:
+قواعد:
 
-- buses create/list
-- routes create/list
-- route stops create/list
-- student assignments create/deactivate/list active
-- route assignments create/list/deactivate
-- student home location read/save/delete
-- trips create/list/detail
-- start/end trip
-- location posting
-- trip student events
-- transport summary
+- admin يجب أن ترسل `teacherId`.
+- submissions لا تقبل طلابًا خارج roster الواجب.
 
-### 10. إدارة التواصل
+## 6. Transport administration
 
-المهام:
+### 6.1 Static management
 
-- inbox / sent / conversation
-- message send
-- announcement create/list/active preview
-- manual notification create
-- notifications inbox and mark as read
+1. manage buses
+2. manage routes
+3. manage route stops
+4. manage student transport assignments
+5. manage route assignments
+6. maintain student home locations
 
-### 11. شاشات التقارير
+### 6.2 Live operations
 
-المهام:
+1. create trip manually أو استخدم `ensure-daily`
+2. inspect detail and roster
+3. start trip
+4. stream locations or student events when needed
+5. end trip
 
-- student full profile
-- attendance summary
-- assessment summary
-- behavior summary
-- transport summary page
+قاعدة:
 
-### 12. إدارة الواجبات
+- الرحلات live operations قد تستخدمها الإدارة للمراقبة أو التدخل، لكن التطبيق الأساسي لها هو driver flow.
 
-المهام:
+## 7. Communication center
 
-- homework create/list/detail
-- view student homework list
-- update homework submission state when needed
+1. resolve recipients
+2. send direct messages
+3. use bulk messages / bulk notifications عندما تكون العملية متعددة الأهداف
+4. publish announcements
+5. read inbox/sent/notifications
 
-## الاعتماديات
+## 8. Monitoring and reporting
 
-- users قبل teacher/supervisor assignments
-- academic structure قبل students وattendance وassessments
-- students قبل parent linking وbehavior وhomework وtransport assignments
-- route assignments بعد buses/routes
-- transport summary بعد setup وتشغيل الرحلات
+1. use admin dashboard for summary
+2. use admin preview parent/teacher/supervisor routes للمراقبة read-only
+3. use student-scoped reporting routes للتحقيق في طالب محدد
 
-## ملاحظات تنفيذية
+## 9. School onboarding import
 
-- جميع الجداول الكبيرة يجب أن تعتمد pagination من البداية
-- لا تبنوا أي شاشة على افتراض delete hard delete غير موجود
-- شاشة `create trip` تبقى موجودة، لكن باعتبارها manual/exception flow وليست التشغيل اليومي الأساسي
-- طبقة النقل التشغيلية الآن تبدأ من:
-  - `student assignments`
-  - `route assignments`
-  - ثم `trips`
-- استخدموا `409` لعرض conflict messages واضحة، خصوصًا في:
-  - duplicate email
-  - duplicate academic number
-  - duplicate parent link
-  - duplicate assessment/attendance constraints
-- اعتمدوا:
-  - `Unavailable`
-  - `Setup required`
-  - `Empty state`
-  كحالات مختلفة، ولا تدمجوها في حالة عامة واحدة
+1. frontend local parse/validation
+2. `POST /admin-imports/school-onboarding/dry-run`
+3. اعرض:
+   - `status`
+   - `canApply`
+   - `issues`
+   - `summary`
+   - `entityPlanCounts`
+4. لا تسمح بـ `apply` إلا إذا كانت dry-run صالحة
+5. `POST /admin-imports/school-onboarding/apply` باستخدام `dryRunId`
+6. استخدم `history` لعرض attempts السابقة أو reopen التفاصيل

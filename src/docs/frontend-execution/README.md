@@ -1,82 +1,46 @@
-# حزمة التوجيه التنفيذية للفرونت إند
+# Frontend Execution Docs
 
-هذه الحزمة هي مرجع التنفيذ العملي لفرق الفرونت إند ولوحة الإدارة قبل بدء `Wave 1`.
+هذا المجلد يحتوي فقط على **handoff حي** مبني على surfaces الباك الحالية.  
+إذا تعارض أي ملف هنا مع الكود في `src/modules` أو مع `OpenAPI/Postman`، فالكود هو الحقيقة.
 
-الهدف منها:
+## ترتيب القراءة
 
-- تأكيد أن الباك إند مكتمل فعليًا لمرحلة `Wave 1`
-- توجيه فرق التنفيذ حسب الدور والتطبيق
-- ربط كل شاشة وكل مهمة بالـ endpoints الجاهزة
-- تقليل العودة المتكررة إلى الوثائق القديمة عند اتخاذ قرارات تنفيذية
+1. `src/docs/API_REFERENCE.md`
+2. `src/docs/openapi/ishraf-platform.openapi.json`
+3. `src/docs/postman/ishraf-platform.postman_collection.json`
+4. الملفات داخل هذا المجلد حسب التطبيق المستهلك
 
-## روابط التشغيل الحالية
+## البنية المعتمدة
 
-- Public root URL: `https://ishraf-platform-backend-staging.onrender.com`
-- Public API base URL: `https://ishraf-platform-backend-staging.onrender.com/api/v1`
+### Shared
 
-## ترتيب القراءة الموصى به
+- `shared/COMMON_FRONTEND_RULES.md`
+- `shared/AUTH_AND_SESSION_RULES.md`
+- `shared/DELIVERY_SEQUENCE.md`
 
-1. [تأكيد حالة الباك](./BACKEND_STATUS_CONFIRMATION.md)
-2. [القواعد المشتركة للفرونت](./shared/COMMON_FRONTEND_RULES.md)
-3. [قواعد المصادقة والجلسات](./shared/AUTH_AND_SESSION_RULES.md)
-4. [تسلسل التنفيذ بين الفرق](./shared/DELIVERY_SEQUENCE.md)
-5. [مصفوفة التنفيذ الإدارية](./management/EXECUTION_MATRIX.md)
-6. أدلة كل تطبيق أو لوحة بحسب الفريق:
-   - [لوحة الإدارة](./admin-dashboard/README.md)
-   - [تطبيق المعلم](./teacher-app/README.md)
-   - [تطبيق ولي الأمر](./parent-app/README.md)
-   - [تطبيق المشرف](./supervisor-app/README.md)
-   - [تطبيق السائق](./driver-app/README.md)
+### Applications
 
-مذكرة تشخيص ومواءمة مهمة مرتبطة بلوحة الإدارة:
+- `admin-dashboard/`
+- `teacher-app/`
+- `supervisor-app/`
+- `parent-app/`
+- `driver-app/`
 
-- [مواءمة عقود Attendance وBehavior وAdmin Reporting](./admin-dashboard/ATTENDANCE_BEHAVIOR_ROUTE_ALIGNMENT.md)
+كل تطبيق يحتفظ فقط بأربعة ملفات حية:
 
-مذكرات handoff نهائية مرتبطة بالنقل:
+- `README.md`
+- `ENDPOINT_MAP.md`
+- `SCREENS_AND_TASKS.md`
+- `QA_AND_ACCEPTANCE.md`
 
-- [Transport Handoff للوحة الإدارة](../transport/admin-dashboard-transport-handoff.md)
-- [Transport Handoff لتطبيق السائق](../transport/driver-app-transport-handoff.md)
+### Management
 
-## المرجع التنفيذي المعتمد
+- `management/EXECUTION_MATRIX.md`
 
-عند التعارض بين الوثائق، يكون ترتيب المرجعية كالتالي:
+## قواعد التوثيق في هذا المجلد
 
-1. الكود الحالي
-2. `src/docs/BACKEND_WAVE1_STATUS.md`
-3. `OpenAPI/Postman`
-4. `src/docs/API_REFERENCE.md`
-5. الوثائق القديمة
-
-مهم:
-
-- `OpenAPI/Postman` هما المرجع الكامل الدقيق لكل endpoint حي
-- `API_REFERENCE.md` هو المرجع البشري التشغيلي المنسجم معهما
-
-## ملفات المصدر التي بُنيت عليها هذه الحزمة
-
-- `src/docs/BACKEND_WAVE1_STATUS.md`
-- `src/docs/API_REFERENCE.md`
-- `src/docs/LEGACY_DOC_ALIGNMENT.md`
-- `src/docs/openapi/ishraf-platform.openapi.json`
-- `src/docs/postman/ishraf-platform.postman_collection.json`
-- `src/app/module-registry.ts`
-- `src/modules/*/routes/*.routes.ts`
-- `الفصل الرابع منسق معا المخططات 3224321a94a1807698e5ced26c554f64.md`
-
-## ما الذي لا تغطيه هذه الحزمة
-
-هذه الحزمة لا تعيد تعريف العقود التقنية منخفضة المستوى سطرًا بسطر. لذلك:
-
-- لا تعتمد عليها بدل `OpenAPI` عند الحاجة إلى schema دقيقة
-- لا تعتمد عليها بدل `API_REFERENCE.md` عند الحاجة إلى أمثلة request/response مطولة
-- لا تعتمد على الوثائق الأكاديمية القديمة كمرجع تشغيل مباشر
-
-## المخرجات المستهدفة من فرق الفرونت
-
-- لوحة إدارة تشغيلية كاملة
-- تطبيق معلم
-- تطبيق ولي أمر
-- تطبيق مشرف
-- تطبيق سائق
-
-كل هذه الأسطح مبنية على الباك الحالي الجاهز، وما تبقى بعد `Wave 1` موثق صراحة في [تأكيد حالة الباك](./BACKEND_STATUS_CONFIRMATION.md).
+- لا توجد ملفات تاريخية أو request/review/backlog هنا.
+- لا يتم توثيق screens غير قابلة للإثبات من backend surfaces الحالية.
+- `ENDPOINT_MAP` يركز على routes والصلاحيات.
+- `SCREENS_AND_TASKS` يركز على task flows المدعومة فعليًا.
+- `QA_AND_ACCEPTANCE` يصف ما يجب أن ينجح أو يفشل الآن، لا ما نرغب في بنائه لاحقًا.

@@ -1,48 +1,152 @@
-# خريطة الـ Endpoints لتطبيق السائق
+# Driver App Endpoint Map
 
-## Auth
+## 1. Session
 
-| Method + Path | Purpose | Used In | Role | Required Auth | Important Request Fields | Important Response Fields | Frontend Notes / Constraints | Source Reference |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `POST /auth/login` | تسجيل دخول السائق | login screen | `driver` | لا | `identifier`, `password` | `user`, `tokens` | handle `401/403/429` | `API_REFERENCE.md`, `src/modules/auth/routes/auth.routes.ts` |
-| `POST /auth/refresh` | refresh session | auth client | `driver` | لا | `refreshToken` | token pair جديد | retry once | `API_REFERENCE.md`, `src/modules/auth/routes/auth.routes.ts` |
-| `POST /auth/logout` | logout | profile/logout | `driver` | لا | `refreshToken` | success | clear local session | `API_REFERENCE.md`, `src/modules/auth/routes/auth.routes.ts` |
-| `GET /auth/me` | current user | app bootstrap | `driver` | Bearer | none | current user | confirms role | `API_REFERENCE.md`, `src/modules/auth/routes/auth.routes.ts` |
-| `POST /auth/change-password` | change password | password screen | `driver` | Bearer | `currentPassword`, `newPassword` | success | relogin likely needed | `API_REFERENCE.md`, `src/modules/auth/routes/auth.routes.ts` |
-| `POST /auth/forgot-password` | start reset | forgot password | عام | لا | `identifier` | success | no token assumption in staging | `API_REFERENCE.md`, `src/modules/auth/routes/auth.routes.ts` |
-| `POST /auth/reset-password` | complete reset | reset password | عام | لا | `token`, `newPassword` | success | build full UI flow | `API_REFERENCE.md`, `src/modules/auth/routes/auth.routes.ts` |
+- `POST /auth/login`
+- `GET /auth/me`
+- `POST /auth/refresh`
+- `POST /auth/logout`
+- `POST /auth/change-password`
 
-## Transport
+## 2. Route assignments
 
-| Method + Path | Purpose | Used In | Role | Required Auth | Important Request Fields | Important Response Fields | Frontend Notes / Constraints | Source Reference |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `GET /transport/route-assignments/me` | list my recurring route assignments | day bootstrap / route picker | `driver` | Bearer | none | route assignments list | start here before any daily trip action | `API_REFERENCE.md`, `src/modules/transport/routes/transport.routes.ts` |
-| `POST /transport/trips/ensure-daily` | create or reuse daily trip | start-of-day flow | `driver` | Bearer | `routeAssignmentId`, `tripDate`, `tripType` | `created`, `trip` | preferred daily flow; use instead of `POST /transport/trips` | `API_REFERENCE.md`, `src/modules/transport/routes/transport.routes.ts` |
-| `GET /transport/trips` | list trips | trips list | `driver` | Bearer | pagination + filters + sort | `items`, `pagination` | backend scopes to driver-owned trips | `API_REFERENCE.md`, `src/modules/transport/routes/transport.routes.ts` |
-| `GET /transport/trips/:id` | trip detail | trip detail | `driver` | Bearer | path `id` | `trip`, `latestLocation`, `routeStops`, `eventSummary` | source of truth for detail screen | `API_REFERENCE.md`, `src/modules/transport/routes/transport.routes.ts` |
-| `GET /transport/trips/:id/students` | trip roster | trip roster / student picker | `driver` | Bearer | path `id`, optional `search`, `stopId` | `tripId`, `tripStatus`, `students[]` | source of truth for trip students; includes stop coordinates and optional approved home location; do not derive roster from events | `API_REFERENCE.md`, `src/modules/transport/routes/transport.routes.ts` |
-| `POST /transport/trips/:id/start` | start trip | trip action | `driver` | Bearer | path `id` | updated trip state | only valid from `scheduled` | `API_REFERENCE.md`, `src/modules/transport/routes/transport.routes.ts` |
-| `POST /transport/trips/:id/end` | end trip | trip action | `driver` | Bearer | path `id` | updated trip state | only valid from `started` | `API_REFERENCE.md`, `src/modules/transport/routes/transport.routes.ts` |
-| `POST /transport/trips/:id/locations` | post location | tracking screen | `driver` | Bearer | `latitude`, `longitude` | created location | rejected after trip end | `API_REFERENCE.md`, `src/modules/transport/routes/transport.routes.ts` |
-| `POST /transport/trips/:id/events` | create student event | event form | `driver` | Bearer | `studentId`, `eventType`, `stopId?`, `notes?` | created event | `stopId` rules تختلف حسب event type; backend now validates against assignment coverage on the trip date | `API_REFERENCE.md`, `src/modules/transport/routes/transport.routes.ts` |
-| `GET /transport/trips/:id/events` | list trip events | trip events tab | `driver` | Bearer | path `id` | events list | useful for timeline/history | `API_REFERENCE.md`, `src/modules/transport/routes/transport.routes.ts` |
+- `GET /transport/route-assignments/me`
 
-## Reporting
+قواعد:
 
-| Method + Path | Purpose | Used In | Role | Required Auth | Important Request Fields | Important Response Fields | Frontend Notes / Constraints | Source Reference |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `GET /reporting/transport/summary` | active transport summary | summary screen | `driver` | Bearer | none | `activeTrips[]` with latest location and last student events | driver-scoped in Wave 1 | `API_REFERENCE.md`, `src/modules/reporting/routes/reporting.routes.ts` |
+- هذه surface السائق الأساسية لاكتشاف المسارات المتاحة له.
+- تعيد assignments الخاصة بالسائق الحالي فقط.
 
-## Communication
+## 3. Trip state machine
 
-| Method + Path | Purpose | Used In | Role | Required Auth | Important Request Fields | Important Response Fields | Frontend Notes / Constraints | Source Reference |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `GET /communication/recipients` | available recipients | compose/new message | `driver` | Bearer | `page`, `limit`, `search?`, `role?` | `items`, `pagination` | use this endpoint to choose `receiverUserId`; do not rely on manual IDs | `API_REFERENCE.md`, `src/modules/communication/routes/communication.routes.ts` |
-| `POST /communication/messages` | send message | compose/conversation | `driver` | Bearer | `receiverUserId`, `messageBody` | created message | any active user | `API_REFERENCE.md`, `src/modules/communication/routes/communication.routes.ts` |
-| `GET /communication/messages/inbox` | inbox | inbox | `driver` | Bearer | pagination, `isRead?`, sort | `items`, `pagination`, `unreadCount` | paginated | `API_REFERENCE.md`, `src/modules/communication/routes/communication.routes.ts` |
-| `GET /communication/messages/sent` | sent | sent | `driver` | Bearer | pagination, `receiverUserId?`, sort | `items`, `pagination` | paginated | `API_REFERENCE.md`, `src/modules/communication/routes/communication.routes.ts` |
-| `GET /communication/messages/conversations/:otherUserId` | conversation | conversation | `driver` | Bearer | path `otherUserId`, pagination | `items`, `pagination` | ascending chronology | `API_REFERENCE.md`, `src/modules/communication/routes/communication.routes.ts` |
-| `PATCH /communication/messages/:messageId/read` | mark message read | inbox/conversation | `driver` | Bearer | path `messageId` | updated state | receiver only | `API_REFERENCE.md`, `src/modules/communication/routes/communication.routes.ts` |
-| `GET /communication/notifications/me` | my notifications | notifications center | `driver` | Bearer | pagination, `isRead?`, `notificationType?` | `items`, `pagination`, `unreadCount` | paginated | `API_REFERENCE.md`, `src/modules/communication/routes/communication.routes.ts` |
-| `PATCH /communication/notifications/:notificationId/read` | mark notification read | notifications center | `driver` | Bearer | path `notificationId` | updated state | owner only | `API_REFERENCE.md`, `src/modules/communication/routes/communication.routes.ts` |
-| `GET /communication/announcements/active` | active announcements | announcements feed | `driver` | Bearer | none | active announcements | role-filtered | `API_REFERENCE.md`, `src/modules/communication/routes/communication.routes.ts` |
+```text
+scheduled -> started -> ended
+
+cancelled
+  قيمة enum موجودة
+  لكنها ليست transition موثقة عبر route مستقلة في السطح الحالي
+```
+
+قواعد transitions:
+
+- `POST /transport/trips/:id/start`
+  - مسموح فقط عندما `tripStatus = scheduled`
+- `POST /transport/trips/:id/end`
+  - مسموح فقط عندما `tripStatus = started`
+- `POST /transport/trips/:id/locations`
+  - مسموح فقط عندما `tripStatus = started`
+- `POST /transport/trips/:id/events`
+  - مسموح فقط عندما `tripStatus = started` أو `ended`
+
+## 4. Trips
+
+- `POST /transport/trips`
+- `POST /transport/trips/ensure-daily`
+- `GET /transport/trips`
+- `GET /transport/trips/:id`
+- `GET /transport/trips/:id/students`
+- `POST /transport/trips/:id/start`
+- `POST /transport/trips/:id/end`
+- `POST /transport/trips/:id/locations`
+- `POST /transport/trips/:id/events`
+- `GET /transport/trips/:id/events`
+
+### 4.1 Preferred create flow
+
+- استخدم `POST /transport/trips/ensure-daily` كـ primary driver flow
+- `POST /transport/trips` تبقى fallback أقدم
+
+`ensure-daily` rules:
+
+- تعتمد `routeAssignmentId`
+- route assignment يجب أن:
+  - تكون مملوكة للسائق الحالي
+  - تكون active
+  - وتغطي `tripDate`
+
+إذا كانت الرحلة موجودة أصلًا لنفس:
+
+- `busId`
+- `routeId`
+- `tripDate`
+- `tripType`
+
+فسيعود `created=false` بدل duplication.
+
+### 4.2 Ownership rules
+
+- `GET /transport/route-assignments/me` يعرض assignments السائق فقط
+- `GET /transport/trips`
+- `GET /transport/trips/:id`
+- `GET /transport/trips/:id/students`
+- `POST /transport/trips/:id/start`
+- `POST /transport/trips/:id/end`
+- `POST /transport/trips/:id/locations`
+- `POST /transport/trips/:id/events`
+- `GET /transport/trips/:id/events`
+
+كلها ownership-scoped. السائق لا يصل إلى موارد سائق آخر.
+
+### 4.3 Trip roster response concept
+
+`GET /transport/trips/:id/students` يعيد لكل طالب:
+
+- stop assignment
+- stop coordinates
+- approved home location عند وجودها
+- `lastEventType`
+- `lastEventTime`
+- `lastEventStopId`
+
+### 4.4 Trip detail response concept
+
+`GET /transport/trips/:id` يعيد:
+
+- trip الأساسية
+- route stops
+- latest location
+- event summary
+
+## 5. Student event rule table
+
+| `eventType` | `stopId` rule |
+| --- | --- |
+| `boarded` | required |
+| `dropped_off` | required |
+| `absent` | forbidden |
+
+## 6. Driver-facing transport domain errors
+
+| Code | المعنى |
+| --- | --- |
+| `TRIP_STATUS_START_INVALID` | محاولة start لرحلة ليست `scheduled` |
+| `TRIP_STATUS_END_INVALID` | محاولة end لرحلة ليست `started` |
+| `TRIP_LOCATION_STATUS_INVALID` | location لا تسجل إلا عندما تكون الرحلة `started` |
+| `TRIP_EVENT_STATUS_INVALID` | student events لا تسجل إلا عندما تكون الرحلة `started` أو `ended` |
+| `TRIP_EVENT_STOP_REQUIRED` | `stopId` مطلوب لـ `boarded` و`dropped_off` |
+| `TRIP_EVENT_STOP_NOT_ALLOWED` | `stopId` ممنوع مع `absent` |
+| `TRANSPORT_ROUTE_ASSIGNMENT_NOT_ACTIVE_FOR_TRIP_DATE` | route assignment غير فعالة في تاريخ الرحلة |
+| `STUDENT_TRIP_DATE_ASSIGNMENT_NOT_FOUND` | الطالب لا يملك transport assignment تغطي تاريخ الرحلة |
+| `TRIP_STUDENT_ROUTE_MISMATCH` | route assignment الخاصة بالطالب لا تطابق route الرحلة |
+| `TRIP_EVENT_STOP_ROUTE_MISMATCH` | stop لا تتبع route الرحلة |
+
+## 7. Reporting
+
+- `GET /reporting/transport/summary`
+
+ملاحظات:
+
+- هذه surface summary مشتركة بين admin وdriver.
+- ليست بديلًا عن trip detail أو roster.
+
+## 8. Communication
+
+- `GET /communication/recipients`
+- `POST /communication/messages`
+- `GET /communication/messages/inbox`
+- `GET /communication/messages/sent`
+- `GET /communication/messages/conversations/:otherUserId`
+- `PATCH /communication/messages/:messageId/read`
+- `GET /communication/announcements/active`
+- `GET /communication/notifications/me`
+- `PATCH /communication/notifications/:notificationId/read`

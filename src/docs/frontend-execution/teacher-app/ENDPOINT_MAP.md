@@ -1,75 +1,156 @@
-# خريطة الـ Endpoints لتطبيق المعلم
+# Teacher App Endpoint Map
 
-## Auth
+## 1. Session
 
-| Method + Path | Purpose | Used In | Role | Required Auth | Important Request Fields | Important Response Fields | Frontend Notes / Constraints | Source Reference |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `POST /auth/login` | تسجيل دخول المعلم | login screen | `teacher` | لا | `identifier`, `password` | `user`, `tokens` | handle `401/403/429` | `API_REFERENCE.md`, `src/modules/auth/routes/auth.routes.ts` |
-| `POST /auth/refresh` | تدوير session | auth client | `teacher` | لا | `refreshToken` | new token pair | retry once | `API_REFERENCE.md`, `src/modules/auth/routes/auth.routes.ts` |
-| `POST /auth/logout` | إنهاء session | profile/logout | `teacher` | لا | `refreshToken` | success message | clear local session always | `API_REFERENCE.md`, `src/modules/auth/routes/auth.routes.ts` |
-| `GET /auth/me` | user bootstrap | app startup | `teacher` | Bearer | none | current user | confirms role | `API_REFERENCE.md`, `src/modules/auth/routes/auth.routes.ts` |
-| `POST /auth/change-password` | تغيير كلمة المرور | profile/password | `teacher` | Bearer | `currentPassword`, `newPassword` | success message | likely requires relogin | `API_REFERENCE.md`, `src/modules/auth/routes/auth.routes.ts` |
-| `POST /auth/forgot-password` | بدء reset | forgot password | عام | لا | `identifier` | success message | no reset token assumption in staging | `API_REFERENCE.md`, `src/modules/auth/routes/auth.routes.ts` |
-| `POST /auth/reset-password` | إكمال reset | reset password | عام | لا | `token`, `newPassword` | success message | build full UI flow | `API_REFERENCE.md`, `src/modules/auth/routes/auth.routes.ts` |
+- `POST /auth/login`
+- `GET /auth/me`
+- `POST /auth/refresh`
+- `POST /auth/logout`
+- `POST /auth/change-password`
 
-## Reporting
+## 2. Teacher dashboard
 
-| Method + Path | Purpose | Used In | Role | Required Auth | Important Request Fields | Important Response Fields | Frontend Notes / Constraints | Source Reference |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `GET /reporting/dashboards/teacher/me` | teacher dashboard | home screen | `teacher` | Bearer | none | `teacher`, `assignments`, `recentAttendanceSessions`, `recentAssessments`, `recentBehaviorRecords` | primary landing endpoint | `API_REFERENCE.md`, `src/modules/reporting/routes/reporting.routes.ts` |
+- `GET /reporting/dashboards/teacher/me`
 
-## Attendance
+## 3. Active academic context rule
 
-| Method + Path | Purpose | Used In | Role | Required Auth | Important Request Fields | Important Response Fields | Frontend Notes / Constraints | Source Reference |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `POST /attendance/sessions` | إنشاء جلسة حضور | create session screen | `teacher` | Bearer | `classId`, `subjectId`, `academicYearId`, `semesterId`, `sessionDate`, `periodNo` | created session | ownership enforced by backend; no root `/attendance` endpoint | `API_REFERENCE.md`, `src/modules/attendance/routes/attendance.routes.ts` |
-| `GET /attendance/sessions` | قائمة الجلسات | sessions list | `teacher` | Bearer | pagination + filters + sort | `items`, `pagination` | paginated | `API_REFERENCE.md`, `src/modules/attendance/routes/attendance.routes.ts` |
-| `GET /attendance/sessions/:id` | تفاصيل الجلسة | session detail | `teacher` | Bearer | path `id` | session + roster | use before bulk save | `API_REFERENCE.md`, `src/modules/attendance/routes/attendance.routes.ts` |
-| `PUT /attendance/sessions/:id/records` | حفظ سجلات الحضور | mark attendance | `teacher` | Bearer | `records[] = { studentId, status, notes? }` | saved result | full roster snapshot required; absent triggers notifications automatically | `API_REFERENCE.md`, `src/modules/attendance/routes/attendance.routes.ts` |
-| `PATCH /attendance/records/:attendanceId` | تعديل سجل مفرد | attendance detail | `teacher` | Bearer | `status`, `notes?` | updated record | still ownership-scoped | `API_REFERENCE.md`, `src/modules/attendance/routes/attendance.routes.ts` |
+هذه القاعدة تنطبق على attendance, assessments, behavior, homework, والتقارير اليومية:
 
-## Assessments
+- يمكن إغفال `academicYearId` و`semesterId`
+- الباك يحلهما من السياق النشط
+- إذا أُرسلتا، يجب أن تطابقا السياق النشط
 
-| Method + Path | Purpose | Used In | Role | Required Auth | Important Request Fields | Important Response Fields | Frontend Notes / Constraints | Source Reference |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `GET /assessments/types` | قراءة أنواع التقييم | create assessment form | `teacher` | Bearer | none | assessment types | teacher can read only | `API_REFERENCE.md`, `src/modules/assessments/routes/assessments.routes.ts` |
-| `POST /assessments` | إنشاء تقييم | create assessment screen | `teacher` | Bearer | class/subject/type/title/date/max score fields | created assessment | ownership enforced | `API_REFERENCE.md`, `src/modules/assessments/routes/assessments.routes.ts` |
-| `GET /assessments` | قائمة التقييمات | assessments list | `teacher` | Bearer | pagination + filters + sort | `items`, `pagination` | paginated | `API_REFERENCE.md`, `src/modules/assessments/routes/assessments.routes.ts` |
-| `GET /assessments/:id` | تفاصيل تقييم | assessment detail | `teacher` | Bearer | path `id` | assessment detail | use before score entry | `API_REFERENCE.md`, `src/modules/assessments/routes/assessments.routes.ts` |
-| `GET /assessments/:id/scores` | قراءة الدرجات | scores screen | `teacher` | Bearer | path `id` | scores list | roster-aware screen | `API_REFERENCE.md`, `src/modules/assessments/routes/assessments.routes.ts` |
-| `PUT /assessments/:id/scores` | حفظ درجات batch | score entry | `teacher` | Bearer | array of student scores | saved scores result | duplicate/conflict handling مهم | `API_REFERENCE.md`, `src/modules/assessments/routes/assessments.routes.ts` |
-| `PATCH /assessments/scores/:studentAssessmentId` | تعديل درجة مفردة | score edit | `teacher` | Bearer | updated score fields | updated score | use as row action | `API_REFERENCE.md`, `src/modules/assessments/routes/assessments.routes.ts` |
+Relevant errors:
 
-## Behavior
+| Code | المعنى |
+| --- | --- |
+| `ACADEMIC_CONTEXT_NOT_CONFIGURED` | لا توجد سنة/فصل نشطان |
+| `ACTIVE_ACADEMIC_YEAR_ONLY` | `academicYearId` لا تطابق السنة النشطة |
+| `ACTIVE_SEMESTER_ONLY` | `semesterId` لا يطابق الفصل النشط |
 
-| Method + Path | Purpose | Used In | Role | Required Auth | Important Request Fields | Important Response Fields | Frontend Notes / Constraints | Source Reference |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `GET /behavior/categories` | قراءة الفئات السلوكية | create/edit record | `teacher` | Bearer | none | categories list | read-only for teacher; no `behaviorType` filter in v1 | `API_REFERENCE.md`, `src/modules/behavior/routes/behavior.routes.ts` |
-| `POST /behavior/records` | إنشاء سجل سلوكي | create behavior form | `teacher` | Bearer | `studentId`, `behaviorCategoryId`, `academicYearId`, `semesterId`, `behaviorDate`, `description?`, `severity?` | created record | negative categories trigger notifications; do not send `teacherId/supervisorId` | `API_REFERENCE.md`, `src/modules/behavior/routes/behavior.routes.ts` |
-| `GET /behavior/records` | قائمة السجلات | records list | `teacher` | Bearer | pagination + filters + sort | `items`, `pagination` | paginated | `API_REFERENCE.md`, `src/modules/behavior/routes/behavior.routes.ts` |
-| `GET /behavior/records/:id` | تفاصيل سجل | behavior detail | `teacher` | Bearer | path `id` | record detail | useful before edit | `API_REFERENCE.md`, `src/modules/behavior/routes/behavior.routes.ts` |
-| `PATCH /behavior/records/:id` | تعديل سجل | edit behavior | `teacher` | Bearer | editable fields | updated record | still scope-limited | `API_REFERENCE.md`, `src/modules/behavior/routes/behavior.routes.ts` |
+## 4. Attendance
 
-## Homework
+- `POST /attendance/sessions`
+- `GET /attendance/sessions`
+- `GET /attendance/sessions/:id`
+- `PUT /attendance/sessions/:id/records`
+- `PATCH /attendance/records/:attendanceId`
 
-| Method + Path | Purpose | Used In | Role | Required Auth | Important Request Fields | Important Response Fields | Frontend Notes / Constraints | Source Reference |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `POST /homework` | إنشاء واجب | create homework | `teacher` | Bearer | homework scope + title/content/due date | created homework | teacher/admin manage | `API_REFERENCE.md`, `src/modules/homework/routes/homework.routes.ts` |
-| `GET /homework` | قائمة الواجبات | homework list | `teacher` | Bearer | pagination + filters | `items`, `pagination` | paginated | `API_REFERENCE.md`, `src/modules/homework/routes/homework.routes.ts` |
-| `GET /homework/:id` | تفاصيل واجب | homework detail | `teacher` | Bearer | path `id` | homework detail | show submissions context | `API_REFERENCE.md`, `src/modules/homework/routes/homework.routes.ts` |
-| `PUT /homework/:id/submissions` | تحديث submission state | submission management | `teacher` | Bearer | submission update payload | updated result | ownership matters | `API_REFERENCE.md`, `src/modules/homework/routes/homework.routes.ts` |
-| `GET /homework/students/:studentId` | واجبات طالب | student homework view | `teacher` | Bearer | path `studentId` | `student`, `items` | non-paginated; usable when opening student-level context | `API_REFERENCE.md`, `src/modules/homework/routes/homework.routes.ts` |
+Teacher payload rules:
 
-## Communication
+- teacher-created attendance session:
+  - يجب ألا ترسل `teacherId`
+  - المعلم يُحل من الجلسة
+- `PUT /attendance/sessions/:id/records`:
+  - يتطلب roster كاملة
+  - كل طالب active يجب أن يظهر مرة واحدة بالضبط
 
-| Method + Path | Purpose | Used In | Role | Required Auth | Important Request Fields | Important Response Fields | Frontend Notes / Constraints | Source Reference |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `GET /communication/recipients` | available recipients | compose/new message | `teacher` | Bearer | `page`, `limit`, `search?`, `role?` | `items`, `pagination` | use this endpoint to choose `receiverUserId` instead of manual IDs | `API_REFERENCE.md`, `src/modules/communication/routes/communication.routes.ts` |
-| `POST /communication/messages` | إرسال رسالة | compose/conversation | `teacher` | Bearer | `receiverUserId`, `messageBody` | created message | any active user | `API_REFERENCE.md`, `src/modules/communication/routes/communication.routes.ts` |
-| `GET /communication/messages/inbox` | الوارد | inbox | `teacher` | Bearer | pagination, `isRead?`, sort | `items`, `pagination`, `unreadCount` | paginated | `API_REFERENCE.md`, `src/modules/communication/routes/communication.routes.ts` |
-| `GET /communication/messages/sent` | الصادر | sent | `teacher` | Bearer | pagination, `receiverUserId?`, sort | `items`, `pagination` | paginated | `API_REFERENCE.md`, `src/modules/communication/routes/communication.routes.ts` |
-| `GET /communication/messages/conversations/:otherUserId` | محادثة ثنائية | conversation | `teacher` | Bearer | path `otherUserId`, pagination | `items`, `pagination` | default ascending chronology | `API_REFERENCE.md`, `src/modules/communication/routes/communication.routes.ts` |
-| `PATCH /communication/messages/:messageId/read` | تعليم رسالة كمقروءة | inbox/conversation | `teacher` | Bearer | path `messageId` | updated state | receiver only | `API_REFERENCE.md`, `src/modules/communication/routes/communication.routes.ts` |
-| `GET /communication/notifications/me` | إشعاراتي | notifications screen | `teacher` | Bearer | pagination, `isRead?`, `notificationType?` | `items`, `pagination`, `unreadCount` | includes automation notifications relevant to role | `API_REFERENCE.md`, `src/modules/communication/routes/communication.routes.ts` |
-| `PATCH /communication/notifications/:notificationId/read` | تعليم إشعار كمقروء | notifications screen | `teacher` | Bearer | path `notificationId` | updated notification | owner only | `API_REFERENCE.md`, `src/modules/communication/routes/communication.routes.ts` |
-| `GET /communication/announcements/active` | الإعلانات النشطة | announcements feed | `teacher` | Bearer | none | active announcements | role-filtered feed | `API_REFERENCE.md`, `src/modules/communication/routes/communication.routes.ts` |
+Domain errors:
+
+| Code | المعنى |
+| --- | --- |
+| `CLASS_YEAR_MISMATCH` | الصف لا ينتمي إلى السنة المحددة |
+| `SEMESTER_YEAR_MISMATCH` | الفصل لا ينتمي إلى السنة المحددة |
+| `SUBJECT_GRADE_LEVEL_MISMATCH` | المادة لا تتبع نفس مرحلة الصف |
+| `SUBJECT_NOT_OFFERED_IN_SEMESTER` | المادة غير مفعلة في الفصل |
+| `ATTENDANCE_DUPLICATE_STUDENT` | الطالب مكرر داخل payload |
+| `ATTENDANCE_ROSTER_STUDENT_MISSING` | طالب roster مفقود من payload |
+| `ATTENDANCE_ROSTER_STUDENT_NOT_ALLOWED` | payload تحتوي طالبًا خارج roster الجلسة |
+
+## 5. Assessments
+
+- `GET /assessments/types`
+- `POST /assessments`
+- `GET /assessments`
+- `GET /assessments/:id`
+- `GET /assessments/:id/scores`
+- `PUT /assessments/:id/scores`
+- `PATCH /assessments/scores/:studentAssessmentId`
+
+Teacher payload rules:
+
+- teacher-created assessment:
+  - `teacherId` ممنوع
+  - إذا أُرسلت سيعود `TEACHER_ID_NOT_ALLOWED`
+- `PUT /assessments/:id/scores`:
+  - لا يتطلب full snapshot
+  - لكنه يرفض أي طالب خارج roster
+
+Domain errors:
+
+| Code | المعنى |
+| --- | --- |
+| `TEACHER_ID_NOT_ALLOWED` | المعلم أرسل `teacherId` في create assessment |
+| `CLASS_YEAR_MISMATCH` | الصف لا ينتمي إلى السنة المحددة |
+| `SEMESTER_YEAR_MISMATCH` | الفصل لا ينتمي إلى السنة المحددة |
+| `SUBJECT_GRADE_LEVEL_MISMATCH` | المادة لا تتبع نفس مرحلة الصف |
+| `SUBJECT_NOT_OFFERED_IN_SEMESTER` | المادة غير مفعلة في الفصل |
+| `ASSESSMENT_SCORE_EXCEEDS_MAX_SCORE` | score أكبر من `maxScore` |
+| `STUDENT_ASSESSMENT_DUPLICATE_STUDENT` | الطالب مكرر داخل payload الدرجات |
+| `STUDENT_ASSESSMENT_STUDENT_NOT_ALLOWED` | الطالب لا ينتمي إلى roster الاختبار |
+
+## 6. Behavior
+
+- `GET /behavior/categories`
+- `POST /behavior/records`
+- `GET /behavior/records`
+- `GET /behavior/records/:id`
+- `PATCH /behavior/records/:id`
+- `GET /behavior/students/:studentId/records`
+
+ملاحظات:
+
+- behavior record ترتبط بالسياق الأكاديمي النشط.
+- الوصول إلى سجلات behavior محكوم بملكية teacher assignment على الصف/السنة.
+
+## 7. Homework
+
+- `POST /homework`
+- `GET /homework`
+- `GET /homework/:id`
+- `PUT /homework/:id/submissions`
+- `GET /homework/students/:studentId`
+
+Teacher payload rules:
+
+- teacher-created homework:
+  - `teacherId` ممنوع
+  - إذا أُرسلت سيعود `TEACHER_ID_NOT_ALLOWED`
+- `PUT /homework/:id/submissions`:
+  - لا تقبل طلابًا خارج roster الواجب
+
+Domain errors:
+
+| Code | المعنى |
+| --- | --- |
+| `TEACHER_ID_NOT_ALLOWED` | المعلم أرسل `teacherId` في create homework |
+| `CLASS_YEAR_MISMATCH` | الصف لا ينتمي إلى السنة المحددة |
+| `SEMESTER_YEAR_MISMATCH` | الفصل لا ينتمي إلى السنة المحددة |
+| `SUBJECT_GRADE_LEVEL_MISMATCH` | المادة لا تتبع نفس مرحلة الصف |
+| `SUBJECT_NOT_OFFERED_IN_SEMESTER` | المادة غير مفعلة في الفصل |
+| `HOMEWORK_SUBMISSION_DUPLICATE_STUDENT` | الطالب مكرر داخل payload التسليمات |
+| `HOMEWORK_SUBMISSION_STUDENT_NOT_ALLOWED` | الطالب لا ينتمي إلى roster الواجب |
+
+## 8. Student reporting
+
+- `GET /reporting/students/:studentId/profile`
+- `GET /reporting/students/:studentId/reports/attendance-summary`
+- `GET /reporting/students/:studentId/reports/assessment-summary`
+- `GET /reporting/students/:studentId/reports/behavior-summary`
+
+ملاحظات:
+
+- الوصول ليس عامًا.
+- المعلم لا يرى إلا الطالب الذي يملك له assignment على صفه/سنته.
+
+## 9. Communication
+
+- `GET /communication/recipients`
+- `POST /communication/messages`
+- `GET /communication/messages/inbox`
+- `GET /communication/messages/sent`
+- `GET /communication/messages/conversations/:otherUserId`
+- `PATCH /communication/messages/:messageId/read`
+- `GET /communication/announcements/active`
+- `GET /communication/notifications/me`
+- `PATCH /communication/notifications/:notificationId/read`

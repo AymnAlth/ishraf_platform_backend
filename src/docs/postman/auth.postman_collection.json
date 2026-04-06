@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Ishraf Platform Auth API",
-    "_postman_id": "439de9b0-a44c-4052-a770-973123d9a6ab",
+    "_postman_id": "84dc80e3-5c0b-435b-b3ef-44ada17f0825",
     "description": "Auth-only Postman subset synchronized with the full collection.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },

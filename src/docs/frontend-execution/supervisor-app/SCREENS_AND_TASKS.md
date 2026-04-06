@@ -1,72 +1,41 @@
-# شاشات ومهام تطبيق المشرف
+# Supervisor App Screens And Tasks
 
-## ترتيب التنفيذ المقترح
+## 1. Core flow
 
-1. auth + app shell
-2. supervisor dashboard
-3. behavior
-4. attendance oversight
-5. student reports
-6. communication
-7. profile/password
+1. login
+2. load current user
+3. load `GET /reporting/dashboards/supervisor/me`
 
-## الشاشات المطلوبة
+## 2. Attendance supervision flow
 
-### 1. تسجيل الدخول والجلسة
+1. inspect attendance sessions list
+2. open one session detail
+3. update roster only if the session belongs to a supervised class-year
+4. patch an individual record when needed
 
-- login
-- forgot/reset password
-- logout
-- me bootstrap
-- change password
+قاعدة:
 
-### 2. Supervisor Dashboard
+- supervisor never creates the session.
 
-- الصفوف التابعة للمشرف
-- أحدث السجلات السلوكية
-- ملخصات طلاب الصفوف
+## 3. Behavior follow-up
 
-### 3. Behavior
+1. inspect categories
+2. create behavior record for an accessible student when needed
+3. inspect detail or timeline
+4. patch record when needed
 
-- categories list
-- records list
-- create record
-- record detail
-- update record
-- student-specific behavior timeline
+## 4. Student reporting flow
 
-### 4. Attendance Oversight
+1. open one accessible student
+2. inspect profile
+3. inspect attendance / assessment / behavior summaries
 
-- sessions list
-- session detail
-- update attendance record
+قاعدة:
 
-مهم:
+- إذا لم يكن supervisor assigned إلى class-year الخاصة بالطالب، سيرفض الباك الوصول.
 
-- المشرف لا يملك create session في `Wave 1`
+## 5. Communication
 
-### 5. Student Reports
-
-- student profile
-- attendance summary
-- assessment summary
-- behavior summary
-
-### 6. Communication
-
-- inbox
-- sent
-- conversation
-- notifications
-- active announcements
-
-### 7. Profile / Password
-
-- current user
-- change password
-- logout
-
-## ملاحظات تنفيذية
-
-- التطبيق يجب أن يترجم scope failures كجزء طبيعي من العمل وليس كأخطاء غير متوقعة
-- الطالب أو الجلسة أو السجل خارج الصفوف المخصصة للمشرف يجب أن يعامل كـ no access
+1. send direct messages
+2. read announcements and notifications
+3. mark messages and notifications as read

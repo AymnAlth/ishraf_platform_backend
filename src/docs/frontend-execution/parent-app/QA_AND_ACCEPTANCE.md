@@ -1,36 +1,18 @@
-# التحقق والقبول لتطبيق ولي الأمر
+# Parent App QA And Acceptance
 
-## Happy Paths
+## Happy paths
 
-- parent login ثم dashboard load
-- dashboard يعرض الأبناء المرتبطين فقط
-- child profile/reports تعمل لكل ابن مرتبط
-- homework list يظهر للابن المحدد
-- transport live status يظهر عند وجود رحلة/تعيين نشط
-- messages / notifications / announcements تعمل
+- parent login succeeds
+- parent dashboard returns linked children only
+- per-student profile and summary routes succeed for linked students
+- transport live status route succeeds for linked students
+- `GET /homework/students/:studentId` works for linked students
+- messaging, announcements, notifications work
 
-## Ownership / Negative Cases
+## Expected linkage denials
 
-- parent لا يستطيع الوصول إلى child غير مرتبط به
-- أي `studentId` غير مملوك يجب أن يعيد `403/404`
-- parent لا يستخدم `/reporting/students/:studentId/*` العامة
-
-## Empty States
-
-- لا يوجد أبناء مرتبطون
-- لا توجد تقارير بعد
-- لا توجد واجبات
-- لا توجد رحلة نقل نشطة
-- لا توجد رسائل أو إشعارات
-
-## Auth / Session Cases
-
-- refresh success/failure
-- `429` على login/forgot/reset
-- change-password ثم relogin
-
-## UX Cases
-
-- التنقل بين عدة أبناء دون فقدان السياق
-- إبراز unread notifications
-- عرض رسائل واضحة عندما لا توجد بيانات تشغيلية بعد
+- parent cannot access staff dashboards
+- parent cannot access admin-only modules
+- parent cannot create attendance/assessments/behavior/homework/admin imports
+- parent cannot read reports for non-linked students
+- transport live status for a non-linked student is denied

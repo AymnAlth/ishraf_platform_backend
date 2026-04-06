@@ -1,49 +1,36 @@
-# دليل تنفيذ تطبيق ولي الأمر
+# Parent App Backend Contract
 
-هذا الدليل مخصص لفريق بناء تطبيق ولي الأمر.
+الدور المستهدف: `parent`
 
-## الهدف
+هذا المجلد يشرح surfaces ولي الأمر من زاوية linkage والقراءة الفعلية للطالب المرتبط، لا من زاوية listing route فقط.
 
-تمكين ولي الأمر من متابعة:
+## النطاق
 
-- أبنائه المرتبطين بحسابه
-- التقارير المختصرة
-- الواجبات
-- النقل
-- الرسائل والإشعارات والإعلانات
+- reporting
+- homework
+- communication
+- transport live status
+- auth
 
-## المستخدم المستهدف
+## القواعد المؤثرة
 
-- `parent`
+- كل surfaces الطالبية هنا مرتبطة فقط بالطلاب linked فعليًا بولي الأمر.
+- الباك قد يعيد:
+  - `403` عندما لا يسمح الدور أو الملكية
+  - أو `404` عندما لا يكون الطالب مرئيًا ضمن linkage الحالية
+- dashboard وprofile وtransport live-status هي responses مركبة، وليست row tables بسيطة.
 
-## رابط العمل
+## Response concepts المهمة
 
-- `https://ishraf-platform-backend-staging.onrender.com`
-- `https://ishraf-platform-backend-staging.onrender.com/api/v1`
-
-## داخل النطاق
-
-- parent dashboard
-- child detail surfaces المملوكة لولي الأمر
-- child reports
-- child homework
-- live transport status
-- messages / notifications / announcements
-
-## خارج النطاق
-
-- أي وصول عام إلى طلاب غير مرتبطين
-- إدارة المستخدمين أو الهيكل الأكاديمي
-- realtime/Firebase/ETA
-- AI analytics
-
-## المستندات المصدر
-
-- `src/docs/BACKEND_WAVE1_STATUS.md`
-- `src/docs/API_REFERENCE.md`
-- `src/modules/reporting/routes/reporting.routes.ts`
-- `src/modules/homework/routes/homework.routes.ts`
-- `src/modules/communication/routes/communication.routes.ts`
-- [شاشات ومهام التطبيق](./SCREENS_AND_TASKS.md)
-- [خريطة الـ endpoints](./ENDPOINT_MAP.md)
-- [التحقق والقبول](./QA_AND_ACCEPTANCE.md)
+- `GET /reporting/dashboards/parent/me`
+  - يعيد parent dashboard مع children[] والملخصات والإشعارات
+- `GET /reporting/dashboards/parent/me/students/:studentId/profile`
+  - يعيد student profile مع parents وsummaries
+- `GET /reporting/transport/parent/me/students/:studentId/live-status`
+  - يعيد:
+    - `student`
+    - `assignment`
+    - `activeTrip`
+    - وداخل `activeTrip`:
+      - `latestLocation`
+      - `latestEvents`

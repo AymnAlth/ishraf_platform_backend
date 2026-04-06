@@ -1,85 +1,27 @@
-# شاشات ومهام تطبيق ولي الأمر
+# Parent App Screens And Tasks
 
-## ترتيب التنفيذ المقترح
+## 1. Core flow
 
-1. auth + app shell
-2. parent dashboard
-3. child detail shell
-4. child reports
-5. child homework
-6. child transport live status
-7. messages / notifications / announcements
-8. profile/password
+1. login
+2. hydrate current parent session
+3. load `GET /reporting/dashboards/parent/me`
 
-## الشاشات المطلوبة
+## 2. Child follow-up flow
 
-### 1. تسجيل الدخول والجلسة
+1. render linked children only
+2. open one child profile
+3. inspect attendance, assessment, and behavior summaries
+4. inspect transport live status when needed
+5. read student homework
 
-- login
-- forgot password
-- reset password
-- logout
-- me/profile bootstrap
-- change password
+قواعد:
 
-### 2. Parent Dashboard
+- لا تبنِ UI على افتراض أن parent ترى كل الطلاب.
+- الطالب غير المرتبط ليس edge case بل denial path طبيعي.
 
-- عرض معلومات ولي الأمر
-- عرض الأبناء المرتبطين
-- عرض ملخص attendance / behavior / assessment لكل ابن
-- عرض latest notifications + unread count
+## 3. Communication
 
-### 3. Child Detail Shell
-
-- بطاقة أساسية للطالب
-- tabs أو sections:
-  - profile
-  - attendance summary
-  - assessment summary
-  - behavior summary
-  - homework
-  - transport
-
-### 4. Child Reports
-
-- attendance summary
-- assessment summary
-- behavior summary
-
-### 5. Homework
-
-- list homework for selected child
-- homework detail if needed داخل نفس الشاشة
-
-### 6. Transport Live Status
-
-- active trip summary
-- latest location
-- recent events
-- current / target stop information عند توفرها في الاستجابة
-
-### 7. Communication
-
-- inbox
-- sent
-- conversation
-- notifications
-- active announcements
-
-### 8. Profile / Password
-
-- current user info
-- change password
-- logout
-
-## الاعتماديات
-
-- parent linkage يجب أن يكون موجودًا من لوحة الإدارة
-- child reports تعتمد على وجود attendance / assessments / behavior / homework data
-- transport status يعتمد على assignment + active trip
-
-## ملاحظات تنفيذية
-
-- لا تبنوا أي شاشة parent على generic student endpoints
-- استخدموا فقط المسارات parent-owned
-- empty state في child transport مهم جدًا لأنه قد لا توجد رحلة نشطة دائمًا
+1. send direct messages to available recipients
+2. inspect inbox and sent history
+3. read active announcements
+4. mark notifications/messages as read

@@ -1,171 +1,96 @@
-# Current Staging Accounts And Arabic Seed Dataset
+# Staging Frontend Seed
 
-هذا الملف هو المرجع الحالي للبيئة المستضافة على `Render + Neon` بعد تشغيل الـ seed العربية الكاملة بتاريخ `2026-03-31`.
+هذا الملف يوثق **مصادر seed المدعومة من الريبو** للبيئة المستضافة أو أي بيئة تشغيل مشابهة.  
+لا يفترض هذا الملف أن حالة البيئة الحية دائمًا مطابقة حرفيًا لما في اللحظة الحالية؛ المرجع الحقيقي هو scripts وseed artifacts داخل الريبو.
 
-## الحالة الحالية
+## المصادر المعتمدة
 
-البيئة المستضافة تحتوي الآن على:
-- الحسابات الدنيا الحالية نفسها بدون تغيير
-- dataset أكاديمية وتشغيلية عربية متكاملة فوق هذه الحسابات
+### 1. Arabic operational frontend seed
 
-هذه الـ dataset مخصصة لـ:
-- اختبار لوحة الإدارة
-- اختبار الشاشات التشغيلية
-- التحقق من التقارير
-- التحقق من النقل والتواصل
+الملف:
 
-مهم:
-- حساب الأدمن الأساسي لم يُعدّل
-- كلمة مرور الأدمن الأساسي بقيت كما هي
-- الـ seed الحالية **لا تنشئ حسابات مستخدمين جديدة** خارج الحسابات الحالية
-- بل تبني بيانات المشروع فوق الحسابات الحالية فقط
+- `src/database/seeds/staging_frontend_seed.sql`
 
-## الحسابات الحالية
+التشغيل:
 
-### Admin
+```powershell
+pnpm.cmd deploy:seed-frontend-data
+```
 
-- البريد: `mod87521@gmail.com`
-- كلمة المرور: **تبقى كما هي سابقًا** ولم تُوثق هنا عمدًا
+السكربت المنفذ:
 
-### Teacher
+- `src/scripts/seed-staging-frontend-data.ts`
 
-- الاسم: `مروان أمين شعبان`
-- البريد: `marwan-amin-shaban@ishraf.local`
-- كلمة المرور:
+هذا المسار يطبق dataset عربية تشغيلية من SQL مباشرة.
+
+### 2. Minimal accounts reset
+
+السكربت:
+
+- `src/scripts/reset-minimal-accounts.ts`
+
+التشغيل:
+
+```powershell
+pnpm.cmd deploy:reset-minimal-accounts
+```
+
+هذا المسار:
+
+- يحافظ على الأدمن الأساسي الموجود مسبقًا
+- يحذف بقية البيانات التشغيلية والأكاديمية
+- ينشئ فقط الحسابات الدنيا الموثقة في السكربت
+
+## Primary admin rule
+
+الأدمن الأساسي المحفوظ في minimal reset:
+
+- `mod87521@gmail.com`
+
+السكربت يتحقق من:
+
+- بقاء نفس الحساب
+- بقاء نفس `id`
+- بقاء نفس `password_hash`
+
+## الحسابات الدنيا التي ينشئها `reset-minimal-accounts`
+
+### Shared password accounts
+
+- `teacher`: `marwan-amin-shaban@ishraf.local`
+- `parent`: `khaled-alarami@ishraf.local`
+- `supervisor`: `idris-mashwir@ishraf.local`
+- `supervisor`: `bassam-ali-ali-nuhailah@ishraf.local`
+
+كلمة المرور المشتركة:
 
 ```text
 SeedDev123!
 ```
 
-### Parent
+### Driver account
 
-- الاسم: `خالد العرامي`
-- البريد: `khaled-alarami@ishraf.local`
-- كلمة المرور:
+- `driver`: `hilal-abdullah-almolsi@ishraf.local`
 
-```text
-SeedDev123!
-```
-
-### Driver
-
-- الاسم: `هلال عبد الله الملصي`
-- البريد: `hilal-abdullah-almolsi@ishraf.local`
-- كلمة المرور:
+كلمة مرور السائق:
 
 ```text
 SeedDriver123!
 ```
 
-### Supervisors
+## ما الذي لا يجب افتراضه من هذا الملف
 
-- `إدريس مشوير`
-  - `idris-mashwir@ishraf.local`
-- `بسام علي علي نحيلة`
-  - `bassam-ali-ali-nuhailah@ishraf.local`
+- لا تفترض أن كل بيئة حية تعمل دائمًا على minimal accounts.
+- لا تفترض row counts ثابتة ما لم تكن قد طبقت أحد السكربتين بنفسك.
+- لا تبنِ frontend logic على بيانات seed ثابتة؛ ابنها على العقود.
 
-كلمة المرور للمشرفين:
+## كيف تتحقق من الحالة الفعلية للبيئة
 
-```text
-SeedDev123!
-```
+1. استخدم auth + read endpoints الفعلية.
+2. افحص:
+   - `GET /health/ready`
+   - `GET /auth/me`
+   - `GET /reporting/dashboards/admin/me`
+   - والسطوح التي يعتمد عليها التطبيق الذي تختبره
 
-## ملخص الـ dataset الحالية
-
-### Academic Context
-
-- السنة النشطة:
-  - `العام الدراسي 2025-2026`
-- الفصل النشط:
-  - `الفصل الثاني`
-
-### Academic Management
-
-- سنوات دراسية: `3`
-- فصول دراسية: `6`
-- مستويات دراسية: `4`
-- صفوف: `6`
-- مواد: `12`
-- `subject offerings`: `18`
-- تعيينات المعلمين: `6`
-- تعيينات المشرفين: `4`
-
-### Students
-
-- طلاب: `6`
-- روابط ولي أمر: `6`
-- `student academic enrollments`: `18`
-- سجل ترقيات: `3`
-
-### Daily Operations
-
-- أنواع تقييم: `3`
-- فئات سلوك: `5`
-- تقييمات: `2`
-- درجات طلاب: `6`
-- جلسات حضور: `2`
-- سجلات حضور: `6`
-- واجبات: `2`
-- تسليمات واجبات: `6`
-- سجلات سلوك: `4`
-
-### Transport
-
-- حافلات: `1`
-- خطوط: `1`
-- `route assignments`: `1`
-- مواقف: `3`
-- ربط طلاب بالنقل: `6`
-- مواقع منازل معتمدة: `6`
-- رحلات: `2`
-- سجل مواقع الحافلة: `3`
-- أحداث طلاب الرحلات: `10`
-
-### Communication
-
-- رسائل: `6`
-- إعلانات: `3`
-- `announcement target roles`: `3`
-- إشعارات: `6`
-
-## ملامح البيانات الحالية
-
-- جميع الأسماء الظاهرة للمستخدمين والطلاب والمواد والصفوف باللغة العربية
-- يوجد parent واحد مرتبط بجميع الطلاب الستة
-- يوجد teacher واحد يغطي تعيينات تشغيلية وإدارية متعددة
-- يوجد supervisorان يغطّيان الصفين الحاليين والسنة القادمة
-- يوجد driver واحد مع خط نقل واحد وحافلة واحدة ورحلتي pickup/dropoff
-- توجد بيانات حالية وتاريخية ومخططة تساعد في اختبار:
-  - `Active Academic Context`
-  - `Academic Management`
-  - الترقيات
-  - الحضور
-  - التقييمات
-  - الواجبات
-  - السلوك
-  - النقل
-  - التواصل
-
-## الملفات التشغيلية
-
-- ملف الـ seed:
-  - `src/database/seeds/staging_frontend_seed.sql`
-- الـ runner:
-  - `src/scripts/seed-staging-frontend-data.ts`
-
-لتشغيل الـ seed على البيئة المستضافة:
-
-```bash
-pnpm deploy:seed-frontend-data
-```
-
-## ملاحظات مهمة
-
-- هذه الـ seed هي المرجع الحي الحالي للبيئة المستضافة
-- لا تعتمد على أي أمثلة قديمة كانت تستخدم:
-  - `seed-admin-*`
-  - `seed-parent-*`
-  - `seed-teacher-*`
-  - `seed-supervisor-*`
-  - `seed-driver-*`
-- أي وثيقة أو flow قديم يفترض أن البيئة فارغة أكاديميًا أو تشغيليًا لم يعد صحيحًا بعد هذا التشغيل
+الملف هنا يشرح **ما يستطيع الريبو إنتاجه**، لا snapshot مضمونة أبدًا لكل لحظة تشغيل.

@@ -1,8 +1,8 @@
 # OpenAPI / Postman Audit
 
-- Audit date: 2026-04-01
+- Audit date: 2026-04-06
 - Runtime endpoint count: 150
-- Runtime changes during this reconciliation: 14 new endpoint(s)
+- Scope: root health endpoints plus every router registered in `src/app/module-registry.ts`
 
 ## Coverage Summary
 
@@ -31,30 +31,21 @@
 | Homework | 5 | 5/5 | 5/5 | 5/5 | 5/5 |
 | Reporting | 22 | 22/22 | 22/22 | 22/22 | 22/22 |
 
-## [NEW] Runtime Endpoints Added In This Pass
-
-- `GET /reporting/admin-preview/parents/:parentUserId/dashboard`
-- `GET /reporting/admin-preview/parents/:parentUserId/students/:studentId/profile`
-- `GET /reporting/admin-preview/parents/:parentUserId/students/:studentId/reports/attendance-summary`
-- `GET /reporting/admin-preview/parents/:parentUserId/students/:studentId/reports/assessment-summary`
-- `GET /reporting/admin-preview/parents/:parentUserId/students/:studentId/reports/behavior-summary`
-- `GET /reporting/admin-preview/parents/:parentUserId/students/:studentId/transport/live-status`
-- `GET /reporting/admin-preview/teachers/:teacherUserId/dashboard`
-- `GET /reporting/admin-preview/supervisors/:supervisorUserId/dashboard`
-- `POST /communication/messages/bulk`
-- `POST /communication/notifications/bulk`
-- `POST /admin-imports/school-onboarding/dry-run`
-- `POST /admin-imports/school-onboarding/apply`
-- `GET /admin-imports/school-onboarding/history`
-- `GET /admin-imports/school-onboarding/history/:importId`
-
 ## Runtime Endpoints Missing From Master OpenAPI Before This Update
 
 - none
 
+## Route Extraction Rules
+
+- Runtime routes are extracted from the registered route files defined in `scripts/reconcile-openapi-postman.mjs`.
+- `/health` and `/health/ready` are documented as root-level servers outside `/api/v1`.
+- The auth subset documents only the live auth router surface.
+- Manual schema examples inside the reconciliation script must stay aligned with validators, DTOs, and mappers in `src/modules`.
+
 ## Views, Events, Targets Alignment
 
 ### SQL Views Referenced
+- `vw_active_academic_context`
 - `vw_active_announcements`
 - `vw_active_student_bus_assignments`
 - `vw_active_trip_live_status`
@@ -94,11 +85,3 @@
 - `communication.notifications.notificationType`
 - `behavior.categories.behaviorType`
 - `transport.trip-events.eventType`
-
-## Reconciliation Notes
-
-- `/health` and `/health/ready` now use root-level servers instead of inheriting `/api/v1`.
-- The auth subset now covers all 7 live auth routes, including forgot-password and reset-password.
-- IDs in the auth subset were normalized to numeric-string ids instead of UUID assumptions.
-- The new admin-preview monitoring endpoints are marked with `[NEW]`-style audit visibility through this report and are documented as admin-only, read-only, and `users.id`-based surfaces.
-- Communication Phase 2 is now documented with admin-only bulk message and bulk notification delivery, plus additive `targetRoles[]` support for announcements.

@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Ishraf Platform Backend API",
-    "_postman_id": "10fbcf77-697f-4472-a349-4ccf4cdefa10",
+    "_postman_id": "78e1dfea-1957-4017-b430-cd5bd3769b30",
     "description": "Full Postman collection covering every live backend endpoint.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
@@ -2165,17 +2165,17 @@
                 },
                 {
                   "key": "sessionDate",
-                  "value": "2026-04-01",
+                  "value": "2026-04-06",
                   "description": "Filter by exact session date."
                 },
                 {
                   "key": "dateFrom",
-                  "value": "2026-04-01",
+                  "value": "2026-04-06",
                   "description": "Filter from session date."
                 },
                 {
                   "key": "dateTo",
-                  "value": "2026-04-01",
+                  "value": "2026-04-06",
                   "description": "Filter to session date."
                 }
               ]
@@ -2196,7 +2196,7 @@
                 "value": "application/json"
               }
             ],
-            "description": "Purpose: Create an attendance session inside the active academic context. Admin teacherId accepts the teacher user id from /users?role=teacher or the legacy teacher profile id.\n\nRoles: admin, teacher\n\nAuth: Bearer access token required\n\nBody schema: CreateAttendanceSessionRequest\n\nNote: academicYearId and semesterId may be omitted; the backend resolves the active academic context automatically.\n\nNote: If academicYearId or semesterId is sent, it must match the active context.\n\nNote: The selected subjectId must have an active subject offering for the resolved semester.\n\nNote: Admin frontend flows should send teacherId as the teacher user id returned by GET /users?role=teacher.",
+            "description": "Purpose: Create an attendance session inside the active academic context. Admin teacherId accepts the teacher user id from /users?role=teacher or the legacy teacher profile id. Teacher flows must omit teacherId.\n\nRoles: admin, teacher\n\nAuth: Bearer access token required\n\nBody schema: CreateAttendanceSessionRequest\n\nNote: academicYearId and semesterId may be omitted; the backend resolves the active academic context automatically.\n\nNote: If academicYearId or semesterId is sent, it must match the active context.\n\nNote: The selected subjectId must have an active subject offering for the resolved semester.\n\nNote: Admin frontend flows should send teacherId as the teacher user id returned by GET /users?role=teacher.\n\nNote: Relevant domain errors include CLASS_YEAR_MISMATCH, SEMESTER_YEAR_MISMATCH, SUBJECT_GRADE_LEVEL_MISMATCH, SUBJECT_NOT_OFFERED_IN_SEMESTER, TEACHER_ID_REQUIRED, and ACADEMIC_CONTEXT_NOT_CONFIGURED.",
             "url": {
               "raw": "{{baseUrl}}/attendance/sessions",
               "host": [
@@ -2210,7 +2210,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"classId\": \"1\",\n  \"subjectId\": \"1\",\n  \"academicYearId\": \"1\",\n  \"semesterId\": \"1\",\n  \"sessionDate\": \"2026-04-01\",\n  \"periodNo\": 1,\n  \"title\": \"حصة الرياضيات\",\n  \"notes\": \"اختبار سريع\",\n  \"teacherId\": \"47\"\n}"
+              "raw": "{\n  \"classId\": \"1\",\n  \"subjectId\": \"1\",\n  \"academicYearId\": \"1\",\n  \"semesterId\": \"1\",\n  \"sessionDate\": \"2026-04-06\",\n  \"periodNo\": 1,\n  \"title\": \"حصة الرياضيات\",\n  \"notes\": \"اختبار سريع\",\n  \"teacherId\": \"47\"\n}"
             }
           }
         },
@@ -2253,7 +2253,7 @@
                 "value": "application/json"
               }
             ],
-            "description": "Purpose: Save the full attendance roster snapshot for one session.\n\nRoles: admin, teacher, supervisor\n\nAuth: Bearer access token required\n\nBody schema: SaveAttendanceRecordsRequest\n\nSide effects: Any newly absent record can trigger parent notifications through the internal automation service.",
+            "description": "Purpose: Save the full attendance roster snapshot for one session.\n\nRoles: admin, teacher, supervisor\n\nAuth: Bearer access token required\n\nBody schema: SaveAttendanceRecordsRequest\n\nNote: This payload is a full snapshot: every active student in the session roster must appear exactly once.\n\nNote: Relevant domain errors include ATTENDANCE_DUPLICATE_STUDENT, ATTENDANCE_ROSTER_STUDENT_MISSING, and ATTENDANCE_ROSTER_STUDENT_NOT_ALLOWED.\n\nSide effects: Any newly absent record can trigger parent notifications through the internal automation service.",
             "url": {
               "raw": "{{baseUrl}}/attendance/sessions/{{attendanceSessionId}}/records",
               "host": [
@@ -2351,17 +2351,17 @@
                 },
                 {
                   "key": "assessmentDate",
-                  "value": "2026-04-01",
+                  "value": "2026-04-06",
                   "description": "Filter by exact assessment date."
                 },
                 {
                   "key": "dateFrom",
-                  "value": "2026-04-01",
+                  "value": "2026-04-06",
                   "description": "Filter from assessment date."
                 },
                 {
                   "key": "dateTo",
-                  "value": "2026-04-01",
+                  "value": "2026-04-06",
                   "description": "Filter to assessment date."
                 },
                 {
@@ -2387,7 +2387,7 @@
                 "value": "application/json"
               }
             ],
-            "description": "Purpose: Create an assessment inside the active academic context. Teachers may omit teacherId and rely on the authenticated teacher profile. Admin teacherId accepts the teacher user id from /users?role=teacher or the legacy teacher profile id.\n\nRoles: admin, teacher\n\nAuth: Bearer access token required\n\nBody schema: CreateAssessmentRequest\n\nNote: academicYearId and semesterId may be omitted; the backend resolves the active academic context automatically.\n\nNote: If academicYearId or semesterId is sent, it must match the active context.\n\nNote: The selected subjectId must have an active subject offering for the resolved semester.\n\nNote: Admin frontend flows should send teacherId as the teacher user id returned by GET /users?role=teacher.",
+            "description": "Purpose: Create an assessment inside the active academic context. Teachers must omit teacherId and rely on the authenticated teacher profile. Admin teacherId accepts the teacher user id from /users?role=teacher or the legacy teacher profile id.\n\nRoles: admin, teacher\n\nAuth: Bearer access token required\n\nBody schema: CreateAssessmentRequest\n\nNote: academicYearId and semesterId may be omitted; the backend resolves the active academic context automatically.\n\nNote: If academicYearId or semesterId is sent, it must match the active context.\n\nNote: The selected subjectId must have an active subject offering for the resolved semester.\n\nNote: Admin frontend flows should send teacherId as the teacher user id returned by GET /users?role=teacher.\n\nNote: Teacher frontend flows must not send teacherId; the backend returns TEACHER_ID_NOT_ALLOWED if it is present.\n\nNote: Relevant domain errors include CLASS_YEAR_MISMATCH, SEMESTER_YEAR_MISMATCH, SUBJECT_GRADE_LEVEL_MISMATCH, SUBJECT_NOT_OFFERED_IN_SEMESTER, TEACHER_ID_REQUIRED, TEACHER_ID_NOT_ALLOWED, and ACADEMIC_CONTEXT_NOT_CONFIGURED.",
             "url": {
               "raw": "{{baseUrl}}/assessments",
               "host": [
@@ -2400,7 +2400,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"assessmentTypeId\": \"1\",\n  \"classId\": \"1\",\n  \"subjectId\": \"1\",\n  \"teacherId\": \"47\",\n  \"academicYearId\": \"1\",\n  \"semesterId\": \"1\",\n  \"title\": \"اختبار قصير 2\",\n  \"description\": \"الوحدة الثانية\",\n  \"maxScore\": 20,\n  \"weight\": 10,\n  \"assessmentDate\": \"2026-04-01\",\n  \"isPublished\": true\n}"
+              "raw": "{\n  \"assessmentTypeId\": \"1\",\n  \"classId\": \"1\",\n  \"subjectId\": \"1\",\n  \"teacherId\": \"47\",\n  \"academicYearId\": \"1\",\n  \"semesterId\": \"1\",\n  \"title\": \"اختبار قصير 2\",\n  \"description\": \"الوحدة الثانية\",\n  \"maxScore\": 20,\n  \"weight\": 10,\n  \"assessmentDate\": \"2026-04-06\",\n  \"isPublished\": true\n}"
             }
           }
         },
@@ -2467,7 +2467,7 @@
                 "value": "application/json"
               }
             ],
-            "description": "Purpose: Create or update the full score roster for an assessment.\n\nRoles: admin, teacher\n\nAuth: Bearer access token required\n\nBody schema: SaveAssessmentScoresRequest",
+            "description": "Purpose: Create or update score rows for one assessment roster.\n\nRoles: admin, teacher\n\nAuth: Bearer access token required\n\nBody schema: SaveAssessmentScoresRequest\n\nNote: The payload does not need to include every student in the roster.\n\nNote: Every submitted studentId must belong to the assessment roster.\n\nNote: Relevant domain errors include ASSESSMENT_SCORE_EXCEEDS_MAX_SCORE, STUDENT_ASSESSMENT_DUPLICATE_STUDENT, and STUDENT_ASSESSMENT_STUDENT_NOT_ALLOWED.",
             "url": {
               "raw": "{{baseUrl}}/assessments/{{assessmentId}}/scores",
               "host": [
@@ -2715,17 +2715,17 @@
                 },
                 {
                   "key": "behaviorDate",
-                  "value": "2026-04-01",
+                  "value": "2026-04-06",
                   "description": "Filter by exact behavior date."
                 },
                 {
                   "key": "dateFrom",
-                  "value": "2026-04-01",
+                  "value": "2026-04-06",
                   "description": "Filter from behavior date."
                 },
                 {
                   "key": "dateTo",
-                  "value": "2026-04-01",
+                  "value": "2026-04-06",
                   "description": "Filter to behavior date."
                 }
               ]
@@ -2760,7 +2760,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"studentId\": \"1\",\n  \"behaviorCategoryId\": \"1\",\n  \"academicYearId\": \"1\",\n  \"semesterId\": \"1\",\n  \"description\": \"تأخر عن الطابور\",\n  \"severity\": 3,\n  \"behaviorDate\": \"2026-04-01\",\n  \"teacherId\": \"47\"\n}"
+              "raw": "{\n  \"studentId\": \"1\",\n  \"behaviorCategoryId\": \"1\",\n  \"academicYearId\": \"1\",\n  \"semesterId\": \"1\",\n  \"description\": \"تأخر عن الطابور\",\n  \"severity\": 3,\n  \"behaviorDate\": \"2026-04-06\",\n  \"teacherId\": \"47\"\n}"
             }
           }
         },
@@ -2882,7 +2882,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"studentId\": \"1\",\n  \"routeId\": \"1\",\n  \"stopId\": \"1\",\n  \"startDate\": \"2026-04-01\",\n  \"endDate\": null\n}"
+              "raw": "{\n  \"studentId\": \"1\",\n  \"routeId\": \"1\",\n  \"stopId\": \"1\",\n  \"startDate\": \"2026-04-06\",\n  \"endDate\": null\n}"
             }
           }
         },
@@ -2916,7 +2916,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"endDate\": \"2026-04-01\"\n}"
+              "raw": "{\n  \"endDate\": \"2026-04-06\"\n}"
             }
           }
         },
@@ -3053,7 +3053,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"busId\": \"1\",\n  \"routeId\": \"1\",\n  \"startDate\": \"2026-04-01\",\n  \"endDate\": null\n}"
+              "raw": "{\n  \"busId\": \"1\",\n  \"routeId\": \"1\",\n  \"startDate\": \"2026-04-06\",\n  \"endDate\": null\n}"
             }
           }
         },
@@ -3087,7 +3087,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"endDate\": \"2026-04-01\"\n}"
+              "raw": "{\n  \"endDate\": \"2026-04-06\"\n}"
             }
           }
         },
@@ -3381,17 +3381,17 @@
                 },
                 {
                   "key": "tripDate",
-                  "value": "2026-04-01",
+                  "value": "2026-04-06",
                   "description": "Filter by exact trip date."
                 },
                 {
                   "key": "dateFrom",
-                  "value": "2026-04-01",
+                  "value": "2026-04-06",
                   "description": "Filter from trip date."
                 },
                 {
                   "key": "dateTo",
-                  "value": "2026-04-01",
+                  "value": "2026-04-06",
                   "description": "Filter to trip date."
                 }
               ]
@@ -3412,7 +3412,7 @@
                 "value": "application/json"
               }
             ],
-            "description": "Purpose: Create a trip for a bus and route. Drivers and admins can create trips.\n\nRoles: admin, driver\n\nAuth: Bearer access token required\n\nBody schema: CreateTripRequest",
+            "description": "Purpose: Create a trip for a bus and route. Drivers and admins can create trips.\n\nRoles: admin, driver\n\nAuth: Bearer access token required\n\nBody schema: CreateTripRequest\n\nNote: Driver access is ownership-scoped to buses they are allowed to operate.",
             "url": {
               "raw": "{{baseUrl}}/transport/trips",
               "host": [
@@ -3426,7 +3426,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"busId\": \"1\",\n  \"routeId\": \"1\",\n  \"tripDate\": \"2026-04-01\",\n  \"tripType\": \"pickup\"\n}"
+              "raw": "{\n  \"busId\": \"1\",\n  \"routeId\": \"1\",\n  \"tripDate\": \"2026-04-06\",\n  \"tripType\": \"pickup\"\n}"
             }
           }
         },
@@ -3465,7 +3465,7 @@
                 "value": "Bearer {{accessToken}}"
               }
             ],
-            "description": "Purpose: Mark a trip as ended.\n\nRoles: admin, driver\n\nAuth: Bearer access token required",
+            "description": "Purpose: Mark a trip as ended.\n\nRoles: admin, driver\n\nAuth: Bearer access token required\n\nNote: The trip must currently be started. Otherwise the request fails with TRIP_STATUS_END_INVALID.",
             "url": {
               "raw": "{{baseUrl}}/transport/trips/{{tripId}}/end",
               "host": [
@@ -3521,7 +3521,7 @@
                 "value": "application/json"
               }
             ],
-            "description": "Purpose: Create one trip student event. stopId is required for boarded and dropped_off events, and must be omitted for absent.\n\nRoles: admin, driver\n\nAuth: Bearer access token required\n\nBody schema: CreateTripStudentEventRequest\n\nNote: Trip student event validation is trip-date aware: the student must have a transport assignment covering the trip date and route.\n\nSide effects: Dropped-off events trigger parent notifications through the internal automation service.",
+            "description": "Purpose: Create one trip student event. stopId is required for boarded and dropped_off events, and must be omitted for absent.\n\nRoles: admin, driver\n\nAuth: Bearer access token required\n\nBody schema: CreateTripStudentEventRequest\n\nNote: Trip student event validation is trip-date aware: the student must have a transport assignment covering the trip date and route.\n\nNote: Events are only accepted while the trip is started or ended. Invalid state returns TRIP_EVENT_STATUS_INVALID.\n\nNote: A mismatching route assignment or stop produces STUDENT_TRIP_DATE_ASSIGNMENT_NOT_FOUND, TRIP_STUDENT_ROUTE_MISMATCH, or TRIP_EVENT_STOP_ROUTE_MISMATCH.\n\nSide effects: Dropped-off events trigger parent notifications through the internal automation service.",
             "url": {
               "raw": "{{baseUrl}}/transport/trips/{{tripId}}/events",
               "host": [
@@ -3555,7 +3555,7 @@
                 "value": "application/json"
               }
             ],
-            "description": "Purpose: Record one location point for a started trip.\n\nRoles: admin, driver\n\nAuth: Bearer access token required\n\nBody schema: RecordTripLocationRequest",
+            "description": "Purpose: Record one location point for a started trip.\n\nRoles: admin, driver\n\nAuth: Bearer access token required\n\nBody schema: RecordTripLocationRequest\n\nNote: Locations are only accepted while the trip is started. Invalid state returns TRIP_LOCATION_STATUS_INVALID.",
             "url": {
               "raw": "{{baseUrl}}/transport/trips/{{tripId}}/locations",
               "host": [
@@ -3585,7 +3585,7 @@
                 "value": "Bearer {{accessToken}}"
               }
             ],
-            "description": "Purpose: Mark a scheduled trip as started.\n\nRoles: admin, driver\n\nAuth: Bearer access token required\n\nSide effects: Trip start triggers parent notifications per assigned student through the internal automation service.",
+            "description": "Purpose: Mark a scheduled trip as started.\n\nRoles: admin, driver\n\nAuth: Bearer access token required\n\nNote: The trip must currently be scheduled. Otherwise the request fails with TRIP_STATUS_START_INVALID.\n\nSide effects: Trip start triggers parent notifications per assigned student through the internal automation service.",
             "url": {
               "raw": "{{baseUrl}}/transport/trips/{{tripId}}/start",
               "host": [
@@ -3652,7 +3652,7 @@
                 "value": "application/json"
               }
             ],
-            "description": "Purpose: Create or reuse the operational trip for one route assignment, trip date, and trip type without creating duplicates.\n\nRoles: admin, driver\n\nAuth: Bearer access token required\n\nBody schema: EnsureDailyTripRequest\n\nNote: If a matching trip already exists for the same bus, route, tripDate, and tripType, the response remains 200 with created=false.\n\nNote: This is the preferred driver-facing daily trip flow. POST /transport/trips remains a legacy fallback.\n\nDerived data: The endpoint reuses the natural uniqueness of bus + route + tripDate + tripType.",
+            "description": "Purpose: Create or reuse the operational trip for one route assignment, trip date, and trip type without creating duplicates.\n\nRoles: admin, driver\n\nAuth: Bearer access token required\n\nBody schema: EnsureDailyTripRequest\n\nNote: If a matching trip already exists for the same bus, route, tripDate, and tripType, the response remains 200 with created=false.\n\nNote: This is the preferred driver-facing daily trip flow. POST /transport/trips remains a legacy fallback.\n\nNote: routeAssignmentId must be active for the requested tripDate or the request fails with TRANSPORT_ROUTE_ASSIGNMENT_NOT_ACTIVE_FOR_TRIP_DATE.\n\nDerived data: The endpoint reuses the natural uniqueness of bus + route + tripDate + tripType.",
             "url": {
               "raw": "{{baseUrl}}/transport/trips/ensure-daily",
               "host": [
@@ -3667,7 +3667,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"routeAssignmentId\": \"1\",\n  \"tripDate\": \"2026-04-01\",\n  \"tripType\": \"pickup\"\n}"
+              "raw": "{\n  \"routeAssignmentId\": \"1\",\n  \"tripDate\": \"2026-04-06\",\n  \"tripType\": \"pickup\"\n}"
             }
           }
         }
@@ -4210,7 +4210,7 @@
                 "value": "application/json"
               }
             ],
-            "description": "Purpose: Apply a previously validated school onboarding dry-run in one all-or-nothing transaction, with idempotent retry semantics.\n\nRoles: admin\n\nAuth: Bearer access token required\n\nBody schema: SchoolOnboardingApplyRequest\n\nNote: [NEW] dryRunId must reference a validated dry-run result.\n\nNote: [NEW] Repeated apply calls for the same successful dryRunId return the previous apply result with alreadyApplied=true.\n\nNote: [NEW] The import is create-only in v1 and does not sync, update, or delete existing records.",
+            "description": "Purpose: Apply a previously validated school onboarding dry-run in one all-or-nothing transaction, with idempotent retry semantics.\n\nRoles: admin\n\nAuth: Bearer access token required\n\nBody schema: SchoolOnboardingApplyRequest\n\nNote: [NEW] dryRunId must reference a validated dry-run result.\n\nNote: [NEW] Repeated apply calls for the same successful dryRunId return the previous apply result with alreadyApplied=true.\n\nNote: [NEW] The import is create-only in v1 and does not sync, update, or delete existing records.\n\nNote: [NEW] If dryRunId does not reference a validated dry-run, the request fails before writing anything.",
             "url": {
               "raw": "{{baseUrl}}/admin-imports/school-onboarding/apply",
               "host": [
@@ -4257,7 +4257,7 @@
                 "value": "application/json"
               }
             ],
-            "description": "Purpose: Validate a structured school onboarding workbook payload on the server, resolve natural keys, and persist an auditable dry-run result without writing domain data.\n\nRoles: admin\n\nAuth: Bearer access token required\n\nBody schema: SchoolOnboardingDryRunRequest\n\nNote: [NEW] This endpoint accepts structured workbook JSON, not raw Excel binary upload.\n\nNote: [NEW] v1 is create-only and blocks duplicate/conflicting existing records.\n\nNote: [NEW] The returned importId is the dryRunId required by the apply endpoint.",
+            "description": "Purpose: Validate a structured school onboarding workbook payload on the server, resolve natural keys, and persist an auditable dry-run result without writing domain data.\n\nRoles: admin\n\nAuth: Bearer access token required\n\nBody schema: SchoolOnboardingDryRunRequest\n\nNote: [NEW] This endpoint accepts structured workbook JSON, not raw Excel binary upload.\n\nNote: [NEW] v1 is create-only and blocks duplicate/conflicting existing records.\n\nNote: [NEW] The returned importId is the dryRunId required by the apply endpoint.\n\nNote: [NEW] Frontend should key the result screen off status, canApply, summary, sheetSummaries, and issues.",
             "url": {
               "raw": "{{baseUrl}}/admin-imports/school-onboarding/dry-run",
               "host": [
@@ -4301,7 +4301,7 @@
                 "value": "Bearer {{accessToken}}"
               }
             ],
-            "description": "Purpose: List persisted school onboarding dry-run and apply attempts with summary metadata for admin audit and retry flows.\n\nRoles: admin\n\nAuth: Bearer access token required\n\nQuery params: page, limit\n\nNote: [NEW] History is paginated and includes both dry-run and apply records.",
+            "description": "Purpose: List persisted school onboarding dry-run and apply attempts with summary metadata for admin audit and retry flows.\n\nRoles: admin\n\nAuth: Bearer access token required\n\nQuery params: page, limit\n\nNote: [NEW] History is paginated and includes both dry-run and apply records.\n\nNote: [NEW] Each row includes status, canApply, and summary metadata.",
             "url": {
               "raw": "{{baseUrl}}/admin-imports/school-onboarding/history",
               "host": [
@@ -4337,7 +4337,7 @@
                 "value": "Bearer {{accessToken}}"
               }
             ],
-            "description": "Purpose: Return one persisted school onboarding import run, including its result summary, issues, entity counts, and dry-run linkage when applicable.\n\nRoles: admin\n\nAuth: Bearer access token required\n\nNote: [NEW] Use this to reopen dry-run results or applied audit records without recomputing them.",
+            "description": "Purpose: Return one persisted school onboarding import run, including its result summary, issues, entity counts, and dry-run linkage when applicable.\n\nRoles: admin\n\nAuth: Bearer access token required\n\nNote: [NEW] Use this to reopen dry-run results or applied audit records without recomputing them.\n\nNote: [NEW] The nested result includes status, canApply, summary, issues, and alreadyApplied when relevant.",
             "url": {
               "raw": "{{baseUrl}}/admin-imports/school-onboarding/history/{{importId}}",
               "host": [
@@ -4426,22 +4426,22 @@
                 },
                 {
                   "key": "assignedDate",
-                  "value": "2026-04-01",
+                  "value": "2026-04-06",
                   "description": "Filter by exact assigned date."
                 },
                 {
                   "key": "dueDate",
-                  "value": "2026-04-01",
+                  "value": "2026-04-06",
                   "description": "Filter by exact due date."
                 },
                 {
                   "key": "dateFrom",
-                  "value": "2026-04-01",
+                  "value": "2026-04-06",
                   "description": "Filter from date range."
                 },
                 {
                   "key": "dateTo",
-                  "value": "2026-04-01",
+                  "value": "2026-04-06",
                   "description": "Filter to date range."
                 }
               ]
@@ -4462,7 +4462,7 @@
                 "value": "application/json"
               }
             ],
-            "description": "Purpose: Create homework inside the active academic context. Teachers may omit teacherId and rely on the authenticated teacher profile. Admin teacherId accepts the teacher user id from /users?role=teacher or the legacy teacher profile id.\n\nRoles: admin, teacher\n\nAuth: Bearer access token required\n\nBody schema: CreateHomeworkRequest\n\nNote: academicYearId and semesterId may be omitted; the backend resolves the active academic context automatically.\n\nNote: If academicYearId or semesterId is sent, it must match the active context.\n\nNote: The selected subjectId must have an active subject offering for the resolved semester.\n\nNote: Admin frontend flows should send teacherId as the teacher user id returned by GET /users?role=teacher.",
+            "description": "Purpose: Create homework inside the active academic context. Teachers must omit teacherId and rely on the authenticated teacher profile. Admin teacherId accepts the teacher user id from /users?role=teacher or the legacy teacher profile id.\n\nRoles: admin, teacher\n\nAuth: Bearer access token required\n\nBody schema: CreateHomeworkRequest\n\nNote: academicYearId and semesterId may be omitted; the backend resolves the active academic context automatically.\n\nNote: If academicYearId or semesterId is sent, it must match the active context.\n\nNote: The selected subjectId must have an active subject offering for the resolved semester.\n\nNote: Admin frontend flows should send teacherId as the teacher user id returned by GET /users?role=teacher.\n\nNote: Teacher frontend flows must not send teacherId; the backend returns TEACHER_ID_NOT_ALLOWED if it is present.\n\nNote: Relevant domain errors include CLASS_YEAR_MISMATCH, SEMESTER_YEAR_MISMATCH, SUBJECT_GRADE_LEVEL_MISMATCH, SUBJECT_NOT_OFFERED_IN_SEMESTER, TEACHER_ID_REQUIRED, TEACHER_ID_NOT_ALLOWED, and ACADEMIC_CONTEXT_NOT_CONFIGURED.",
             "url": {
               "raw": "{{baseUrl}}/homework",
               "host": [
@@ -4475,7 +4475,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"teacherId\": \"47\",\n  \"classId\": \"1\",\n  \"subjectId\": \"1\",\n  \"academicYearId\": \"1\",\n  \"semesterId\": \"1\",\n  \"title\": \"واجب الرياضيات 2\",\n  \"description\": \"حل الصفحات 12-14\",\n  \"assignedDate\": \"2026-04-01\",\n  \"dueDate\": \"2026-03-28\"\n}"
+              "raw": "{\n  \"teacherId\": \"47\",\n  \"classId\": \"1\",\n  \"subjectId\": \"1\",\n  \"academicYearId\": \"1\",\n  \"semesterId\": \"1\",\n  \"title\": \"واجب الرياضيات 2\",\n  \"description\": \"حل الصفحات 12-14\",\n  \"assignedDate\": \"2026-04-06\",\n  \"dueDate\": \"2026-03-28\"\n}"
             }
           }
         },
@@ -4517,7 +4517,7 @@
                 "value": "application/json"
               }
             ],
-            "description": "Purpose: Create or update the homework submission roster.\n\nRoles: admin, teacher\n\nAuth: Bearer access token required\n\nBody schema: SaveHomeworkSubmissionsRequest",
+            "description": "Purpose: Create or update the homework submission roster.\n\nRoles: admin, teacher\n\nAuth: Bearer access token required\n\nBody schema: SaveHomeworkSubmissionsRequest\n\nNote: Only students in the homework roster are allowed.\n\nNote: Relevant domain errors include HOMEWORK_SUBMISSION_DUPLICATE_STUDENT and HOMEWORK_SUBMISSION_STUDENT_NOT_ALLOWED.",
             "url": {
               "raw": "{{baseUrl}}/homework/{{homeworkId}}/submissions",
               "host": [
@@ -4532,7 +4532,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"records\": [\n    {\n      \"studentId\": \"1\",\n      \"status\": \"submitted\",\n      \"submittedAt\": \"2026-04-01\",\n      \"notes\": \"تم التسليم\"\n    },\n    {\n      \"studentId\": \"2\",\n      \"status\": \"late\",\n      \"submittedAt\": \"2026-04-01\",\n      \"notes\": \"تسليم متأخر\"\n    }\n  ]\n}"
+              "raw": "{\n  \"records\": [\n    {\n      \"studentId\": \"1\",\n      \"status\": \"submitted\",\n      \"submittedAt\": \"2026-04-06\",\n      \"notes\": \"تم التسليم\"\n    },\n    {\n      \"studentId\": \"2\",\n      \"status\": \"late\",\n      \"submittedAt\": \"2026-04-06\",\n      \"notes\": \"تسليم متأخر\"\n    }\n  ]\n}"
             }
           }
         },
@@ -4833,7 +4833,7 @@
                 "value": "Bearer {{accessToken}}"
               }
             ],
-            "description": "Purpose: Return the parent dashboard summary surface.\n\nRoles: parent\n\nAuth: Bearer access token required",
+            "description": "Purpose: Return the parent dashboard summary surface.\n\nRoles: parent\n\nAuth: Bearer access token required\n\nNote: The dashboard only includes students linked to the authenticated parent profile.",
             "url": {
               "raw": "{{baseUrl}}/reporting/dashboards/parent/me",
               "host": [
@@ -4859,7 +4859,7 @@
                 "value": "Bearer {{accessToken}}"
               }
             ],
-            "description": "Purpose: Return the child profile payload for the authenticated parent.\n\nRoles: parent\n\nAuth: Bearer access token required",
+            "description": "Purpose: Return the child profile payload for the authenticated parent.\n\nRoles: parent\n\nAuth: Bearer access token required\n\nNote: The child must be linked to the authenticated parent or the request is denied.",
             "url": {
               "raw": "{{baseUrl}}/reporting/dashboards/parent/me/students/{{studentId}}/profile",
               "host": [
@@ -4888,7 +4888,7 @@
                 "value": "Bearer {{accessToken}}"
               }
             ],
-            "description": "Purpose: Return the child assessment summary for the authenticated parent.\n\nRoles: parent\n\nAuth: Bearer access token required",
+            "description": "Purpose: Return the child assessment summary for the authenticated parent.\n\nRoles: parent\n\nAuth: Bearer access token required\n\nNote: The child must be linked to the authenticated parent or the request is denied.",
             "url": {
               "raw": "{{baseUrl}}/reporting/dashboards/parent/me/students/{{studentId}}/reports/assessment-summary",
               "host": [
@@ -4918,7 +4918,7 @@
                 "value": "Bearer {{accessToken}}"
               }
             ],
-            "description": "Purpose: Return the child attendance summary for the authenticated parent.\n\nRoles: parent\n\nAuth: Bearer access token required",
+            "description": "Purpose: Return the child attendance summary for the authenticated parent.\n\nRoles: parent\n\nAuth: Bearer access token required\n\nNote: The child must be linked to the authenticated parent or the request is denied.",
             "url": {
               "raw": "{{baseUrl}}/reporting/dashboards/parent/me/students/{{studentId}}/reports/attendance-summary",
               "host": [
@@ -4948,7 +4948,7 @@
                 "value": "Bearer {{accessToken}}"
               }
             ],
-            "description": "Purpose: Return the child behavior summary for the authenticated parent.\n\nRoles: parent\n\nAuth: Bearer access token required",
+            "description": "Purpose: Return the child behavior summary for the authenticated parent.\n\nRoles: parent\n\nAuth: Bearer access token required\n\nNote: The child must be linked to the authenticated parent or the request is denied.",
             "url": {
               "raw": "{{baseUrl}}/reporting/dashboards/parent/me/students/{{studentId}}/reports/behavior-summary",
               "host": [
@@ -4978,7 +4978,7 @@
                 "value": "Bearer {{accessToken}}"
               }
             ],
-            "description": "Purpose: Return the supervisor dashboard surface.\n\nRoles: supervisor\n\nAuth: Bearer access token required",
+            "description": "Purpose: Return the supervisor dashboard surface.\n\nRoles: supervisor\n\nAuth: Bearer access token required\n\nNote: Supervisor student access is limited to class-year assignments owned by the authenticated supervisor.",
             "url": {
               "raw": "{{baseUrl}}/reporting/dashboards/supervisor/me",
               "host": [
