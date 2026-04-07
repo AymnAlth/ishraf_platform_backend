@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Ishraf Platform Backend API",
-    "_postman_id": "78e1dfea-1957-4017-b430-cd5bd3769b30",
+    "_postman_id": "591de9e5-e016-4267-9d5b-2d558e12be18",
     "description": "Full Postman collection covering every live backend endpoint.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
@@ -141,6 +141,10 @@
     {
       "key": "dryRunId",
       "value": ""
+    },
+    {
+      "key": "group",
+      "value": "imports"
     },
     {
       "key": "otherUserId",
@@ -2061,6 +2065,186 @@
       ]
     },
     {
+      "name": "System Settings",
+      "description": "Admin-only global feature flags, settings audit, and integration outbox summary endpoints.",
+      "item": [
+        {
+          "name": "[NEW] List System Settings",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "description": "Purpose: Return every implemented system settings group with effective values merged from code defaults and stored overrides.\n\nRoles: admin\n\nAuth: Bearer access token required\n\nNote: [NEW] Step 1 is global-only and currently implements pushNotifications, transportMaps, analytics, and imports.\n\nNote: [NEW] Each entry returns the effective value, the code default, and whether the source is default or override.",
+            "url": {
+              "raw": "{{baseUrl}}/system-settings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "system-settings"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "[NEW] Get System Settings Group",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "description": "Purpose: Return one system settings group with effective values, defaults, descriptions, and override metadata.\n\nRoles: admin\n\nAuth: Bearer access token required\n\nNote: [NEW] Allowed groups are pushNotifications, transportMaps, analytics, and imports.",
+            "url": {
+              "raw": "{{baseUrl}}/system-settings/{{group}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "system-settings",
+                "{{group}}"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "[NEW] Update System Settings Group",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "Purpose: Update one system settings group by writing overrides only for values that differ from code defaults.\n\nRoles: admin\n\nAuth: Bearer access token required\n\nBody schema: UpdateSystemSettingsGroupRequest\n\nNote: [NEW] The request body is group-specific. Use UpdatePushNotificationsSettingsRequest, UpdateTransportMapsSettingsRequest, UpdateAnalyticsSettingsRequest, or UpdateImportsSettingsRequest depending on :group.\n\nNote: [NEW] Sending a value equal to the code default clears any existing override instead of storing redundant data.\n\nNote: [NEW] The first live consumer is imports.schoolOnboardingEnabled. When it is false, school onboarding import endpoints reject with 409 FEATURE_DISABLED.",
+            "url": {
+              "raw": "{{baseUrl}}/system-settings/{{group}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "system-settings",
+                "{{group}}"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Freeze onboarding during rollout\",\n  \"values\": {\n    \"schoolOnboardingEnabled\": false\n  }\n}"
+            }
+          }
+        },
+        {
+          "name": "[NEW] List System Settings Audit",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "description": "Purpose: List append-only audit rows for setting changes with pagination and optional filters.\n\nRoles: admin\n\nAuth: Bearer access token required\n\nQuery params: page, limit, sortBy, sortOrder, group, key, changedByUserId, since, until\n\nNote: [NEW] Audit rows capture created, updated, and cleared actions.\n\nNote: [NEW] requestId lets admin trace one change batch across multiple keys.",
+            "url": {
+              "raw": "{{baseUrl}}/system-settings/audit",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "system-settings",
+                "audit"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Pagination page number."
+                },
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "description": "Pagination page size."
+                },
+                {
+                  "key": "sortBy",
+                  "value": "createdAt",
+                  "description": "Sort field whitelist."
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "desc",
+                  "description": "Sort direction."
+                },
+                {
+                  "key": "group",
+                  "value": "imports",
+                  "description": "Filter audit rows by settings group."
+                },
+                {
+                  "key": "key",
+                  "value": "schoolOnboardingEnabled",
+                  "description": "Filter audit rows by setting key."
+                },
+                {
+                  "key": "changedByUserId",
+                  "value": "1",
+                  "description": "Filter audit rows by actor user id."
+                },
+                {
+                  "key": "since",
+                  "value": "2026-04-07T00:27:25.627Z",
+                  "description": "Filter audit rows created on or after this ISO datetime."
+                },
+                {
+                  "key": "until",
+                  "value": "2026-04-07T00:27:25.627Z",
+                  "description": "Filter audit rows created on or before this ISO datetime."
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "[NEW] Get Integration Feature Status",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "description": "Purpose: Return feature-enabled status for external integration groups together with pending and failed integration outbox counts.\n\nRoles: admin\n\nAuth: Bearer access token required\n\nNote: [NEW] This surface only covers pushNotifications, transportMaps, and analytics.\n\nNote: [NEW] providerConfigured is intentionally not returned in step 1 because provider secrets still live only in env and no provider phase has been wired yet.",
+            "url": {
+              "raw": "{{baseUrl}}/system-settings/integrations/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "system-settings",
+                "integrations",
+                "status"
+              ],
+              "query": []
+            }
+          }
+        }
+      ]
+    },
+    {
       "name": "Attendance",
       "description": "Session-based attendance endpoints used by admin, teachers, and supervisors.",
       "item": [
@@ -2165,17 +2349,17 @@
                 },
                 {
                   "key": "sessionDate",
-                  "value": "2026-04-06",
+                  "value": "2026-04-07",
                   "description": "Filter by exact session date."
                 },
                 {
                   "key": "dateFrom",
-                  "value": "2026-04-06",
+                  "value": "2026-04-07",
                   "description": "Filter from session date."
                 },
                 {
                   "key": "dateTo",
-                  "value": "2026-04-06",
+                  "value": "2026-04-07",
                   "description": "Filter to session date."
                 }
               ]
@@ -2210,7 +2394,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"classId\": \"1\",\n  \"subjectId\": \"1\",\n  \"academicYearId\": \"1\",\n  \"semesterId\": \"1\",\n  \"sessionDate\": \"2026-04-06\",\n  \"periodNo\": 1,\n  \"title\": \"حصة الرياضيات\",\n  \"notes\": \"اختبار سريع\",\n  \"teacherId\": \"47\"\n}"
+              "raw": "{\n  \"classId\": \"1\",\n  \"subjectId\": \"1\",\n  \"academicYearId\": \"1\",\n  \"semesterId\": \"1\",\n  \"sessionDate\": \"2026-04-07\",\n  \"periodNo\": 1,\n  \"title\": \"حصة الرياضيات\",\n  \"notes\": \"اختبار سريع\",\n  \"teacherId\": \"47\"\n}"
             }
           }
         },
@@ -2351,17 +2535,17 @@
                 },
                 {
                   "key": "assessmentDate",
-                  "value": "2026-04-06",
+                  "value": "2026-04-07",
                   "description": "Filter by exact assessment date."
                 },
                 {
                   "key": "dateFrom",
-                  "value": "2026-04-06",
+                  "value": "2026-04-07",
                   "description": "Filter from assessment date."
                 },
                 {
                   "key": "dateTo",
-                  "value": "2026-04-06",
+                  "value": "2026-04-07",
                   "description": "Filter to assessment date."
                 },
                 {
@@ -2400,7 +2584,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"assessmentTypeId\": \"1\",\n  \"classId\": \"1\",\n  \"subjectId\": \"1\",\n  \"teacherId\": \"47\",\n  \"academicYearId\": \"1\",\n  \"semesterId\": \"1\",\n  \"title\": \"اختبار قصير 2\",\n  \"description\": \"الوحدة الثانية\",\n  \"maxScore\": 20,\n  \"weight\": 10,\n  \"assessmentDate\": \"2026-04-06\",\n  \"isPublished\": true\n}"
+              "raw": "{\n  \"assessmentTypeId\": \"1\",\n  \"classId\": \"1\",\n  \"subjectId\": \"1\",\n  \"teacherId\": \"47\",\n  \"academicYearId\": \"1\",\n  \"semesterId\": \"1\",\n  \"title\": \"اختبار قصير 2\",\n  \"description\": \"الوحدة الثانية\",\n  \"maxScore\": 20,\n  \"weight\": 10,\n  \"assessmentDate\": \"2026-04-07\",\n  \"isPublished\": true\n}"
             }
           }
         },
@@ -2715,17 +2899,17 @@
                 },
                 {
                   "key": "behaviorDate",
-                  "value": "2026-04-06",
+                  "value": "2026-04-07",
                   "description": "Filter by exact behavior date."
                 },
                 {
                   "key": "dateFrom",
-                  "value": "2026-04-06",
+                  "value": "2026-04-07",
                   "description": "Filter from behavior date."
                 },
                 {
                   "key": "dateTo",
-                  "value": "2026-04-06",
+                  "value": "2026-04-07",
                   "description": "Filter to behavior date."
                 }
               ]
@@ -2760,7 +2944,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"studentId\": \"1\",\n  \"behaviorCategoryId\": \"1\",\n  \"academicYearId\": \"1\",\n  \"semesterId\": \"1\",\n  \"description\": \"تأخر عن الطابور\",\n  \"severity\": 3,\n  \"behaviorDate\": \"2026-04-06\",\n  \"teacherId\": \"47\"\n}"
+              "raw": "{\n  \"studentId\": \"1\",\n  \"behaviorCategoryId\": \"1\",\n  \"academicYearId\": \"1\",\n  \"semesterId\": \"1\",\n  \"description\": \"تأخر عن الطابور\",\n  \"severity\": 3,\n  \"behaviorDate\": \"2026-04-07\",\n  \"teacherId\": \"47\"\n}"
             }
           }
         },
@@ -2882,7 +3066,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"studentId\": \"1\",\n  \"routeId\": \"1\",\n  \"stopId\": \"1\",\n  \"startDate\": \"2026-04-06\",\n  \"endDate\": null\n}"
+              "raw": "{\n  \"studentId\": \"1\",\n  \"routeId\": \"1\",\n  \"stopId\": \"1\",\n  \"startDate\": \"2026-04-07\",\n  \"endDate\": null\n}"
             }
           }
         },
@@ -2916,7 +3100,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"endDate\": \"2026-04-06\"\n}"
+              "raw": "{\n  \"endDate\": \"2026-04-07\"\n}"
             }
           }
         },
@@ -3053,7 +3237,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"busId\": \"1\",\n  \"routeId\": \"1\",\n  \"startDate\": \"2026-04-06\",\n  \"endDate\": null\n}"
+              "raw": "{\n  \"busId\": \"1\",\n  \"routeId\": \"1\",\n  \"startDate\": \"2026-04-07\",\n  \"endDate\": null\n}"
             }
           }
         },
@@ -3087,7 +3271,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"endDate\": \"2026-04-06\"\n}"
+              "raw": "{\n  \"endDate\": \"2026-04-07\"\n}"
             }
           }
         },
@@ -3381,17 +3565,17 @@
                 },
                 {
                   "key": "tripDate",
-                  "value": "2026-04-06",
+                  "value": "2026-04-07",
                   "description": "Filter by exact trip date."
                 },
                 {
                   "key": "dateFrom",
-                  "value": "2026-04-06",
+                  "value": "2026-04-07",
                   "description": "Filter from trip date."
                 },
                 {
                   "key": "dateTo",
-                  "value": "2026-04-06",
+                  "value": "2026-04-07",
                   "description": "Filter to trip date."
                 }
               ]
@@ -3426,7 +3610,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"busId\": \"1\",\n  \"routeId\": \"1\",\n  \"tripDate\": \"2026-04-06\",\n  \"tripType\": \"pickup\"\n}"
+              "raw": "{\n  \"busId\": \"1\",\n  \"routeId\": \"1\",\n  \"tripDate\": \"2026-04-07\",\n  \"tripType\": \"pickup\"\n}"
             }
           }
         },
@@ -3667,7 +3851,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"routeAssignmentId\": \"1\",\n  \"tripDate\": \"2026-04-06\",\n  \"tripType\": \"pickup\"\n}"
+              "raw": "{\n  \"routeAssignmentId\": \"1\",\n  \"tripDate\": \"2026-04-07\",\n  \"tripType\": \"pickup\"\n}"
             }
           }
         }
@@ -4210,7 +4394,7 @@
                 "value": "application/json"
               }
             ],
-            "description": "Purpose: Apply a previously validated school onboarding dry-run in one all-or-nothing transaction, with idempotent retry semantics.\n\nRoles: admin\n\nAuth: Bearer access token required\n\nBody schema: SchoolOnboardingApplyRequest\n\nNote: [NEW] dryRunId must reference a validated dry-run result.\n\nNote: [NEW] Repeated apply calls for the same successful dryRunId return the previous apply result with alreadyApplied=true.\n\nNote: [NEW] The import is create-only in v1 and does not sync, update, or delete existing records.\n\nNote: [NEW] If dryRunId does not reference a validated dry-run, the request fails before writing anything.",
+            "description": "Purpose: Apply a previously validated school onboarding dry-run in one all-or-nothing transaction, with idempotent retry semantics.\n\nRoles: admin\n\nAuth: Bearer access token required\n\nBody schema: SchoolOnboardingApplyRequest\n\nNote: [NEW] dryRunId must reference a validated dry-run result.\n\nNote: [NEW] Repeated apply calls for the same successful dryRunId return the previous apply result with alreadyApplied=true.\n\nNote: [NEW] The import is create-only in v1 and does not sync, update, or delete existing records.\n\nNote: [NEW] If dryRunId does not reference a validated dry-run, the request fails before writing anything.\n\nNote: [NEW] If imports.schoolOnboardingEnabled is false in system settings, this endpoint rejects with 409 FEATURE_DISABLED.",
             "url": {
               "raw": "{{baseUrl}}/admin-imports/school-onboarding/apply",
               "host": [
@@ -4257,7 +4441,7 @@
                 "value": "application/json"
               }
             ],
-            "description": "Purpose: Validate a structured school onboarding workbook payload on the server, resolve natural keys, and persist an auditable dry-run result without writing domain data.\n\nRoles: admin\n\nAuth: Bearer access token required\n\nBody schema: SchoolOnboardingDryRunRequest\n\nNote: [NEW] This endpoint accepts structured workbook JSON, not raw Excel binary upload.\n\nNote: [NEW] v1 is create-only and blocks duplicate/conflicting existing records.\n\nNote: [NEW] The returned importId is the dryRunId required by the apply endpoint.\n\nNote: [NEW] Frontend should key the result screen off status, canApply, summary, sheetSummaries, and issues.",
+            "description": "Purpose: Validate a structured school onboarding workbook payload on the server, resolve natural keys, and persist an auditable dry-run result without writing domain data.\n\nRoles: admin\n\nAuth: Bearer access token required\n\nBody schema: SchoolOnboardingDryRunRequest\n\nNote: [NEW] This endpoint accepts structured workbook JSON, not raw Excel binary upload.\n\nNote: [NEW] v1 is create-only and blocks duplicate/conflicting existing records.\n\nNote: [NEW] The returned importId is the dryRunId required by the apply endpoint.\n\nNote: [NEW] Frontend should key the result screen off status, canApply, summary, sheetSummaries, and issues.\n\nNote: [NEW] If imports.schoolOnboardingEnabled is false in system settings, this endpoint rejects with 409 FEATURE_DISABLED.",
             "url": {
               "raw": "{{baseUrl}}/admin-imports/school-onboarding/dry-run",
               "host": [
@@ -4301,7 +4485,7 @@
                 "value": "Bearer {{accessToken}}"
               }
             ],
-            "description": "Purpose: List persisted school onboarding dry-run and apply attempts with summary metadata for admin audit and retry flows.\n\nRoles: admin\n\nAuth: Bearer access token required\n\nQuery params: page, limit\n\nNote: [NEW] History is paginated and includes both dry-run and apply records.\n\nNote: [NEW] Each row includes status, canApply, and summary metadata.",
+            "description": "Purpose: List persisted school onboarding dry-run and apply attempts with summary metadata for admin audit and retry flows.\n\nRoles: admin\n\nAuth: Bearer access token required\n\nQuery params: page, limit\n\nNote: [NEW] History is paginated and includes both dry-run and apply records.\n\nNote: [NEW] Each row includes status, canApply, and summary metadata.\n\nNote: [NEW] If imports.schoolOnboardingEnabled is false in system settings, this endpoint rejects with 409 FEATURE_DISABLED.",
             "url": {
               "raw": "{{baseUrl}}/admin-imports/school-onboarding/history",
               "host": [
@@ -4337,7 +4521,7 @@
                 "value": "Bearer {{accessToken}}"
               }
             ],
-            "description": "Purpose: Return one persisted school onboarding import run, including its result summary, issues, entity counts, and dry-run linkage when applicable.\n\nRoles: admin\n\nAuth: Bearer access token required\n\nNote: [NEW] Use this to reopen dry-run results or applied audit records without recomputing them.\n\nNote: [NEW] The nested result includes status, canApply, summary, issues, and alreadyApplied when relevant.",
+            "description": "Purpose: Return one persisted school onboarding import run, including its result summary, issues, entity counts, and dry-run linkage when applicable.\n\nRoles: admin\n\nAuth: Bearer access token required\n\nNote: [NEW] Use this to reopen dry-run results or applied audit records without recomputing them.\n\nNote: [NEW] The nested result includes status, canApply, summary, issues, and alreadyApplied when relevant.\n\nNote: [NEW] If imports.schoolOnboardingEnabled is false in system settings, this endpoint rejects with 409 FEATURE_DISABLED.",
             "url": {
               "raw": "{{baseUrl}}/admin-imports/school-onboarding/history/{{importId}}",
               "host": [
@@ -4426,22 +4610,22 @@
                 },
                 {
                   "key": "assignedDate",
-                  "value": "2026-04-06",
+                  "value": "2026-04-07",
                   "description": "Filter by exact assigned date."
                 },
                 {
                   "key": "dueDate",
-                  "value": "2026-04-06",
+                  "value": "2026-04-07",
                   "description": "Filter by exact due date."
                 },
                 {
                   "key": "dateFrom",
-                  "value": "2026-04-06",
+                  "value": "2026-04-07",
                   "description": "Filter from date range."
                 },
                 {
                   "key": "dateTo",
-                  "value": "2026-04-06",
+                  "value": "2026-04-07",
                   "description": "Filter to date range."
                 }
               ]
@@ -4475,7 +4659,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"teacherId\": \"47\",\n  \"classId\": \"1\",\n  \"subjectId\": \"1\",\n  \"academicYearId\": \"1\",\n  \"semesterId\": \"1\",\n  \"title\": \"واجب الرياضيات 2\",\n  \"description\": \"حل الصفحات 12-14\",\n  \"assignedDate\": \"2026-04-06\",\n  \"dueDate\": \"2026-03-28\"\n}"
+              "raw": "{\n  \"teacherId\": \"47\",\n  \"classId\": \"1\",\n  \"subjectId\": \"1\",\n  \"academicYearId\": \"1\",\n  \"semesterId\": \"1\",\n  \"title\": \"واجب الرياضيات 2\",\n  \"description\": \"حل الصفحات 12-14\",\n  \"assignedDate\": \"2026-04-07\",\n  \"dueDate\": \"2026-03-28\"\n}"
             }
           }
         },
@@ -4532,7 +4716,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"records\": [\n    {\n      \"studentId\": \"1\",\n      \"status\": \"submitted\",\n      \"submittedAt\": \"2026-04-06\",\n      \"notes\": \"تم التسليم\"\n    },\n    {\n      \"studentId\": \"2\",\n      \"status\": \"late\",\n      \"submittedAt\": \"2026-04-06\",\n      \"notes\": \"تسليم متأخر\"\n    }\n  ]\n}"
+              "raw": "{\n  \"records\": [\n    {\n      \"studentId\": \"1\",\n      \"status\": \"submitted\",\n      \"submittedAt\": \"2026-04-07\",\n      \"notes\": \"تم التسليم\"\n    },\n    {\n      \"studentId\": \"2\",\n      \"status\": \"late\",\n      \"submittedAt\": \"2026-04-07\",\n      \"notes\": \"تسليم متأخر\"\n    }\n  ]\n}"
             }
           }
         },

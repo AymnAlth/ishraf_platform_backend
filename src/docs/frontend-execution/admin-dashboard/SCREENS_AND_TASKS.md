@@ -101,9 +101,37 @@
 - admin يجب أن ترسل `teacherId`.
 - submissions لا تقبل طلابًا خارج roster الواجب.
 
-## 6. Transport administration
+## 6. System settings control plane
 
-### 6.1 Static management
+1. افتح `GET /system-settings`
+2. اعرض groups الأربع الحالية:
+   - `pushNotifications`
+   - `transportMaps`
+   - `analytics`
+   - `imports`
+3. عند فتح group detail استخدم `GET /system-settings/:group`
+4. عند حفظ التعديل أرسل `PATCH /system-settings/:group` مع:
+   - `reason`
+   - `values`
+5. بعد الحفظ:
+   - أعد تحميل group نفسها
+   - أو أعد تحميل `GET /system-settings`
+6. استخدم `GET /system-settings/audit` لعرض trace التغييرات
+7. استخدم `GET /system-settings/integrations/status` لعرض feature flags + outbox counts للتكاملات الخارجية
+
+قاعدة:
+
+- هذه screens ليست part of daily operations؛ هي control plane إدارية عامة.
+
+قاعدة مهمة للـ onboarding:
+
+- إذا عطل admin القيمة `imports.schoolOnboardingEnabled`
+  - يجب أن تتوقف UI الخاصة بـ school onboarding import
+  - لأن كل endpoints الخاصة بها سترجع `409 FEATURE_DISABLED`
+
+## 7. Transport administration
+
+### 7.1 Static management
 
 1. manage buses
 2. manage routes
@@ -112,7 +140,7 @@
 5. manage route assignments
 6. maintain student home locations
 
-### 6.2 Live operations
+### 7.2 Live operations
 
 1. create trip manually أو استخدم `ensure-daily`
 2. inspect detail and roster
@@ -124,7 +152,7 @@
 
 - الرحلات live operations قد تستخدمها الإدارة للمراقبة أو التدخل، لكن التطبيق الأساسي لها هو driver flow.
 
-## 7. Communication center
+## 8. Communication center
 
 1. resolve recipients
 2. send direct messages
@@ -132,22 +160,29 @@
 4. publish announcements
 5. read inbox/sent/notifications
 
-## 8. Monitoring and reporting
+## 9. Monitoring and reporting
 
 1. use admin dashboard for summary
 2. use admin preview parent/teacher/supervisor routes للمراقبة read-only
 3. use student-scoped reporting routes للتحقيق في طالب محدد
 
-## 9. School onboarding import
+## 10. School onboarding import
 
 1. frontend local parse/validation
-2. `POST /admin-imports/school-onboarding/dry-run`
-3. اعرض:
+2. optionally read `GET /system-settings/imports` أو rely on previous control-plane screen state للتأكد أن `schoolOnboardingEnabled = true`
+3. `POST /admin-imports/school-onboarding/dry-run`
+4. اعرض:
    - `status`
    - `canApply`
    - `issues`
    - `summary`
    - `entityPlanCounts`
-4. لا تسمح بـ `apply` إلا إذا كانت dry-run صالحة
-5. `POST /admin-imports/school-onboarding/apply` باستخدام `dryRunId`
-6. استخدم `history` لعرض attempts السابقة أو reopen التفاصيل
+5. لا تسمح بـ `apply` إلا إذا كانت dry-run صالحة
+6. `POST /admin-imports/school-onboarding/apply` باستخدام `dryRunId`
+7. استخدم `history` لعرض attempts السابقة أو reopen التفاصيل
+
+قاعدة:
+
+- إذا رجعت endpoints import بـ `409 FEATURE_DISABLED`:
+  - لا تحاول retry loop
+  - اعرض أن feature أُغلقت من `System Settings > imports`

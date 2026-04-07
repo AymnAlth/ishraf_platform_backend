@@ -51,7 +51,10 @@ export const databaseTables = {
   announcements: `${databaseConfig.schema}.announcements`,
   announcementTargetRoles: `${databaseConfig.schema}.announcement_target_roles`,
   notifications: `${databaseConfig.schema}.notifications`,
-  schoolOnboardingImportRuns: `${databaseConfig.schema}.school_onboarding_import_runs`
+  schoolOnboardingImportRuns: `${databaseConfig.schema}.school_onboarding_import_runs`,
+  systemSettings: `${databaseConfig.schema}.system_settings`,
+  systemSettingAuditLogs: `${databaseConfig.schema}.system_setting_audit_logs`,
+  integrationOutbox: `${databaseConfig.schema}.integration_outbox`
 } as const;
 
 export const databaseViews = {

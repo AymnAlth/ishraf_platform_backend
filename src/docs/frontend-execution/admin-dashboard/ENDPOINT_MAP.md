@@ -102,9 +102,55 @@
 - `student_academic_enrollments` هي النموذج الأكاديمي الانتقالي الصحيح، لا تعتمد على `students.class_id` وحدها في UI الجديدة.
 - `parentId` في surfaces الربط قد يقبل user id أو legacy profile id للتوافق، لكن الواجهة الجديدة يجب أن تستخدم `users.id`.
 
-## 6. Daily academic operations
+## 6. System settings control plane
 
-### 6.1 قواعد تشغيلية مشتركة
+Endpoints:
+
+- `GET /system-settings`
+- `GET /system-settings/:group`
+- `PATCH /system-settings/:group`
+- `GET /system-settings/audit`
+- `GET /system-settings/integrations/status`
+
+المجموعات المنفذة حاليًا:
+
+- `pushNotifications`
+- `transportMaps`
+- `analytics`
+- `imports`
+
+قواعد:
+
+- هذه surfaces `admin-only` و`global-only`.
+- `GET /system-settings` يعيد effective values:
+  - `value`
+  - `defaultValue`
+  - `source = default | override`
+- `PATCH /system-settings/:group` يجب أن ترسل:
+  - `reason`
+  - `values`
+- body في patch ليست واحدة لكل groups:
+  - `pushNotifications`: `fcmEnabled`, `transportRealtimeEnabled`
+  - `transportMaps`: `googleMapsEtaEnabled`
+  - `analytics`: `aiAnalyticsEnabled`
+  - `imports`: `schoolOnboardingEnabled`, `csvImportEnabled`
+- إذا كانت القيمة المرسلة تساوي default، الباك يزيل override الموجودة بدل تخزين override زائدة.
+- `GET /system-settings/audit` هي surface trace/read-only لتاريخ التغيير.
+- `GET /system-settings/integrations/status` لا يعيد secrets ولا `providerConfigured` في هذه المرحلة؛ فقط feature flags + outbox counts.
+
+أول consumer حي:
+
+- `imports.schoolOnboardingEnabled`
+- إذا أصبحت `false`:
+  - `POST /admin-imports/school-onboarding/dry-run`
+  - `POST /admin-imports/school-onboarding/apply`
+  - `GET /admin-imports/school-onboarding/history`
+  - `GET /admin-imports/school-onboarding/history/:importId`
+  سترجع `409 FEATURE_DISABLED`
+
+## 7. Daily academic operations
+
+### 7.1 قواعد تشغيلية مشتركة
 
 - هذه السطوح تعتمد `Active Academic Context`.
 - `academicYearId` و`semesterId`:
@@ -114,7 +160,7 @@
 - إذا لم يكن السياق مهيأ:
   - سيعود `409 ACADEMIC_CONTEXT_NOT_CONFIGURED`
 
-### 6.2 teacherId rule للوحة الإدارة
+### 7.2 teacherId rule للوحة الإدارة
 
 في `attendance`, `assessments`, `homework`:
 
@@ -122,7 +168,7 @@
 - أرسل `teacherId` من `GET /users?role=teacher`
 - لا تعتمد على profile ids في UI الجديدة
 
-### 6.3 Attendance
+### 7.3 Attendance
 
 Relevant enum:
 
@@ -158,7 +204,7 @@ Domain errors:
 
 - `PUT /attendance/sessions/:id/records` تتطلب full snapshot للـ roster: كل طالب active في الجلسة يجب أن يظهر مرة واحدة بالضبط.
 
-### 6.4 Assessments
+### 7.4 Assessments
 
 Endpoints:
 
@@ -192,7 +238,7 @@ Domain errors:
 - admin-created assessment يجب أن يرسل `teacherId`.
 - `PUT /assessments/:id/scores` لا تتطلب full snapshot لكل الطلاب، لكنها ترفض أي طالب خارج roster الاختبار.
 
-### 6.5 Behavior
+### 7.5 Behavior
 
 Endpoints:
 
@@ -209,7 +255,7 @@ Endpoints:
 - behavior أيضًا surface تشغيلية مرتبطة بالسياق النشط.
 - إذا أرسلت `academicYearId` أو `semesterId` في إنشاء السجل، يجب أن تطابقا السياق النشط.
 
-### 6.6 Homework
+### 7.6 Homework
 
 Relevant enum:
 
@@ -245,9 +291,9 @@ Domain errors:
 - admin-created homework يجب أن ترسل `teacherId`.
 - `PUT /homework/:id/submissions` لا تقبل طلابًا خارج roster الواجب.
 
-## 7. Transport administration and live operations
+## 8. Transport administration and live operations
 
-### 7.1 Transport enums
+### 8.1 Transport enums
 
 | Enum | Values |
 | --- | --- |
@@ -257,7 +303,7 @@ Domain errors:
 | `TRIP_STUDENT_EVENT_TYPE` | `boarded`, `dropped_off`, `absent` |
 | `HOME_LOCATION_STATUS` | `pending`, `approved`, `rejected` |
 
-### 7.2 Admin-only transport management
+### 8.2 Admin-only transport management
 
 - `POST /transport/buses`
 - `GET /transport/buses`
@@ -275,7 +321,7 @@ Domain errors:
 - `PUT /transport/students/:studentId/home-location`
 - `DELETE /transport/students/:studentId/home-location`
 
-### 7.3 Live trip operations available to admin and driver
+### 8.3 Live trip operations available to admin and driver
 
 - `POST /transport/trips`
 - `POST /transport/trips/ensure-daily`
@@ -310,7 +356,7 @@ Transport domain errors:
 | `TRIP_STUDENT_ROUTE_MISMATCH` | route assignment الخاصة بالطالب لا تطابق route الرحلة |
 | `TRIP_EVENT_STOP_ROUTE_MISMATCH` | stop المرسلة لا تتبع route الرحلة |
 
-## 8. Communication
+## 9. Communication
 
 - `GET /communication/recipients`
 - `POST /communication/messages`
@@ -332,7 +378,7 @@ Transport domain errors:
 - `bulk messages` و`bulk notifications` هي authoritative backend surfaces.
 - لا تنفذ loops من الفرونت بدلها.
 
-## 9. Reporting and monitoring
+## 10. Reporting and monitoring
 
 - `GET /reporting/dashboards/admin/me`
 - `GET /reporting/admin-preview/parents/:parentUserId/dashboard`
@@ -354,7 +400,7 @@ Transport domain errors:
 - `admin-preview` surfaces read-only.
 - `parentUserId`, `teacherUserId`, `supervisorUserId` في preview routes هي `users.id`.
 
-## 10. School onboarding import
+## 11. School onboarding import
 
 - `POST /admin-imports/school-onboarding/dry-run`
 - `POST /admin-imports/school-onboarding/apply`
@@ -382,3 +428,5 @@ Transport domain errors:
 - `apply` لا تعيد إرسال workbook كاملة.
 - `apply` تتطلب `dryRunId` لعملية dry-run ناجحة.
 - v1 `create-only` ولا تنفذ sync أو update أو delete.
+- إذا كانت `imports.schoolOnboardingEnabled = false` من `system-settings`:
+  - كل surfaces الخاصة بـ school onboarding import ترفض بـ `409 FEATURE_DISABLED`

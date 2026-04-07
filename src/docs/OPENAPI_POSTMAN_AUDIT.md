@@ -1,15 +1,15 @@
 # OpenAPI / Postman Audit
 
-- Audit date: 2026-04-06
-- Runtime endpoint count: 150
+- Audit date: 2026-04-07
+- Runtime endpoint count: 155
 - Scope: root health endpoints plus every router registered in `src/app/module-registry.ts`
 
 ## Coverage Summary
 
 | Artifact | Before | After |
 | --- | --- | --- |
-| Master OpenAPI | 150/150 | 150/150 |
-| Master Postman | 150/150 | 150/150 |
+| Master OpenAPI | 155/155 | 155/155 |
+| Master Postman | 155/155 | 155/155 |
 | Auth OpenAPI | 7/7 | 7/7 |
 | Auth Postman | 7/7 | 7/7 |
 
@@ -22,6 +22,7 @@
 | Users | 5 | 5/5 | 5/5 | 5/5 | 5/5 |
 | Academic Structure | 32 | 32/32 | 32/32 | 32/32 | 32/32 |
 | Students | 13 | 13/13 | 13/13 | 13/13 | 13/13 |
+| System Settings | 5 | 5/5 | 5/5 | 5/5 | 5/5 |
 | Attendance | 5 | 5/5 | 5/5 | 5/5 | 5/5 |
 | Assessments | 8 | 8/8 | 8/8 | 8/8 | 8/8 |
 | Behavior | 7 | 7/7 | 7/7 | 7/7 | 7/7 |

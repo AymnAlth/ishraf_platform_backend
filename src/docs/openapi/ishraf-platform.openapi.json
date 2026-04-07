@@ -37,6 +37,10 @@
       "description": "Admin-only student lifecycle, parent linking, and promotion endpoints."
     },
     {
+      "name": "System Settings",
+      "description": "Admin-only global feature flags, settings audit, and integration outbox summary endpoints."
+    },
+    {
       "name": "Attendance",
       "description": "Session-based attendance endpoints used by admin, teachers, and supervisors."
     },
@@ -86,12 +90,12 @@
       "DateString": {
         "type": "string",
         "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-        "example": "2026-04-06"
+        "example": "2026-04-07"
       },
       "DateTimeString": {
         "type": "string",
         "format": "date-time",
-        "example": "2026-04-06T00:41:00.653Z"
+        "example": "2026-04-07T00:27:25.627Z"
       },
       "GenericObject": {
         "type": "object",
@@ -400,12 +404,12 @@
           "startDate": {
             "type": "string",
             "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-            "example": "2026-04-06"
+            "example": "2026-04-07"
           },
           "endDate": {
             "type": "string",
             "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-            "example": "2026-04-06"
+            "example": "2026-04-07"
           },
           "isActive": {
             "type": "boolean"
@@ -435,12 +439,12 @@
           "startDate": {
             "type": "string",
             "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-            "example": "2026-04-06"
+            "example": "2026-04-07"
           },
           "endDate": {
             "type": "string",
             "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-            "example": "2026-04-06"
+            "example": "2026-04-07"
           },
           "isActive": {
             "type": "boolean"
@@ -462,12 +466,12 @@
           "startDate": {
             "type": "string",
             "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-            "example": "2026-04-06"
+            "example": "2026-04-07"
           },
           "endDate": {
             "type": "string",
             "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-            "example": "2026-04-06"
+            "example": "2026-04-07"
           },
           "isActive": {
             "type": "boolean"
@@ -497,12 +501,12 @@
           "startDate": {
             "type": "string",
             "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-            "example": "2026-04-06"
+            "example": "2026-04-07"
           },
           "endDate": {
             "type": "string",
             "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-            "example": "2026-04-06"
+            "example": "2026-04-07"
           },
           "isActive": {
             "type": "boolean"
@@ -1001,7 +1005,7 @@
           "assessmentDate": {
             "type": "string",
             "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-            "example": "2026-04-06"
+            "example": "2026-04-07"
           },
           "isPublished": {
             "type": "boolean"
@@ -1027,7 +1031,7 @@
           "description": "الوحدة الثانية",
           "maxScore": 20,
           "weight": 10,
-          "assessmentDate": "2026-04-06",
+          "assessmentDate": "2026-04-07",
           "isPublished": true
         }
       },
@@ -1123,7 +1127,7 @@
           "sessionDate": {
             "type": "string",
             "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-            "example": "2026-04-06"
+            "example": "2026-04-07"
           },
           "periodNo": {
             "type": "integer",
@@ -1168,7 +1172,7 @@
           "subjectId": "1",
           "academicYearId": "1",
           "semesterId": "1",
-          "sessionDate": "2026-04-06",
+          "sessionDate": "2026-04-07",
           "periodNo": 1,
           "title": "حصة الرياضيات",
           "notes": "اختبار سريع",
@@ -1266,7 +1270,7 @@
           "semesterId": "1",
           "description": "تأخر عن الطابور",
           "severity": 3,
-          "behaviorDate": "2026-04-06",
+          "behaviorDate": "2026-04-07",
           "teacherId": "47"
         }
       },
@@ -1345,7 +1349,7 @@
           "studentId": "1",
           "routeId": "1",
           "stopId": "1",
-          "startDate": "2026-04-06",
+          "startDate": "2026-04-07",
           "endDate": null
         }
       },
@@ -1353,7 +1357,7 @@
         "type": "object",
         "additionalProperties": true,
         "example": {
-          "endDate": "2026-04-06"
+          "endDate": "2026-04-07"
         }
       },
       "CreateTransportRouteAssignmentRequest": {
@@ -1362,7 +1366,7 @@
         "example": {
           "busId": "1",
           "routeId": "1",
-          "startDate": "2026-04-06",
+          "startDate": "2026-04-07",
           "endDate": null
         }
       },
@@ -1370,7 +1374,7 @@
         "type": "object",
         "additionalProperties": true,
         "example": {
-          "endDate": "2026-04-06"
+          "endDate": "2026-04-07"
         }
       },
       "CreateTripRequest": {
@@ -1389,7 +1393,7 @@
           "tripDate": {
             "type": "string",
             "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-            "example": "2026-04-06"
+            "example": "2026-04-07"
           },
           "tripType": {
             "type": "string",
@@ -1410,7 +1414,7 @@
         "example": {
           "busId": "1",
           "routeId": "1",
-          "tripDate": "2026-04-06",
+          "tripDate": "2026-04-07",
           "tripType": "pickup"
         }
       },
@@ -1425,7 +1429,7 @@
           "tripDate": {
             "type": "string",
             "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-            "example": "2026-04-06"
+            "example": "2026-04-07"
           },
           "tripType": {
             "type": "string",
@@ -1444,7 +1448,7 @@
         "additionalProperties": false,
         "example": {
           "routeAssignmentId": "1",
-          "tripDate": "2026-04-06",
+          "tripDate": "2026-04-07",
           "tripType": "pickup"
         }
       },
@@ -1689,12 +1693,12 @@
           "assignedDate": {
             "type": "string",
             "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-            "example": "2026-04-06"
+            "example": "2026-04-07"
           },
           "dueDate": {
             "type": "string",
             "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-            "example": "2026-04-06"
+            "example": "2026-04-07"
           }
         },
         "required": [
@@ -1713,7 +1717,7 @@
           "semesterId": "1",
           "title": "واجب الرياضيات 2",
           "description": "حل الصفحات 12-14",
-          "assignedDate": "2026-04-06",
+          "assignedDate": "2026-04-07",
           "dueDate": "2026-03-28"
         }
       },
@@ -1745,7 +1749,7 @@
                     {
                       "type": "string",
                       "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-                      "example": "2026-04-06"
+                      "example": "2026-04-07"
                     },
                     {
                       "type": "null"
@@ -1780,13 +1784,13 @@
             {
               "studentId": "1",
               "status": "submitted",
-              "submittedAt": "2026-04-06",
+              "submittedAt": "2026-04-07",
               "notes": "تم التسليم"
             },
             {
               "studentId": "2",
               "status": "late",
-              "submittedAt": "2026-04-06",
+              "submittedAt": "2026-04-07",
               "notes": "تسليم متأخر"
             }
           ]
@@ -2282,6 +2286,551 @@
           "fallbackPassword": "ImportSeed123!",
           "confirmActivateContext": false
         }
+      },
+      "UpdatePushNotificationsSettingsRequest": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          },
+          "values": {
+            "type": "object",
+            "properties": {
+              "fcmEnabled": {
+                "type": "boolean"
+              },
+              "transportRealtimeEnabled": {
+                "type": "boolean"
+              }
+            },
+            "additionalProperties": false,
+            "minProperties": 1
+          }
+        },
+        "required": [
+          "reason",
+          "values"
+        ],
+        "additionalProperties": false,
+        "example": {
+          "reason": "Enable staging push pilot",
+          "values": {
+            "fcmEnabled": true
+          }
+        }
+      },
+      "UpdateTransportMapsSettingsRequest": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          },
+          "values": {
+            "type": "object",
+            "properties": {
+              "googleMapsEtaEnabled": {
+                "type": "boolean"
+              }
+            },
+            "additionalProperties": false,
+            "minProperties": 1
+          }
+        },
+        "required": [
+          "reason",
+          "values"
+        ],
+        "additionalProperties": false,
+        "example": {
+          "reason": "Prepare Google Maps ETA rollout",
+          "values": {
+            "googleMapsEtaEnabled": true
+          }
+        }
+      },
+      "UpdateAnalyticsSettingsRequest": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          },
+          "values": {
+            "type": "object",
+            "properties": {
+              "aiAnalyticsEnabled": {
+                "type": "boolean"
+              }
+            },
+            "additionalProperties": false,
+            "minProperties": 1
+          }
+        },
+        "required": [
+          "reason",
+          "values"
+        ],
+        "additionalProperties": false,
+        "example": {
+          "reason": "Enable analytics dry pilot",
+          "values": {
+            "aiAnalyticsEnabled": true
+          }
+        }
+      },
+      "UpdateImportsSettingsRequest": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          },
+          "values": {
+            "type": "object",
+            "properties": {
+              "schoolOnboardingEnabled": {
+                "type": "boolean"
+              },
+              "csvImportEnabled": {
+                "type": "boolean"
+              }
+            },
+            "additionalProperties": false,
+            "minProperties": 1
+          }
+        },
+        "required": [
+          "reason",
+          "values"
+        ],
+        "additionalProperties": false,
+        "example": {
+          "reason": "Freeze onboarding during rollout",
+          "values": {
+            "schoolOnboardingEnabled": false
+          }
+        }
+      },
+      "UpdateSystemSettingsGroupRequest": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/UpdatePushNotificationsSettingsRequest"
+          },
+          {
+            "$ref": "#/components/schemas/UpdateTransportMapsSettingsRequest"
+          },
+          {
+            "$ref": "#/components/schemas/UpdateAnalyticsSettingsRequest"
+          },
+          {
+            "$ref": "#/components/schemas/UpdateImportsSettingsRequest"
+          }
+        ],
+        "example": {
+          "reason": "Freeze onboarding during rollout",
+          "values": {
+            "schoolOnboardingEnabled": false
+          }
+        }
+      },
+      "SystemSettingEntryResponse": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "value": {},
+          "defaultValue": {},
+          "source": {
+            "type": "string",
+            "enum": [
+              "default",
+              "override"
+            ]
+          },
+          "description": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "updatedBy": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "userId": {
+                    "type": "string",
+                    "pattern": "^[0-9]+$",
+                    "example": "1"
+                  },
+                  "fullName": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "userId",
+                  "fullName"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "key",
+          "value",
+          "defaultValue",
+          "source",
+          "description",
+          "updatedAt",
+          "updatedBy"
+        ],
+        "additionalProperties": false,
+        "example": {
+          "key": "schoolOnboardingEnabled",
+          "value": true,
+          "defaultValue": true,
+          "source": "default",
+          "description": "Enables the structured school onboarding dry-run/apply workflow.",
+          "updatedAt": null,
+          "updatedBy": null
+        }
+      },
+      "SystemSettingsGroupResponse": {
+        "type": "object",
+        "properties": {
+          "group": {
+            "type": "string",
+            "enum": [
+              "pushNotifications",
+              "transportMaps",
+              "analytics",
+              "imports"
+            ]
+          },
+          "description": {
+            "type": "string"
+          },
+          "entries": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SystemSettingEntryResponse"
+            }
+          }
+        },
+        "required": [
+          "group",
+          "description",
+          "entries"
+        ],
+        "additionalProperties": false,
+        "example": {
+          "group": "imports",
+          "description": "Operational switches for admin-managed import capabilities.",
+          "entries": [
+            {
+              "key": "schoolOnboardingEnabled",
+              "value": true,
+              "defaultValue": true,
+              "source": "default",
+              "description": "Enables the structured school onboarding dry-run/apply workflow.",
+              "updatedAt": null,
+              "updatedBy": null
+            },
+            {
+              "key": "csvImportEnabled",
+              "value": true,
+              "defaultValue": false,
+              "source": "override",
+              "description": "Enables future CSV import surfaces when that operational flow is introduced.",
+              "updatedAt": "2026-04-07T00:27:25.627Z",
+              "updatedBy": {
+                "userId": "1",
+                "fullName": "أيمن أحمد محسن الذاهبي"
+              }
+            }
+          ]
+        }
+      },
+      "SystemSettingsListResponse": {
+        "type": "object",
+        "properties": {
+          "groups": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SystemSettingsGroupResponse"
+            }
+          }
+        },
+        "required": [
+          "groups"
+        ],
+        "additionalProperties": false,
+        "example": {
+          "groups": [
+            {
+              "group": "pushNotifications",
+              "description": "Feature flags that gate future FCM and realtime push delivery behavior.",
+              "entries": [
+                {
+                  "key": "fcmEnabled",
+                  "value": false,
+                  "defaultValue": false,
+                  "source": "default",
+                  "description": "Enables Firebase Cloud Messaging provider usage when the provider phase is implemented.",
+                  "updatedAt": null,
+                  "updatedBy": null
+                },
+                {
+                  "key": "transportRealtimeEnabled",
+                  "value": false,
+                  "defaultValue": false,
+                  "source": "default",
+                  "description": "Allows transport realtime notification workflows to publish through the push pipeline.",
+                  "updatedAt": null,
+                  "updatedBy": null
+                }
+              ]
+            },
+            {
+              "group": "imports",
+              "description": "Operational switches for admin-managed import capabilities.",
+              "entries": [
+                {
+                  "key": "schoolOnboardingEnabled",
+                  "value": true,
+                  "defaultValue": true,
+                  "source": "default",
+                  "description": "Enables the structured school onboarding dry-run/apply workflow.",
+                  "updatedAt": null,
+                  "updatedBy": null
+                },
+                {
+                  "key": "csvImportEnabled",
+                  "value": true,
+                  "defaultValue": false,
+                  "source": "override",
+                  "description": "Enables future CSV import surfaces when that operational flow is introduced.",
+                  "updatedAt": "2026-04-07T00:27:25.627Z",
+                  "updatedBy": {
+                    "userId": "1",
+                    "fullName": "أيمن أحمد محسن الذاهبي"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "SystemSettingAuditLogItemResponse": {
+        "type": "object",
+        "properties": {
+          "auditId": {
+            "type": "string",
+            "pattern": "^[0-9]+$",
+            "example": "1"
+          },
+          "group": {
+            "type": "string",
+            "enum": [
+              "pushNotifications",
+              "transportMaps",
+              "analytics",
+              "imports"
+            ]
+          },
+          "key": {
+            "type": "string"
+          },
+          "action": {
+            "type": "string",
+            "enum": [
+              "created",
+              "updated",
+              "cleared"
+            ]
+          },
+          "previousValue": {
+            "anyOf": [
+              {
+                "type": "object",
+                "additionalProperties": true
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "newValue": {
+            "anyOf": [
+              {
+                "type": "object",
+                "additionalProperties": true
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "reason": {
+            "type": "string"
+          },
+          "requestId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "changedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "changedBy": {
+            "type": "object",
+            "properties": {
+              "userId": {
+                "type": "string",
+                "pattern": "^[0-9]+$",
+                "example": "1"
+              },
+              "fullName": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "userId",
+              "fullName"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "auditId",
+          "group",
+          "key",
+          "action",
+          "previousValue",
+          "newValue",
+          "reason",
+          "requestId",
+          "changedAt",
+          "changedBy"
+        ],
+        "additionalProperties": false,
+        "example": {
+          "auditId": "1",
+          "group": "imports",
+          "key": "csvImportEnabled",
+          "action": "created",
+          "previousValue": null,
+          "newValue": true,
+          "reason": "Enable pilot CSV workflow",
+          "requestId": "6b55c8c8-63ce-4c45-bf77-4c7b9a7547d5",
+          "changedAt": "2026-04-07T00:27:25.627Z",
+          "changedBy": {
+            "userId": "1",
+            "fullName": "أيمن أحمد محسن الذاهبي"
+          }
+        }
+      },
+      "SystemIntegrationsStatusResponse": {
+        "type": "object",
+        "properties": {
+          "integrations": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "providerKey": {
+                  "type": "string",
+                  "enum": [
+                    "pushNotifications",
+                    "transportMaps",
+                    "analytics"
+                  ]
+                },
+                "featureEnabled": {
+                  "type": "boolean"
+                },
+                "pendingOutboxCount": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "failedOutboxCount": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "required": [
+                "providerKey",
+                "featureEnabled",
+                "pendingOutboxCount",
+                "failedOutboxCount"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "integrations"
+        ],
+        "additionalProperties": false,
+        "example": {
+          "integrations": [
+            {
+              "providerKey": "pushNotifications",
+              "featureEnabled": false,
+              "pendingOutboxCount": 0,
+              "failedOutboxCount": 0
+            },
+            {
+              "providerKey": "transportMaps",
+              "featureEnabled": false,
+              "pendingOutboxCount": 0,
+              "failedOutboxCount": 0
+            },
+            {
+              "providerKey": "analytics",
+              "featureEnabled": false,
+              "pendingOutboxCount": 0,
+              "failedOutboxCount": 0
+            }
+          ]
+        }
       }
     }
   },
@@ -2697,8 +3246,8 @@
                     "phone": null,
                     "role": "admin",
                     "isActive": true,
-                    "createdAt": "2026-04-06T00:41:00.653Z",
-                    "updatedAt": "2026-04-06T00:41:00.653Z"
+                    "createdAt": "2026-04-07T00:27:25.627Z",
+                    "updatedAt": "2026-04-07T00:27:25.627Z"
                   }
                 }
               }
@@ -2889,8 +3438,8 @@
                     "phone": null,
                     "role": "admin",
                     "isActive": true,
-                    "createdAt": "2026-04-06T00:41:00.653Z",
-                    "updatedAt": "2026-04-06T00:41:00.653Z"
+                    "createdAt": "2026-04-07T00:27:25.627Z",
+                    "updatedAt": "2026-04-07T00:27:25.627Z"
                   }
                 }
               }
@@ -2988,8 +3537,8 @@
                     "phone": null,
                     "role": "admin",
                     "isActive": true,
-                    "createdAt": "2026-04-06T00:41:00.653Z",
-                    "updatedAt": "2026-04-06T00:41:00.653Z"
+                    "createdAt": "2026-04-07T00:27:25.627Z",
+                    "updatedAt": "2026-04-07T00:27:25.627Z"
                   }
                 }
               }
@@ -3197,8 +3746,8 @@
                         "phone": null,
                         "role": "admin",
                         "isActive": true,
-                        "createdAt": "2026-04-06T00:41:00.653Z",
-                        "updatedAt": "2026-04-06T00:41:00.653Z"
+                        "createdAt": "2026-04-07T00:27:25.627Z",
+                        "updatedAt": "2026-04-07T00:27:25.627Z"
                       }
                     ],
                     "pagination": {
@@ -3395,8 +3944,8 @@
                     "phone": null,
                     "role": "admin",
                     "isActive": true,
-                    "createdAt": "2026-04-06T00:41:00.653Z",
-                    "updatedAt": "2026-04-06T00:41:00.653Z"
+                    "createdAt": "2026-04-07T00:27:25.627Z",
+                    "updatedAt": "2026-04-07T00:27:25.627Z"
                   }
                 }
               }
@@ -3536,8 +4085,8 @@
                     "phone": null,
                     "role": "admin",
                     "isActive": true,
-                    "createdAt": "2026-04-06T00:41:00.653Z",
-                    "updatedAt": "2026-04-06T00:41:00.653Z"
+                    "createdAt": "2026-04-07T00:27:25.627Z",
+                    "updatedAt": "2026-04-07T00:27:25.627Z"
                   }
                 }
               }
@@ -3687,8 +4236,8 @@
                     "phone": null,
                     "role": "admin",
                     "isActive": true,
-                    "createdAt": "2026-04-06T00:41:00.653Z",
-                    "updatedAt": "2026-04-06T00:41:00.653Z"
+                    "createdAt": "2026-04-07T00:27:25.627Z",
+                    "updatedAt": "2026-04-07T00:27:25.627Z"
                   }
                 }
               }
@@ -3854,8 +4403,8 @@
                     "phone": null,
                     "role": "admin",
                     "isActive": true,
-                    "createdAt": "2026-04-06T00:41:00.653Z",
-                    "updatedAt": "2026-04-06T00:41:00.653Z"
+                    "createdAt": "2026-04-07T00:27:25.627Z",
+                    "updatedAt": "2026-04-07T00:27:25.627Z"
                   }
                 }
               }
@@ -5634,8 +6183,8 @@
                       "startDate": "2025-09-01",
                       "endDate": "2026-06-30",
                       "isActive": true,
-                      "createdAt": "2026-04-06T00:41:00.653Z",
-                      "updatedAt": "2026-04-06T00:41:00.653Z"
+                      "createdAt": "2026-04-07T00:27:25.627Z",
+                      "updatedAt": "2026-04-07T00:27:25.627Z"
                     },
                     "semester": {
                       "id": "2",
@@ -5647,8 +6196,8 @@
                       "startDate": "2026-02-01",
                       "endDate": "2026-06-30",
                       "isActive": true,
-                      "createdAt": "2026-04-06T00:41:00.653Z",
-                      "updatedAt": "2026-04-06T00:41:00.653Z"
+                      "createdAt": "2026-04-07T00:27:25.627Z",
+                      "updatedAt": "2026-04-07T00:27:25.627Z"
                     }
                   }
                 }
@@ -5745,8 +6294,8 @@
                       "startDate": "2025-09-01",
                       "endDate": "2026-06-30",
                       "isActive": true,
-                      "createdAt": "2026-04-06T00:41:00.653Z",
-                      "updatedAt": "2026-04-06T00:41:00.653Z"
+                      "createdAt": "2026-04-07T00:27:25.627Z",
+                      "updatedAt": "2026-04-07T00:27:25.627Z"
                     },
                     "semester": {
                       "id": "2",
@@ -5758,8 +6307,8 @@
                       "startDate": "2026-02-01",
                       "endDate": "2026-06-30",
                       "isActive": true,
-                      "createdAt": "2026-04-06T00:41:00.653Z",
-                      "updatedAt": "2026-04-06T00:41:00.653Z"
+                      "createdAt": "2026-04-07T00:27:25.627Z",
+                      "updatedAt": "2026-04-07T00:27:25.627Z"
                     }
                   }
                 }
@@ -6308,8 +6857,8 @@
                           "name": "2025-2026"
                         }
                       },
-                      "createdAt": "2026-04-06T00:41:00.653Z",
-                      "updatedAt": "2026-04-06T00:41:00.653Z"
+                      "createdAt": "2026-04-07T00:27:25.627Z",
+                      "updatedAt": "2026-04-07T00:27:25.627Z"
                     }
                   ]
                 }
@@ -6501,8 +7050,8 @@
                         "name": "2025-2026"
                       }
                     },
-                    "createdAt": "2026-04-06T00:41:00.653Z",
-                    "updatedAt": "2026-04-06T00:41:00.653Z"
+                    "createdAt": "2026-04-07T00:27:25.627Z",
+                    "updatedAt": "2026-04-07T00:27:25.627Z"
                   }
                 }
               }
@@ -6654,8 +7203,8 @@
                         "name": "2025-2026"
                       }
                     },
-                    "createdAt": "2026-04-06T00:41:00.653Z",
-                    "updatedAt": "2026-04-06T00:41:00.653Z"
+                    "createdAt": "2026-04-07T00:27:25.627Z",
+                    "updatedAt": "2026-04-07T00:27:25.627Z"
                   }
                 }
               }
@@ -6823,8 +7372,8 @@
                         "name": "2025-2026"
                       }
                     },
-                    "createdAt": "2026-04-06T00:41:00.653Z",
-                    "updatedAt": "2026-04-06T00:41:00.653Z"
+                    "createdAt": "2026-04-07T00:27:25.627Z",
+                    "updatedAt": "2026-04-07T00:27:25.627Z"
                   }
                 }
               }
@@ -7595,7 +8144,7 @@
                         "email": "idris-mashwir@ishraf.local",
                         "phone": null
                       },
-                      "createdAt": "2026-04-06T00:41:00.653Z"
+                      "createdAt": "2026-04-07T00:27:25.627Z"
                     }
                   ]
                 }
@@ -7765,7 +8314,7 @@
                       "email": "idris-mashwir@ishraf.local",
                       "phone": null
                     },
-                    "createdAt": "2026-04-06T00:41:00.653Z"
+                    "createdAt": "2026-04-07T00:27:25.627Z"
                   }
                 }
               }
@@ -7916,7 +8465,7 @@
                       "email": "idris-mashwir@ishraf.local",
                       "phone": null
                     },
-                    "createdAt": "2026-04-06T00:41:00.653Z"
+                    "createdAt": "2026-04-07T00:27:25.627Z"
                   }
                 }
               }
@@ -8083,7 +8632,7 @@
                       "email": "idris-mashwir@ishraf.local",
                       "phone": null
                     },
-                    "createdAt": "2026-04-06T00:41:00.653Z"
+                    "createdAt": "2026-04-07T00:27:25.627Z"
                   }
                 }
               }
@@ -8281,7 +8830,7 @@
                         "email": "marwan-amin-shaban@ishraf.local",
                         "phone": null
                       },
-                      "createdAt": "2026-04-06T00:41:00.653Z"
+                      "createdAt": "2026-04-07T00:27:25.627Z"
                     }
                   ]
                 }
@@ -8473,7 +9022,7 @@
                       "email": "marwan-amin-shaban@ishraf.local",
                       "phone": null
                     },
-                    "createdAt": "2026-04-06T00:41:00.653Z"
+                    "createdAt": "2026-04-07T00:27:25.627Z"
                   }
                 }
               }
@@ -8636,7 +9185,7 @@
                       "email": "marwan-amin-shaban@ishraf.local",
                       "phone": null
                     },
-                    "createdAt": "2026-04-06T00:41:00.653Z"
+                    "createdAt": "2026-04-07T00:27:25.627Z"
                   }
                 }
               }
@@ -8814,7 +9363,7 @@
                       "email": "marwan-amin-shaban@ishraf.local",
                       "phone": null
                     },
-                    "createdAt": "2026-04-06T00:41:00.653Z"
+                    "createdAt": "2026-04-07T00:27:25.627Z"
                   }
                 }
               }
@@ -9705,8 +10254,8 @@
                           "levelOrder": 1
                         }
                       },
-                      "createdAt": "2026-04-06T00:41:00.653Z",
-                      "updatedAt": "2026-04-06T00:41:00.653Z"
+                      "createdAt": "2026-04-07T00:27:25.627Z",
+                      "updatedAt": "2026-04-07T00:27:25.627Z"
                     }
                   ]
                 }
@@ -9872,8 +10421,8 @@
                         "levelOrder": 1
                       }
                     },
-                    "createdAt": "2026-04-06T00:41:00.653Z",
-                    "updatedAt": "2026-04-06T00:41:00.653Z"
+                    "createdAt": "2026-04-07T00:27:25.627Z",
+                    "updatedAt": "2026-04-07T00:27:25.627Z"
                   }
                 }
               }
@@ -10043,8 +10592,8 @@
                       "phone": null,
                       "role": "admin",
                       "isActive": true,
-                      "createdAt": "2026-04-06T00:41:00.653Z",
-                      "updatedAt": "2026-04-06T00:41:00.653Z"
+                      "createdAt": "2026-04-07T00:27:25.627Z",
+                      "updatedAt": "2026-04-07T00:27:25.627Z"
                     }
                   ]
                 }
@@ -10195,8 +10744,8 @@
                     "phone": null,
                     "role": "admin",
                     "isActive": true,
-                    "createdAt": "2026-04-06T00:41:00.653Z",
-                    "updatedAt": "2026-04-06T00:41:00.653Z"
+                    "createdAt": "2026-04-07T00:27:25.627Z",
+                    "updatedAt": "2026-04-07T00:27:25.627Z"
                   }
                 }
               }
@@ -10532,8 +11081,8 @@
                     "phone": null,
                     "role": "admin",
                     "isActive": true,
-                    "createdAt": "2026-04-06T00:41:00.653Z",
-                    "updatedAt": "2026-04-06T00:41:00.653Z"
+                    "createdAt": "2026-04-07T00:27:25.627Z",
+                    "updatedAt": "2026-04-07T00:27:25.627Z"
                   }
                 }
               }
@@ -10715,8 +11264,8 @@
                           "levelOrder": 1
                         }
                       },
-                      "createdAt": "2026-04-06T00:41:00.653Z",
-                      "updatedAt": "2026-04-06T00:41:00.653Z"
+                      "createdAt": "2026-04-07T00:27:25.627Z",
+                      "updatedAt": "2026-04-07T00:27:25.627Z"
                     }
                   ]
                 }
@@ -10886,8 +11435,8 @@
                         "levelOrder": 1
                       }
                     },
-                    "createdAt": "2026-04-06T00:41:00.653Z",
-                    "updatedAt": "2026-04-06T00:41:00.653Z"
+                    "createdAt": "2026-04-07T00:27:25.627Z",
+                    "updatedAt": "2026-04-07T00:27:25.627Z"
                   }
                 }
               }
@@ -11071,8 +11620,8 @@
                           "levelOrder": 1
                         }
                       },
-                      "createdAt": "2026-04-06T00:41:00.653Z",
-                      "updatedAt": "2026-04-06T00:41:00.653Z"
+                      "createdAt": "2026-04-07T00:27:25.627Z",
+                      "updatedAt": "2026-04-07T00:27:25.627Z"
                     }
                   ]
                 }
@@ -11172,6 +11721,884 @@
         }
       }
     },
+    "/system-settings": {
+      "get": {
+        "tags": [
+          "System Settings"
+        ],
+        "summary": "[NEW] List System Settings",
+        "description": "Return every implemented system settings group with effective values merged from code defaults and stored overrides.\n\nAllowed roles: admin.\n\nNote: [NEW] Step 1 is global-only and currently implements pushNotifications, transportMaps, analytics, and imports.\n\nNote: [NEW] Each entry returns the effective value, the code default, and whether the source is default or override.",
+        "x-allowed-roles": [
+          "admin"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "const": true
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/GenericObject"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                },
+                "example": {
+                  "success": true,
+                  "message": "[NEW] List System Settings completed successfully",
+                  "data": {
+                    "groups": [
+                      {
+                        "group": "pushNotifications",
+                        "description": "Feature flags that gate future FCM and realtime push delivery behavior.",
+                        "entries": [
+                          {
+                            "key": "fcmEnabled",
+                            "value": false,
+                            "defaultValue": false,
+                            "source": "default",
+                            "description": "Enables Firebase Cloud Messaging provider usage when the provider phase is implemented.",
+                            "updatedAt": null,
+                            "updatedBy": null
+                          },
+                          {
+                            "key": "transportRealtimeEnabled",
+                            "value": false,
+                            "defaultValue": false,
+                            "source": "default",
+                            "description": "Allows transport realtime notification workflows to publish through the push pipeline.",
+                            "updatedAt": null,
+                            "updatedBy": null
+                          }
+                        ]
+                      },
+                      {
+                        "group": "imports",
+                        "description": "Operational switches for admin-managed import capabilities.",
+                        "entries": [
+                          {
+                            "key": "schoolOnboardingEnabled",
+                            "value": true,
+                            "defaultValue": true,
+                            "source": "default",
+                            "description": "Enables the structured school onboarding dry-run/apply workflow.",
+                            "updatedAt": null,
+                            "updatedBy": null
+                          },
+                          {
+                            "key": "csvImportEnabled",
+                            "value": true,
+                            "defaultValue": false,
+                            "source": "override",
+                            "description": "Enables future CSV import surfaces when that operational flow is introduced.",
+                            "updatedAt": "2026-04-07T00:27:25.627Z",
+                            "updatedBy": {
+                              "userId": "1",
+                              "fullName": "أيمن أحمد محسن الذاهبي"
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication is missing or expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Unauthorized",
+                  "errors": [
+                    {
+                      "code": "UNAUTHORIZED",
+                      "message": "Authentication is required"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated but not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Forbidden",
+                  "errors": [
+                    {
+                      "code": "FORBIDDEN",
+                      "message": "You do not have permission to access this resource"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/system-settings/{group}": {
+      "get": {
+        "tags": [
+          "System Settings"
+        ],
+        "summary": "[NEW] Get System Settings Group",
+        "description": "Return one system settings group with effective values, defaults, descriptions, and override metadata.\n\nAllowed roles: admin.\n\nNote: [NEW] Allowed groups are pushNotifications, transportMaps, analytics, and imports.",
+        "x-allowed-roles": [
+          "admin"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "const": true
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/GenericObject"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                },
+                "example": {
+                  "success": true,
+                  "message": "[NEW] Get System Settings Group completed successfully",
+                  "data": {
+                    "group": "imports",
+                    "description": "Operational switches for admin-managed import capabilities.",
+                    "entries": [
+                      {
+                        "key": "schoolOnboardingEnabled",
+                        "value": true,
+                        "defaultValue": true,
+                        "source": "default",
+                        "description": "Enables the structured school onboarding dry-run/apply workflow.",
+                        "updatedAt": null,
+                        "updatedBy": null
+                      },
+                      {
+                        "key": "csvImportEnabled",
+                        "value": true,
+                        "defaultValue": false,
+                        "source": "override",
+                        "description": "Enables future CSV import surfaces when that operational flow is introduced.",
+                        "updatedAt": "2026-04-07T00:27:25.627Z",
+                        "updatedBy": {
+                          "userId": "1",
+                          "fullName": "أيمن أحمد محسن الذاهبي"
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Validation failed",
+                  "errors": [
+                    {
+                      "field": "fieldName",
+                      "code": "invalid_type",
+                      "message": "Validation error example"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication is missing or expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Unauthorized",
+                  "errors": [
+                    {
+                      "code": "UNAUTHORIZED",
+                      "message": "Authentication is required"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated but not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Forbidden",
+                  "errors": [
+                    {
+                      "code": "FORBIDDEN",
+                      "message": "You do not have permission to access this resource"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Primary resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Not Found",
+                  "errors": [
+                    {
+                      "code": "NOT_FOUND",
+                      "message": "Requested resource was not found"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "group",
+            "in": "path",
+            "required": true,
+            "description": "System settings group key. Allowed values: pushNotifications, transportMaps, analytics, imports.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "pushNotifications",
+                "transportMaps",
+                "analytics",
+                "imports"
+              ],
+              "example": "imports"
+            }
+          }
+        ]
+      },
+      "patch": {
+        "tags": [
+          "System Settings"
+        ],
+        "summary": "[NEW] Update System Settings Group",
+        "description": "Update one system settings group by writing overrides only for values that differ from code defaults.\n\nAllowed roles: admin.\n\nNote: [NEW] The request body is group-specific. Use UpdatePushNotificationsSettingsRequest, UpdateTransportMapsSettingsRequest, UpdateAnalyticsSettingsRequest, or UpdateImportsSettingsRequest depending on :group.\n\nNote: [NEW] Sending a value equal to the code default clears any existing override instead of storing redundant data.\n\nNote: [NEW] The first live consumer is imports.schoolOnboardingEnabled. When it is false, school onboarding import endpoints reject with 409 FEATURE_DISABLED.",
+        "x-allowed-roles": [
+          "admin"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "const": true
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/GenericObject"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                },
+                "example": {
+                  "success": true,
+                  "message": "[NEW] Update System Settings Group completed successfully",
+                  "data": {
+                    "group": "imports",
+                    "description": "Operational switches for admin-managed import capabilities.",
+                    "entries": [
+                      {
+                        "key": "schoolOnboardingEnabled",
+                        "value": true,
+                        "defaultValue": true,
+                        "source": "default",
+                        "description": "Enables the structured school onboarding dry-run/apply workflow.",
+                        "updatedAt": null,
+                        "updatedBy": null
+                      },
+                      {
+                        "key": "csvImportEnabled",
+                        "value": true,
+                        "defaultValue": false,
+                        "source": "override",
+                        "description": "Enables future CSV import surfaces when that operational flow is introduced.",
+                        "updatedAt": "2026-04-07T00:27:25.627Z",
+                        "updatedBy": {
+                          "userId": "1",
+                          "fullName": "أيمن أحمد محسن الذاهبي"
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Validation failed",
+                  "errors": [
+                    {
+                      "field": "fieldName",
+                      "code": "invalid_type",
+                      "message": "Validation error example"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication is missing or expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Unauthorized",
+                  "errors": [
+                    {
+                      "code": "UNAUTHORIZED",
+                      "message": "Authentication is required"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated but not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Forbidden",
+                  "errors": [
+                    {
+                      "code": "FORBIDDEN",
+                      "message": "You do not have permission to access this resource"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Primary resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Not Found",
+                  "errors": [
+                    {
+                      "code": "NOT_FOUND",
+                      "message": "Requested resource was not found"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "group",
+            "in": "path",
+            "required": true,
+            "description": "System settings group key. Allowed values: pushNotifications, transportMaps, analytics, imports.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "pushNotifications",
+                "transportMaps",
+                "analytics",
+                "imports"
+              ],
+              "example": "imports"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateSystemSettingsGroupRequest"
+              },
+              "example": {
+                "reason": "Freeze onboarding during rollout",
+                "values": {
+                  "schoolOnboardingEnabled": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/system-settings/audit": {
+      "get": {
+        "tags": [
+          "System Settings"
+        ],
+        "summary": "[NEW] List System Settings Audit",
+        "description": "List append-only audit rows for setting changes with pagination and optional filters.\n\nAllowed roles: admin.\n\nNote: [NEW] Audit rows capture created, updated, and cleared actions.\n\nNote: [NEW] requestId lets admin trace one change batch across multiple keys.",
+        "x-allowed-roles": [
+          "admin"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "const": true
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "items": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/GenericObject"
+                          }
+                        },
+                        "pagination": {
+                          "$ref": "#/components/schemas/Pagination"
+                        },
+                        "unreadCount": {
+                          "type": "integer",
+                          "minimum": 0
+                        }
+                      },
+                      "required": [
+                        "items",
+                        "pagination"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                },
+                "example": {
+                  "success": true,
+                  "message": "[NEW] List System Settings Audit completed successfully",
+                  "data": {
+                    "items": [
+                      {
+                        "auditId": "1",
+                        "group": "imports",
+                        "key": "csvImportEnabled",
+                        "action": "created",
+                        "previousValue": null,
+                        "newValue": true,
+                        "reason": "Enable pilot CSV workflow",
+                        "requestId": "6b55c8c8-63ce-4c45-bf77-4c7b9a7547d5",
+                        "changedAt": "2026-04-07T00:27:25.627Z",
+                        "changedBy": {
+                          "userId": "1",
+                          "fullName": "أيمن أحمد محسن الذاهبي"
+                        }
+                      }
+                    ],
+                    "pagination": {
+                      "page": 1,
+                      "limit": 20,
+                      "totalItems": 1,
+                      "totalPages": 1
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Validation failed",
+                  "errors": [
+                    {
+                      "field": "fieldName",
+                      "code": "invalid_type",
+                      "message": "Validation error example"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication is missing or expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Unauthorized",
+                  "errors": [
+                    {
+                      "code": "UNAUTHORIZED",
+                      "message": "Authentication is required"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated but not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Forbidden",
+                  "errors": [
+                    {
+                      "code": "FORBIDDEN",
+                      "message": "You do not have permission to access this resource"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "example": 1
+            },
+            "description": "Pagination page number."
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "example": 20
+            },
+            "description": "Pagination page size."
+          },
+          {
+            "name": "sortBy",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "createdAt"
+              ],
+              "example": "createdAt"
+            },
+            "description": "Sort field whitelist."
+          },
+          {
+            "name": "sortOrder",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "example": "desc"
+            },
+            "description": "Sort direction."
+          },
+          {
+            "name": "group",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "example": "imports"
+            },
+            "description": "Filter audit rows by settings group."
+          },
+          {
+            "name": "key",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "example": "schoolOnboardingEnabled"
+            },
+            "description": "Filter audit rows by setting key."
+          },
+          {
+            "name": "changedByUserId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9]+$",
+              "example": "1"
+            },
+            "description": "Filter audit rows by actor user id."
+          },
+          {
+            "name": "since",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date-time",
+              "example": "2026-04-07T00:27:25.627Z"
+            },
+            "description": "Filter audit rows created on or after this ISO datetime."
+          },
+          {
+            "name": "until",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date-time",
+              "example": "2026-04-07T00:27:25.627Z"
+            },
+            "description": "Filter audit rows created on or before this ISO datetime."
+          }
+        ]
+      }
+    },
+    "/system-settings/integrations/status": {
+      "get": {
+        "tags": [
+          "System Settings"
+        ],
+        "summary": "[NEW] Get Integration Feature Status",
+        "description": "Return feature-enabled status for external integration groups together with pending and failed integration outbox counts.\n\nAllowed roles: admin.\n\nNote: [NEW] This surface only covers pushNotifications, transportMaps, and analytics.\n\nNote: [NEW] providerConfigured is intentionally not returned in step 1 because provider secrets still live only in env and no provider phase has been wired yet.",
+        "x-allowed-roles": [
+          "admin"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "const": true
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/GenericObject"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                },
+                "example": {
+                  "success": true,
+                  "message": "[NEW] Get Integration Feature Status completed successfully",
+                  "data": {
+                    "integrations": [
+                      {
+                        "providerKey": "pushNotifications",
+                        "featureEnabled": false,
+                        "pendingOutboxCount": 0,
+                        "failedOutboxCount": 0
+                      },
+                      {
+                        "providerKey": "transportMaps",
+                        "featureEnabled": false,
+                        "pendingOutboxCount": 0,
+                        "failedOutboxCount": 0
+                      },
+                      {
+                        "providerKey": "analytics",
+                        "featureEnabled": false,
+                        "pendingOutboxCount": 0,
+                        "failedOutboxCount": 0
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication is missing or expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Unauthorized",
+                  "errors": [
+                    {
+                      "code": "UNAUTHORIZED",
+                      "message": "Authentication is required"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated but not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Forbidden",
+                  "errors": [
+                    {
+                      "code": "FORBIDDEN",
+                      "message": "You do not have permission to access this resource"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
     "/attendance/records/{attendanceId}": {
       "patch": {
         "tags": [
@@ -11217,7 +12644,7 @@
                     "studentId": "1",
                     "fullName": "طالب تجريبي 1",
                     "status": "present",
-                    "recordedAt": "2026-04-06T00:41:00.653Z"
+                    "recordedAt": "2026-04-07T00:27:25.627Z"
                   }
                 }
               }
@@ -11405,7 +12832,7 @@
                         "className": "الصف الأول",
                         "subjectId": "1",
                         "subjectName": "الرياضيات",
-                        "sessionDate": "2026-04-06",
+                        "sessionDate": "2026-04-07",
                         "periodNo": 1,
                         "presentCount": 2,
                         "absentCount": 1,
@@ -11606,7 +13033,7 @@
             "schema": {
               "type": "string",
               "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-              "example": "2026-04-06"
+              "example": "2026-04-07"
             },
             "description": "Filter by exact session date."
           },
@@ -11617,7 +13044,7 @@
             "schema": {
               "type": "string",
               "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-              "example": "2026-04-06"
+              "example": "2026-04-07"
             },
             "description": "Filter from session date."
           },
@@ -11628,7 +13055,7 @@
             "schema": {
               "type": "string",
               "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-              "example": "2026-04-06"
+              "example": "2026-04-07"
             },
             "description": "Filter to session date."
           }
@@ -11677,7 +13104,7 @@
                     "className": "الصف الأول",
                     "subjectId": "1",
                     "subjectName": "الرياضيات",
-                    "sessionDate": "2026-04-06",
+                    "sessionDate": "2026-04-07",
                     "periodNo": 1,
                     "presentCount": 2,
                     "absentCount": 1,
@@ -11767,7 +13194,7 @@
                 "subjectId": "1",
                 "academicYearId": "1",
                 "semesterId": "1",
-                "sessionDate": "2026-04-06",
+                "sessionDate": "2026-04-07",
                 "periodNo": 1,
                 "title": "حصة الرياضيات",
                 "notes": "اختبار سريع",
@@ -11823,7 +13250,7 @@
                     "className": "الصف الأول",
                     "subjectId": "1",
                     "subjectName": "الرياضيات",
-                    "sessionDate": "2026-04-06",
+                    "sessionDate": "2026-04-07",
                     "periodNo": 1,
                     "presentCount": 2,
                     "absentCount": 1,
@@ -11985,7 +13412,7 @@
                       "studentId": "1",
                       "fullName": "طالب تجريبي 1",
                       "status": "present",
-                      "recordedAt": "2026-04-06T00:41:00.653Z"
+                      "recordedAt": "2026-04-07T00:27:25.627Z"
                     }
                   ]
                 }
@@ -12186,7 +13613,7 @@
                         "semesterId": "1",
                         "maxScore": 20,
                         "weight": 10,
-                        "assessmentDate": "2026-04-06",
+                        "assessmentDate": "2026-04-07",
                         "isPublished": true
                       }
                     ],
@@ -12394,7 +13821,7 @@
             "schema": {
               "type": "string",
               "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-              "example": "2026-04-06"
+              "example": "2026-04-07"
             },
             "description": "Filter by exact assessment date."
           },
@@ -12405,7 +13832,7 @@
             "schema": {
               "type": "string",
               "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-              "example": "2026-04-06"
+              "example": "2026-04-07"
             },
             "description": "Filter from assessment date."
           },
@@ -12416,7 +13843,7 @@
             "schema": {
               "type": "string",
               "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-              "example": "2026-04-06"
+              "example": "2026-04-07"
             },
             "description": "Filter to assessment date."
           },
@@ -12479,7 +13906,7 @@
                     "semesterId": "1",
                     "maxScore": 20,
                     "weight": 10,
-                    "assessmentDate": "2026-04-06",
+                    "assessmentDate": "2026-04-07",
                     "isPublished": true
                   }
                 }
@@ -12571,7 +13998,7 @@
                 "description": "الوحدة الثانية",
                 "maxScore": 20,
                 "weight": 10,
-                "assessmentDate": "2026-04-06",
+                "assessmentDate": "2026-04-07",
                 "isPublished": true
               }
             }
@@ -12627,7 +14054,7 @@
                     "semesterId": "1",
                     "maxScore": 20,
                     "weight": 10,
-                    "assessmentDate": "2026-04-06",
+                    "assessmentDate": "2026-04-07",
                     "isPublished": true
                   }
                 }
@@ -13290,7 +14717,7 @@
                       "semesterId": "1",
                       "maxScore": 20,
                       "weight": 10,
-                      "assessmentDate": "2026-04-06",
+                      "assessmentDate": "2026-04-07",
                       "isPublished": true
                     }
                   ]
@@ -13391,7 +14818,7 @@
                     "semesterId": "1",
                     "maxScore": 20,
                     "weight": 10,
-                    "assessmentDate": "2026-04-06",
+                    "assessmentDate": "2026-04-07",
                     "isPublished": true
                   }
                 }
@@ -13788,8 +15215,8 @@
                         "behaviorName": "تأخر متكرر",
                         "behaviorType": "negative",
                         "severity": 3,
-                        "behaviorDate": "2026-04-06",
-                        "createdAt": "2026-04-06T00:41:00.653Z"
+                        "behaviorDate": "2026-04-07",
+                        "createdAt": "2026-04-07T00:27:25.627Z"
                       }
                     ],
                     "pagination": {
@@ -14006,7 +15433,7 @@
             "schema": {
               "type": "string",
               "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-              "example": "2026-04-06"
+              "example": "2026-04-07"
             },
             "description": "Filter by exact behavior date."
           },
@@ -14017,7 +15444,7 @@
             "schema": {
               "type": "string",
               "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-              "example": "2026-04-06"
+              "example": "2026-04-07"
             },
             "description": "Filter from behavior date."
           },
@@ -14028,7 +15455,7 @@
             "schema": {
               "type": "string",
               "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-              "example": "2026-04-06"
+              "example": "2026-04-07"
             },
             "description": "Filter to behavior date."
           }
@@ -14080,8 +15507,8 @@
                     "behaviorName": "تأخر متكرر",
                     "behaviorType": "negative",
                     "severity": 3,
-                    "behaviorDate": "2026-04-06",
-                    "createdAt": "2026-04-06T00:41:00.653Z"
+                    "behaviorDate": "2026-04-07",
+                    "createdAt": "2026-04-07T00:27:25.627Z"
                   }
                 }
               }
@@ -14168,7 +15595,7 @@
                 "semesterId": "1",
                 "description": "تأخر عن الطابور",
                 "severity": 3,
-                "behaviorDate": "2026-04-06",
+                "behaviorDate": "2026-04-07",
                 "teacherId": "47"
               }
             }
@@ -14223,8 +15650,8 @@
                     "behaviorName": "تأخر متكرر",
                     "behaviorType": "negative",
                     "severity": 3,
-                    "behaviorDate": "2026-04-06",
-                    "createdAt": "2026-04-06T00:41:00.653Z"
+                    "behaviorDate": "2026-04-07",
+                    "createdAt": "2026-04-07T00:27:25.627Z"
                   }
                 }
               }
@@ -14377,8 +15804,8 @@
                     "behaviorName": "تأخر متكرر",
                     "behaviorType": "negative",
                     "severity": 3,
-                    "behaviorDate": "2026-04-06",
-                    "createdAt": "2026-04-06T00:41:00.653Z"
+                    "behaviorDate": "2026-04-07",
+                    "createdAt": "2026-04-07T00:27:25.627Z"
                   }
                 }
               }
@@ -14560,8 +15987,8 @@
                         "behaviorName": "تأخر متكرر",
                         "behaviorType": "negative",
                         "severity": 3,
-                        "behaviorDate": "2026-04-06",
-                        "createdAt": "2026-04-06T00:41:00.653Z"
+                        "behaviorDate": "2026-04-07",
+                        "createdAt": "2026-04-07T00:27:25.627Z"
                       }
                     ]
                   }
@@ -14723,7 +16150,7 @@
                       "id": "1",
                       "stopName": "Stop 1"
                     },
-                    "startDate": "2026-04-06",
+                    "startDate": "2026-04-07",
                     "endDate": null,
                     "isActive": true
                   }
@@ -14809,7 +16236,7 @@
                 "studentId": "1",
                 "routeId": "1",
                 "stopId": "1",
-                "startDate": "2026-04-06",
+                "startDate": "2026-04-07",
                 "endDate": null
               }
             }
@@ -14869,7 +16296,7 @@
                       "id": "1",
                       "stopName": "Stop 1"
                     },
-                    "startDate": "2026-04-06",
+                    "startDate": "2026-04-07",
                     "endDate": null,
                     "isActive": true
                   }
@@ -14985,7 +16412,7 @@
                 "$ref": "#/components/schemas/DeactivateTransportAssignmentRequest"
               },
               "example": {
-                "endDate": "2026-04-06"
+                "endDate": "2026-04-07"
               }
             }
           }
@@ -15048,7 +16475,7 @@
                         "id": "1",
                         "stopName": "Stop 1"
                       },
-                      "startDate": "2026-04-06",
+                      "startDate": "2026-04-07",
                       "endDate": null,
                       "isActive": true
                     }
@@ -15413,7 +16840,7 @@
                         "estimatedDurationMinutes": 35,
                         "isActive": true
                       },
-                      "startDate": "2026-04-06",
+                      "startDate": "2026-04-07",
                       "endDate": null,
                       "isActive": true
                     }
@@ -15528,7 +16955,7 @@
                       "estimatedDurationMinutes": 35,
                       "isActive": true
                     },
-                    "startDate": "2026-04-06",
+                    "startDate": "2026-04-07",
                     "endDate": null,
                     "isActive": true
                   }
@@ -15613,7 +17040,7 @@
               "example": {
                 "busId": "1",
                 "routeId": "1",
-                "startDate": "2026-04-06",
+                "startDate": "2026-04-07",
                 "endDate": null
               }
             }
@@ -15681,7 +17108,7 @@
                       "estimatedDurationMinutes": 35,
                       "isActive": true
                     },
-                    "startDate": "2026-04-06",
+                    "startDate": "2026-04-07",
                     "endDate": null,
                     "isActive": true
                   }
@@ -15797,7 +17224,7 @@
                 "$ref": "#/components/schemas/DeactivateTransportRouteAssignmentRequest"
               },
               "example": {
-                "endDate": "2026-04-06"
+                "endDate": "2026-04-07"
               }
             }
           }
@@ -15868,7 +17295,7 @@
                         "estimatedDurationMinutes": 35,
                         "isActive": true
                       },
-                      "startDate": "2026-04-06",
+                      "startDate": "2026-04-07",
                       "endDate": null,
                       "isActive": true
                     }
@@ -16532,10 +17959,10 @@
                       "status": "approved",
                       "submittedByUserId": "1",
                       "approvedByUserId": "1",
-                      "approvedAt": "2026-04-06T00:41:00.653Z",
+                      "approvedAt": "2026-04-07T00:27:25.627Z",
                       "notes": null,
-                      "createdAt": "2026-04-06T00:41:00.653Z",
-                      "updatedAt": "2026-04-06T00:41:00.653Z"
+                      "createdAt": "2026-04-07T00:27:25.627Z",
+                      "updatedAt": "2026-04-07T00:27:25.627Z"
                     }
                   }
                 }
@@ -16695,10 +18122,10 @@
                       "status": "approved",
                       "submittedByUserId": "1",
                       "approvedByUserId": "1",
-                      "approvedAt": "2026-04-06T00:41:00.653Z",
+                      "approvedAt": "2026-04-07T00:27:25.627Z",
                       "notes": null,
-                      "createdAt": "2026-04-06T00:41:00.653Z",
-                      "updatedAt": "2026-04-06T00:41:00.653Z"
+                      "createdAt": "2026-04-07T00:27:25.627Z",
+                      "updatedAt": "2026-04-07T00:27:25.627Z"
                     }
                   }
                 }
@@ -16858,10 +18285,10 @@
                       "status": "approved",
                       "submittedByUserId": "1",
                       "approvedByUserId": "1",
-                      "approvedAt": "2026-04-06T00:41:00.653Z",
+                      "approvedAt": "2026-04-07T00:27:25.627Z",
                       "notes": null,
-                      "createdAt": "2026-04-06T00:41:00.653Z",
-                      "updatedAt": "2026-04-06T00:41:00.653Z"
+                      "createdAt": "2026-04-07T00:27:25.627Z",
+                      "updatedAt": "2026-04-07T00:27:25.627Z"
                     }
                   }
                 }
@@ -17049,10 +18476,10 @@
                     "items": [
                       {
                         "id": "1",
-                        "tripDate": "2026-04-06",
+                        "tripDate": "2026-04-07",
                         "tripType": "pickup",
                         "tripStatus": "started",
-                        "startedAt": "2026-04-06T00:41:00.653Z",
+                        "startedAt": "2026-04-07T00:27:25.627Z",
                         "endedAt": null,
                         "bus": {
                           "id": "1",
@@ -17069,7 +18496,7 @@
                         "latestLocation": {
                           "latitude": 15.3694,
                           "longitude": 44.191,
-                          "recordedAt": "2026-04-06T00:41:00.653Z"
+                          "recordedAt": "2026-04-07T00:27:25.627Z"
                         },
                         "eventSummary": {
                           "boardedCount": 1,
@@ -17260,7 +18687,7 @@
             "schema": {
               "type": "string",
               "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-              "example": "2026-04-06"
+              "example": "2026-04-07"
             },
             "description": "Filter by exact trip date."
           },
@@ -17271,7 +18698,7 @@
             "schema": {
               "type": "string",
               "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-              "example": "2026-04-06"
+              "example": "2026-04-07"
             },
             "description": "Filter from trip date."
           },
@@ -17282,7 +18709,7 @@
             "schema": {
               "type": "string",
               "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-              "example": "2026-04-06"
+              "example": "2026-04-07"
             },
             "description": "Filter to trip date."
           }
@@ -17327,10 +18754,10 @@
                   "message": "Create Trip completed successfully",
                   "data": {
                     "id": "1",
-                    "tripDate": "2026-04-06",
+                    "tripDate": "2026-04-07",
                     "tripType": "pickup",
                     "tripStatus": "started",
-                    "startedAt": "2026-04-06T00:41:00.653Z",
+                    "startedAt": "2026-04-07T00:27:25.627Z",
                     "endedAt": null,
                     "bus": {
                       "id": "1",
@@ -17347,7 +18774,7 @@
                     "latestLocation": {
                       "latitude": 15.3694,
                       "longitude": 44.191,
-                      "recordedAt": "2026-04-06T00:41:00.653Z"
+                      "recordedAt": "2026-04-07T00:27:25.627Z"
                     },
                     "eventSummary": {
                       "boardedCount": 1,
@@ -17437,7 +18864,7 @@
               "example": {
                 "busId": "1",
                 "routeId": "1",
-                "tripDate": "2026-04-06",
+                "tripDate": "2026-04-07",
                 "tripType": "pickup"
               }
             }
@@ -17486,10 +18913,10 @@
                   "data": {
                     "trip": {
                       "id": "1",
-                      "tripDate": "2026-04-06",
+                      "tripDate": "2026-04-07",
                       "tripType": "pickup",
                       "tripStatus": "started",
-                      "startedAt": "2026-04-06T00:41:00.653Z",
+                      "startedAt": "2026-04-07T00:27:25.627Z",
                       "endedAt": null,
                       "bus": {
                         "id": "1",
@@ -17507,7 +18934,7 @@
                     "latestLocation": {
                       "latitude": 15.3694,
                       "longitude": 44.191,
-                      "recordedAt": "2026-04-06T00:41:00.653Z"
+                      "recordedAt": "2026-04-07T00:27:25.627Z"
                     },
                     "routeStops": [
                       {
@@ -17671,10 +19098,10 @@
                   "message": "End Trip completed successfully",
                   "data": {
                     "id": "1",
-                    "tripDate": "2026-04-06",
+                    "tripDate": "2026-04-07",
                     "tripType": "pickup",
                     "tripStatus": "started",
-                    "startedAt": "2026-04-06T00:41:00.653Z",
+                    "startedAt": "2026-04-07T00:27:25.627Z",
                     "endedAt": null,
                     "bus": {
                       "id": "1",
@@ -17691,7 +19118,7 @@
                     "latestLocation": {
                       "latitude": 15.3694,
                       "longitude": 44.191,
-                      "recordedAt": "2026-04-06T00:41:00.653Z"
+                      "recordedAt": "2026-04-07T00:27:25.627Z"
                     },
                     "eventSummary": {
                       "boardedCount": 1,
@@ -17856,7 +19283,7 @@
                         "fullName": "طالب تجريبي 1"
                       },
                       "eventType": "boarded",
-                      "eventTime": "2026-04-06T00:41:00.653Z",
+                      "eventTime": "2026-04-07T00:27:25.627Z",
                       "stop": {
                         "stopId": "1",
                         "stopName": "Stop 1"
@@ -18014,7 +19441,7 @@
                       "fullName": "طالب تجريبي 1"
                     },
                     "eventType": "boarded",
-                    "eventTime": "2026-04-06T00:41:00.653Z",
+                    "eventTime": "2026-04-07T00:27:25.627Z",
                     "stop": {
                       "stopId": "1",
                       "stopName": "Stop 1"
@@ -18183,10 +19610,10 @@
                   "message": "Record Trip Location completed successfully",
                   "data": {
                     "id": "1",
-                    "tripDate": "2026-04-06",
+                    "tripDate": "2026-04-07",
                     "tripType": "pickup",
                     "tripStatus": "started",
-                    "startedAt": "2026-04-06T00:41:00.653Z",
+                    "startedAt": "2026-04-07T00:27:25.627Z",
                     "endedAt": null,
                     "bus": {
                       "id": "1",
@@ -18203,7 +19630,7 @@
                     "latestLocation": {
                       "latitude": 15.3694,
                       "longitude": 44.191,
-                      "recordedAt": "2026-04-06T00:41:00.653Z"
+                      "recordedAt": "2026-04-07T00:27:25.627Z"
                     },
                     "eventSummary": {
                       "boardedCount": 1,
@@ -18372,10 +19799,10 @@
                   "message": "Start Trip completed successfully",
                   "data": {
                     "id": "1",
-                    "tripDate": "2026-04-06",
+                    "tripDate": "2026-04-07",
                     "tripType": "pickup",
                     "tripStatus": "started",
-                    "startedAt": "2026-04-06T00:41:00.653Z",
+                    "startedAt": "2026-04-07T00:27:25.627Z",
                     "endedAt": null,
                     "bus": {
                       "id": "1",
@@ -18392,7 +19819,7 @@
                     "latestLocation": {
                       "latitude": 15.3694,
                       "longitude": 44.191,
-                      "recordedAt": "2026-04-06T00:41:00.653Z"
+                      "recordedAt": "2026-04-07T00:27:25.627Z"
                     },
                     "eventSummary": {
                       "boardedCount": 1,
@@ -18569,7 +19996,7 @@
                         "currentTripEventType": "boarded",
                         "lastEvent": {
                           "eventType": "boarded",
-                          "eventTime": "2026-04-06T00:41:00.653Z",
+                          "eventTime": "2026-04-07T00:27:25.627Z",
                           "stopId": "1"
                         }
                       }
@@ -18744,7 +20171,7 @@
                     "created": true,
                     "trip": {
                       "id": "1",
-                      "tripDate": "2026-04-06",
+                      "tripDate": "2026-04-07",
                       "tripType": "pickup",
                       "tripStatus": "scheduled",
                       "startedAt": null,
@@ -18850,7 +20277,7 @@
               },
               "example": {
                 "routeAssignmentId": "1",
-                "tripDate": "2026-04-06",
+                "tripDate": "2026-04-07",
                 "tripType": "pickup"
               }
             }
@@ -18905,7 +20332,7 @@
                       "content": "إعلان تجريبي للواجهات",
                       "targetRole": null,
                       "targetRoles": [],
-                      "publishedAt": "2026-04-06T00:41:00.653Z",
+                      "publishedAt": "2026-04-07T00:27:25.627Z",
                       "expiresAt": "2026-04-01T00:00:00.000Z"
                     }
                   ]
@@ -19002,7 +20429,7 @@
                     "content": "إعلان تجريبي للواجهات",
                     "targetRole": null,
                     "targetRoles": [],
-                    "publishedAt": "2026-04-06T00:41:00.653Z",
+                    "publishedAt": "2026-04-07T00:27:25.627Z",
                     "expiresAt": "2026-04-01T00:00:00.000Z"
                   }
                 }
@@ -19148,7 +20575,7 @@
                       "content": "إعلان تجريبي للواجهات",
                       "targetRole": null,
                       "targetRoles": [],
-                      "publishedAt": "2026-04-06T00:41:00.653Z",
+                      "publishedAt": "2026-04-07T00:27:25.627Z",
                       "expiresAt": "2026-04-01T00:00:00.000Z"
                     }
                   ]
@@ -19250,7 +20677,7 @@
                     "senderUserId": "1",
                     "receiverUserId": "20",
                     "messageBody": "رسالة تجريبية",
-                    "sentAt": "2026-04-06T00:41:00.653Z",
+                    "sentAt": "2026-04-07T00:27:25.627Z",
                     "readAt": null
                   }
                 }
@@ -19386,7 +20813,7 @@
                     "senderUserId": "1",
                     "receiverUserId": "20",
                     "messageBody": "رسالة تجريبية",
-                    "sentAt": "2026-04-06T00:41:00.653Z",
+                    "sentAt": "2026-04-07T00:27:25.627Z",
                     "readAt": null
                   }
                 }
@@ -19699,7 +21126,7 @@
                         "senderUserId": "1",
                         "receiverUserId": "20",
                         "messageBody": "رسالة تجريبية",
-                        "sentAt": "2026-04-06T00:41:00.653Z",
+                        "sentAt": "2026-04-07T00:27:25.627Z",
                         "readAt": null
                       }
                     ],
@@ -19933,7 +21360,7 @@
                         "senderUserId": "1",
                         "receiverUserId": "20",
                         "messageBody": "رسالة تجريبية",
-                        "sentAt": "2026-04-06T00:41:00.653Z",
+                        "sentAt": "2026-04-07T00:27:25.627Z",
                         "readAt": null
                       }
                     ],
@@ -20147,7 +21574,7 @@
                         "senderUserId": "1",
                         "receiverUserId": "20",
                         "messageBody": "رسالة تجريبية",
-                        "sentAt": "2026-04-06T00:41:00.653Z",
+                        "sentAt": "2026-04-07T00:27:25.627Z",
                         "readAt": null
                       }
                     ],
@@ -20340,7 +21767,7 @@
                     "referenceType": "attendance",
                     "referenceId": "1",
                     "isRead": false,
-                    "createdAt": "2026-04-06T00:41:00.653Z"
+                    "createdAt": "2026-04-07T00:27:25.627Z"
                   }
                 }
               }
@@ -20483,7 +21910,7 @@
                     "referenceType": "attendance",
                     "referenceId": "1",
                     "isRead": false,
-                    "createdAt": "2026-04-06T00:41:00.653Z"
+                    "createdAt": "2026-04-07T00:27:25.627Z"
                   }
                 }
               }
@@ -20802,7 +22229,7 @@
                         "referenceType": "attendance",
                         "referenceId": "1",
                         "isRead": false,
-                        "createdAt": "2026-04-06T00:41:00.653Z"
+                        "createdAt": "2026-04-07T00:27:25.627Z"
                       }
                     ],
                     "pagination": {
@@ -21160,7 +22587,7 @@
           "Admin Imports"
         ],
         "summary": "[NEW] Apply School Onboarding Import",
-        "description": "Apply a previously validated school onboarding dry-run in one all-or-nothing transaction, with idempotent retry semantics.\n\nAllowed roles: admin.\n\nNote: [NEW] dryRunId must reference a validated dry-run result.\n\nNote: [NEW] Repeated apply calls for the same successful dryRunId return the previous apply result with alreadyApplied=true.\n\nNote: [NEW] The import is create-only in v1 and does not sync, update, or delete existing records.\n\nNote: [NEW] If dryRunId does not reference a validated dry-run, the request fails before writing anything.",
+        "description": "Apply a previously validated school onboarding dry-run in one all-or-nothing transaction, with idempotent retry semantics.\n\nAllowed roles: admin.\n\nNote: [NEW] dryRunId must reference a validated dry-run result.\n\nNote: [NEW] Repeated apply calls for the same successful dryRunId return the previous apply result with alreadyApplied=true.\n\nNote: [NEW] The import is create-only in v1 and does not sync, update, or delete existing records.\n\nNote: [NEW] If dryRunId does not reference a validated dry-run, the request fails before writing anything.\n\nNote: [NEW] If imports.schoolOnboardingEnabled is false in system settings, this endpoint rejects with 409 FEATURE_DISABLED.",
         "x-allowed-roles": [
           "admin"
         ],
@@ -21345,7 +22772,7 @@
           "Admin Imports"
         ],
         "summary": "[NEW] Run School Onboarding Dry-Run",
-        "description": "Validate a structured school onboarding workbook payload on the server, resolve natural keys, and persist an auditable dry-run result without writing domain data.\n\nAllowed roles: admin.\n\nNote: [NEW] This endpoint accepts structured workbook JSON, not raw Excel binary upload.\n\nNote: [NEW] v1 is create-only and blocks duplicate/conflicting existing records.\n\nNote: [NEW] The returned importId is the dryRunId required by the apply endpoint.\n\nNote: [NEW] Frontend should key the result screen off status, canApply, summary, sheetSummaries, and issues.",
+        "description": "Validate a structured school onboarding workbook payload on the server, resolve natural keys, and persist an auditable dry-run result without writing domain data.\n\nAllowed roles: admin.\n\nNote: [NEW] This endpoint accepts structured workbook JSON, not raw Excel binary upload.\n\nNote: [NEW] v1 is create-only and blocks duplicate/conflicting existing records.\n\nNote: [NEW] The returned importId is the dryRunId required by the apply endpoint.\n\nNote: [NEW] Frontend should key the result screen off status, canApply, summary, sheetSummaries, and issues.\n\nNote: [NEW] If imports.schoolOnboardingEnabled is false in system settings, this endpoint rejects with 409 FEATURE_DISABLED.",
         "x-allowed-roles": [
           "admin"
         ],
@@ -21937,7 +23364,7 @@
           "Admin Imports"
         ],
         "summary": "[NEW] List School Onboarding Import History",
-        "description": "List persisted school onboarding dry-run and apply attempts with summary metadata for admin audit and retry flows.\n\nAllowed roles: admin.\n\nNote: [NEW] History is paginated and includes both dry-run and apply records.\n\nNote: [NEW] Each row includes status, canApply, and summary metadata.",
+        "description": "List persisted school onboarding dry-run and apply attempts with summary metadata for admin audit and retry flows.\n\nAllowed roles: admin.\n\nNote: [NEW] History is paginated and includes both dry-run and apply records.\n\nNote: [NEW] Each row includes status, canApply, and summary metadata.\n\nNote: [NEW] If imports.schoolOnboardingEnabled is false in system settings, this endpoint rejects with 409 FEATURE_DISABLED.",
         "x-allowed-roles": [
           "admin"
         ],
@@ -21996,7 +23423,7 @@
                         "templateVersion": "2026.04.phase-b",
                         "fileName": "school-onboarding-valid.json",
                         "fileHash": "sha256-valid-import-v1",
-                        "submittedAt": "2026-04-06T00:41:00.653Z",
+                        "submittedAt": "2026-04-07T00:27:25.627Z",
                         "appliedAt": null,
                         "submittedBy": {
                           "userId": "1",
@@ -22123,7 +23550,7 @@
           "Admin Imports"
         ],
         "summary": "[NEW] Get School Onboarding Import History Detail",
-        "description": "Return one persisted school onboarding import run, including its result summary, issues, entity counts, and dry-run linkage when applicable.\n\nAllowed roles: admin.\n\nNote: [NEW] Use this to reopen dry-run results or applied audit records without recomputing them.\n\nNote: [NEW] The nested result includes status, canApply, summary, issues, and alreadyApplied when relevant.",
+        "description": "Return one persisted school onboarding import run, including its result summary, issues, entity counts, and dry-run linkage when applicable.\n\nAllowed roles: admin.\n\nNote: [NEW] Use this to reopen dry-run results or applied audit records without recomputing them.\n\nNote: [NEW] The nested result includes status, canApply, summary, issues, and alreadyApplied when relevant.\n\nNote: [NEW] If imports.schoolOnboardingEnabled is false in system settings, this endpoint rejects with 409 FEATURE_DISABLED.",
         "x-allowed-roles": [
           "admin"
         ],
@@ -22161,8 +23588,8 @@
                     "templateVersion": "2026.04.phase-b",
                     "fileName": "school-onboarding-valid.json",
                     "fileHash": "sha256-valid-import-v1",
-                    "submittedAt": "2026-04-06T00:41:00.653Z",
-                    "appliedAt": "2026-04-06T00:41:00.653Z",
+                    "submittedAt": "2026-04-07T00:27:25.627Z",
+                    "appliedAt": "2026-04-07T00:27:25.627Z",
                     "submittedBy": {
                       "userId": "1",
                       "fullName": "أيمن أحمد محسن الذاهبي"
@@ -22375,7 +23802,7 @@
                       {
                         "id": "1",
                         "title": "واجب الرياضيات 1",
-                        "assignedDate": "2026-04-06",
+                        "assignedDate": "2026-04-07",
                         "dueDate": "2026-03-28",
                         "classId": "1",
                         "subjectId": "1",
@@ -22577,7 +24004,7 @@
             "schema": {
               "type": "string",
               "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-              "example": "2026-04-06"
+              "example": "2026-04-07"
             },
             "description": "Filter by exact assigned date."
           },
@@ -22588,7 +24015,7 @@
             "schema": {
               "type": "string",
               "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-              "example": "2026-04-06"
+              "example": "2026-04-07"
             },
             "description": "Filter by exact due date."
           },
@@ -22599,7 +24026,7 @@
             "schema": {
               "type": "string",
               "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-              "example": "2026-04-06"
+              "example": "2026-04-07"
             },
             "description": "Filter from date range."
           },
@@ -22610,7 +24037,7 @@
             "schema": {
               "type": "string",
               "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-              "example": "2026-04-06"
+              "example": "2026-04-07"
             },
             "description": "Filter to date range."
           }
@@ -22656,7 +24083,7 @@
                   "data": {
                     "id": "1",
                     "title": "واجب الرياضيات 1",
-                    "assignedDate": "2026-04-06",
+                    "assignedDate": "2026-04-07",
                     "dueDate": "2026-03-28",
                     "classId": "1",
                     "subjectId": "1",
@@ -22749,7 +24176,7 @@
                 "semesterId": "1",
                 "title": "واجب الرياضيات 2",
                 "description": "حل الصفحات 12-14",
-                "assignedDate": "2026-04-06",
+                "assignedDate": "2026-04-07",
                 "dueDate": "2026-03-28"
               }
             }
@@ -22798,7 +24225,7 @@
                   "data": {
                     "id": "1",
                     "title": "واجب الرياضيات 1",
-                    "assignedDate": "2026-04-06",
+                    "assignedDate": "2026-04-07",
                     "dueDate": "2026-03-28",
                     "classId": "1",
                     "subjectId": "1",
@@ -23084,13 +24511,13 @@
                   {
                     "studentId": "1",
                     "status": "submitted",
-                    "submittedAt": "2026-04-06",
+                    "submittedAt": "2026-04-07",
                     "notes": "تم التسليم"
                   },
                   {
                     "studentId": "2",
                     "status": "late",
-                    "submittedAt": "2026-04-06",
+                    "submittedAt": "2026-04-07",
                     "notes": "تسليم متأخر"
                   }
                 ]
@@ -23345,7 +24772,7 @@
                         "referenceType": "attendance",
                         "referenceId": "1",
                         "isRead": false,
-                        "createdAt": "2026-04-06T00:41:00.653Z",
+                        "createdAt": "2026-04-07T00:27:25.627Z",
                         "readAt": null
                       }
                     ],
@@ -24248,13 +25675,13 @@
                         "stopId": "1",
                         "stopName": "Stop 1"
                       },
-                      "startDate": "2026-04-06",
+                      "startDate": "2026-04-07",
                       "endDate": null,
                       "isActive": true
                     },
                     "activeTrip": {
                       "tripId": "1",
-                      "tripDate": "2026-04-06",
+                      "tripDate": "2026-04-07",
                       "tripType": "pickup",
                       "tripStatus": "started",
                       "bus": {
@@ -24268,7 +25695,7 @@
                       "latestLocation": {
                         "latitude": 15.3694,
                         "longitude": 44.191,
-                        "recordedAt": "2026-04-06T00:41:00.653Z"
+                        "recordedAt": "2026-04-07T00:27:25.627Z"
                       },
                       "latestEvents": [
                         {
@@ -24279,7 +25706,7 @@
                             "fullName": "طالب تجريبي 1"
                           },
                           "eventType": "boarded",
-                          "eventTime": "2026-04-06T00:41:00.653Z",
+                          "eventTime": "2026-04-07T00:27:25.627Z",
                           "stop": {
                             "stopId": "1",
                             "stopName": "Stop 1"
@@ -24472,7 +25899,7 @@
                           "id": "1",
                           "name": "2025-2026"
                         },
-                        "createdAt": "2026-04-06T00:41:00.653Z"
+                        "createdAt": "2026-04-07T00:27:25.627Z"
                       }
                     ],
                     "studentSummaries": [
@@ -24521,8 +25948,8 @@
                         },
                         "description": "Late arrival",
                         "severity": 2,
-                        "behaviorDate": "2026-04-06",
-                        "createdAt": "2026-04-06T00:41:00.653Z"
+                        "behaviorDate": "2026-04-07",
+                        "createdAt": "2026-04-07T00:27:25.627Z"
                       }
                     ]
                   }
@@ -24705,13 +26132,13 @@
                           "id": "1",
                           "name": "2025-2026"
                         },
-                        "createdAt": "2026-04-06T00:41:00.653Z"
+                        "createdAt": "2026-04-07T00:27:25.627Z"
                       }
                     ],
                     "recentAttendanceSessions": [
                       {
                         "id": "1",
-                        "sessionDate": "2026-04-06",
+                        "sessionDate": "2026-04-07",
                         "periodNo": 1,
                         "title": "Morning Attendance",
                         "class": {
@@ -24737,7 +26164,7 @@
                       {
                         "id": "1",
                         "title": "اختبار قصير 1",
-                        "assessmentDate": "2026-04-06",
+                        "assessmentDate": "2026-04-07",
                         "assessmentType": {
                           "id": "1",
                           "code": "quiz",
@@ -24781,8 +26208,8 @@
                         },
                         "description": "Strong participation",
                         "severity": 1,
-                        "behaviorDate": "2026-04-06",
-                        "createdAt": "2026-04-06T00:41:00.653Z"
+                        "behaviorDate": "2026-04-07",
+                        "createdAt": "2026-04-07T00:27:25.627Z"
                       }
                     ]
                   }
@@ -25089,7 +26516,7 @@
                         "referenceType": "attendance",
                         "referenceId": "1",
                         "isRead": false,
-                        "createdAt": "2026-04-06T00:41:00.653Z",
+                        "createdAt": "2026-04-07T00:27:25.627Z",
                         "readAt": null
                       }
                     ],
@@ -25907,7 +27334,7 @@
                           "id": "1",
                           "name": "2025-2026"
                         },
-                        "createdAt": "2026-04-06T00:41:00.653Z"
+                        "createdAt": "2026-04-07T00:27:25.627Z"
                       }
                     ],
                     "studentSummaries": [
@@ -25956,8 +27383,8 @@
                         },
                         "description": "Late arrival",
                         "severity": 2,
-                        "behaviorDate": "2026-04-06",
-                        "createdAt": "2026-04-06T00:41:00.653Z"
+                        "behaviorDate": "2026-04-07",
+                        "createdAt": "2026-04-07T00:27:25.627Z"
                       }
                     ]
                   }
@@ -26086,13 +27513,13 @@
                           "id": "1",
                           "name": "2025-2026"
                         },
-                        "createdAt": "2026-04-06T00:41:00.653Z"
+                        "createdAt": "2026-04-07T00:27:25.627Z"
                       }
                     ],
                     "recentAttendanceSessions": [
                       {
                         "id": "1",
-                        "sessionDate": "2026-04-06",
+                        "sessionDate": "2026-04-07",
                         "periodNo": 1,
                         "title": "Morning Attendance",
                         "class": {
@@ -26118,7 +27545,7 @@
                       {
                         "id": "1",
                         "title": "اختبار قصير 1",
-                        "assessmentDate": "2026-04-06",
+                        "assessmentDate": "2026-04-07",
                         "assessmentType": {
                           "id": "1",
                           "code": "quiz",
@@ -26162,8 +27589,8 @@
                         },
                         "description": "Strong participation",
                         "severity": 1,
-                        "behaviorDate": "2026-04-06",
-                        "createdAt": "2026-04-06T00:41:00.653Z"
+                        "behaviorDate": "2026-04-07",
+                        "createdAt": "2026-04-07T00:27:25.627Z"
                       }
                     ]
                   }
@@ -26974,13 +28401,13 @@
                         "stopId": "1",
                         "stopName": "Stop 1"
                       },
-                      "startDate": "2026-04-06",
+                      "startDate": "2026-04-07",
                       "endDate": null,
                       "isActive": true
                     },
                     "activeTrip": {
                       "tripId": "1",
-                      "tripDate": "2026-04-06",
+                      "tripDate": "2026-04-07",
                       "tripType": "pickup",
                       "tripStatus": "started",
                       "bus": {
@@ -26994,7 +28421,7 @@
                       "latestLocation": {
                         "latitude": 15.3694,
                         "longitude": 44.191,
-                        "recordedAt": "2026-04-06T00:41:00.653Z"
+                        "recordedAt": "2026-04-07T00:27:25.627Z"
                       },
                       "latestEvents": [
                         {
@@ -27005,7 +28432,7 @@
                             "fullName": "طالب تجريبي 1"
                           },
                           "eventType": "boarded",
-                          "eventTime": "2026-04-06T00:41:00.653Z",
+                          "eventTime": "2026-04-07T00:27:25.627Z",
                           "stop": {
                             "stopId": "1",
                             "stopName": "Stop 1"

@@ -9,6 +9,7 @@ import { communicationModule } from "../modules/communication";
 import { homeworkModule } from "../modules/homework";
 import { reportingModule } from "../modules/reporting";
 import { studentsModule } from "../modules/students";
+import { systemSettingsModule } from "../modules/system-settings";
 import { transportModule } from "../modules/transport";
 import { usersModule } from "../modules/users";
 
@@ -24,5 +25,6 @@ export const getRegisteredModules = (): AppModule[] => [
   communicationModule,
   homeworkModule,
   reportingModule,
+  systemSettingsModule,
   adminImportsModule
 ];

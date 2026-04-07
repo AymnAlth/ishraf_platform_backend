@@ -160,6 +160,42 @@ Local Root:  http://localhost:4000
 - ما زال `POST /students/:id/promotions` موجودًا، لكنه يعمل داخل نموذج الترقية الحالي ولا يمثل موديولًا مستقلاً.
 - روابط أولياء الأمور تعتمد `users.id` وتدعم primary parent.
 
+## System Settings
+
+الموديول: `src/modules/system-settings`
+
+الصلاحية: `admin` فقط
+
+المسارات:
+
+- `GET /system-settings`
+- `GET /system-settings/:group`
+- `PATCH /system-settings/:group`
+- `GET /system-settings/audit`
+- `GET /system-settings/integrations/status`
+
+قواعد تشغيلية:
+
+- هذه الخطوة `global-only` ولا تحتوي أي scoping خاص بمدرسة أو tenant.
+- قاعدة التخزين هي `overrides only`; defaults تبقى في الكود.
+- المجموعات المنفذة حاليًا:
+  - `pushNotifications`
+  - `transportMaps`
+  - `analytics`
+  - `imports`
+- `PATCH /system-settings/:group` body تكون group-specific ويجب أن تحتوي:
+  - `reason`
+  - `values`
+- إذا كانت القيمة المرسلة تساوي default، يحذف الباك أي override موجودة بدل تخزين row زائدة.
+- `GET /system-settings/audit` تعيد سجلًا append-only لتغييرات الإعدادات.
+- `GET /system-settings/integrations/status` تعيد:
+  - `featureEnabled`
+  - `pendingOutboxCount`
+  - `failedOutboxCount`
+- أول consumer حي في هذه الدفعة هو `admin-imports`:
+  - إذا كانت `imports.schoolOnboardingEnabled = false`
+  - ترفض school onboarding endpoints بـ `409 FEATURE_DISABLED`
+
 ## Attendance
 
 الموديول: `src/modules/attendance`

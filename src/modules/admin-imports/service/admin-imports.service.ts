@@ -1,3 +1,4 @@
+import { ConflictError } from "../../../common/errors/conflict-error";
 import { NotFoundError } from "../../../common/errors/not-found-error";
 import { ValidationError } from "../../../common/errors/validation-error";
 import type { AuthenticatedUser } from "../../../common/types/auth.types";
@@ -5,6 +6,7 @@ import type { PaginatedData } from "../../../common/types/pagination.types";
 import { toPaginatedData } from "../../../common/utils/pagination.util";
 import { db } from "../../../database/db";
 import { AcademicStructureRepository } from "../../academic-structure/repository/academic-structure.repository";
+import type { SystemSettingsReadService } from "../../system-settings/service/system-settings-read.service";
 import { StudentsRepository } from "../../students/repository/students.repository";
 import { TransportRepository } from "../../transport/repository/transport.repository";
 import { UsersRepository } from "../../users/repository/users.repository";
@@ -64,7 +66,10 @@ const toHistoryItem = (row: SchoolOnboardingImportRunRow): SchoolOnboardingImpor
 export class AdminImportsService {
   private readonly importEngine: SchoolOnboardingImportEngine;
 
-  constructor(private readonly adminImportsRepository: AdminImportsRepository) {
+  constructor(
+    private readonly adminImportsRepository: AdminImportsRepository,
+    private readonly systemSettingsReadService: SystemSettingsReadService
+  ) {
     this.importEngine = new SchoolOnboardingImportEngine(
       new UsersRepository(),
       new AcademicStructureRepository(),
@@ -77,6 +82,7 @@ export class AdminImportsService {
     authUser: AuthenticatedUser,
     payload: SchoolOnboardingDryRunRequestDto
   ): Promise<SchoolOnboardingImportResponseDto> {
+    await this.assertSchoolOnboardingEnabled();
     const snapshot = await this.adminImportsRepository.loadReferenceSnapshot();
     const evaluation = this.importEngine.evaluate(payload, snapshot);
     const importRun = await this.adminImportsRepository.createImportRun({
@@ -102,6 +108,7 @@ export class AdminImportsService {
     authUser: AuthenticatedUser,
     payload: SchoolOnboardingApplyRequestDto
   ): Promise<SchoolOnboardingImportResponseDto> {
+    await this.assertSchoolOnboardingEnabled();
     const dryRun = await this.adminImportsRepository.findImportRunById(payload.dryRunId);
 
     if (!dryRun) {
@@ -175,6 +182,7 @@ export class AdminImportsService {
   async listSchoolOnboardingImportHistory(
     query: { page: number; limit: number }
   ): Promise<PaginatedData<SchoolOnboardingImportHistoryItemDto>> {
+    await this.assertSchoolOnboardingEnabled();
     const history = await this.adminImportsRepository.listImportRuns(query);
 
     return toPaginatedData(
@@ -188,6 +196,7 @@ export class AdminImportsService {
   async getSchoolOnboardingImportHistoryDetail(
     importId: string
   ): Promise<SchoolOnboardingImportHistoryDetailDto> {
+    await this.assertSchoolOnboardingEnabled();
     const importRun = await this.adminImportsRepository.findImportRunById(importId);
 
     if (!importRun) {
@@ -200,5 +209,20 @@ export class AdminImportsService {
       result: parseStoredResponse(importRun)
     };
   }
-}
 
+  private async assertSchoolOnboardingEnabled(): Promise<void> {
+    const importsSettings = await this.systemSettingsReadService.getImportsSettings();
+
+    if (importsSettings.schoolOnboardingEnabled) {
+      return;
+    }
+
+    throw new ConflictError("School onboarding import is disabled", [
+      {
+        field: "group",
+        code: "FEATURE_DISABLED",
+        message: "The imports system settings group has disabled school onboarding"
+      }
+    ]);
+  }
+}

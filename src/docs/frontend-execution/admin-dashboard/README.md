@@ -16,6 +16,7 @@
 - `users`
 - `academic-structure`
 - `students`
+- `system-settings`
 - `admin-imports`
 
 كما أنها تستهلك أيضًا:
@@ -32,6 +33,14 @@
 
 - السطوح اليومية تعتمد `Active Academic Context`.
 - `users.id` هي المرجع المعتمد في السطوح الحديثة الخاصة بالمعلمين والمشرفين والسائقين وأولياء الأمور.
+- `system-settings` هي control plane إدارية عامة:
+  - global-only
+  - admin-only
+  - وتتحكم حاليًا في feature flags للمجموعات:
+    - `pushNotifications`
+    - `transportMaps`
+    - `analytics`
+    - `imports`
 - في `attendance` و`assessments` و`homework`:
   - admin-created request يجب أن ترسل `teacherId`
   - ويفضل أن تكون `teacherId = users.id`
@@ -44,6 +53,7 @@
 ## الحدود بين الإدارة والتشغيل
 
 - صفحات `academic-structure`, `users`, `students`, `admin-imports` هي surfaces إدارية بحتة.
+- صفحات `system-settings` أيضًا surfaces إدارية بحتة.
 - `attendance`, `assessments`, `behavior`, `homework`, و`reporting` هي surfaces تشغيل يومي لكنها متاحة أيضًا للإدارة.
 - `transport` ينقسم إلى:
   - surfaces إدارية: buses, routes, stops, assignments, route assignments, home locations

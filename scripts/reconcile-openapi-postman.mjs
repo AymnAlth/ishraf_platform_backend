@@ -37,6 +37,7 @@ const TAG_ORDER = [
   "Users",
   "Academic Structure",
   "Students",
+  "System Settings",
   "Attendance",
   "Assessments",
   "Behavior",
@@ -54,6 +55,8 @@ const tagDescriptions = {
   "Academic Structure":
     "Admin-only academic years, semesters, grade levels, classes, subjects, and staff assignment endpoints.",
   Students: "Admin-only student lifecycle, parent linking, and promotion endpoints.",
+  "System Settings":
+    "Admin-only global feature flags, settings audit, and integration outbox summary endpoints.",
   Attendance:
     "Session-based attendance endpoints used by admin, teachers, and supervisors.",
   Assessments: "Assessment types, assessments, and student score roster endpoints.",
@@ -83,6 +86,12 @@ const moduleSources = [
     tag: "Students",
     basePath: "/students",
     routeFile: "src/modules/students/routes/students.routes.ts"
+  },
+  {
+    key: "system-settings",
+    tag: "System Settings",
+    basePath: "/system-settings",
+    routeFile: "src/modules/system-settings/routes/system-settings.routes.ts"
   },
   {
     key: "behavior",
@@ -144,6 +153,18 @@ const dateSchema = {
 const dateTimeSchema = { type: "string", format: "date-time", example: NOW };
 const ATTENDANCE_STATUS_VALUES = ["present", "absent", "late", "excused"];
 const HOMEWORK_SUBMISSION_STATUS_VALUES = ["submitted", "not_submitted", "late"];
+const SYSTEM_SETTING_GROUP_VALUES = [
+  "pushNotifications",
+  "transportMaps",
+  "analytics",
+  "imports"
+];
+const SYSTEM_SETTING_AUDIT_ACTION_VALUES = ["created", "updated", "cleared"];
+const SYSTEM_INTEGRATION_PROVIDER_KEYS = [
+  "pushNotifications",
+  "transportMaps",
+  "analytics"
+];
 const BUS_STATUS_VALUES = ["active", "inactive", "maintenance"];
 const TRIP_TYPE_VALUES = ["pickup", "dropoff"];
 const TRIP_STATUS_VALUES = ["scheduled", "started", "ended", "cancelled"];
@@ -1354,6 +1375,112 @@ const examples = {
   }
 };
 
+examples.systemSettingsGroup = {
+  group: "imports",
+  description: "Operational switches for admin-managed import capabilities.",
+  entries: [
+    {
+      key: "schoolOnboardingEnabled",
+      value: true,
+      defaultValue: true,
+      source: "default",
+      description:
+        "Enables the structured school onboarding dry-run/apply workflow.",
+      updatedAt: null,
+      updatedBy: null
+    },
+    {
+      key: "csvImportEnabled",
+      value: true,
+      defaultValue: false,
+      source: "override",
+      description:
+        "Enables future CSV import surfaces when that operational flow is introduced.",
+      updatedAt: NOW,
+      updatedBy: {
+        userId: "1",
+        fullName: "أيمن أحمد محسن الذاهبي"
+      }
+    }
+  ]
+};
+
+examples.systemSettingsList = {
+  groups: [
+    {
+      group: "pushNotifications",
+      description:
+        "Feature flags that gate future FCM and realtime push delivery behavior.",
+      entries: [
+        {
+          key: "fcmEnabled",
+          value: false,
+          defaultValue: false,
+          source: "default",
+          description:
+            "Enables Firebase Cloud Messaging provider usage when the provider phase is implemented.",
+          updatedAt: null,
+          updatedBy: null
+        },
+        {
+          key: "transportRealtimeEnabled",
+          value: false,
+          defaultValue: false,
+          source: "default",
+          description:
+            "Allows transport realtime notification workflows to publish through the push pipeline.",
+          updatedAt: null,
+          updatedBy: null
+        }
+      ]
+    },
+    clone({
+      group: "imports",
+      description: "Operational switches for admin-managed import capabilities.",
+      entries: examples.systemSettingsGroup.entries
+    })
+  ]
+};
+
+examples.systemSettingAuditLog = {
+  auditId: "1",
+  group: "imports",
+  key: "csvImportEnabled",
+  action: "created",
+  previousValue: null,
+  newValue: true,
+  reason: "Enable pilot CSV workflow",
+  requestId: "6b55c8c8-63ce-4c45-bf77-4c7b9a7547d5",
+  changedAt: NOW,
+  changedBy: {
+    userId: "1",
+    fullName: "أيمن أحمد محسن الذاهبي"
+  }
+};
+
+examples.systemIntegrationsStatus = {
+  integrations: [
+    {
+      providerKey: "pushNotifications",
+      featureEnabled: false,
+      pendingOutboxCount: 0,
+      failedOutboxCount: 0
+    },
+    {
+      providerKey: "transportMaps",
+      featureEnabled: false,
+      pendingOutboxCount: 0,
+      failedOutboxCount: 0
+    },
+    {
+      providerKey: "analytics",
+      featureEnabled: false,
+      pendingOutboxCount: 0,
+      failedOutboxCount: 0
+    }
+  ]
+};
+
 examples.behaviorTimeline.records.push(clone(examples.behaviorRecord));
 
 function clone(value) {
@@ -1931,6 +2058,227 @@ function addSchema(name, schema) {
   });
 });
 
+addSchema("UpdatePushNotificationsSettingsRequest", {
+  type: "object",
+  properties: {
+    reason: { type: "string", minLength: 1, maxLength: 500 },
+    values: {
+      type: "object",
+      properties: {
+        fcmEnabled: { type: "boolean" },
+        transportRealtimeEnabled: { type: "boolean" }
+      },
+      additionalProperties: false,
+      minProperties: 1
+    }
+  },
+  required: ["reason", "values"],
+  additionalProperties: false,
+  example: {
+    reason: "Enable staging push pilot",
+    values: { fcmEnabled: true }
+  }
+});
+
+addSchema("UpdateTransportMapsSettingsRequest", {
+  type: "object",
+  properties: {
+    reason: { type: "string", minLength: 1, maxLength: 500 },
+    values: {
+      type: "object",
+      properties: {
+        googleMapsEtaEnabled: { type: "boolean" }
+      },
+      additionalProperties: false,
+      minProperties: 1
+    }
+  },
+  required: ["reason", "values"],
+  additionalProperties: false,
+  example: {
+    reason: "Prepare Google Maps ETA rollout",
+    values: { googleMapsEtaEnabled: true }
+  }
+});
+
+addSchema("UpdateAnalyticsSettingsRequest", {
+  type: "object",
+  properties: {
+    reason: { type: "string", minLength: 1, maxLength: 500 },
+    values: {
+      type: "object",
+      properties: {
+        aiAnalyticsEnabled: { type: "boolean" }
+      },
+      additionalProperties: false,
+      minProperties: 1
+    }
+  },
+  required: ["reason", "values"],
+  additionalProperties: false,
+  example: {
+    reason: "Enable analytics dry pilot",
+    values: { aiAnalyticsEnabled: true }
+  }
+});
+
+addSchema("UpdateImportsSettingsRequest", {
+  type: "object",
+  properties: {
+    reason: { type: "string", minLength: 1, maxLength: 500 },
+    values: {
+      type: "object",
+      properties: {
+        schoolOnboardingEnabled: { type: "boolean" },
+        csvImportEnabled: { type: "boolean" }
+      },
+      additionalProperties: false,
+      minProperties: 1
+    }
+  },
+  required: ["reason", "values"],
+  additionalProperties: false,
+  example: {
+    reason: "Freeze onboarding during rollout",
+    values: { schoolOnboardingEnabled: false }
+  }
+});
+
+addSchema("UpdateSystemSettingsGroupRequest", {
+  oneOf: [
+    { $ref: "#/components/schemas/UpdatePushNotificationsSettingsRequest" },
+    { $ref: "#/components/schemas/UpdateTransportMapsSettingsRequest" },
+    { $ref: "#/components/schemas/UpdateAnalyticsSettingsRequest" },
+    { $ref: "#/components/schemas/UpdateImportsSettingsRequest" }
+  ],
+  example: componentSchemas.UpdateImportsSettingsRequest.example
+});
+
+addSchema("SystemSettingEntryResponse", {
+  type: "object",
+  properties: {
+    key: { type: "string" },
+    value: {},
+    defaultValue: {},
+    source: { type: "string", enum: ["default", "override"] },
+    description: { type: "string" },
+    updatedAt: {
+      anyOf: [{ type: "string", format: "date-time" }, { type: "null" }]
+    },
+    updatedBy: {
+      anyOf: [
+        {
+          type: "object",
+          properties: {
+            userId: clone(numericIdSchema),
+            fullName: { type: "string" }
+          },
+          required: ["userId", "fullName"],
+          additionalProperties: false
+        },
+        { type: "null" }
+      ]
+    }
+  },
+  required: ["key", "value", "defaultValue", "source", "description", "updatedAt", "updatedBy"],
+  additionalProperties: false,
+  example: examples.systemSettingsGroup.entries[0]
+});
+
+addSchema("SystemSettingsGroupResponse", {
+  type: "object",
+  properties: {
+    group: { type: "string", enum: SYSTEM_SETTING_GROUP_VALUES },
+    description: { type: "string" },
+    entries: {
+      type: "array",
+      items: { $ref: "#/components/schemas/SystemSettingEntryResponse" }
+    }
+  },
+  required: ["group", "description", "entries"],
+  additionalProperties: false,
+  example: examples.systemSettingsGroup
+});
+
+addSchema("SystemSettingsListResponse", {
+  type: "object",
+  properties: {
+    groups: {
+      type: "array",
+      items: { $ref: "#/components/schemas/SystemSettingsGroupResponse" }
+    }
+  },
+  required: ["groups"],
+  additionalProperties: false,
+  example: examples.systemSettingsList
+});
+
+addSchema("SystemSettingAuditLogItemResponse", {
+  type: "object",
+  properties: {
+    auditId: clone(numericIdSchema),
+    group: { type: "string", enum: SYSTEM_SETTING_GROUP_VALUES },
+    key: { type: "string" },
+    action: { type: "string", enum: SYSTEM_SETTING_AUDIT_ACTION_VALUES },
+    previousValue: {
+      anyOf: [
+        { type: "object", additionalProperties: true },
+        { type: "boolean" },
+        { type: "string" },
+        { type: "number" },
+        { type: "null" }
+      ]
+    },
+    newValue: {
+      anyOf: [
+        { type: "object", additionalProperties: true },
+        { type: "boolean" },
+        { type: "string" },
+        { type: "number" },
+        { type: "null" }
+      ]
+    },
+    reason: { type: "string" },
+    requestId: { type: "string", format: "uuid" },
+    changedAt: { type: "string", format: "date-time" },
+    changedBy: {
+      type: "object",
+      properties: {
+        userId: clone(numericIdSchema),
+        fullName: { type: "string" }
+      },
+      required: ["userId", "fullName"],
+      additionalProperties: false
+    }
+  },
+  required: ["auditId", "group", "key", "action", "previousValue", "newValue", "reason", "requestId", "changedAt", "changedBy"],
+  additionalProperties: false,
+  example: examples.systemSettingAuditLog
+});
+
+addSchema("SystemIntegrationsStatusResponse", {
+  type: "object",
+  properties: {
+    integrations: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          providerKey: { type: "string", enum: SYSTEM_INTEGRATION_PROVIDER_KEYS },
+          featureEnabled: { type: "boolean" },
+          pendingOutboxCount: { type: "integer", minimum: 0 },
+          failedOutboxCount: { type: "integer", minimum: 0 }
+        },
+        required: ["providerKey", "featureEnabled", "pendingOutboxCount", "failedOutboxCount"],
+        additionalProperties: false
+      }
+    }
+  },
+  required: ["integrations"],
+  additionalProperties: false,
+  example: examples.systemIntegrationsStatus
+});
+
 addSchema("CreateAssessmentRequest", {
   type: "object",
   properties: {
@@ -2239,6 +2587,8 @@ const commonQuery = {
   sortOrder: (example = "desc") => qp("sortOrder", { type: "string", enum: ["asc", "desc"], example }, "Sort direction."),
   id: (name, description) => qp(name, clone(numericIdSchema), description),
   date: (name, description) => qp(name, clone(dateSchema), description),
+  dateTime: (name, description, example = NOW) =>
+    qp(name, clone({ ...dateTimeSchema, example }), description),
   boolean: (name, description) => qp(name, { type: "boolean", example: true }, description),
   text: (name, description, example) => qp(name, { type: "string", example }, description)
 };
@@ -2254,6 +2604,8 @@ function paginatedQuery(sortValues, extras = [], defaultSort = sortValues[0], de
 }
 
 function pathParamDescription(routePath, paramName) {
+  if (paramName === "group")
+    return "System settings group key. Allowed values: pushNotifications, transportMaps, analytics, imports.";
   if (paramName === "studentId") return "Student numeric string identifier. This is the same id used by /students/:id.";
   if (paramName === "parentUserId") return "Parent user numeric string identifier from /users?role=parent.";
   if (paramName === "teacherUserId") return "Teacher user numeric string identifier from /users?role=teacher.";
@@ -2292,12 +2644,20 @@ function buildPathParameters(routePath) {
   const matches = routePath.match(/:([^/]+)/g) ?? [];
   return matches.map((match) => {
     const name = match.slice(1);
+    const schema =
+      name === "group"
+        ? {
+            type: "string",
+            enum: SYSTEM_SETTING_GROUP_VALUES,
+            example: "imports"
+          }
+        : clone(numericIdSchema);
     return {
       name,
       in: "path",
       required: true,
       description: pathParamDescription(routePath, name),
-      schema: clone(numericIdSchema)
+      schema
     };
   });
 }
@@ -2396,6 +2756,29 @@ const recipientsQuery = [
   commonQuery.text("search", "Filter recipients by full name, email, or phone.", "Supervisor"),
   commonQuery.text("role", "Filter recipients by role.", "supervisor")
 ];
+const systemSettingsAuditQuery = paginatedQuery(
+  ["createdAt"],
+  [
+    commonQuery.text(
+      "group",
+      "Filter audit rows by settings group.",
+      "imports"
+    ),
+    commonQuery.text("key", "Filter audit rows by setting key.", "schoolOnboardingEnabled"),
+    commonQuery.id("changedByUserId", "Filter audit rows by actor user id."),
+    commonQuery.dateTime(
+      "since",
+      "Filter audit rows created on or after this ISO datetime.",
+      NOW
+    ),
+    commonQuery.dateTime(
+      "until",
+      "Filter audit rows created on or before this ISO datetime.",
+      NOW
+    )
+  ],
+  "createdAt"
+);
 const schoolOnboardingImportHistoryQuery = [commonQuery.page(), commonQuery.limit()];
 
 const endpoints = [
@@ -2461,6 +2844,11 @@ endpoints.push(
   makeEndpoint({ m: "GET", p: "/students/:id/parents", t: "Students", s: "List Student Parents", u: "Return parent links for one student.", kind: "array", e: "user", status: 200 }),
   makeEndpoint({ m: "PATCH", p: "/students/:studentId/parents/:parentId/primary", t: "Students", s: "Set Primary Parent", u: "Mark one linked parent as the primary parent for that student. parentId may be either the parent user id returned by /users?role=parent or the underlying parent profile id.", e: "user", status: 200, notes: ["The backend resolves parentId to the stored parent profile id automatically. Prefer sending the user id returned by /users?role=parent in admin frontend flows."] }),
   makeEndpoint({ m: "POST", p: "/students/:id/promotions", t: "Students", s: "Promote Student", u: "Promote a student to another class for a target academic year while writing structured enrollment state and promotion history.", b: "PromoteStudentRequest", e: "student", notes: ["The promotion writes the target academic enrollment even when the target year is not active yet.", "students.class_id is only synchronized immediately when the target year is the active academic year."] }),
+  makeEndpoint({ m: "GET", p: "/system-settings", t: "System Settings", s: "[NEW] List System Settings", u: "Return every implemented system settings group with effective values merged from code defaults and stored overrides.", r: ["admin"], e: "systemSettingsList", status: 200, notes: ["[NEW] Step 1 is global-only and currently implements pushNotifications, transportMaps, analytics, and imports.", "[NEW] Each entry returns the effective value, the code default, and whether the source is default or override."] }),
+  makeEndpoint({ m: "GET", p: "/system-settings/audit", t: "System Settings", s: "[NEW] List System Settings Audit", u: "List append-only audit rows for setting changes with pagination and optional filters.", r: ["admin"], q: systemSettingsAuditQuery, kind: "paginated", e: "systemSettingAuditLog", status: 200, notes: ["[NEW] Audit rows capture created, updated, and cleared actions.", "[NEW] requestId lets admin trace one change batch across multiple keys."] }),
+  makeEndpoint({ m: "GET", p: "/system-settings/integrations/status", t: "System Settings", s: "[NEW] Get Integration Feature Status", u: "Return feature-enabled status for external integration groups together with pending and failed integration outbox counts.", r: ["admin"], e: "systemIntegrationsStatus", status: 200, notes: ["[NEW] This surface only covers pushNotifications, transportMaps, and analytics.", "[NEW] providerConfigured is intentionally not returned in step 1 because provider secrets still live only in env and no provider phase has been wired yet."] }),
+  makeEndpoint({ m: "GET", p: "/system-settings/:group", t: "System Settings", s: "[NEW] Get System Settings Group", u: "Return one system settings group with effective values, defaults, descriptions, and override metadata.", r: ["admin"], e: "systemSettingsGroup", status: 200, notes: ["[NEW] Allowed groups are pushNotifications, transportMaps, analytics, and imports."] }),
+  makeEndpoint({ m: "PATCH", p: "/system-settings/:group", t: "System Settings", s: "[NEW] Update System Settings Group", u: "Update one system settings group by writing overrides only for values that differ from code defaults.", r: ["admin"], b: "UpdateSystemSettingsGroupRequest", e: "systemSettingsGroup", status: 200, notes: ["[NEW] The request body is group-specific. Use UpdatePushNotificationsSettingsRequest, UpdateTransportMapsSettingsRequest, UpdateAnalyticsSettingsRequest, or UpdateImportsSettingsRequest depending on :group.", "[NEW] Sending a value equal to the code default clears any existing override instead of storing redundant data.", "[NEW] The first live consumer is imports.schoolOnboardingEnabled. When it is false, school onboarding import endpoints reject with 409 FEATURE_DISABLED."] }),
   makeEndpoint({ m: "POST", p: "/assessments/types", t: "Assessments", s: "Create Assessment Type", u: "Create a reusable assessment type.", b: "CreateAssessmentTypeRequest", e: "assessment" }),
   makeEndpoint({ m: "GET", p: "/assessments/types", t: "Assessments", s: "List Assessment Types", u: "List assessment types.", r: ["admin", "teacher"], kind: "array", e: "assessment", status: 200 }),
   makeEndpoint({ m: "POST", p: "/assessments", t: "Assessments", s: "Create Assessment", u: "Create an assessment inside the active academic context. Teachers must omit teacherId and rely on the authenticated teacher profile. Admin teacherId accepts the teacher user id from /users?role=teacher or the legacy teacher profile id.", r: ["admin", "teacher"], b: "CreateAssessmentRequest", e: "assessment", notes: ["academicYearId and semesterId may be omitted; the backend resolves the active academic context automatically.", "If academicYearId or semesterId is sent, it must match the active context.", "The selected subjectId must have an active subject offering for the resolved semester.", "Admin frontend flows should send teacherId as the teacher user id returned by GET /users?role=teacher.", "Teacher frontend flows must not send teacherId; the backend returns TEACHER_ID_NOT_ALLOWED if it is present.", "Relevant domain errors include CLASS_YEAR_MISMATCH, SEMESTER_YEAR_MISMATCH, SUBJECT_GRADE_LEVEL_MISMATCH, SUBJECT_NOT_OFFERED_IN_SEMESTER, TEACHER_ID_REQUIRED, TEACHER_ID_NOT_ALLOWED, and ACADEMIC_CONTEXT_NOT_CONFIGURED."] }),
@@ -2523,10 +2911,10 @@ endpoints.push(
   makeEndpoint({ m: "POST", p: "/communication/notifications/bulk", t: "Communication", s: "[NEW] Create Bulk Notifications", u: "Create admin-only multi-target notifications in one all-or-nothing transaction with an authoritative delivery summary.", r: ["admin"], b: "CreateBulkNotificationRequest", e: "bulkDelivery", status: 201, notes: ["[NEW] At least one of userIds[] or targetRoles[] is required.", "[NEW] Audience resolution reuses the same available-recipient rules as GET /communication/recipients.", "[NEW] The response returns delivery summary metadata rather than the full notification list."] }),
   makeEndpoint({ m: "GET", p: "/communication/notifications/me", t: "Communication", s: "List My Notifications", u: "List notifications for the authenticated user with unreadCount metadata.", r: ["admin", "parent", "teacher", "supervisor", "driver"], q: notificationsQuery, kind: "paginated", e: "notification", status: 200, derived: "Notification lists rely on views such as vw_notification_details and vw_user_notification_summary." }),
   makeEndpoint({ m: "PATCH", p: "/communication/notifications/:notificationId/read", t: "Communication", s: "Mark Notification Read", u: "Mark one notification as read.", r: ["admin", "parent", "teacher", "supervisor", "driver"], e: "notification", status: 200 }),
-  makeEndpoint({ m: "POST", p: "/admin-imports/school-onboarding/dry-run", t: "Admin Imports", s: "[NEW] Run School Onboarding Dry-Run", u: "Validate a structured school onboarding workbook payload on the server, resolve natural keys, and persist an auditable dry-run result without writing domain data.", r: ["admin"], b: "SchoolOnboardingDryRunRequest", e: "schoolOnboardingImport", status: 200, notes: ["[NEW] This endpoint accepts structured workbook JSON, not raw Excel binary upload.", "[NEW] v1 is create-only and blocks duplicate/conflicting existing records.", "[NEW] The returned importId is the dryRunId required by the apply endpoint.", "[NEW] Frontend should key the result screen off status, canApply, summary, sheetSummaries, and issues."] }),
-  makeEndpoint({ m: "POST", p: "/admin-imports/school-onboarding/apply", t: "Admin Imports", s: "[NEW] Apply School Onboarding Import", u: "Apply a previously validated school onboarding dry-run in one all-or-nothing transaction, with idempotent retry semantics.", r: ["admin"], b: "SchoolOnboardingApplyRequest", e: "schoolOnboardingImport", status: 200, notes: ["[NEW] dryRunId must reference a validated dry-run result.", "[NEW] Repeated apply calls for the same successful dryRunId return the previous apply result with alreadyApplied=true.", "[NEW] The import is create-only in v1 and does not sync, update, or delete existing records.", "[NEW] If dryRunId does not reference a validated dry-run, the request fails before writing anything."] }),
-  makeEndpoint({ m: "GET", p: "/admin-imports/school-onboarding/history", t: "Admin Imports", s: "[NEW] List School Onboarding Import History", u: "List persisted school onboarding dry-run and apply attempts with summary metadata for admin audit and retry flows.", r: ["admin"], q: schoolOnboardingImportHistoryQuery, kind: "paginated", e: "schoolOnboardingImportHistoryItem", status: 200, notes: ["[NEW] History is paginated and includes both dry-run and apply records.", "[NEW] Each row includes status, canApply, and summary metadata."] }),
-  makeEndpoint({ m: "GET", p: "/admin-imports/school-onboarding/history/:importId", t: "Admin Imports", s: "[NEW] Get School Onboarding Import History Detail", u: "Return one persisted school onboarding import run, including its result summary, issues, entity counts, and dry-run linkage when applicable.", r: ["admin"], e: "schoolOnboardingImportHistoryDetail", status: 200, notes: ["[NEW] Use this to reopen dry-run results or applied audit records without recomputing them.", "[NEW] The nested result includes status, canApply, summary, issues, and alreadyApplied when relevant."] }),
+  makeEndpoint({ m: "POST", p: "/admin-imports/school-onboarding/dry-run", t: "Admin Imports", s: "[NEW] Run School Onboarding Dry-Run", u: "Validate a structured school onboarding workbook payload on the server, resolve natural keys, and persist an auditable dry-run result without writing domain data.", r: ["admin"], b: "SchoolOnboardingDryRunRequest", e: "schoolOnboardingImport", status: 200, notes: ["[NEW] This endpoint accepts structured workbook JSON, not raw Excel binary upload.", "[NEW] v1 is create-only and blocks duplicate/conflicting existing records.", "[NEW] The returned importId is the dryRunId required by the apply endpoint.", "[NEW] Frontend should key the result screen off status, canApply, summary, sheetSummaries, and issues.", "[NEW] If imports.schoolOnboardingEnabled is false in system settings, this endpoint rejects with 409 FEATURE_DISABLED."] }),
+  makeEndpoint({ m: "POST", p: "/admin-imports/school-onboarding/apply", t: "Admin Imports", s: "[NEW] Apply School Onboarding Import", u: "Apply a previously validated school onboarding dry-run in one all-or-nothing transaction, with idempotent retry semantics.", r: ["admin"], b: "SchoolOnboardingApplyRequest", e: "schoolOnboardingImport", status: 200, notes: ["[NEW] dryRunId must reference a validated dry-run result.", "[NEW] Repeated apply calls for the same successful dryRunId return the previous apply result with alreadyApplied=true.", "[NEW] The import is create-only in v1 and does not sync, update, or delete existing records.", "[NEW] If dryRunId does not reference a validated dry-run, the request fails before writing anything.", "[NEW] If imports.schoolOnboardingEnabled is false in system settings, this endpoint rejects with 409 FEATURE_DISABLED."] }),
+  makeEndpoint({ m: "GET", p: "/admin-imports/school-onboarding/history", t: "Admin Imports", s: "[NEW] List School Onboarding Import History", u: "List persisted school onboarding dry-run and apply attempts with summary metadata for admin audit and retry flows.", r: ["admin"], q: schoolOnboardingImportHistoryQuery, kind: "paginated", e: "schoolOnboardingImportHistoryItem", status: 200, notes: ["[NEW] History is paginated and includes both dry-run and apply records.", "[NEW] Each row includes status, canApply, and summary metadata.", "[NEW] If imports.schoolOnboardingEnabled is false in system settings, this endpoint rejects with 409 FEATURE_DISABLED."] }),
+  makeEndpoint({ m: "GET", p: "/admin-imports/school-onboarding/history/:importId", t: "Admin Imports", s: "[NEW] Get School Onboarding Import History Detail", u: "Return one persisted school onboarding import run, including its result summary, issues, entity counts, and dry-run linkage when applicable.", r: ["admin"], e: "schoolOnboardingImportHistoryDetail", status: 200, notes: ["[NEW] Use this to reopen dry-run results or applied audit records without recomputing them.", "[NEW] The nested result includes status, canApply, summary, issues, and alreadyApplied when relevant.", "[NEW] If imports.schoolOnboardingEnabled is false in system settings, this endpoint rejects with 409 FEATURE_DISABLED."] }),
   makeEndpoint({ m: "POST", p: "/homework", t: "Homework", s: "Create Homework", u: "Create homework inside the active academic context. Teachers must omit teacherId and rely on the authenticated teacher profile. Admin teacherId accepts the teacher user id from /users?role=teacher or the legacy teacher profile id.", r: ["admin", "teacher"], b: "CreateHomeworkRequest", e: "homework", notes: ["academicYearId and semesterId may be omitted; the backend resolves the active academic context automatically.", "If academicYearId or semesterId is sent, it must match the active context.", "The selected subjectId must have an active subject offering for the resolved semester.", "Admin frontend flows should send teacherId as the teacher user id returned by GET /users?role=teacher.", "Teacher frontend flows must not send teacherId; the backend returns TEACHER_ID_NOT_ALLOWED if it is present.", "Relevant domain errors include CLASS_YEAR_MISMATCH, SEMESTER_YEAR_MISMATCH, SUBJECT_GRADE_LEVEL_MISMATCH, SUBJECT_NOT_OFFERED_IN_SEMESTER, TEACHER_ID_REQUIRED, TEACHER_ID_NOT_ALLOWED, and ACADEMIC_CONTEXT_NOT_CONFIGURED."] }),
   makeEndpoint({ m: "GET", p: "/homework", t: "Homework", s: "List Homework", u: "List homework for the active academic context with pagination and academic filters.", r: ["admin", "teacher"], q: homeworkListQuery, kind: "paginated", e: "homework", status: 200, notes: ["This operational list is scoped to the active academic year and active semester.", "teacherId filter accepts the teacher user id returned by GET /users?role=teacher or the legacy teacher profile id. Prefer the user id in admin frontend flows."], derived: "Homework lists are enriched by SQL views such as vw_homework_details." }),
   makeEndpoint({ m: "GET", p: "/homework/students/:studentId", t: "Homework", s: "Get Student Homework", u: "Return homework assigned to one student. Parents are restricted to their linked children.", r: ["admin", "teacher", "parent"], e: "studentHomework", status: 200, notes: ["If the student exists but has no homework yet, the response remains 200 with items=[]."], derived: "Student homework uses view-backed projections such as vw_homework_details and vw_homework_submission_details." }),
@@ -2780,6 +3168,7 @@ function buildCollection(name, description, subset) {
       { key: "notificationId", value: "" },
       { key: "importId", value: "" },
       { key: "dryRunId", value: "" },
+      { key: "group", value: "imports" },
       { key: "otherUserId", value: "47" },
       { key: "homeworkId", value: "" }
     ],
@@ -2850,7 +3239,7 @@ const viewNames = Array.from(new Set(migrationContent.match(/vw_[a-z_]+/g) ?? []
 const automationEvents = ["attendance_absent", "behavior_negative", "transport_trip_started", "transport_student_dropped_off"];
 const targetFields = ["communication.announcements.targetRole", "communication.announcements.targetRoles", "communication.notifications.notificationType", "behavior.categories.behaviorType", "transport.trip-events.eventType"];
 
-const moduleOrder = ["health", "auth", "users", "academic-structure", "students", "attendance", "assessments", "behavior", "transport", "communication", "admin-imports", "homework", "reporting"];
+const moduleOrder = ["health", "auth", "users", "academic-structure", "students", "system-settings", "attendance", "assessments", "behavior", "transport", "communication", "admin-imports", "homework", "reporting"];
 const moduleTable = moduleOrder.map((key) => {
   const total = afterOpenApiByModule.get(key)?.total ?? 0;
   const tag = afterOpenApiByModule.get(key)?.tag ?? key;

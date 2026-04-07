@@ -18,6 +18,7 @@ import { registerHomeworkIntegrationTests } from "./homework/homework.integratio
 import { registerMigrationSmokeTests } from "./migrations/migrations.integration";
 import { registerReportingIntegrationTests } from "./reporting/reporting.integration";
 import { registerStudentsIntegrationTests } from "./students/students.integration";
+import { registerSystemSettingsIntegrationTests } from "./system-settings/system-settings.integration";
 import {
   bootstrapTestDatabase,
   createTestPool,
@@ -80,6 +81,7 @@ describeIfDatabase("API integration", () => {
   registerAutomationIntegrationTests(context);
   registerAccessIntegrationTests(context);
   registerReportingIntegrationTests(context);
+  registerSystemSettingsIntegrationTests(context);
 });
 
 

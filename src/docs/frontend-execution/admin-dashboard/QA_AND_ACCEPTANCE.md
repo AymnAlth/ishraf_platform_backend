@@ -32,6 +32,28 @@
   - a student is duplicated
   - a foreign student is included
 
+## System settings
+
+- `GET /system-settings` returns all implemented groups even when no overrides exist in DB
+- `GET /system-settings/:group` returns:
+  - `value`
+  - `defaultValue`
+  - `source`
+  - `updatedAt`
+  - `updatedBy`
+- `PATCH /system-settings/:group` requires:
+  - valid group
+  - `reason`
+  - non-empty `values`
+- if a patched value equals the code default:
+  - the effective value remains correct
+  - and no redundant override should remain
+- `GET /system-settings/audit` paginates and reflects created/updated/cleared changes
+- `GET /system-settings/integrations/status` returns:
+  - `featureEnabled`
+  - `pendingOutboxCount`
+  - `failedOutboxCount`
+
 ## Transport
 
 - admin-only transport management surfaces work
@@ -47,6 +69,10 @@
 
 ## School onboarding import
 
+- if `imports.schoolOnboardingEnabled = false`:
+  - `dry-run` returns `409 FEATURE_DISABLED`
+  - `apply` returns `409 FEATURE_DISABLED`
+  - history list/detail return `409 FEATURE_DISABLED`
 - `dry-run` returns structured result with `status`, `canApply`, `summary`, and `issues`
 - `apply` rejects missing or invalid `dryRunId`
 - repeated apply on the same successful dry-run returns `alreadyApplied=true`
