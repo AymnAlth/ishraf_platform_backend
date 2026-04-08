@@ -285,6 +285,22 @@ export interface ReportingTripEventDto {
   notes: string | null;
 }
 
+export interface ReportingTransportEtaSummaryDto {
+  status: "fresh" | "stale" | "unavailable" | "completed";
+  calculationMode: "provider_snapshot" | "derived_estimate" | null;
+  nextStop: {
+    stopId: string;
+    stopName: string;
+    stopOrder: number;
+  } | null;
+  nextStopEtaAt: string | null;
+  finalEtaAt: string | null;
+  remainingDistanceMeters: number | null;
+  remainingDurationSeconds: number | null;
+  computedAt: string;
+  isStale: boolean;
+}
+
 export interface ReportingTransportTripDto {
   tripId: string;
   tripDate: string;
@@ -307,6 +323,7 @@ export interface ReportingTransportTripDto {
     longitude: number;
     recordedAt: string;
   } | null;
+  etaSummary: ReportingTransportEtaSummaryDto | null;
   latestEvents: ReportingTripEventDto[];
 }
 
@@ -407,6 +424,19 @@ export interface ReportingParentTransportLiveStatusResponseDto {
       latitude: number;
       longitude: number;
       recordedAt: string;
+    } | null;
+    eta: {
+      status: "fresh" | "stale" | "unavailable" | "completed";
+      calculationMode: "provider_snapshot" | "derived_estimate" | null;
+      targetStop: {
+        stopId: string;
+        stopName: string;
+      };
+      etaAt: string | null;
+      remainingDurationSeconds: number | null;
+      remainingDistanceMeters: number | null;
+      computedAt: string | null;
+      isStale: boolean;
     } | null;
     latestEvents: ReportingTripEventDto[];
   } | null;

@@ -90,12 +90,12 @@
       "DateString": {
         "type": "string",
         "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-        "example": "2026-04-07"
+        "example": "2026-04-08"
       },
       "DateTimeString": {
         "type": "string",
         "format": "date-time",
-        "example": "2026-04-07T00:27:25.627Z"
+        "example": "2026-04-08T07:37:35.672Z"
       },
       "GenericObject": {
         "type": "object",
@@ -404,12 +404,12 @@
           "startDate": {
             "type": "string",
             "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-            "example": "2026-04-07"
+            "example": "2026-04-08"
           },
           "endDate": {
             "type": "string",
             "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-            "example": "2026-04-07"
+            "example": "2026-04-08"
           },
           "isActive": {
             "type": "boolean"
@@ -439,12 +439,12 @@
           "startDate": {
             "type": "string",
             "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-            "example": "2026-04-07"
+            "example": "2026-04-08"
           },
           "endDate": {
             "type": "string",
             "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-            "example": "2026-04-07"
+            "example": "2026-04-08"
           },
           "isActive": {
             "type": "boolean"
@@ -466,12 +466,12 @@
           "startDate": {
             "type": "string",
             "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-            "example": "2026-04-07"
+            "example": "2026-04-08"
           },
           "endDate": {
             "type": "string",
             "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-            "example": "2026-04-07"
+            "example": "2026-04-08"
           },
           "isActive": {
             "type": "boolean"
@@ -501,12 +501,12 @@
           "startDate": {
             "type": "string",
             "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-            "example": "2026-04-07"
+            "example": "2026-04-08"
           },
           "endDate": {
             "type": "string",
             "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-            "example": "2026-04-07"
+            "example": "2026-04-08"
           },
           "isActive": {
             "type": "boolean"
@@ -1005,7 +1005,7 @@
           "assessmentDate": {
             "type": "string",
             "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-            "example": "2026-04-07"
+            "example": "2026-04-08"
           },
           "isPublished": {
             "type": "boolean"
@@ -1031,7 +1031,7 @@
           "description": "الوحدة الثانية",
           "maxScore": 20,
           "weight": 10,
-          "assessmentDate": "2026-04-07",
+          "assessmentDate": "2026-04-08",
           "isPublished": true
         }
       },
@@ -1127,7 +1127,7 @@
           "sessionDate": {
             "type": "string",
             "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-            "example": "2026-04-07"
+            "example": "2026-04-08"
           },
           "periodNo": {
             "type": "integer",
@@ -1172,7 +1172,7 @@
           "subjectId": "1",
           "academicYearId": "1",
           "semesterId": "1",
-          "sessionDate": "2026-04-07",
+          "sessionDate": "2026-04-08",
           "periodNo": 1,
           "title": "حصة الرياضيات",
           "notes": "اختبار سريع",
@@ -1270,7 +1270,7 @@
           "semesterId": "1",
           "description": "تأخر عن الطابور",
           "severity": 3,
-          "behaviorDate": "2026-04-07",
+          "behaviorDate": "2026-04-08",
           "teacherId": "47"
         }
       },
@@ -1349,7 +1349,7 @@
           "studentId": "1",
           "routeId": "1",
           "stopId": "1",
-          "startDate": "2026-04-07",
+          "startDate": "2026-04-08",
           "endDate": null
         }
       },
@@ -1357,7 +1357,7 @@
         "type": "object",
         "additionalProperties": true,
         "example": {
-          "endDate": "2026-04-07"
+          "endDate": "2026-04-08"
         }
       },
       "CreateTransportRouteAssignmentRequest": {
@@ -1366,7 +1366,7 @@
         "example": {
           "busId": "1",
           "routeId": "1",
-          "startDate": "2026-04-07",
+          "startDate": "2026-04-08",
           "endDate": null
         }
       },
@@ -1374,7 +1374,7 @@
         "type": "object",
         "additionalProperties": true,
         "example": {
-          "endDate": "2026-04-07"
+          "endDate": "2026-04-08"
         }
       },
       "CreateTripRequest": {
@@ -1393,7 +1393,7 @@
           "tripDate": {
             "type": "string",
             "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-            "example": "2026-04-07"
+            "example": "2026-04-08"
           },
           "tripType": {
             "type": "string",
@@ -1414,7 +1414,7 @@
         "example": {
           "busId": "1",
           "routeId": "1",
-          "tripDate": "2026-04-07",
+          "tripDate": "2026-04-08",
           "tripType": "pickup"
         }
       },
@@ -1429,7 +1429,7 @@
           "tripDate": {
             "type": "string",
             "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-            "example": "2026-04-07"
+            "example": "2026-04-08"
           },
           "tripType": {
             "type": "string",
@@ -1448,7 +1448,7 @@
         "additionalProperties": false,
         "example": {
           "routeAssignmentId": "1",
-          "tripDate": "2026-04-07",
+          "tripDate": "2026-04-08",
           "tripType": "pickup"
         }
       },
@@ -1516,6 +1516,433 @@
           "stopId": "1",
           "notes": "تم النزول بنجاح"
         }
+      },
+      "RecordTripStopAttendanceRequest": {
+        "type": "object",
+        "properties": {
+          "attendances": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "properties": {
+                "studentId": {
+                  "type": "string",
+                  "pattern": "^[0-9]+$",
+                  "example": "1"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "present",
+                    "absent"
+                  ],
+                  "example": "present"
+                },
+                "notes": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "studentId",
+                "status"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "attendances"
+        ],
+        "additionalProperties": false,
+        "example": {
+          "attendances": [
+            {
+              "studentId": "1",
+              "status": "present",
+              "notes": null
+            },
+            {
+              "studentId": "2",
+              "status": "absent"
+            }
+          ]
+        }
+      },
+      "TransportTripStudentEventResponse": {
+        "type": "object",
+        "properties": {
+          "tripStudentEventId": {
+            "type": "string",
+            "pattern": "^[0-9]+$",
+            "example": "1"
+          },
+          "student": {
+            "type": "object",
+            "properties": {
+              "studentId": {
+                "type": "string",
+                "pattern": "^[0-9]+$",
+                "example": "1"
+              },
+              "academicNo": {
+                "type": "string",
+                "example": "SEED-STU-001"
+              },
+              "fullName": {
+                "type": "string",
+                "example": "طالب تجريبي 1"
+              }
+            },
+            "required": [
+              "studentId",
+              "academicNo",
+              "fullName"
+            ]
+          },
+          "eventType": {
+            "type": "string",
+            "enum": [
+              "boarded",
+              "dropped_off",
+              "absent"
+            ],
+            "example": "boarded"
+          },
+          "eventTime": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2026-04-08T07:37:35.672Z"
+          },
+          "stop": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "stopId": {
+                    "type": "string",
+                    "pattern": "^[0-9]+$",
+                    "example": "1"
+                  },
+                  "stopName": {
+                    "type": "string",
+                    "example": "Stop 1"
+                  }
+                },
+                "required": [
+                  "stopId",
+                  "stopName"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "tripStudentEventId",
+          "student",
+          "eventType",
+          "eventTime",
+          "stop",
+          "notes"
+        ]
+      },
+      "TransportTripStopAttendanceResponse": {
+        "type": "object",
+        "properties": {
+          "tripId": {
+            "type": "string",
+            "pattern": "^[0-9]+$",
+            "example": "1"
+          },
+          "stopId": {
+            "type": "string",
+            "pattern": "^[0-9]+$",
+            "example": "1"
+          },
+          "tripStatus": {
+            "type": "string",
+            "enum": [
+              "scheduled",
+              "started",
+              "ended",
+              "completed",
+              "cancelled"
+            ],
+            "example": "completed"
+          },
+          "stopCompleted": {
+            "type": "boolean",
+            "example": true
+          },
+          "tripCompleted": {
+            "type": "boolean",
+            "example": true
+          },
+          "recordedEvents": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TransportTripStudentEventResponse"
+            }
+          }
+        },
+        "required": [
+          "tripId",
+          "stopId",
+          "tripStatus",
+          "stopCompleted",
+          "tripCompleted",
+          "recordedEvents"
+        ]
+      },
+      "TransportTripLiveStatusStopSnapshotResponse": {
+        "type": "object",
+        "properties": {
+          "stopId": {
+            "type": "string",
+            "pattern": "^[0-9]+$",
+            "example": "1"
+          },
+          "stopName": {
+            "type": "string",
+            "example": "Stop 1"
+          },
+          "stopOrder": {
+            "type": "integer",
+            "minimum": 1,
+            "example": 1
+          },
+          "etaAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time",
+                "example": "2026-04-08T07:40:00.000Z"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "remainingDistanceMeters": {
+            "anyOf": [
+              {
+                "type": "number",
+                "example": 120
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "remainingDurationSeconds": {
+            "anyOf": [
+              {
+                "type": "number",
+                "example": 75
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "isCompleted": {
+            "type": "boolean",
+            "example": false
+          },
+          "approachingNotified": {
+            "type": "boolean",
+            "example": true
+          },
+          "arrivedNotified": {
+            "type": "boolean",
+            "example": false
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2026-04-08T07:37:35.672Z"
+          }
+        },
+        "required": [
+          "stopId",
+          "stopName",
+          "stopOrder",
+          "etaAt",
+          "remainingDistanceMeters",
+          "remainingDurationSeconds",
+          "isCompleted",
+          "approachingNotified",
+          "arrivedNotified",
+          "updatedAt"
+        ]
+      },
+      "TransportTripLiveStatusResponse": {
+        "type": "object",
+        "properties": {
+          "tripId": {
+            "type": "string",
+            "pattern": "^[0-9]+$",
+            "example": "1"
+          },
+          "tripStatus": {
+            "type": "string",
+            "enum": [
+              "scheduled",
+              "started",
+              "ended",
+              "completed",
+              "cancelled"
+            ],
+            "example": "started"
+          },
+          "firebaseRtdbPath": {
+            "type": "string",
+            "example": "/transport/live-trips/1/latestLocation"
+          },
+          "myStopSnapshot": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TransportTripLiveStatusStopSnapshotResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "routePolyline": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "encodedPolyline": {
+                    "type": "string",
+                    "example": "_p~iF~ps|U_ulLnnqC_mqNvxq`@"
+                  }
+                },
+                "required": [
+                  "encodedPolyline"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "tripId",
+          "tripStatus",
+          "firebaseRtdbPath",
+          "myStopSnapshot",
+          "routePolyline"
+        ]
+      },
+      "TransportTripSummaryResponse": {
+        "type": "object",
+        "properties": {
+          "tripId": {
+            "type": "string",
+            "pattern": "^[0-9]+$",
+            "example": "1"
+          },
+          "tripStatus": {
+            "type": "string",
+            "enum": [
+              "scheduled",
+              "started",
+              "ended",
+              "completed",
+              "cancelled"
+            ],
+            "example": "completed"
+          },
+          "scheduledStartTime": {
+            "type": "null",
+            "example": null
+          },
+          "actualStartTime": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time",
+                "example": "2026-04-08T07:37:35.672Z"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "actualEndTime": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time",
+                "example": "2026-04-08T08:07:35.672Z"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "startDelayMinutes": {
+            "type": "null",
+            "example": null
+          },
+          "attendance": {
+            "type": "object",
+            "properties": {
+              "totalStudents": {
+                "type": "integer",
+                "minimum": 0,
+                "example": 2
+              },
+              "presentCount": {
+                "type": "integer",
+                "minimum": 0,
+                "example": 1
+              },
+              "absentCount": {
+                "type": "integer",
+                "minimum": 0,
+                "example": 1
+              }
+            },
+            "required": [
+              "totalStudents",
+              "presentCount",
+              "absentCount"
+            ]
+          }
+        },
+        "required": [
+          "tripId",
+          "tripStatus",
+          "scheduledStartTime",
+          "actualStartTime",
+          "actualEndTime",
+          "startDelayMinutes",
+          "attendance"
+        ]
       },
       "SaveStudentHomeLocationRequest": {
         "type": "object",
@@ -1693,12 +2120,12 @@
           "assignedDate": {
             "type": "string",
             "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-            "example": "2026-04-07"
+            "example": "2026-04-08"
           },
           "dueDate": {
             "type": "string",
             "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-            "example": "2026-04-07"
+            "example": "2026-04-08"
           }
         },
         "required": [
@@ -1717,7 +2144,7 @@
           "semesterId": "1",
           "title": "واجب الرياضيات 2",
           "description": "حل الصفحات 12-14",
-          "assignedDate": "2026-04-07",
+          "assignedDate": "2026-04-08",
           "dueDate": "2026-03-28"
         }
       },
@@ -1749,7 +2176,7 @@
                     {
                       "type": "string",
                       "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-                      "example": "2026-04-07"
+                      "example": "2026-04-08"
                     },
                     {
                       "type": "null"
@@ -1784,13 +2211,13 @@
             {
               "studentId": "1",
               "status": "submitted",
-              "submittedAt": "2026-04-07",
+              "submittedAt": "2026-04-08",
               "notes": "تم التسليم"
             },
             {
               "studentId": "2",
               "status": "late",
-              "submittedAt": "2026-04-07",
+              "submittedAt": "2026-04-08",
               "notes": "تسليم متأخر"
             }
           ]
@@ -2332,8 +2759,26 @@
           "values": {
             "type": "object",
             "properties": {
+              "etaProvider": {
+                "type": "string",
+                "enum": [
+                  "mapbox",
+                  "google"
+                ]
+              },
+              "etaDerivedEstimateEnabled": {
+                "type": "boolean"
+              },
               "googleMapsEtaEnabled": {
                 "type": "boolean"
+              },
+              "etaProviderRefreshIntervalSeconds": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "etaProviderDeviationThresholdMeters": {
+                "type": "integer",
+                "minimum": 1
               }
             },
             "additionalProperties": false,
@@ -2346,9 +2791,10 @@
         ],
         "additionalProperties": false,
         "example": {
-          "reason": "Prepare Google Maps ETA rollout",
+          "reason": "Enable derived ETA between provider refreshes",
           "values": {
-            "googleMapsEtaEnabled": true
+            "etaProvider": "mapbox",
+            "etaDerivedEstimateEnabled": true
           }
         }
       },
@@ -2505,11 +2951,11 @@
         ],
         "additionalProperties": false,
         "example": {
-          "key": "schoolOnboardingEnabled",
-          "value": true,
-          "defaultValue": true,
+          "key": "etaProvider",
+          "value": "mapbox",
+          "defaultValue": "mapbox",
           "source": "default",
-          "description": "Enables the structured school onboarding dry-run/apply workflow.",
+          "description": "Selects the preferred ETA provider. Batch 2 activates runtime provider resolution with mapbox as the default selected provider.",
           "updatedAt": null,
           "updatedBy": null
         }
@@ -2543,29 +2989,53 @@
         ],
         "additionalProperties": false,
         "example": {
-          "group": "imports",
-          "description": "Operational switches for admin-managed import capabilities.",
+          "group": "transportMaps",
+          "description": "Feature flags and provider selection for external map and ETA integrations used by transport surfaces.",
           "entries": [
             {
-              "key": "schoolOnboardingEnabled",
-              "value": true,
-              "defaultValue": true,
+              "key": "etaProvider",
+              "value": "mapbox",
+              "defaultValue": "mapbox",
               "source": "default",
-              "description": "Enables the structured school onboarding dry-run/apply workflow.",
+              "description": "Selects the preferred ETA provider. Batch 2 activates runtime provider resolution with mapbox as the default selected provider.",
               "updatedAt": null,
               "updatedBy": null
             },
             {
-              "key": "csvImportEnabled",
+              "key": "etaDerivedEstimateEnabled",
               "value": true,
+              "defaultValue": true,
+              "source": "default",
+              "description": "Allows the backend worker to derive ETA snapshots locally between provider refreshes using the cached polyline and recent trip locations.",
+              "updatedAt": null,
+              "updatedBy": null
+            },
+            {
+              "key": "googleMapsEtaEnabled",
+              "value": false,
               "defaultValue": false,
-              "source": "override",
-              "description": "Enables future CSV import surfaces when that operational flow is introduced.",
-              "updatedAt": "2026-04-07T00:27:25.627Z",
-              "updatedBy": {
-                "userId": "1",
-                "fullName": "أيمن أحمد محسن الذاهبي"
-              }
+              "source": "default",
+              "description": "Keeps Google Maps ETA execution available when the admin explicitly selects Google as the active provider.",
+              "updatedAt": null,
+              "updatedBy": null
+            },
+            {
+              "key": "etaProviderRefreshIntervalSeconds",
+              "value": 300,
+              "defaultValue": 300,
+              "source": "default",
+              "description": "Minimum seconds between provider refreshes for one active trip ETA snapshot.",
+              "updatedAt": null,
+              "updatedBy": null
+            },
+            {
+              "key": "etaProviderDeviationThresholdMeters",
+              "value": 300,
+              "defaultValue": 300,
+              "source": "default",
+              "description": "Route deviation threshold in meters that forces a fresh provider ETA snapshot.",
+              "updatedAt": null,
+              "updatedBy": null
             }
           ]
         }
@@ -2611,6 +3081,72 @@
               ]
             },
             {
+              "group": "transportMaps",
+              "description": "Feature flags and provider selection for external map and ETA integrations used by transport surfaces.",
+              "entries": [
+                {
+                  "key": "etaProvider",
+                  "value": "mapbox",
+                  "defaultValue": "mapbox",
+                  "source": "default",
+                  "description": "Selects the preferred ETA provider. Batch 2 activates runtime provider resolution with mapbox as the default selected provider.",
+                  "updatedAt": null,
+                  "updatedBy": null
+                },
+                {
+                  "key": "etaDerivedEstimateEnabled",
+                  "value": true,
+                  "defaultValue": true,
+                  "source": "default",
+                  "description": "Allows the backend worker to derive ETA snapshots locally between provider refreshes using the cached polyline and recent trip locations.",
+                  "updatedAt": null,
+                  "updatedBy": null
+                },
+                {
+                  "key": "googleMapsEtaEnabled",
+                  "value": false,
+                  "defaultValue": false,
+                  "source": "default",
+                  "description": "Keeps Google Maps ETA execution available when the admin explicitly selects Google as the active provider.",
+                  "updatedAt": null,
+                  "updatedBy": null
+                },
+                {
+                  "key": "etaProviderRefreshIntervalSeconds",
+                  "value": 300,
+                  "defaultValue": 300,
+                  "source": "default",
+                  "description": "Minimum seconds between provider refreshes for one active trip ETA snapshot.",
+                  "updatedAt": null,
+                  "updatedBy": null
+                },
+                {
+                  "key": "etaProviderDeviationThresholdMeters",
+                  "value": 300,
+                  "defaultValue": 300,
+                  "source": "default",
+                  "description": "Route deviation threshold in meters that forces a fresh provider ETA snapshot.",
+                  "updatedAt": null,
+                  "updatedBy": null
+                }
+              ]
+            },
+            {
+              "group": "analytics",
+              "description": "Feature flags for external analytics and AI-assisted insight generation.",
+              "entries": [
+                {
+                  "key": "aiAnalyticsEnabled",
+                  "value": false,
+                  "defaultValue": false,
+                  "source": "default",
+                  "description": "Enables AI analytics capabilities when the analytics provider phase is implemented.",
+                  "updatedAt": null,
+                  "updatedBy": null
+                }
+              ]
+            },
+            {
               "group": "imports",
               "description": "Operational switches for admin-managed import capabilities.",
               "entries": [
@@ -2629,7 +3165,7 @@
                   "defaultValue": false,
                   "source": "override",
                   "description": "Enables future CSV import surfaces when that operational flow is introduced.",
-                  "updatedAt": "2026-04-07T00:27:25.627Z",
+                  "updatedAt": "2026-04-08T07:37:35.672Z",
                   "updatedBy": {
                     "userId": "1",
                     "fullName": "أيمن أحمد محسن الذاهبي"
@@ -2760,7 +3296,7 @@
           "newValue": true,
           "reason": "Enable pilot CSV workflow",
           "requestId": "6b55c8c8-63ce-4c45-bf77-4c7b9a7547d5",
-          "changedAt": "2026-04-07T00:27:25.627Z",
+          "changedAt": "2026-04-08T07:37:35.672Z",
           "changedBy": {
             "userId": "1",
             "fullName": "أيمن أحمد محسن الذاهبي"
@@ -2819,7 +3355,7 @@
             },
             {
               "providerKey": "transportMaps",
-              "featureEnabled": false,
+              "featureEnabled": true,
               "pendingOutboxCount": 0,
               "failedOutboxCount": 0
             },
@@ -2829,6 +3365,114 @@
               "pendingOutboxCount": 0,
               "failedOutboxCount": 0
             }
+          ]
+        }
+      },
+      "RegisterCommunicationDeviceRequest": {
+        "type": "object",
+        "properties": {
+          "providerKey": {
+            "type": "string",
+            "enum": [
+              "fcm"
+            ],
+            "example": "fcm"
+          },
+          "platform": {
+            "type": "string",
+            "enum": [
+              "android",
+              "ios",
+              "web"
+            ],
+            "example": "android"
+          },
+          "appId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 50
+          },
+          "deviceToken": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096
+          },
+          "deviceName": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "subscriptions": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "enum": [
+                "transportRealtime"
+              ],
+              "example": "transportRealtime"
+            }
+          }
+        },
+        "required": [
+          "providerKey",
+          "platform",
+          "appId",
+          "deviceToken",
+          "subscriptions"
+        ],
+        "additionalProperties": false,
+        "example": {
+          "providerKey": "fcm",
+          "platform": "android",
+          "appId": "ishraf-parent-app",
+          "deviceToken": "fcm-device-token-sample",
+          "deviceName": "Parent Pixel 8",
+          "subscriptions": [
+            "transportRealtime"
+          ]
+        }
+      },
+      "UpdateCommunicationDeviceRequest": {
+        "type": "object",
+        "properties": {
+          "deviceToken": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096
+          },
+          "deviceName": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "subscriptions": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "enum": [
+                "transportRealtime"
+              ],
+              "example": "transportRealtime"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "minProperties": 1,
+        "example": {
+          "deviceName": "Updated Parent Pixel 8",
+          "subscriptions": [
+            "transportRealtime"
           ]
         }
       }
@@ -3246,8 +3890,8 @@
                     "phone": null,
                     "role": "admin",
                     "isActive": true,
-                    "createdAt": "2026-04-07T00:27:25.627Z",
-                    "updatedAt": "2026-04-07T00:27:25.627Z"
+                    "createdAt": "2026-04-08T07:37:35.672Z",
+                    "updatedAt": "2026-04-08T07:37:35.672Z"
                   }
                 }
               }
@@ -3438,8 +4082,8 @@
                     "phone": null,
                     "role": "admin",
                     "isActive": true,
-                    "createdAt": "2026-04-07T00:27:25.627Z",
-                    "updatedAt": "2026-04-07T00:27:25.627Z"
+                    "createdAt": "2026-04-08T07:37:35.672Z",
+                    "updatedAt": "2026-04-08T07:37:35.672Z"
                   }
                 }
               }
@@ -3537,8 +4181,8 @@
                     "phone": null,
                     "role": "admin",
                     "isActive": true,
-                    "createdAt": "2026-04-07T00:27:25.627Z",
-                    "updatedAt": "2026-04-07T00:27:25.627Z"
+                    "createdAt": "2026-04-08T07:37:35.672Z",
+                    "updatedAt": "2026-04-08T07:37:35.672Z"
                   }
                 }
               }
@@ -3746,8 +4390,8 @@
                         "phone": null,
                         "role": "admin",
                         "isActive": true,
-                        "createdAt": "2026-04-07T00:27:25.627Z",
-                        "updatedAt": "2026-04-07T00:27:25.627Z"
+                        "createdAt": "2026-04-08T07:37:35.672Z",
+                        "updatedAt": "2026-04-08T07:37:35.672Z"
                       }
                     ],
                     "pagination": {
@@ -3944,8 +4588,8 @@
                     "phone": null,
                     "role": "admin",
                     "isActive": true,
-                    "createdAt": "2026-04-07T00:27:25.627Z",
-                    "updatedAt": "2026-04-07T00:27:25.627Z"
+                    "createdAt": "2026-04-08T07:37:35.672Z",
+                    "updatedAt": "2026-04-08T07:37:35.672Z"
                   }
                 }
               }
@@ -4085,8 +4729,8 @@
                     "phone": null,
                     "role": "admin",
                     "isActive": true,
-                    "createdAt": "2026-04-07T00:27:25.627Z",
-                    "updatedAt": "2026-04-07T00:27:25.627Z"
+                    "createdAt": "2026-04-08T07:37:35.672Z",
+                    "updatedAt": "2026-04-08T07:37:35.672Z"
                   }
                 }
               }
@@ -4236,8 +4880,8 @@
                     "phone": null,
                     "role": "admin",
                     "isActive": true,
-                    "createdAt": "2026-04-07T00:27:25.627Z",
-                    "updatedAt": "2026-04-07T00:27:25.627Z"
+                    "createdAt": "2026-04-08T07:37:35.672Z",
+                    "updatedAt": "2026-04-08T07:37:35.672Z"
                   }
                 }
               }
@@ -4403,8 +5047,8 @@
                     "phone": null,
                     "role": "admin",
                     "isActive": true,
-                    "createdAt": "2026-04-07T00:27:25.627Z",
-                    "updatedAt": "2026-04-07T00:27:25.627Z"
+                    "createdAt": "2026-04-08T07:37:35.672Z",
+                    "updatedAt": "2026-04-08T07:37:35.672Z"
                   }
                 }
               }
@@ -6183,8 +6827,8 @@
                       "startDate": "2025-09-01",
                       "endDate": "2026-06-30",
                       "isActive": true,
-                      "createdAt": "2026-04-07T00:27:25.627Z",
-                      "updatedAt": "2026-04-07T00:27:25.627Z"
+                      "createdAt": "2026-04-08T07:37:35.672Z",
+                      "updatedAt": "2026-04-08T07:37:35.672Z"
                     },
                     "semester": {
                       "id": "2",
@@ -6196,8 +6840,8 @@
                       "startDate": "2026-02-01",
                       "endDate": "2026-06-30",
                       "isActive": true,
-                      "createdAt": "2026-04-07T00:27:25.627Z",
-                      "updatedAt": "2026-04-07T00:27:25.627Z"
+                      "createdAt": "2026-04-08T07:37:35.672Z",
+                      "updatedAt": "2026-04-08T07:37:35.672Z"
                     }
                   }
                 }
@@ -6294,8 +6938,8 @@
                       "startDate": "2025-09-01",
                       "endDate": "2026-06-30",
                       "isActive": true,
-                      "createdAt": "2026-04-07T00:27:25.627Z",
-                      "updatedAt": "2026-04-07T00:27:25.627Z"
+                      "createdAt": "2026-04-08T07:37:35.672Z",
+                      "updatedAt": "2026-04-08T07:37:35.672Z"
                     },
                     "semester": {
                       "id": "2",
@@ -6307,8 +6951,8 @@
                       "startDate": "2026-02-01",
                       "endDate": "2026-06-30",
                       "isActive": true,
-                      "createdAt": "2026-04-07T00:27:25.627Z",
-                      "updatedAt": "2026-04-07T00:27:25.627Z"
+                      "createdAt": "2026-04-08T07:37:35.672Z",
+                      "updatedAt": "2026-04-08T07:37:35.672Z"
                     }
                   }
                 }
@@ -6857,8 +7501,8 @@
                           "name": "2025-2026"
                         }
                       },
-                      "createdAt": "2026-04-07T00:27:25.627Z",
-                      "updatedAt": "2026-04-07T00:27:25.627Z"
+                      "createdAt": "2026-04-08T07:37:35.672Z",
+                      "updatedAt": "2026-04-08T07:37:35.672Z"
                     }
                   ]
                 }
@@ -7050,8 +7694,8 @@
                         "name": "2025-2026"
                       }
                     },
-                    "createdAt": "2026-04-07T00:27:25.627Z",
-                    "updatedAt": "2026-04-07T00:27:25.627Z"
+                    "createdAt": "2026-04-08T07:37:35.672Z",
+                    "updatedAt": "2026-04-08T07:37:35.672Z"
                   }
                 }
               }
@@ -7203,8 +7847,8 @@
                         "name": "2025-2026"
                       }
                     },
-                    "createdAt": "2026-04-07T00:27:25.627Z",
-                    "updatedAt": "2026-04-07T00:27:25.627Z"
+                    "createdAt": "2026-04-08T07:37:35.672Z",
+                    "updatedAt": "2026-04-08T07:37:35.672Z"
                   }
                 }
               }
@@ -7372,8 +8016,8 @@
                         "name": "2025-2026"
                       }
                     },
-                    "createdAt": "2026-04-07T00:27:25.627Z",
-                    "updatedAt": "2026-04-07T00:27:25.627Z"
+                    "createdAt": "2026-04-08T07:37:35.672Z",
+                    "updatedAt": "2026-04-08T07:37:35.672Z"
                   }
                 }
               }
@@ -8144,7 +8788,7 @@
                         "email": "idris-mashwir@ishraf.local",
                         "phone": null
                       },
-                      "createdAt": "2026-04-07T00:27:25.627Z"
+                      "createdAt": "2026-04-08T07:37:35.672Z"
                     }
                   ]
                 }
@@ -8314,7 +8958,7 @@
                       "email": "idris-mashwir@ishraf.local",
                       "phone": null
                     },
-                    "createdAt": "2026-04-07T00:27:25.627Z"
+                    "createdAt": "2026-04-08T07:37:35.672Z"
                   }
                 }
               }
@@ -8465,7 +9109,7 @@
                       "email": "idris-mashwir@ishraf.local",
                       "phone": null
                     },
-                    "createdAt": "2026-04-07T00:27:25.627Z"
+                    "createdAt": "2026-04-08T07:37:35.672Z"
                   }
                 }
               }
@@ -8632,7 +9276,7 @@
                       "email": "idris-mashwir@ishraf.local",
                       "phone": null
                     },
-                    "createdAt": "2026-04-07T00:27:25.627Z"
+                    "createdAt": "2026-04-08T07:37:35.672Z"
                   }
                 }
               }
@@ -8830,7 +9474,7 @@
                         "email": "marwan-amin-shaban@ishraf.local",
                         "phone": null
                       },
-                      "createdAt": "2026-04-07T00:27:25.627Z"
+                      "createdAt": "2026-04-08T07:37:35.672Z"
                     }
                   ]
                 }
@@ -9022,7 +9666,7 @@
                       "email": "marwan-amin-shaban@ishraf.local",
                       "phone": null
                     },
-                    "createdAt": "2026-04-07T00:27:25.627Z"
+                    "createdAt": "2026-04-08T07:37:35.672Z"
                   }
                 }
               }
@@ -9185,7 +9829,7 @@
                       "email": "marwan-amin-shaban@ishraf.local",
                       "phone": null
                     },
-                    "createdAt": "2026-04-07T00:27:25.627Z"
+                    "createdAt": "2026-04-08T07:37:35.672Z"
                   }
                 }
               }
@@ -9363,7 +10007,7 @@
                       "email": "marwan-amin-shaban@ishraf.local",
                       "phone": null
                     },
-                    "createdAt": "2026-04-07T00:27:25.627Z"
+                    "createdAt": "2026-04-08T07:37:35.672Z"
                   }
                 }
               }
@@ -10254,8 +10898,8 @@
                           "levelOrder": 1
                         }
                       },
-                      "createdAt": "2026-04-07T00:27:25.627Z",
-                      "updatedAt": "2026-04-07T00:27:25.627Z"
+                      "createdAt": "2026-04-08T07:37:35.672Z",
+                      "updatedAt": "2026-04-08T07:37:35.672Z"
                     }
                   ]
                 }
@@ -10421,8 +11065,8 @@
                         "levelOrder": 1
                       }
                     },
-                    "createdAt": "2026-04-07T00:27:25.627Z",
-                    "updatedAt": "2026-04-07T00:27:25.627Z"
+                    "createdAt": "2026-04-08T07:37:35.672Z",
+                    "updatedAt": "2026-04-08T07:37:35.672Z"
                   }
                 }
               }
@@ -10592,8 +11236,8 @@
                       "phone": null,
                       "role": "admin",
                       "isActive": true,
-                      "createdAt": "2026-04-07T00:27:25.627Z",
-                      "updatedAt": "2026-04-07T00:27:25.627Z"
+                      "createdAt": "2026-04-08T07:37:35.672Z",
+                      "updatedAt": "2026-04-08T07:37:35.672Z"
                     }
                   ]
                 }
@@ -10744,8 +11388,8 @@
                     "phone": null,
                     "role": "admin",
                     "isActive": true,
-                    "createdAt": "2026-04-07T00:27:25.627Z",
-                    "updatedAt": "2026-04-07T00:27:25.627Z"
+                    "createdAt": "2026-04-08T07:37:35.672Z",
+                    "updatedAt": "2026-04-08T07:37:35.672Z"
                   }
                 }
               }
@@ -11081,8 +11725,8 @@
                     "phone": null,
                     "role": "admin",
                     "isActive": true,
-                    "createdAt": "2026-04-07T00:27:25.627Z",
-                    "updatedAt": "2026-04-07T00:27:25.627Z"
+                    "createdAt": "2026-04-08T07:37:35.672Z",
+                    "updatedAt": "2026-04-08T07:37:35.672Z"
                   }
                 }
               }
@@ -11264,8 +11908,8 @@
                           "levelOrder": 1
                         }
                       },
-                      "createdAt": "2026-04-07T00:27:25.627Z",
-                      "updatedAt": "2026-04-07T00:27:25.627Z"
+                      "createdAt": "2026-04-08T07:37:35.672Z",
+                      "updatedAt": "2026-04-08T07:37:35.672Z"
                     }
                   ]
                 }
@@ -11435,8 +12079,8 @@
                         "levelOrder": 1
                       }
                     },
-                    "createdAt": "2026-04-07T00:27:25.627Z",
-                    "updatedAt": "2026-04-07T00:27:25.627Z"
+                    "createdAt": "2026-04-08T07:37:35.672Z",
+                    "updatedAt": "2026-04-08T07:37:35.672Z"
                   }
                 }
               }
@@ -11620,8 +12264,8 @@
                           "levelOrder": 1
                         }
                       },
-                      "createdAt": "2026-04-07T00:27:25.627Z",
-                      "updatedAt": "2026-04-07T00:27:25.627Z"
+                      "createdAt": "2026-04-08T07:37:35.672Z",
+                      "updatedAt": "2026-04-08T07:37:35.672Z"
                     }
                   ]
                 }
@@ -11727,7 +12371,7 @@
           "System Settings"
         ],
         "summary": "[NEW] List System Settings",
-        "description": "Return every implemented system settings group with effective values merged from code defaults and stored overrides.\n\nAllowed roles: admin.\n\nNote: [NEW] Step 1 is global-only and currently implements pushNotifications, transportMaps, analytics, and imports.\n\nNote: [NEW] Each entry returns the effective value, the code default, and whether the source is default or override.",
+        "description": "Return every implemented system settings group with effective values merged from code defaults and stored overrides.\n\nAllowed roles: admin.\n\nNote: [NEW] Step 1 is global-only and currently implements pushNotifications, transportMaps, analytics, and imports.\n\nNote: [NEW] Each entry returns the effective value, the code default, and whether the source is default or override.\n\nNote: [NEW] transportMaps.etaProvider defaults to mapbox and is applied by runtime provider resolution.\n\nNote: [NEW] transportMaps.etaDerivedEstimateEnabled defaults to true and controls local ETA math between provider refreshes.",
         "x-allowed-roles": [
           "admin"
         ],
@@ -11785,6 +12429,72 @@
                         ]
                       },
                       {
+                        "group": "transportMaps",
+                        "description": "Feature flags and provider selection for external map and ETA integrations used by transport surfaces.",
+                        "entries": [
+                          {
+                            "key": "etaProvider",
+                            "value": "mapbox",
+                            "defaultValue": "mapbox",
+                            "source": "default",
+                            "description": "Selects the preferred ETA provider. Batch 2 activates runtime provider resolution with mapbox as the default selected provider.",
+                            "updatedAt": null,
+                            "updatedBy": null
+                          },
+                          {
+                            "key": "etaDerivedEstimateEnabled",
+                            "value": true,
+                            "defaultValue": true,
+                            "source": "default",
+                            "description": "Allows the backend worker to derive ETA snapshots locally between provider refreshes using the cached polyline and recent trip locations.",
+                            "updatedAt": null,
+                            "updatedBy": null
+                          },
+                          {
+                            "key": "googleMapsEtaEnabled",
+                            "value": false,
+                            "defaultValue": false,
+                            "source": "default",
+                            "description": "Keeps Google Maps ETA execution available when the admin explicitly selects Google as the active provider.",
+                            "updatedAt": null,
+                            "updatedBy": null
+                          },
+                          {
+                            "key": "etaProviderRefreshIntervalSeconds",
+                            "value": 300,
+                            "defaultValue": 300,
+                            "source": "default",
+                            "description": "Minimum seconds between provider refreshes for one active trip ETA snapshot.",
+                            "updatedAt": null,
+                            "updatedBy": null
+                          },
+                          {
+                            "key": "etaProviderDeviationThresholdMeters",
+                            "value": 300,
+                            "defaultValue": 300,
+                            "source": "default",
+                            "description": "Route deviation threshold in meters that forces a fresh provider ETA snapshot.",
+                            "updatedAt": null,
+                            "updatedBy": null
+                          }
+                        ]
+                      },
+                      {
+                        "group": "analytics",
+                        "description": "Feature flags for external analytics and AI-assisted insight generation.",
+                        "entries": [
+                          {
+                            "key": "aiAnalyticsEnabled",
+                            "value": false,
+                            "defaultValue": false,
+                            "source": "default",
+                            "description": "Enables AI analytics capabilities when the analytics provider phase is implemented.",
+                            "updatedAt": null,
+                            "updatedBy": null
+                          }
+                        ]
+                      },
+                      {
                         "group": "imports",
                         "description": "Operational switches for admin-managed import capabilities.",
                         "entries": [
@@ -11803,7 +12513,7 @@
                             "defaultValue": false,
                             "source": "override",
                             "description": "Enables future CSV import surfaces when that operational flow is introduced.",
-                            "updatedAt": "2026-04-07T00:27:25.627Z",
+                            "updatedAt": "2026-04-08T07:37:35.672Z",
                             "updatedBy": {
                               "userId": "1",
                               "fullName": "أيمن أحمد محسن الذاهبي"
@@ -11871,7 +12581,7 @@
           "System Settings"
         ],
         "summary": "[NEW] Get System Settings Group",
-        "description": "Return one system settings group with effective values, defaults, descriptions, and override metadata.\n\nAllowed roles: admin.\n\nNote: [NEW] Allowed groups are pushNotifications, transportMaps, analytics, and imports.",
+        "description": "Return one system settings group with effective values, defaults, descriptions, and override metadata.\n\nAllowed roles: admin.\n\nNote: [NEW] Allowed groups are pushNotifications, transportMaps, analytics, and imports.\n\nNote: [NEW] transportMaps.etaProvider is part of the admin control plane and defaults to mapbox.",
         "x-allowed-roles": [
           "admin"
         ],
@@ -11903,29 +12613,53 @@
                   "success": true,
                   "message": "[NEW] Get System Settings Group completed successfully",
                   "data": {
-                    "group": "imports",
-                    "description": "Operational switches for admin-managed import capabilities.",
+                    "group": "transportMaps",
+                    "description": "Feature flags and provider selection for external map and ETA integrations used by transport surfaces.",
                     "entries": [
                       {
-                        "key": "schoolOnboardingEnabled",
-                        "value": true,
-                        "defaultValue": true,
+                        "key": "etaProvider",
+                        "value": "mapbox",
+                        "defaultValue": "mapbox",
                         "source": "default",
-                        "description": "Enables the structured school onboarding dry-run/apply workflow.",
+                        "description": "Selects the preferred ETA provider. Batch 2 activates runtime provider resolution with mapbox as the default selected provider.",
                         "updatedAt": null,
                         "updatedBy": null
                       },
                       {
-                        "key": "csvImportEnabled",
+                        "key": "etaDerivedEstimateEnabled",
                         "value": true,
+                        "defaultValue": true,
+                        "source": "default",
+                        "description": "Allows the backend worker to derive ETA snapshots locally between provider refreshes using the cached polyline and recent trip locations.",
+                        "updatedAt": null,
+                        "updatedBy": null
+                      },
+                      {
+                        "key": "googleMapsEtaEnabled",
+                        "value": false,
                         "defaultValue": false,
-                        "source": "override",
-                        "description": "Enables future CSV import surfaces when that operational flow is introduced.",
-                        "updatedAt": "2026-04-07T00:27:25.627Z",
-                        "updatedBy": {
-                          "userId": "1",
-                          "fullName": "أيمن أحمد محسن الذاهبي"
-                        }
+                        "source": "default",
+                        "description": "Keeps Google Maps ETA execution available when the admin explicitly selects Google as the active provider.",
+                        "updatedAt": null,
+                        "updatedBy": null
+                      },
+                      {
+                        "key": "etaProviderRefreshIntervalSeconds",
+                        "value": 300,
+                        "defaultValue": 300,
+                        "source": "default",
+                        "description": "Minimum seconds between provider refreshes for one active trip ETA snapshot.",
+                        "updatedAt": null,
+                        "updatedBy": null
+                      },
+                      {
+                        "key": "etaProviderDeviationThresholdMeters",
+                        "value": 300,
+                        "defaultValue": 300,
+                        "source": "default",
+                        "description": "Route deviation threshold in meters that forces a fresh provider ETA snapshot.",
+                        "updatedAt": null,
+                        "updatedBy": null
                       }
                     ]
                   }
@@ -12044,7 +12778,7 @@
           "System Settings"
         ],
         "summary": "[NEW] Update System Settings Group",
-        "description": "Update one system settings group by writing overrides only for values that differ from code defaults.\n\nAllowed roles: admin.\n\nNote: [NEW] The request body is group-specific. Use UpdatePushNotificationsSettingsRequest, UpdateTransportMapsSettingsRequest, UpdateAnalyticsSettingsRequest, or UpdateImportsSettingsRequest depending on :group.\n\nNote: [NEW] Sending a value equal to the code default clears any existing override instead of storing redundant data.\n\nNote: [NEW] The first live consumer is imports.schoolOnboardingEnabled. When it is false, school onboarding import endpoints reject with 409 FEATURE_DISABLED.",
+        "description": "Update one system settings group by writing overrides only for values that differ from code defaults.\n\nAllowed roles: admin.\n\nNote: [NEW] The request body is group-specific. Use UpdatePushNotificationsSettingsRequest, UpdateTransportMapsSettingsRequest, UpdateAnalyticsSettingsRequest, or UpdateImportsSettingsRequest depending on :group.\n\nNote: [NEW] Sending a value equal to the code default clears any existing override instead of storing redundant data.\n\nNote: [NEW] transportMaps updates runtime behavior through etaProvider and etaDerivedEstimateEnabled.\n\nNote: [NEW] The first live consumer is imports.schoolOnboardingEnabled. When it is false, school onboarding import endpoints reject with 409 FEATURE_DISABLED.",
         "x-allowed-roles": [
           "admin"
         ],
@@ -12076,29 +12810,53 @@
                   "success": true,
                   "message": "[NEW] Update System Settings Group completed successfully",
                   "data": {
-                    "group": "imports",
-                    "description": "Operational switches for admin-managed import capabilities.",
+                    "group": "transportMaps",
+                    "description": "Feature flags and provider selection for external map and ETA integrations used by transport surfaces.",
                     "entries": [
                       {
-                        "key": "schoolOnboardingEnabled",
-                        "value": true,
-                        "defaultValue": true,
+                        "key": "etaProvider",
+                        "value": "mapbox",
+                        "defaultValue": "mapbox",
                         "source": "default",
-                        "description": "Enables the structured school onboarding dry-run/apply workflow.",
+                        "description": "Selects the preferred ETA provider. Batch 2 activates runtime provider resolution with mapbox as the default selected provider.",
                         "updatedAt": null,
                         "updatedBy": null
                       },
                       {
-                        "key": "csvImportEnabled",
+                        "key": "etaDerivedEstimateEnabled",
                         "value": true,
+                        "defaultValue": true,
+                        "source": "default",
+                        "description": "Allows the backend worker to derive ETA snapshots locally between provider refreshes using the cached polyline and recent trip locations.",
+                        "updatedAt": null,
+                        "updatedBy": null
+                      },
+                      {
+                        "key": "googleMapsEtaEnabled",
+                        "value": false,
                         "defaultValue": false,
-                        "source": "override",
-                        "description": "Enables future CSV import surfaces when that operational flow is introduced.",
-                        "updatedAt": "2026-04-07T00:27:25.627Z",
-                        "updatedBy": {
-                          "userId": "1",
-                          "fullName": "أيمن أحمد محسن الذاهبي"
-                        }
+                        "source": "default",
+                        "description": "Keeps Google Maps ETA execution available when the admin explicitly selects Google as the active provider.",
+                        "updatedAt": null,
+                        "updatedBy": null
+                      },
+                      {
+                        "key": "etaProviderRefreshIntervalSeconds",
+                        "value": 300,
+                        "defaultValue": 300,
+                        "source": "default",
+                        "description": "Minimum seconds between provider refreshes for one active trip ETA snapshot.",
+                        "updatedAt": null,
+                        "updatedBy": null
+                      },
+                      {
+                        "key": "etaProviderDeviationThresholdMeters",
+                        "value": 300,
+                        "defaultValue": 300,
+                        "source": "default",
+                        "description": "Route deviation threshold in meters that forces a fresh provider ETA snapshot.",
+                        "updatedAt": null,
+                        "updatedBy": null
                       }
                     ]
                   }
@@ -12296,7 +13054,7 @@
                         "newValue": true,
                         "reason": "Enable pilot CSV workflow",
                         "requestId": "6b55c8c8-63ce-4c45-bf77-4c7b9a7547d5",
-                        "changedAt": "2026-04-07T00:27:25.627Z",
+                        "changedAt": "2026-04-08T07:37:35.672Z",
                         "changedBy": {
                           "userId": "1",
                           "fullName": "أيمن أحمد محسن الذاهبي"
@@ -12470,7 +13228,7 @@
             "schema": {
               "type": "string",
               "format": "date-time",
-              "example": "2026-04-07T00:27:25.627Z"
+              "example": "2026-04-08T07:37:35.672Z"
             },
             "description": "Filter audit rows created on or after this ISO datetime."
           },
@@ -12481,7 +13239,7 @@
             "schema": {
               "type": "string",
               "format": "date-time",
-              "example": "2026-04-07T00:27:25.627Z"
+              "example": "2026-04-08T07:37:35.672Z"
             },
             "description": "Filter audit rows created on or before this ISO datetime."
           }
@@ -12494,7 +13252,7 @@
           "System Settings"
         ],
         "summary": "[NEW] Get Integration Feature Status",
-        "description": "Return feature-enabled status for external integration groups together with pending and failed integration outbox counts.\n\nAllowed roles: admin.\n\nNote: [NEW] This surface only covers pushNotifications, transportMaps, and analytics.\n\nNote: [NEW] providerConfigured is intentionally not returned in step 1 because provider secrets still live only in env and no provider phase has been wired yet.",
+        "description": "Return feature-enabled status for external integration groups together with pending and failed integration outbox counts.\n\nAllowed roles: admin.\n\nNote: [NEW] This surface only covers pushNotifications, transportMaps, and analytics.\n\nNote: [NEW] providerConfigured is intentionally not returned; this surface tracks feature state and integration outbox workload only.",
         "x-allowed-roles": [
           "admin"
         ],
@@ -12535,7 +13293,7 @@
                       },
                       {
                         "providerKey": "transportMaps",
-                        "featureEnabled": false,
+                        "featureEnabled": true,
                         "pendingOutboxCount": 0,
                         "failedOutboxCount": 0
                       },
@@ -12644,7 +13402,7 @@
                     "studentId": "1",
                     "fullName": "طالب تجريبي 1",
                     "status": "present",
-                    "recordedAt": "2026-04-07T00:27:25.627Z"
+                    "recordedAt": "2026-04-08T07:37:35.672Z"
                   }
                 }
               }
@@ -12832,7 +13590,7 @@
                         "className": "الصف الأول",
                         "subjectId": "1",
                         "subjectName": "الرياضيات",
-                        "sessionDate": "2026-04-07",
+                        "sessionDate": "2026-04-08",
                         "periodNo": 1,
                         "presentCount": 2,
                         "absentCount": 1,
@@ -13033,7 +13791,7 @@
             "schema": {
               "type": "string",
               "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-              "example": "2026-04-07"
+              "example": "2026-04-08"
             },
             "description": "Filter by exact session date."
           },
@@ -13044,7 +13802,7 @@
             "schema": {
               "type": "string",
               "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-              "example": "2026-04-07"
+              "example": "2026-04-08"
             },
             "description": "Filter from session date."
           },
@@ -13055,7 +13813,7 @@
             "schema": {
               "type": "string",
               "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-              "example": "2026-04-07"
+              "example": "2026-04-08"
             },
             "description": "Filter to session date."
           }
@@ -13104,7 +13862,7 @@
                     "className": "الصف الأول",
                     "subjectId": "1",
                     "subjectName": "الرياضيات",
-                    "sessionDate": "2026-04-07",
+                    "sessionDate": "2026-04-08",
                     "periodNo": 1,
                     "presentCount": 2,
                     "absentCount": 1,
@@ -13194,7 +13952,7 @@
                 "subjectId": "1",
                 "academicYearId": "1",
                 "semesterId": "1",
-                "sessionDate": "2026-04-07",
+                "sessionDate": "2026-04-08",
                 "periodNo": 1,
                 "title": "حصة الرياضيات",
                 "notes": "اختبار سريع",
@@ -13250,7 +14008,7 @@
                     "className": "الصف الأول",
                     "subjectId": "1",
                     "subjectName": "الرياضيات",
-                    "sessionDate": "2026-04-07",
+                    "sessionDate": "2026-04-08",
                     "periodNo": 1,
                     "presentCount": 2,
                     "absentCount": 1,
@@ -13412,7 +14170,7 @@
                       "studentId": "1",
                       "fullName": "طالب تجريبي 1",
                       "status": "present",
-                      "recordedAt": "2026-04-07T00:27:25.627Z"
+                      "recordedAt": "2026-04-08T07:37:35.672Z"
                     }
                   ]
                 }
@@ -13613,7 +14371,7 @@
                         "semesterId": "1",
                         "maxScore": 20,
                         "weight": 10,
-                        "assessmentDate": "2026-04-07",
+                        "assessmentDate": "2026-04-08",
                         "isPublished": true
                       }
                     ],
@@ -13821,7 +14579,7 @@
             "schema": {
               "type": "string",
               "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-              "example": "2026-04-07"
+              "example": "2026-04-08"
             },
             "description": "Filter by exact assessment date."
           },
@@ -13832,7 +14590,7 @@
             "schema": {
               "type": "string",
               "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-              "example": "2026-04-07"
+              "example": "2026-04-08"
             },
             "description": "Filter from assessment date."
           },
@@ -13843,7 +14601,7 @@
             "schema": {
               "type": "string",
               "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-              "example": "2026-04-07"
+              "example": "2026-04-08"
             },
             "description": "Filter to assessment date."
           },
@@ -13906,7 +14664,7 @@
                     "semesterId": "1",
                     "maxScore": 20,
                     "weight": 10,
-                    "assessmentDate": "2026-04-07",
+                    "assessmentDate": "2026-04-08",
                     "isPublished": true
                   }
                 }
@@ -13998,7 +14756,7 @@
                 "description": "الوحدة الثانية",
                 "maxScore": 20,
                 "weight": 10,
-                "assessmentDate": "2026-04-07",
+                "assessmentDate": "2026-04-08",
                 "isPublished": true
               }
             }
@@ -14054,7 +14812,7 @@
                     "semesterId": "1",
                     "maxScore": 20,
                     "weight": 10,
-                    "assessmentDate": "2026-04-07",
+                    "assessmentDate": "2026-04-08",
                     "isPublished": true
                   }
                 }
@@ -14717,7 +15475,7 @@
                       "semesterId": "1",
                       "maxScore": 20,
                       "weight": 10,
-                      "assessmentDate": "2026-04-07",
+                      "assessmentDate": "2026-04-08",
                       "isPublished": true
                     }
                   ]
@@ -14818,7 +15576,7 @@
                     "semesterId": "1",
                     "maxScore": 20,
                     "weight": 10,
-                    "assessmentDate": "2026-04-07",
+                    "assessmentDate": "2026-04-08",
                     "isPublished": true
                   }
                 }
@@ -15215,8 +15973,8 @@
                         "behaviorName": "تأخر متكرر",
                         "behaviorType": "negative",
                         "severity": 3,
-                        "behaviorDate": "2026-04-07",
-                        "createdAt": "2026-04-07T00:27:25.627Z"
+                        "behaviorDate": "2026-04-08",
+                        "createdAt": "2026-04-08T07:37:35.672Z"
                       }
                     ],
                     "pagination": {
@@ -15433,7 +16191,7 @@
             "schema": {
               "type": "string",
               "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-              "example": "2026-04-07"
+              "example": "2026-04-08"
             },
             "description": "Filter by exact behavior date."
           },
@@ -15444,7 +16202,7 @@
             "schema": {
               "type": "string",
               "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-              "example": "2026-04-07"
+              "example": "2026-04-08"
             },
             "description": "Filter from behavior date."
           },
@@ -15455,7 +16213,7 @@
             "schema": {
               "type": "string",
               "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-              "example": "2026-04-07"
+              "example": "2026-04-08"
             },
             "description": "Filter to behavior date."
           }
@@ -15507,8 +16265,8 @@
                     "behaviorName": "تأخر متكرر",
                     "behaviorType": "negative",
                     "severity": 3,
-                    "behaviorDate": "2026-04-07",
-                    "createdAt": "2026-04-07T00:27:25.627Z"
+                    "behaviorDate": "2026-04-08",
+                    "createdAt": "2026-04-08T07:37:35.672Z"
                   }
                 }
               }
@@ -15595,7 +16353,7 @@
                 "semesterId": "1",
                 "description": "تأخر عن الطابور",
                 "severity": 3,
-                "behaviorDate": "2026-04-07",
+                "behaviorDate": "2026-04-08",
                 "teacherId": "47"
               }
             }
@@ -15650,8 +16408,8 @@
                     "behaviorName": "تأخر متكرر",
                     "behaviorType": "negative",
                     "severity": 3,
-                    "behaviorDate": "2026-04-07",
-                    "createdAt": "2026-04-07T00:27:25.627Z"
+                    "behaviorDate": "2026-04-08",
+                    "createdAt": "2026-04-08T07:37:35.672Z"
                   }
                 }
               }
@@ -15804,8 +16562,8 @@
                     "behaviorName": "تأخر متكرر",
                     "behaviorType": "negative",
                     "severity": 3,
-                    "behaviorDate": "2026-04-07",
-                    "createdAt": "2026-04-07T00:27:25.627Z"
+                    "behaviorDate": "2026-04-08",
+                    "createdAt": "2026-04-08T07:37:35.672Z"
                   }
                 }
               }
@@ -15987,8 +16745,8 @@
                         "behaviorName": "تأخر متكرر",
                         "behaviorType": "negative",
                         "severity": 3,
-                        "behaviorDate": "2026-04-07",
-                        "createdAt": "2026-04-07T00:27:25.627Z"
+                        "behaviorDate": "2026-04-08",
+                        "createdAt": "2026-04-08T07:37:35.672Z"
                       }
                     ]
                   }
@@ -16150,7 +16908,7 @@
                       "id": "1",
                       "stopName": "Stop 1"
                     },
-                    "startDate": "2026-04-07",
+                    "startDate": "2026-04-08",
                     "endDate": null,
                     "isActive": true
                   }
@@ -16236,7 +16994,7 @@
                 "studentId": "1",
                 "routeId": "1",
                 "stopId": "1",
-                "startDate": "2026-04-07",
+                "startDate": "2026-04-08",
                 "endDate": null
               }
             }
@@ -16296,7 +17054,7 @@
                       "id": "1",
                       "stopName": "Stop 1"
                     },
-                    "startDate": "2026-04-07",
+                    "startDate": "2026-04-08",
                     "endDate": null,
                     "isActive": true
                   }
@@ -16412,7 +17170,7 @@
                 "$ref": "#/components/schemas/DeactivateTransportAssignmentRequest"
               },
               "example": {
-                "endDate": "2026-04-07"
+                "endDate": "2026-04-08"
               }
             }
           }
@@ -16475,7 +17233,7 @@
                         "id": "1",
                         "stopName": "Stop 1"
                       },
-                      "startDate": "2026-04-07",
+                      "startDate": "2026-04-08",
                       "endDate": null,
                       "isActive": true
                     }
@@ -16776,6 +17534,139 @@
         }
       }
     },
+    "/transport/realtime-token": {
+      "get": {
+        "tags": [
+          "Transport"
+        ],
+        "summary": "Get Transport Realtime Token",
+        "description": "Issue a Firebase custom token scoped to one trip live-location path. Admin gets read access, driver owners get write access, and linked parents get read access.\n\nAllowed roles: admin, parent, driver.\n\nNote: The token is scoped to /transport/live-trips/{tripId}/latestLocation in Firebase Realtime Database.\n\nNote: The endpoint returns 409 FEATURE_DISABLED when pushNotifications.transportRealtimeEnabled is false.\n\nNote: The endpoint returns 409 INTEGRATION_NOT_CONFIGURED when Firebase env secrets are missing.\n\nNote: This endpoint is low-frequency bootstrap auth; live GPS points bypass the backend after token issuance.",
+        "x-allowed-roles": [
+          "admin",
+          "parent",
+          "driver"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "const": true
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/GenericObject"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                },
+                "example": {
+                  "success": true,
+                  "message": "Get Transport Realtime Token completed successfully",
+                  "data": {
+                    "customToken": "firebase-custom-token-sample",
+                    "databaseUrl": "https://ishraf-platform.firebaseio.com",
+                    "path": "/transport/live-trips/1/latestLocation",
+                    "tripId": "1",
+                    "access": "read",
+                    "refreshAfterSeconds": 840
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Validation failed",
+                  "errors": [
+                    {
+                      "field": "fieldName",
+                      "code": "invalid_type",
+                      "message": "Validation error example"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication is missing or expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Unauthorized",
+                  "errors": [
+                    {
+                      "code": "UNAUTHORIZED",
+                      "message": "Authentication is required"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated but not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Forbidden",
+                  "errors": [
+                    {
+                      "code": "FORBIDDEN",
+                      "message": "You do not have permission to access this resource"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "tripId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9]+$",
+              "example": "1"
+            },
+            "description": "Trip numeric string identifier used to scope the Firebase realtime token."
+          }
+        ]
+      }
+    },
     "/transport/route-assignments": {
       "get": {
         "tags": [
@@ -16840,7 +17731,7 @@
                         "estimatedDurationMinutes": 35,
                         "isActive": true
                       },
-                      "startDate": "2026-04-07",
+                      "startDate": "2026-04-08",
                       "endDate": null,
                       "isActive": true
                     }
@@ -16955,7 +17846,7 @@
                       "estimatedDurationMinutes": 35,
                       "isActive": true
                     },
-                    "startDate": "2026-04-07",
+                    "startDate": "2026-04-08",
                     "endDate": null,
                     "isActive": true
                   }
@@ -17040,7 +17931,7 @@
               "example": {
                 "busId": "1",
                 "routeId": "1",
-                "startDate": "2026-04-07",
+                "startDate": "2026-04-08",
                 "endDate": null
               }
             }
@@ -17108,7 +17999,7 @@
                       "estimatedDurationMinutes": 35,
                       "isActive": true
                     },
-                    "startDate": "2026-04-07",
+                    "startDate": "2026-04-08",
                     "endDate": null,
                     "isActive": true
                   }
@@ -17224,7 +18115,7 @@
                 "$ref": "#/components/schemas/DeactivateTransportRouteAssignmentRequest"
               },
               "example": {
-                "endDate": "2026-04-07"
+                "endDate": "2026-04-08"
               }
             }
           }
@@ -17295,7 +18186,7 @@
                         "estimatedDurationMinutes": 35,
                         "isActive": true
                       },
-                      "startDate": "2026-04-07",
+                      "startDate": "2026-04-08",
                       "endDate": null,
                       "isActive": true
                     }
@@ -17959,10 +18850,10 @@
                       "status": "approved",
                       "submittedByUserId": "1",
                       "approvedByUserId": "1",
-                      "approvedAt": "2026-04-07T00:27:25.627Z",
+                      "approvedAt": "2026-04-08T07:37:35.672Z",
                       "notes": null,
-                      "createdAt": "2026-04-07T00:27:25.627Z",
-                      "updatedAt": "2026-04-07T00:27:25.627Z"
+                      "createdAt": "2026-04-08T07:37:35.672Z",
+                      "updatedAt": "2026-04-08T07:37:35.672Z"
                     }
                   }
                 }
@@ -18122,10 +19013,10 @@
                       "status": "approved",
                       "submittedByUserId": "1",
                       "approvedByUserId": "1",
-                      "approvedAt": "2026-04-07T00:27:25.627Z",
+                      "approvedAt": "2026-04-08T07:37:35.672Z",
                       "notes": null,
-                      "createdAt": "2026-04-07T00:27:25.627Z",
-                      "updatedAt": "2026-04-07T00:27:25.627Z"
+                      "createdAt": "2026-04-08T07:37:35.672Z",
+                      "updatedAt": "2026-04-08T07:37:35.672Z"
                     }
                   }
                 }
@@ -18285,10 +19176,10 @@
                       "status": "approved",
                       "submittedByUserId": "1",
                       "approvedByUserId": "1",
-                      "approvedAt": "2026-04-07T00:27:25.627Z",
+                      "approvedAt": "2026-04-08T07:37:35.672Z",
                       "notes": null,
-                      "createdAt": "2026-04-07T00:27:25.627Z",
-                      "updatedAt": "2026-04-07T00:27:25.627Z"
+                      "createdAt": "2026-04-08T07:37:35.672Z",
+                      "updatedAt": "2026-04-08T07:37:35.672Z"
                     }
                   }
                 }
@@ -18476,10 +19367,10 @@
                     "items": [
                       {
                         "id": "1",
-                        "tripDate": "2026-04-07",
+                        "tripDate": "2026-04-08",
                         "tripType": "pickup",
                         "tripStatus": "started",
-                        "startedAt": "2026-04-07T00:27:25.627Z",
+                        "startedAt": "2026-04-08T07:37:35.672Z",
                         "endedAt": null,
                         "bus": {
                           "id": "1",
@@ -18496,7 +19387,7 @@
                         "latestLocation": {
                           "latitude": 15.3694,
                           "longitude": 44.191,
-                          "recordedAt": "2026-04-07T00:27:25.627Z"
+                          "recordedAt": "2026-04-08T07:37:35.672Z"
                         },
                         "eventSummary": {
                           "boardedCount": 1,
@@ -18687,7 +19578,7 @@
             "schema": {
               "type": "string",
               "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-              "example": "2026-04-07"
+              "example": "2026-04-08"
             },
             "description": "Filter by exact trip date."
           },
@@ -18698,7 +19589,7 @@
             "schema": {
               "type": "string",
               "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-              "example": "2026-04-07"
+              "example": "2026-04-08"
             },
             "description": "Filter from trip date."
           },
@@ -18709,7 +19600,7 @@
             "schema": {
               "type": "string",
               "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-              "example": "2026-04-07"
+              "example": "2026-04-08"
             },
             "description": "Filter to trip date."
           }
@@ -18754,10 +19645,10 @@
                   "message": "Create Trip completed successfully",
                   "data": {
                     "id": "1",
-                    "tripDate": "2026-04-07",
+                    "tripDate": "2026-04-08",
                     "tripType": "pickup",
                     "tripStatus": "started",
-                    "startedAt": "2026-04-07T00:27:25.627Z",
+                    "startedAt": "2026-04-08T07:37:35.672Z",
                     "endedAt": null,
                     "bus": {
                       "id": "1",
@@ -18774,7 +19665,7 @@
                     "latestLocation": {
                       "latitude": 15.3694,
                       "longitude": 44.191,
-                      "recordedAt": "2026-04-07T00:27:25.627Z"
+                      "recordedAt": "2026-04-08T07:37:35.672Z"
                     },
                     "eventSummary": {
                       "boardedCount": 1,
@@ -18864,7 +19755,7 @@
               "example": {
                 "busId": "1",
                 "routeId": "1",
-                "tripDate": "2026-04-07",
+                "tripDate": "2026-04-08",
                 "tripType": "pickup"
               }
             }
@@ -18913,10 +19804,10 @@
                   "data": {
                     "trip": {
                       "id": "1",
-                      "tripDate": "2026-04-07",
+                      "tripDate": "2026-04-08",
                       "tripType": "pickup",
                       "tripStatus": "started",
-                      "startedAt": "2026-04-07T00:27:25.627Z",
+                      "startedAt": "2026-04-08T07:37:35.672Z",
                       "endedAt": null,
                       "bus": {
                         "id": "1",
@@ -18934,7 +19825,7 @@
                     "latestLocation": {
                       "latitude": 15.3694,
                       "longitude": 44.191,
-                      "recordedAt": "2026-04-07T00:27:25.627Z"
+                      "recordedAt": "2026-04-08T07:37:35.672Z"
                     },
                     "routeStops": [
                       {
@@ -19064,7 +19955,7 @@
           "Transport"
         ],
         "summary": "End Trip",
-        "description": "Mark a trip as ended.\n\nAllowed roles: admin, driver.\n\nNote: The trip must currently be started. Otherwise the request fails with TRIP_STATUS_END_INVALID.",
+        "description": "Mark a trip as ended.\n\nAllowed roles: admin, driver.\n\nNote: The trip must currently be started. Otherwise the request fails with TRIP_STATUS_END_INVALID.\n\nNote: When pushNotifications.fcmEnabled and pushNotifications.transportRealtimeEnabled are both true, the backend enqueues FCM wake-up events for subscribed parents and admins.\n\nSide effects: Trip end writes the transport state to PostgreSQL first, then emits async automation work through integration_outbox.",
         "x-allowed-roles": [
           "admin",
           "driver"
@@ -19098,10 +19989,10 @@
                   "message": "End Trip completed successfully",
                   "data": {
                     "id": "1",
-                    "tripDate": "2026-04-07",
+                    "tripDate": "2026-04-08",
                     "tripType": "pickup",
                     "tripStatus": "started",
-                    "startedAt": "2026-04-07T00:27:25.627Z",
+                    "startedAt": "2026-04-08T07:37:35.672Z",
                     "endedAt": null,
                     "bus": {
                       "id": "1",
@@ -19118,7 +20009,7 @@
                     "latestLocation": {
                       "latitude": 15.3694,
                       "longitude": 44.191,
-                      "recordedAt": "2026-04-07T00:27:25.627Z"
+                      "recordedAt": "2026-04-08T07:37:35.672Z"
                     },
                     "eventSummary": {
                       "boardedCount": 1,
@@ -19126,6 +20017,185 @@
                       "absentCount": 0,
                       "totalEvents": 1
                     }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Validation failed",
+                  "errors": [
+                    {
+                      "field": "fieldName",
+                      "code": "invalid_type",
+                      "message": "Validation error example"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication is missing or expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Unauthorized",
+                  "errors": [
+                    {
+                      "code": "UNAUTHORIZED",
+                      "message": "Authentication is required"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated but not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Forbidden",
+                  "errors": [
+                    {
+                      "code": "FORBIDDEN",
+                      "message": "You do not have permission to access this resource"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Primary resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Not Found",
+                  "errors": [
+                    {
+                      "code": "NOT_FOUND",
+                      "message": "Requested resource was not found"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Trip numeric string identifier.",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9]+$",
+              "example": "1"
+            }
+          }
+        ]
+      }
+    },
+    "/transport/trips/{id}/eta": {
+      "get": {
+        "tags": [
+          "Transport"
+        ],
+        "summary": "Get Trip ETA",
+        "description": "Return the stop-based ETA read model for one trip, including the route polyline cache, ETA summary, and remaining stop snapshots.\n\nAllowed roles: admin, driver.\n\nNote: ETA responses are provider-neutral at the API surface and expose calculationMode as provider_snapshot or derived_estimate.\n\nNote: Runtime provider selection is active through transportMaps.etaProvider with mapbox as the default selected provider.\n\nNote: ETA is a backend snapshot surface; live GPS streaming is read directly from Firebase RTDB after realtime token bootstrap.\n\nDerived data: The response is built from transport_trip_eta_snapshots, transport_trip_eta_stop_snapshots, and the cached route polyline when available.",
+        "x-allowed-roles": [
+          "admin",
+          "driver"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "const": true
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/GenericObject"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                },
+                "example": {
+                  "success": true,
+                  "message": "Get Trip ETA completed successfully",
+                  "data": {
+                    "tripId": "1",
+                    "tripStatus": "started",
+                    "routePolyline": {
+                      "encodedPolyline": "_p~iF~ps|U_ulLnnqC_mqNvxq`@"
+                    },
+                    "etaSummary": {
+                      "status": "fresh",
+                      "calculationMode": "provider_snapshot",
+                      "nextStop": {
+                        "stopId": "2",
+                        "stopName": "Stop 2",
+                        "stopOrder": 2
+                      },
+                      "nextStopEtaAt": "2026-04-08T07:37:35.672Z",
+                      "finalEtaAt": "2026-04-08T07:37:35.672Z",
+                      "remainingDistanceMeters": 850,
+                      "remainingDurationSeconds": 180,
+                      "computedAt": "2026-04-08T07:37:35.672Z",
+                      "isStale": false
+                    },
+                    "remainingStops": [
+                      {
+                        "stopId": "2",
+                        "stopName": "Stop 2",
+                        "stopOrder": 2,
+                        "etaAt": "2026-04-08T07:37:35.672Z",
+                        "remainingDistanceMeters": 850,
+                        "remainingDurationSeconds": 180,
+                        "isNextStop": true,
+                        "isCompleted": false
+                      }
+                    ],
+                    "computedAt": "2026-04-08T07:37:35.672Z"
                   }
                 }
               }
@@ -19283,7 +20353,7 @@
                         "fullName": "طالب تجريبي 1"
                       },
                       "eventType": "boarded",
-                      "eventTime": "2026-04-07T00:27:25.627Z",
+                      "eventTime": "2026-04-08T07:37:35.672Z",
                       "stop": {
                         "stopId": "1",
                         "stopName": "Stop 1"
@@ -19401,7 +20471,7 @@
           "Transport"
         ],
         "summary": "Create Trip Student Event",
-        "description": "Create one trip student event. stopId is required for boarded and dropped_off events, and must be omitted for absent.\n\nAllowed roles: admin, driver.\n\nNote: Trip student event validation is trip-date aware: the student must have a transport assignment covering the trip date and route.\n\nNote: Events are only accepted while the trip is started or ended. Invalid state returns TRIP_EVENT_STATUS_INVALID.\n\nNote: A mismatching route assignment or stop produces STUDENT_TRIP_DATE_ASSIGNMENT_NOT_FOUND, TRIP_STUDENT_ROUTE_MISMATCH, or TRIP_EVENT_STOP_ROUTE_MISMATCH.\n\nSide effects: Dropped-off events trigger parent notifications through the internal automation service.",
+        "description": "Create one trip student event. stopId is required for boarded and dropped_off events, and must be omitted for absent.\n\nAllowed roles: admin, driver.\n\nNote: Trip student event validation is trip-date aware: the student must have a transport assignment covering the trip date and route.\n\nNote: Events are only accepted while the trip is started or ended. Invalid state returns TRIP_EVENT_STATUS_INVALID.\n\nNote: A mismatching route assignment or stop produces STUDENT_TRIP_DATE_ASSIGNMENT_NOT_FOUND, TRIP_STUDENT_ROUTE_MISMATCH, or TRIP_EVENT_STOP_ROUTE_MISMATCH.\n\nNote: All trip student events can enqueue FCM wake-up events when pushNotifications.fcmEnabled and pushNotifications.transportRealtimeEnabled are both true. dropped_off also writes an in-app parent notification.\n\nSide effects: Trip student events write PostgreSQL truth first, then emit async automation work through integration_outbox.",
         "x-allowed-roles": [
           "admin",
           "driver"
@@ -19441,7 +20511,7 @@
                       "fullName": "طالب تجريبي 1"
                     },
                     "eventType": "boarded",
-                    "eventTime": "2026-04-07T00:27:25.627Z",
+                    "eventTime": "2026-04-08T07:37:35.672Z",
                     "stop": {
                       "stopId": "1",
                       "stopName": "Stop 1"
@@ -19576,7 +20646,7 @@
           "Transport"
         ],
         "summary": "Record Trip Location",
-        "description": "Record one location point for a started trip.\n\nAllowed roles: admin, driver.\n\nNote: Locations are only accepted while the trip is started. Invalid state returns TRIP_LOCATION_STATUS_INVALID.",
+        "description": "Record one location point for a started trip.\n\nAllowed roles: admin, driver.\n\nNote: Locations are only accepted while the trip is started. Invalid state returns TRIP_LOCATION_STATUS_INVALID.\n\nNote: This endpoint stores operational trip locations in PostgreSQL. High-frequency driver GPS for the live map should go directly to Firebase RTDB after GET /transport/realtime-token.",
         "x-allowed-roles": [
           "admin",
           "driver"
@@ -19610,10 +20680,10 @@
                   "message": "Record Trip Location completed successfully",
                   "data": {
                     "id": "1",
-                    "tripDate": "2026-04-07",
+                    "tripDate": "2026-04-08",
                     "tripType": "pickup",
                     "tripStatus": "started",
-                    "startedAt": "2026-04-07T00:27:25.627Z",
+                    "startedAt": "2026-04-08T07:37:35.672Z",
                     "endedAt": null,
                     "bus": {
                       "id": "1",
@@ -19630,7 +20700,7 @@
                     "latestLocation": {
                       "latitude": 15.3694,
                       "longitude": 44.191,
-                      "recordedAt": "2026-04-07T00:27:25.627Z"
+                      "recordedAt": "2026-04-08T07:37:35.672Z"
                     },
                     "eventSummary": {
                       "boardedCount": 1,
@@ -19765,7 +20835,7 @@
           "Transport"
         ],
         "summary": "Start Trip",
-        "description": "Mark a scheduled trip as started.\n\nAllowed roles: admin, driver.\n\nNote: The trip must currently be scheduled. Otherwise the request fails with TRIP_STATUS_START_INVALID.\n\nSide effects: Trip start triggers parent notifications per assigned student through the internal automation service.",
+        "description": "Mark a scheduled trip as started.\n\nAllowed roles: admin, driver.\n\nNote: The trip must currently be scheduled. Otherwise the request fails with TRIP_STATUS_START_INVALID.\n\nNote: When pushNotifications.fcmEnabled and pushNotifications.transportRealtimeEnabled are both true, the backend enqueues FCM wake-up events for subscribed parents and admins.\n\nSide effects: Trip start writes the transport state to PostgreSQL first, then emits async automation work through integration_outbox.",
         "x-allowed-roles": [
           "admin",
           "driver"
@@ -19799,10 +20869,10 @@
                   "message": "Start Trip completed successfully",
                   "data": {
                     "id": "1",
-                    "tripDate": "2026-04-07",
+                    "tripDate": "2026-04-08",
                     "tripType": "pickup",
                     "tripStatus": "started",
-                    "startedAt": "2026-04-07T00:27:25.627Z",
+                    "startedAt": "2026-04-08T07:37:35.672Z",
                     "endedAt": null,
                     "bus": {
                       "id": "1",
@@ -19819,7 +20889,7 @@
                     "latestLocation": {
                       "latitude": 15.3694,
                       "longitude": 44.191,
-                      "recordedAt": "2026-04-07T00:27:25.627Z"
+                      "recordedAt": "2026-04-08T07:37:35.672Z"
                     },
                     "eventSummary": {
                       "boardedCount": 1,
@@ -19996,7 +21066,7 @@
                         "currentTripEventType": "boarded",
                         "lastEvent": {
                           "eventType": "boarded",
-                          "eventTime": "2026-04-07T00:27:25.627Z",
+                          "eventTime": "2026-04-08T07:37:35.672Z",
                           "stopId": "1"
                         }
                       }
@@ -20129,6 +21199,548 @@
         ]
       }
     },
+    "/transport/trips/{tripId}/live-status": {
+      "get": {
+        "tags": [
+          "Transport"
+        ],
+        "summary": "Get Parent Trip Live Status",
+        "description": "Return the parent-facing live tracking payload for one trip.\n\nAllowed roles: parent.\n\nNote: Access is ownership-scoped. The parent must be linked to at least one student on the trip route/date or the request is denied.\n\nNote: The response intentionally separates live GPS and ETA snapshots: firebaseRtdbPath is for RTDB live location, while myStopSnapshot is backend ETA snapshot data.\n\nDerived data: myStopSnapshot is selected from trip ETA stop snapshots using nearest active parent stop order.",
+        "x-allowed-roles": [
+          "parent"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "const": true
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/TransportTripLiveStatusResponse"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                },
+                "example": {
+                  "success": true,
+                  "message": "Trip live status fetched successfully",
+                  "data": {
+                    "tripId": "1",
+                    "tripStatus": "started",
+                    "firebaseRtdbPath": "/transport/live-trips/1/latestLocation",
+                    "myStopSnapshot": {
+                      "stopId": "1",
+                      "stopName": "Stop 1",
+                      "stopOrder": 1,
+                      "etaAt": "2026-04-08T07:40:00.000Z",
+                      "remainingDistanceMeters": 120,
+                      "remainingDurationSeconds": 75,
+                      "isCompleted": false,
+                      "approachingNotified": true,
+                      "arrivedNotified": false,
+                      "updatedAt": "2026-04-08T07:37:35.672Z"
+                    },
+                    "routePolyline": {
+                      "encodedPolyline": "_p~iF~ps|U_ulLnnqC_mqNvxq`@"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Validation failed",
+                  "errors": [
+                    {
+                      "field": "tripId",
+                      "code": "invalid_type",
+                      "message": "Validation error example"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication is missing or expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Unauthorized",
+                  "errors": [
+                    {
+                      "code": "UNAUTHORIZED",
+                      "message": "Authentication is required"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated but not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "You do not have permission to access this trip",
+                  "errors": [
+                    {
+                      "code": "FORBIDDEN",
+                      "message": "You do not have permission to access this trip"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Primary resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Trip not found",
+                  "errors": [
+                    {
+                      "code": "NOT_FOUND",
+                      "message": "Trip not found"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "tripId",
+            "in": "path",
+            "required": true,
+            "description": "Trip numeric string identifier.",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9]+$",
+              "example": "1"
+            }
+          }
+        ]
+      }
+    },
+    "/transport/trips/{tripId}/summary": {
+      "get": {
+        "tags": [
+          "Transport"
+        ],
+        "summary": "Get Trip Summary Analytics",
+        "description": "Return summary analytics for one completed trip.\n\nAllowed roles: admin.\n\nNote: This endpoint is intentionally restricted to completed trips. If tripStatus is not completed, the backend returns 409 TRIP_SUMMARY_REQUIRES_COMPLETED_STATUS.",
+        "x-allowed-roles": [
+          "admin"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "const": true
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/TransportTripSummaryResponse"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                },
+                "example": {
+                  "success": true,
+                  "message": "Trip summary fetched successfully",
+                  "data": {
+                    "tripId": "1",
+                    "tripStatus": "completed",
+                    "scheduledStartTime": null,
+                    "actualStartTime": "2026-04-08T07:37:35.672Z",
+                    "actualEndTime": "2026-04-08T08:07:35.672Z",
+                    "startDelayMinutes": null,
+                    "attendance": {
+                      "totalStudents": 2,
+                      "presentCount": 1,
+                      "absentCount": 1
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Validation failed",
+                  "errors": [
+                    {
+                      "field": "tripId",
+                      "code": "invalid_type",
+                      "message": "Validation error example"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication is missing or expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Unauthorized",
+                  "errors": [
+                    {
+                      "code": "UNAUTHORIZED",
+                      "message": "Authentication is required"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated but not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Forbidden",
+                  "errors": [
+                    {
+                      "code": "FORBIDDEN",
+                      "message": "You do not have permission to access this resource"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Primary resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Trip not found",
+                  "errors": [
+                    {
+                      "code": "NOT_FOUND",
+                      "message": "Trip not found"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Trip summary requires completed status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Trip summary is only available for completed trips",
+                  "errors": [
+                    {
+                      "field": "tripStatus",
+                      "code": "TRIP_SUMMARY_REQUIRES_COMPLETED_STATUS",
+                      "message": "Trip summary is only available for completed trips"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "tripId",
+            "in": "path",
+            "required": true,
+            "description": "Trip numeric string identifier.",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9]+$",
+              "example": "1"
+            }
+          }
+        ]
+      }
+    },
+    "/transport/trips/{tripId}/stops/{stopId}/attendance": {
+      "post": {
+        "tags": [
+          "Transport"
+        ],
+        "summary": "Record Trip Stop Attendance",
+        "description": "Record attendance for one trip stop and close the stop snapshot.\n\nAllowed roles: admin, driver.\n\nNote: trip must be started.\n\nNote: Each attendance item must map to a student assigned to the same trip date, route, and stop.\n\nNote: present maps to boarded/dropped_off based on trip type; absent maps to absent.\n\nNote: If all trip stop snapshots are completed after this call, trip status transitions to completed.",
+        "x-allowed-roles": [
+          "admin",
+          "driver"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "const": true
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/TransportTripStopAttendanceResponse"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                },
+                "example": {
+                  "success": true,
+                  "message": "Trip stop attendance recorded successfully",
+                  "data": {
+                    "tripId": "1",
+                    "stopId": "1",
+                    "tripStatus": "completed",
+                    "stopCompleted": true,
+                    "tripCompleted": true,
+                    "recordedEvents": [
+                      {
+                        "tripStudentEventId": "11",
+                        "student": {
+                          "studentId": "1",
+                          "academicNo": "SEED-STU-001",
+                          "fullName": "طالب تجريبي 1"
+                        },
+                        "eventType": "boarded",
+                        "eventTime": "2026-04-08T07:37:35.672Z",
+                        "stop": {
+                          "stopId": "1",
+                          "stopName": "Stop 1"
+                        },
+                        "notes": null
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Validation failed",
+                  "errors": [
+                    {
+                      "field": "attendances",
+                      "code": "TRIP_ATTENDANCE_STOP_ASSIGNMENT_MISMATCH",
+                      "message": "Validation error example"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication is missing or expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Unauthorized",
+                  "errors": [
+                    {
+                      "code": "UNAUTHORIZED",
+                      "message": "Authentication is required"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated but not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Forbidden",
+                  "errors": [
+                    {
+                      "code": "FORBIDDEN",
+                      "message": "You do not have permission to access this resource"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Primary resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Not Found",
+                  "errors": [
+                    {
+                      "code": "NOT_FOUND",
+                      "message": "Requested resource was not found"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "tripId",
+            "in": "path",
+            "required": true,
+            "description": "Trip numeric string identifier.",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9]+$",
+              "example": "1"
+            }
+          },
+          {
+            "name": "stopId",
+            "in": "path",
+            "required": true,
+            "description": "Stop numeric string identifier on the trip route.",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9]+$",
+              "example": "1"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RecordTripStopAttendanceRequest"
+              },
+              "example": {
+                "attendances": [
+                  {
+                    "studentId": "1",
+                    "status": "present",
+                    "notes": null
+                  },
+                  {
+                    "studentId": "2",
+                    "status": "absent"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
     "/transport/trips/ensure-daily": {
       "post": {
         "tags": [
@@ -20171,7 +21783,7 @@
                     "created": true,
                     "trip": {
                       "id": "1",
-                      "tripDate": "2026-04-07",
+                      "tripDate": "2026-04-08",
                       "tripType": "pickup",
                       "tripStatus": "scheduled",
                       "startedAt": null,
@@ -20277,7 +21889,7 @@
               },
               "example": {
                 "routeAssignmentId": "1",
-                "tripDate": "2026-04-07",
+                "tripDate": "2026-04-08",
                 "tripType": "pickup"
               }
             }
@@ -20332,7 +21944,7 @@
                       "content": "إعلان تجريبي للواجهات",
                       "targetRole": null,
                       "targetRoles": [],
-                      "publishedAt": "2026-04-07T00:27:25.627Z",
+                      "publishedAt": "2026-04-08T07:37:35.672Z",
                       "expiresAt": "2026-04-01T00:00:00.000Z"
                     }
                   ]
@@ -20429,7 +22041,7 @@
                     "content": "إعلان تجريبي للواجهات",
                     "targetRole": null,
                     "targetRoles": [],
-                    "publishedAt": "2026-04-07T00:27:25.627Z",
+                    "publishedAt": "2026-04-08T07:37:35.672Z",
                     "expiresAt": "2026-04-01T00:00:00.000Z"
                   }
                 }
@@ -20575,7 +22187,7 @@
                       "content": "إعلان تجريبي للواجهات",
                       "targetRole": null,
                       "targetRoles": [],
-                      "publishedAt": "2026-04-07T00:27:25.627Z",
+                      "publishedAt": "2026-04-08T07:37:35.672Z",
                       "expiresAt": "2026-04-01T00:00:00.000Z"
                     }
                   ]
@@ -20631,6 +22243,479 @@
         ]
       }
     },
+    "/communication/devices": {
+      "post": {
+        "tags": [
+          "Communication"
+        ],
+        "summary": "Register Communication Device",
+        "description": "Register or rebind one authenticated user device token for FCM delivery and wake-up subscriptions.\n\nAllowed roles: admin, parent, teacher, supervisor, driver.\n\nNote: Registration is available even when pushNotifications.fcmEnabled is false so the rollout can be pre-provisioned.\n\nNote: providerKey currently supports only fcm and subscriptions currently support only transportRealtime.\n\nNote: If the same providerKey + deviceToken already belongs to another user, the backend rebinds it to the current authenticated user inside the same transaction.",
+        "x-allowed-roles": [
+          "admin",
+          "parent",
+          "teacher",
+          "supervisor",
+          "driver"
+        ],
+        "responses": {
+          "201": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "const": true
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/GenericObject"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                },
+                "example": {
+                  "success": true,
+                  "message": "Register Communication Device completed successfully",
+                  "data": {
+                    "deviceId": "1",
+                    "providerKey": "fcm",
+                    "platform": "android",
+                    "appId": "ishraf-parent-app",
+                    "deviceName": "Parent Pixel 8",
+                    "isActive": true,
+                    "subscriptions": [
+                      "transportRealtime"
+                    ],
+                    "lastSeenAt": "2026-04-08T07:37:35.672Z",
+                    "updatedAt": "2026-04-08T07:37:35.672Z"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Validation failed",
+                  "errors": [
+                    {
+                      "field": "fieldName",
+                      "code": "invalid_type",
+                      "message": "Validation error example"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication is missing or expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Unauthorized",
+                  "errors": [
+                    {
+                      "code": "UNAUTHORIZED",
+                      "message": "Authentication is required"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated but not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Forbidden",
+                  "errors": [
+                    {
+                      "code": "FORBIDDEN",
+                      "message": "You do not have permission to access this resource"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterCommunicationDeviceRequest"
+              },
+              "example": {
+                "providerKey": "fcm",
+                "platform": "android",
+                "appId": "ishraf-parent-app",
+                "deviceToken": "fcm-device-token-sample",
+                "deviceName": "Parent Pixel 8",
+                "subscriptions": [
+                  "transportRealtime"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/communication/devices/{deviceId}": {
+      "delete": {
+        "tags": [
+          "Communication"
+        ],
+        "summary": "Unregister Communication Device",
+        "description": "Soft-unregister one device owned by the authenticated user. The row remains for audit and token hygiene, but it stops receiving push traffic.\n\nAllowed roles: admin, parent, teacher, supervisor, driver.\n\nNote: Ownership is enforced: users can only unregister their own devices.\n\nNote: Subscriptions remain stored historically, but inactive devices are excluded from delivery resolution.",
+        "x-allowed-roles": [
+          "admin",
+          "parent",
+          "teacher",
+          "supervisor",
+          "driver"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "const": true
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/GenericObject"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                },
+                "example": {
+                  "success": true,
+                  "message": "Unregister Communication Device completed successfully",
+                  "data": {
+                    "deviceId": "1",
+                    "isActive": false,
+                    "unregisteredAt": "2026-04-08T07:37:35.672Z"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Validation failed",
+                  "errors": [
+                    {
+                      "field": "fieldName",
+                      "code": "invalid_type",
+                      "message": "Validation error example"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication is missing or expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Unauthorized",
+                  "errors": [
+                    {
+                      "code": "UNAUTHORIZED",
+                      "message": "Authentication is required"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated but not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Forbidden",
+                  "errors": [
+                    {
+                      "code": "FORBIDDEN",
+                      "message": "You do not have permission to access this resource"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Primary resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Not Found",
+                  "errors": [
+                    {
+                      "code": "NOT_FOUND",
+                      "message": "Requested resource was not found"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "deviceId",
+            "in": "path",
+            "required": true,
+            "description": "Communication device numeric string identifier.",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9]+$",
+              "example": "1"
+            }
+          }
+        ]
+      },
+      "patch": {
+        "tags": [
+          "Communication"
+        ],
+        "summary": "Update Communication Device",
+        "description": "Update one registered device owned by the authenticated user, including token rotation, display name, and subscriptions.\n\nAllowed roles: admin, parent, teacher, supervisor, driver.\n\nNote: Ownership is enforced: users can only update their own registered devices.\n\nNote: Updating deviceToken preserves uniqueness by provider and reactivates the device if it had been unregistered.",
+        "x-allowed-roles": [
+          "admin",
+          "parent",
+          "teacher",
+          "supervisor",
+          "driver"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "const": true
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/GenericObject"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                },
+                "example": {
+                  "success": true,
+                  "message": "Update Communication Device completed successfully",
+                  "data": {
+                    "deviceId": "1",
+                    "providerKey": "fcm",
+                    "platform": "android",
+                    "appId": "ishraf-parent-app",
+                    "deviceName": "Parent Pixel 8",
+                    "isActive": true,
+                    "subscriptions": [
+                      "transportRealtime"
+                    ],
+                    "lastSeenAt": "2026-04-08T07:37:35.672Z",
+                    "updatedAt": "2026-04-08T07:37:35.672Z"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Validation failed",
+                  "errors": [
+                    {
+                      "field": "fieldName",
+                      "code": "invalid_type",
+                      "message": "Validation error example"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication is missing or expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Unauthorized",
+                  "errors": [
+                    {
+                      "code": "UNAUTHORIZED",
+                      "message": "Authentication is required"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated but not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Forbidden",
+                  "errors": [
+                    {
+                      "code": "FORBIDDEN",
+                      "message": "You do not have permission to access this resource"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Primary resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Not Found",
+                  "errors": [
+                    {
+                      "code": "NOT_FOUND",
+                      "message": "Requested resource was not found"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "deviceId",
+            "in": "path",
+            "required": true,
+            "description": "Communication device numeric string identifier.",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9]+$",
+              "example": "1"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCommunicationDeviceRequest"
+              },
+              "example": {
+                "deviceName": "Updated Parent Pixel 8",
+                "subscriptions": [
+                  "transportRealtime"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
     "/communication/messages": {
       "post": {
         "tags": [
@@ -20677,7 +22762,7 @@
                     "senderUserId": "1",
                     "receiverUserId": "20",
                     "messageBody": "رسالة تجريبية",
-                    "sentAt": "2026-04-07T00:27:25.627Z",
+                    "sentAt": "2026-04-08T07:37:35.672Z",
                     "readAt": null
                   }
                 }
@@ -20813,7 +22898,7 @@
                     "senderUserId": "1",
                     "receiverUserId": "20",
                     "messageBody": "رسالة تجريبية",
-                    "sentAt": "2026-04-07T00:27:25.627Z",
+                    "sentAt": "2026-04-08T07:37:35.672Z",
                     "readAt": null
                   }
                 }
@@ -21126,7 +23211,7 @@
                         "senderUserId": "1",
                         "receiverUserId": "20",
                         "messageBody": "رسالة تجريبية",
-                        "sentAt": "2026-04-07T00:27:25.627Z",
+                        "sentAt": "2026-04-08T07:37:35.672Z",
                         "readAt": null
                       }
                     ],
@@ -21360,7 +23445,7 @@
                         "senderUserId": "1",
                         "receiverUserId": "20",
                         "messageBody": "رسالة تجريبية",
-                        "sentAt": "2026-04-07T00:27:25.627Z",
+                        "sentAt": "2026-04-08T07:37:35.672Z",
                         "readAt": null
                       }
                     ],
@@ -21574,7 +23659,7 @@
                         "senderUserId": "1",
                         "receiverUserId": "20",
                         "messageBody": "رسالة تجريبية",
-                        "sentAt": "2026-04-07T00:27:25.627Z",
+                        "sentAt": "2026-04-08T07:37:35.672Z",
                         "readAt": null
                       }
                     ],
@@ -21767,7 +23852,7 @@
                     "referenceType": "attendance",
                     "referenceId": "1",
                     "isRead": false,
-                    "createdAt": "2026-04-07T00:27:25.627Z"
+                    "createdAt": "2026-04-08T07:37:35.672Z"
                   }
                 }
               }
@@ -21910,7 +23995,7 @@
                     "referenceType": "attendance",
                     "referenceId": "1",
                     "isRead": false,
-                    "createdAt": "2026-04-07T00:27:25.627Z"
+                    "createdAt": "2026-04-08T07:37:35.672Z"
                   }
                 }
               }
@@ -22229,7 +24314,7 @@
                         "referenceType": "attendance",
                         "referenceId": "1",
                         "isRead": false,
-                        "createdAt": "2026-04-07T00:27:25.627Z"
+                        "createdAt": "2026-04-08T07:37:35.672Z"
                       }
                     ],
                     "pagination": {
@@ -23423,7 +25508,7 @@
                         "templateVersion": "2026.04.phase-b",
                         "fileName": "school-onboarding-valid.json",
                         "fileHash": "sha256-valid-import-v1",
-                        "submittedAt": "2026-04-07T00:27:25.627Z",
+                        "submittedAt": "2026-04-08T07:37:35.672Z",
                         "appliedAt": null,
                         "submittedBy": {
                           "userId": "1",
@@ -23588,8 +25673,8 @@
                     "templateVersion": "2026.04.phase-b",
                     "fileName": "school-onboarding-valid.json",
                     "fileHash": "sha256-valid-import-v1",
-                    "submittedAt": "2026-04-07T00:27:25.627Z",
-                    "appliedAt": "2026-04-07T00:27:25.627Z",
+                    "submittedAt": "2026-04-08T07:37:35.672Z",
+                    "appliedAt": "2026-04-08T07:37:35.672Z",
                     "submittedBy": {
                       "userId": "1",
                       "fullName": "أيمن أحمد محسن الذاهبي"
@@ -23802,7 +25887,7 @@
                       {
                         "id": "1",
                         "title": "واجب الرياضيات 1",
-                        "assignedDate": "2026-04-07",
+                        "assignedDate": "2026-04-08",
                         "dueDate": "2026-03-28",
                         "classId": "1",
                         "subjectId": "1",
@@ -24004,7 +26089,7 @@
             "schema": {
               "type": "string",
               "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-              "example": "2026-04-07"
+              "example": "2026-04-08"
             },
             "description": "Filter by exact assigned date."
           },
@@ -24015,7 +26100,7 @@
             "schema": {
               "type": "string",
               "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-              "example": "2026-04-07"
+              "example": "2026-04-08"
             },
             "description": "Filter by exact due date."
           },
@@ -24026,7 +26111,7 @@
             "schema": {
               "type": "string",
               "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-              "example": "2026-04-07"
+              "example": "2026-04-08"
             },
             "description": "Filter from date range."
           },
@@ -24037,7 +26122,7 @@
             "schema": {
               "type": "string",
               "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-              "example": "2026-04-07"
+              "example": "2026-04-08"
             },
             "description": "Filter to date range."
           }
@@ -24083,7 +26168,7 @@
                   "data": {
                     "id": "1",
                     "title": "واجب الرياضيات 1",
-                    "assignedDate": "2026-04-07",
+                    "assignedDate": "2026-04-08",
                     "dueDate": "2026-03-28",
                     "classId": "1",
                     "subjectId": "1",
@@ -24176,7 +26261,7 @@
                 "semesterId": "1",
                 "title": "واجب الرياضيات 2",
                 "description": "حل الصفحات 12-14",
-                "assignedDate": "2026-04-07",
+                "assignedDate": "2026-04-08",
                 "dueDate": "2026-03-28"
               }
             }
@@ -24225,7 +26310,7 @@
                   "data": {
                     "id": "1",
                     "title": "واجب الرياضيات 1",
-                    "assignedDate": "2026-04-07",
+                    "assignedDate": "2026-04-08",
                     "dueDate": "2026-03-28",
                     "classId": "1",
                     "subjectId": "1",
@@ -24511,13 +26596,13 @@
                   {
                     "studentId": "1",
                     "status": "submitted",
-                    "submittedAt": "2026-04-07",
+                    "submittedAt": "2026-04-08",
                     "notes": "تم التسليم"
                   },
                   {
                     "studentId": "2",
                     "status": "late",
-                    "submittedAt": "2026-04-07",
+                    "submittedAt": "2026-04-08",
                     "notes": "تسليم متأخر"
                   }
                 ]
@@ -24772,7 +26857,7 @@
                         "referenceType": "attendance",
                         "referenceId": "1",
                         "isRead": false,
-                        "createdAt": "2026-04-07T00:27:25.627Z",
+                        "createdAt": "2026-04-08T07:37:35.672Z",
                         "readAt": null
                       }
                     ],
@@ -25628,7 +27713,7 @@
           "Reporting"
         ],
         "summary": "Get Admin Preview Parent Child Transport Live Status",
-        "description": "Return the canonical parent transport live-status surface for one linked child under a selected parent user.\n\nAllowed roles: admin.\n\nNote: Admin-only, read-only preview surface.\n\nNote: Requires parent-child linkage or returns 404 Student not linked to parent.\n\nNote: Wave 1 is polling-based and does not include Firebase or ETA.\n\nDerived data: This response is view-backed and combines active assignment, active trip live status, latest location, and recent event projections.",
+        "description": "Return the canonical parent transport live-status surface for one linked child under a selected parent user.\n\nAllowed roles: admin.\n\nNote: Admin-only, read-only preview surface.\n\nNote: Requires parent-child linkage or returns 404 Student not linked to parent.\n\nNote: ETA fields are backend-managed snapshots; live GPS streaming is consumed directly from Firebase RTDB after realtime token bootstrap.\n\nDerived data: This response is view-backed and combines active assignment, active trip live status, latest location, and recent event projections.",
         "x-allowed-roles": [
           "admin"
         ],
@@ -25675,13 +27760,13 @@
                         "stopId": "1",
                         "stopName": "Stop 1"
                       },
-                      "startDate": "2026-04-07",
+                      "startDate": "2026-04-08",
                       "endDate": null,
                       "isActive": true
                     },
                     "activeTrip": {
                       "tripId": "1",
-                      "tripDate": "2026-04-07",
+                      "tripDate": "2026-04-08",
                       "tripType": "pickup",
                       "tripStatus": "started",
                       "bus": {
@@ -25695,7 +27780,7 @@
                       "latestLocation": {
                         "latitude": 15.3694,
                         "longitude": 44.191,
-                        "recordedAt": "2026-04-07T00:27:25.627Z"
+                        "recordedAt": "2026-04-08T07:37:35.672Z"
                       },
                       "latestEvents": [
                         {
@@ -25706,7 +27791,7 @@
                             "fullName": "طالب تجريبي 1"
                           },
                           "eventType": "boarded",
-                          "eventTime": "2026-04-07T00:27:25.627Z",
+                          "eventTime": "2026-04-08T07:37:35.672Z",
                           "stop": {
                             "stopId": "1",
                             "stopName": "Stop 1"
@@ -25899,7 +27984,7 @@
                           "id": "1",
                           "name": "2025-2026"
                         },
-                        "createdAt": "2026-04-07T00:27:25.627Z"
+                        "createdAt": "2026-04-08T07:37:35.672Z"
                       }
                     ],
                     "studentSummaries": [
@@ -25948,8 +28033,8 @@
                         },
                         "description": "Late arrival",
                         "severity": 2,
-                        "behaviorDate": "2026-04-07",
-                        "createdAt": "2026-04-07T00:27:25.627Z"
+                        "behaviorDate": "2026-04-08",
+                        "createdAt": "2026-04-08T07:37:35.672Z"
                       }
                     ]
                   }
@@ -26132,13 +28217,13 @@
                           "id": "1",
                           "name": "2025-2026"
                         },
-                        "createdAt": "2026-04-07T00:27:25.627Z"
+                        "createdAt": "2026-04-08T07:37:35.672Z"
                       }
                     ],
                     "recentAttendanceSessions": [
                       {
                         "id": "1",
-                        "sessionDate": "2026-04-07",
+                        "sessionDate": "2026-04-08",
                         "periodNo": 1,
                         "title": "Morning Attendance",
                         "class": {
@@ -26164,7 +28249,7 @@
                       {
                         "id": "1",
                         "title": "اختبار قصير 1",
-                        "assessmentDate": "2026-04-07",
+                        "assessmentDate": "2026-04-08",
                         "assessmentType": {
                           "id": "1",
                           "code": "quiz",
@@ -26208,8 +28293,8 @@
                         },
                         "description": "Strong participation",
                         "severity": 1,
-                        "behaviorDate": "2026-04-07",
-                        "createdAt": "2026-04-07T00:27:25.627Z"
+                        "behaviorDate": "2026-04-08",
+                        "createdAt": "2026-04-08T07:37:35.672Z"
                       }
                     ]
                   }
@@ -26516,7 +28601,7 @@
                         "referenceType": "attendance",
                         "referenceId": "1",
                         "isRead": false,
-                        "createdAt": "2026-04-07T00:27:25.627Z",
+                        "createdAt": "2026-04-08T07:37:35.672Z",
                         "readAt": null
                       }
                     ],
@@ -27334,7 +29419,7 @@
                           "id": "1",
                           "name": "2025-2026"
                         },
-                        "createdAt": "2026-04-07T00:27:25.627Z"
+                        "createdAt": "2026-04-08T07:37:35.672Z"
                       }
                     ],
                     "studentSummaries": [
@@ -27383,8 +29468,8 @@
                         },
                         "description": "Late arrival",
                         "severity": 2,
-                        "behaviorDate": "2026-04-07",
-                        "createdAt": "2026-04-07T00:27:25.627Z"
+                        "behaviorDate": "2026-04-08",
+                        "createdAt": "2026-04-08T07:37:35.672Z"
                       }
                     ]
                   }
@@ -27513,13 +29598,13 @@
                           "id": "1",
                           "name": "2025-2026"
                         },
-                        "createdAt": "2026-04-07T00:27:25.627Z"
+                        "createdAt": "2026-04-08T07:37:35.672Z"
                       }
                     ],
                     "recentAttendanceSessions": [
                       {
                         "id": "1",
-                        "sessionDate": "2026-04-07",
+                        "sessionDate": "2026-04-08",
                         "periodNo": 1,
                         "title": "Morning Attendance",
                         "class": {
@@ -27545,7 +29630,7 @@
                       {
                         "id": "1",
                         "title": "اختبار قصير 1",
-                        "assessmentDate": "2026-04-07",
+                        "assessmentDate": "2026-04-08",
                         "assessmentType": {
                           "id": "1",
                           "code": "quiz",
@@ -27589,8 +29674,8 @@
                         },
                         "description": "Strong participation",
                         "severity": 1,
-                        "behaviorDate": "2026-04-07",
-                        "createdAt": "2026-04-07T00:27:25.627Z"
+                        "behaviorDate": "2026-04-08",
+                        "createdAt": "2026-04-08T07:37:35.672Z"
                       }
                     ]
                   }
@@ -28354,7 +30439,7 @@
           "Reporting"
         ],
         "summary": "Get Parent Child Transport Live Status",
-        "description": "Return the transport live status for one linked child. Wave 1 is polling-based and does not include Firebase or ETA.\n\nAllowed roles: parent.\n\nDerived data: This response is view-backed and combines active assignment, active trip live status, latest location, and recent event projections.",
+        "description": "Return the transport live status for one linked child with backend ETA snapshots and Firebase-backed live GPS context.\n\nAllowed roles: parent.\n\nDerived data: This response is view-backed and combines active assignment, active trip live status, latest location, and recent event projections.",
         "x-allowed-roles": [
           "parent"
         ],
@@ -28401,13 +30486,13 @@
                         "stopId": "1",
                         "stopName": "Stop 1"
                       },
-                      "startDate": "2026-04-07",
+                      "startDate": "2026-04-08",
                       "endDate": null,
                       "isActive": true
                     },
                     "activeTrip": {
                       "tripId": "1",
-                      "tripDate": "2026-04-07",
+                      "tripDate": "2026-04-08",
                       "tripType": "pickup",
                       "tripStatus": "started",
                       "bus": {
@@ -28421,7 +30506,7 @@
                       "latestLocation": {
                         "latitude": 15.3694,
                         "longitude": 44.191,
-                        "recordedAt": "2026-04-07T00:27:25.627Z"
+                        "recordedAt": "2026-04-08T07:37:35.672Z"
                       },
                       "latestEvents": [
                         {
@@ -28432,7 +30517,7 @@
                             "fullName": "طالب تجريبي 1"
                           },
                           "eventType": "boarded",
-                          "eventTime": "2026-04-07T00:27:25.627Z",
+                          "eventTime": "2026-04-08T07:37:35.672Z",
                           "stop": {
                             "stopId": "1",
                             "stopName": "Stop 1"

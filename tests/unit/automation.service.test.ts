@@ -4,6 +4,8 @@ import { logger } from "../../src/config/logger";
 import { AutomationService } from "../../src/modules/automation/service/automation.service";
 import type { AutomationRepository } from "../../src/modules/automation/repository/automation.repository";
 import type { CommunicationRepository } from "../../src/modules/communication/repository/communication.repository";
+import type { SystemSettingsReadService } from "../../src/modules/system-settings/service/system-settings-read.service";
+import type { IntegrationOutboxRepository } from "../../src/common/repositories/integration-outbox.repository";
 
 const linkedParentRecipients = [
   {
@@ -29,11 +31,20 @@ const linkedParentRecipients = [
 describe("AutomationService", () => {
   const automationRepositoryMock = {
     listParentRecipientsForStudent: vi.fn(),
-    listRouteParentRecipients: vi.fn()
+    listRouteParentRecipients: vi.fn(),
+    listActiveAdminUserIds: vi.fn()
   };
 
   const communicationRepositoryMock = {
     createNotification: vi.fn()
+  };
+
+  const systemSettingsReadServiceMock = {
+    getPushNotificationsSettings: vi.fn()
+  };
+
+  const integrationOutboxRepositoryMock = {
+    enqueueEvent: vi.fn()
   };
 
   let automationService: AutomationService;
@@ -42,10 +53,20 @@ describe("AutomationService", () => {
     vi.restoreAllMocks();
     Object.values(automationRepositoryMock).forEach((mockFn) => mockFn.mockReset());
     Object.values(communicationRepositoryMock).forEach((mockFn) => mockFn.mockReset());
+    Object.values(systemSettingsReadServiceMock).forEach((mockFn) => mockFn.mockReset());
+    Object.values(integrationOutboxRepositoryMock).forEach((mockFn) => mockFn.mockReset());
+
+    vi.mocked(systemSettingsReadServiceMock.getPushNotificationsSettings).mockResolvedValue({
+      fcmEnabled: false,
+      transportRealtimeEnabled: false
+    });
+    vi.mocked(automationRepositoryMock.listActiveAdminUserIds).mockResolvedValue([]);
 
     automationService = new AutomationService(
       automationRepositoryMock as unknown as AutomationRepository,
-      communicationRepositoryMock as unknown as CommunicationRepository
+      communicationRepositoryMock as unknown as CommunicationRepository,
+      systemSettingsReadServiceMock as unknown as SystemSettingsReadService,
+      integrationOutboxRepositoryMock as unknown as IntegrationOutboxRepository
     );
 
     vi.spyOn(logger, "debug").mockImplementation(() => logger);
@@ -85,6 +106,7 @@ describe("AutomationService", () => {
         referenceType: "attendance_record",
         referenceId: "10"
       });
+      expect(integrationOutboxRepositoryMock.enqueueEvent).not.toHaveBeenCalled();
     });
 
     it("does not create notifications when no recipients are found and logs a debug entry", async () => {
@@ -247,6 +269,7 @@ describe("AutomationService", () => {
         referenceType: "trip",
         referenceId: "30"
       });
+      expect(integrationOutboxRepositoryMock.enqueueEvent).not.toHaveBeenCalled();
     });
 
     it("normalizes Date objects before querying recipients and creating notifications", async () => {
@@ -289,17 +312,28 @@ describe("AutomationService", () => {
     });
   });
 
-  describe("onStudentDroppedOff", () => {
-    it("creates dropped-off notifications for linked parents", async () => {
+  describe("onTripStudentEventRecorded", () => {
+    it("creates dropped-off notifications and enqueues transport realtime push when enabled", async () => {
       vi.mocked(automationRepositoryMock.listParentRecipientsForStudent).mockResolvedValue([
         linkedParentRecipients[0]
       ]);
+      vi.mocked(automationRepositoryMock.listActiveAdminUserIds).mockResolvedValue(["1001"]);
+      vi.mocked(systemSettingsReadServiceMock.getPushNotificationsSettings).mockResolvedValue({
+        fcmEnabled: true,
+        transportRealtimeEnabled: true
+      });
       vi.mocked(communicationRepositoryMock.createNotification).mockResolvedValue("1");
+      vi.mocked(integrationOutboxRepositoryMock.enqueueEvent).mockResolvedValue("55");
 
-      await automationService.onStudentDroppedOff({
+      await automationService.onTripStudentEventRecorded({
         tripStudentEventId: "40",
+        tripId: "30",
+        routeId: "1",
+        routeName: "Route 1",
+        tripDate: "2026-03-14",
         studentId: "1",
         studentName: "Student One",
+        eventType: "dropped_off",
         stopName: "Main Stop"
       });
 
@@ -311,6 +345,66 @@ describe("AutomationService", () => {
         referenceType: "trip_student_event",
         referenceId: "40"
       });
+      expect(integrationOutboxRepositoryMock.enqueueEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          providerKey: "pushNotifications",
+          eventType: "fcm.transport.trip_student_event",
+          aggregateType: "trip_student_event",
+          aggregateId: "40",
+          payloadJson: expect.objectContaining({
+            targetUserIds: ["2001", "1001"],
+            subscriptionKey: "transportRealtime",
+            title: "وصول الطالب",
+            referenceType: "trip_student_event",
+            referenceId: "40",
+            data: expect.objectContaining({
+              eventType: "dropped_off",
+              tripId: "30",
+              routeId: "1",
+              studentId: "1",
+              notificationType: "transport_student_dropped_off"
+            })
+          })
+        })
+      );
+    });
+
+    it("skips database notifications for boarded events while still enqueueing push updates", async () => {
+      vi.mocked(automationRepositoryMock.listParentRecipientsForStudent).mockResolvedValue([
+        linkedParentRecipients[0]
+      ]);
+      vi.mocked(systemSettingsReadServiceMock.getPushNotificationsSettings).mockResolvedValue({
+        fcmEnabled: true,
+        transportRealtimeEnabled: true
+      });
+      vi.mocked(integrationOutboxRepositoryMock.enqueueEvent).mockResolvedValue("56");
+
+      await automationService.onTripStudentEventRecorded({
+        tripStudentEventId: "41",
+        tripId: "30",
+        routeId: "1",
+        routeName: "Route 1",
+        tripDate: "2026-03-14",
+        studentId: "1",
+        studentName: "Student One",
+        eventType: "boarded",
+        stopName: "Main Stop"
+      });
+
+      expect(communicationRepositoryMock.createNotification).not.toHaveBeenCalled();
+      expect(integrationOutboxRepositoryMock.enqueueEvent).toHaveBeenCalledOnce();
+      expect(integrationOutboxRepositoryMock.enqueueEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          eventType: "fcm.transport.trip_student_event",
+          payloadJson: expect.objectContaining({
+            title: "صعود الطالب إلى الحافلة",
+            data: expect.objectContaining({
+              eventType: "boarded",
+              notificationType: "transport_student_boarded"
+            })
+          })
+        })
+      );
     });
   });
 });

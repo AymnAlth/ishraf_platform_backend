@@ -1,5 +1,7 @@
 # Auth And Session Rules
 
+Sync baseline: `2026-04-08` (applies to admin, teacher, supervisor, parent, driver)
+
 ## Auth surfaces
 
 - `POST /auth/login`

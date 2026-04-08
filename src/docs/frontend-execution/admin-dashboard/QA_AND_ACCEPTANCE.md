@@ -1,86 +1,61 @@
 # Admin Dashboard QA And Acceptance
 
-## Auth and bootstrap
+## Bootstrap and access
 
-- admin can login and call `GET /auth/me`
-- readiness checks load successfully
-- dashboard loads only after bootstrap completes
+- admin login works and `GET /auth/me` returns role `admin`.
+- `/health` and `/health/ready` load successfully.
+- non-admin tokens receive `403` on admin-only management surfaces.
 
-## Active context
+## Active academic context
 
-- `GET /academic-structure/context/active` loads during bootstrap
-- `PATCH /academic-structure/context/active` works for admin only
-- daily academic surfaces:
-  - accept omitted `academicYearId` and `semesterId`
-  - reject mismatching ids with validation errors
-  - return `409 ACADEMIC_CONTEXT_NOT_CONFIGURED` when active context is missing
+- `GET /academic-structure/context/active` loads before daily operations.
+- `PATCH /academic-structure/context/active` updates context correctly.
+- daily academic flows return `409 ACADEMIC_CONTEXT_NOT_CONFIGURED` when context is missing.
 
-## Daily operations
+## System settings (advanced transport controls)
 
-- admin-created attendance session requires `teacherId`
-- admin-created assessment requires `teacherId`
-- admin-created homework requires `teacherId`
-- attendance roster save fails when:
-  - a student is duplicated
-  - a roster student is missing
-  - a foreign student is included
-- assessment score save fails when:
-  - a score exceeds `maxScore`
-  - a student is duplicated
-  - a foreign student is included
-- homework submission save fails when:
-  - a student is duplicated
-  - a foreign student is included
+- `GET /system-settings` includes group `transportMaps`.
+- `GET /system-settings/:group` for `transportMaps` returns keys:
+  - `etaProvider`
+  - `etaDerivedEstimateEnabled`
+  - `googleMapsEtaEnabled`
+  - `etaProviderRefreshIntervalSeconds`
+  - `etaProviderDeviationThresholdMeters`
+- `etaProvider` accepts only `mapbox | google`.
+- `etaDerivedEstimateEnabled` default is `true`.
+- `PATCH /system-settings/transportMaps` updates effective values and audit trail.
 
-## System settings
+## Transport summary for completed trips
 
-- `GET /system-settings` returns all implemented groups even when no overrides exist in DB
-- `GET /system-settings/:group` returns:
-  - `value`
-  - `defaultValue`
-  - `source`
-  - `updatedAt`
-  - `updatedBy`
-- `PATCH /system-settings/:group` requires:
-  - valid group
-  - `reason`
-  - non-empty `values`
-- if a patched value equals the code default:
-  - the effective value remains correct
-  - and no redundant override should remain
-- `GET /system-settings/audit` paginates and reflects created/updated/cleared changes
-- `GET /system-settings/integrations/status` returns:
-  - `featureEnabled`
-  - `pendingOutboxCount`
-  - `failedOutboxCount`
+- `GET /transport/trips/:tripId/summary` returns `200` for `tripStatus=completed`.
+- response includes:
+  - `scheduledStartTime: null`
+  - `actualStartTime`
+  - `actualEndTime`
+  - `startDelayMinutes: null`
+  - `attendance.totalStudents/presentCount/absentCount`
+- same endpoint returns `409` when trip is not completed with:
+  - `code: TRIP_SUMMARY_REQUIRES_COMPLETED_STATUS`
+  - suggested UX toast:
+    - `الرحلة لا تزال قائمة، سيظهر الملخص النهائي فور اكتمال كافة المحطات.`
 
-## Transport
+## Stop attendance from admin operations
 
-- admin-only transport management surfaces work
-- trip live operations are reachable by admin
-- transport domain errors are surfaced correctly for invalid state/date/route/stop combinations
-- home locations with `approved` state are the only ones that should be considered driver-visible in roster semantics
+- `POST /transport/trips/:tripId/stops/:stopId/attendance` accepts:
+  - `attendances: [{ studentId, status: present|absent, notes? }]`
+- duplicate `studentId` in same request is rejected.
+- stop mismatch or assignment mismatch returns domain validation errors.
+- successful submission closes stop snapshot and can finalize trip to `completed`.
 
-## Reporting
+## Firebase hybrid flow checks
 
-- admin dashboard returns successfully
-- admin preview parent/teacher/supervisor routes are read-only and reachable
-- student profile and per-student summaries load
+- `GET /transport/realtime-token?tripId=...` returns bootstrap payload only.
+- RTDB live GPS path is used directly by frontend:
+  - `/transport/live-trips/{tripId}/latestLocation`
+- ETA is read from REST snapshot endpoints, not RTDB.
 
-## School onboarding import
+## Communication and device registry
 
-- if `imports.schoolOnboardingEnabled = false`:
-  - `dry-run` returns `409 FEATURE_DISABLED`
-  - `apply` returns `409 FEATURE_DISABLED`
-  - history list/detail return `409 FEATURE_DISABLED`
-- `dry-run` returns structured result with `status`, `canApply`, `summary`, and `issues`
-- `apply` rejects missing or invalid `dryRunId`
-- repeated apply on the same successful dry-run returns `alreadyApplied=true`
-- history list/detail are readable by admin
-
-## Negative acceptance
-
-- non-admin tokens receive `403` on admin-only surfaces
-- frontend does not need loops to simulate:
-  - bulk communication
-  - school onboarding import
+- admin can register/update/delete own FCM device.
+- device registration remains available even if `fcmEnabled=false`.
+- messaging/announcements/notifications endpoints work with admin scope.

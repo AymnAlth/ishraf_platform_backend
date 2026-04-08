@@ -1,4 +1,9 @@
 import type { Role } from "../../../config/constants";
+import type {
+  CommunicationDevicePlatform,
+  CommunicationDeviceProvider,
+  CommunicationDeviceSubscriptionKey
+} from "../types/communication.types";
 
 export interface CommunicationMessageIdParamsDto {
   messageId: string;
@@ -10,6 +15,10 @@ export interface CommunicationNotificationIdParamsDto {
 
 export interface CommunicationOtherUserIdParamsDto {
   otherUserId: string;
+}
+
+export interface CommunicationDeviceIdParamsDto {
+  deviceId: string;
 }
 
 export interface AvailableRecipientsQueryDto {
@@ -179,4 +188,37 @@ export interface CommunicationBulkDeliveryResponseDto {
   successCount: number;
   failedCount: number;
   failedTargets: CommunicationBulkFailedTargetResponseDto[];
+}
+
+export interface RegisterCommunicationDeviceRequestDto {
+  providerKey: CommunicationDeviceProvider;
+  platform: CommunicationDevicePlatform;
+  appId: string;
+  deviceToken: string;
+  deviceName?: string;
+  subscriptions: CommunicationDeviceSubscriptionKey[];
+}
+
+export interface UpdateCommunicationDeviceRequestDto {
+  deviceToken?: string;
+  deviceName?: string | null;
+  subscriptions?: CommunicationDeviceSubscriptionKey[];
+}
+
+export interface CommunicationDeviceResponseDto {
+  deviceId: string;
+  providerKey: CommunicationDeviceProvider;
+  platform: CommunicationDevicePlatform;
+  appId: string;
+  deviceName: string | null;
+  isActive: boolean;
+  subscriptions: CommunicationDeviceSubscriptionKey[];
+  lastSeenAt: string;
+  updatedAt: string;
+}
+
+export interface UnregisterCommunicationDeviceResponseDto {
+  deviceId: string;
+  isActive: false;
+  unregisteredAt: string;
 }

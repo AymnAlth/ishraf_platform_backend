@@ -2,15 +2,22 @@ import { ConflictError } from "../../../common/errors/conflict-error";
 import { ForbiddenError } from "../../../common/errors/forbidden-error";
 import { NotFoundError } from "../../../common/errors/not-found-error";
 import { ValidationError } from "../../../common/errors/validation-error";
+import type { Queryable } from "../../../common/interfaces/queryable.interface";
 import { OwnershipService } from "../../../common/services/ownership.service";
 import { ProfileResolutionService } from "../../../common/services/profile-resolution.service";
+import { requestExecutionContextService } from "../../../common/services/request-execution-context.service";
 import type { AuthenticatedUser } from "../../../common/types/auth.types";
 import type { PaginatedData } from "../../../common/types/pagination.types";
 import type { DriverProfile } from "../../../common/types/profile.types";
 import { toDateOnly } from "../../../common/utils/date.util";
 import { toPaginatedData } from "../../../common/utils/pagination.util";
 import { db } from "../../../database/db";
+import type { FirebaseRealtimeAuthService } from "../../../integrations/firebase/firebase-realtime-auth.service";
 import type { AutomationPort } from "../../automation/types/automation.types";
+import type { SystemSettingsReadService } from "../../system-settings/service/system-settings-read.service";
+import { TransportEtaRepository } from "../repository/transport-eta.repository";
+import { TransportEtaOutboxRepository } from "../repository/transport-eta-outbox.repository";
+import type { TransportEtaReadServicePort } from "./transport-eta.service";
 import type {
   CreateBusRequestDto,
   CreateRouteRequestDto,
@@ -23,8 +30,10 @@ import type {
   DeactivateTransportRouteAssignmentRequestDto,
   EnsureDailyTripRequestDto,
   ListTripsQueryDto,
+  RecordTripStopAttendanceRequestDto,
   RecordTripLocationRequestDto,
   SaveStudentHomeLocationRequestDto,
+  TransportTripStopAttendanceResponseDto,
   TransportEnsureDailyTripResponseDto,
   TransportTripRosterResponseDto,
   TransportBusResponseDto,
@@ -35,7 +44,12 @@ import type {
   TransportStudentHomeLocationResponseDto,
   TransportStudentBusAssignmentResponseDto,
   TransportTripDetailResponseDto,
+  TransportTripLiveStatusResponseDto,
   TransportTripListItemResponseDto,
+  TransportTripEtaResponseDto,
+  TransportTripSummaryResponseDto,
+  TransportRealtimeTokenQueryDto,
+  TransportRealtimeTokenResponseDto,
   TripStudentRosterQueryDto,
   TransportTripStudentEventResponseDto
 } from "../dto/transport.dto";
@@ -47,9 +61,12 @@ import {
   toStudentHomeLocationResponseDto,
   toStudentBusAssignmentResponseDto,
   toTripDetailResponseDto,
+  toTripEtaResponseDto,
   toTripListItemResponseDto,
+  toTripLiveStatusResponseDto,
   toTripRosterResponseDto,
   toTripLocationResponseDto,
+  toTripSummaryResponseDto,
   toTripStudentEventResponseDto
 } from "../mapper/transport.mapper";
 import type { TransportRepository } from "../repository/transport.repository";
@@ -57,8 +74,16 @@ import type {
   HomeLocationStatus,
   TransportRouteAssignmentRow,
   TripRow,
+  TripStopAttendanceStatus,
+  TripStudentEventRow,
   TripStudentEventType
 } from "../types/transport.types";
+import {
+  type TransportEtaRefreshEventTrigger,
+  type TransportEtaRefreshOutboxPayload,
+  type TransportTripEtaStopSnapshotRow,
+  TRANSPORT_ETA_OUTBOX_EVENT_TYPE
+} from "../types/transport-eta.types";
 
 const assertFound = <T>(entity: T | null, label: string): T => {
   if (!entity) {
@@ -71,6 +96,14 @@ const assertFound = <T>(entity: T | null, label: string): T => {
 const todayDateString = (): string => toDateOnly(new Date());
 
 const toDateOnlyString = (value: Date | string): string => toDateOnly(value);
+
+const toUtcMinuteBucket = (value: Date): string => value.toISOString().slice(0, 16);
+
+const buildTripStartedEtaRefreshIdempotencyKey = (tripId: string): string =>
+  `eta:${TRANSPORT_ETA_OUTBOX_EVENT_TYPE}:trip_started:${tripId}`;
+
+const buildHeartbeatEtaRefreshIdempotencyKey = (tripId: string, recordedAt: Date): string =>
+  `eta:${TRANSPORT_ETA_OUTBOX_EVENT_TYPE}:heartbeat:${tripId}:${toUtcMinuteBucket(recordedAt)}`;
 
 const buildValidationError = (
   message: string,
@@ -88,6 +121,12 @@ const buildValidationError = (
 const assertAdmin = (authUser: AuthenticatedUser): void => {
   if (authUser.role !== "admin") {
     throw new ForbiddenError("You do not have permission to access transport management");
+  }
+};
+
+const assertParent = (authUser: AuthenticatedUser): void => {
+  if (authUser.role !== "parent") {
+    throw new ForbiddenError("You do not have permission to access parent live transport tracking");
   }
 };
 
@@ -144,6 +183,16 @@ const assertLocationStatus = (trip: TripRow): void => {
   }
 };
 
+const assertTripAttendanceStatus = (trip: TripRow): void => {
+  if (trip.tripStatus !== "started") {
+    throw buildValidationError(
+      "Trip stop attendance can only be recorded for started trips",
+      "tripStatus",
+      "TRIP_STOP_ATTENDANCE_STATUS_INVALID"
+    );
+  }
+};
+
 const assertEventStopRequirements = (
   eventType: TripStudentEventType,
   stopId?: string
@@ -179,13 +228,84 @@ const isDateCoveredByRange = (
   return start <= targetDate && (end === null || end >= targetDate);
 };
 
+const mapAttendanceStatusToEventType = (
+  tripType: TripRow["tripType"],
+  status: TripStopAttendanceStatus
+): TripStudentEventType => {
+  if (status === "absent") {
+    return "absent";
+  }
+
+  return tripType === "pickup" ? "boarded" : "dropped_off";
+};
+
 export class TransportService {
   constructor(
     private readonly transportRepository: TransportRepository,
     private readonly profileResolutionService = new ProfileResolutionService(),
     private readonly ownershipService = new OwnershipService(),
-    private readonly automationService: AutomationPort | null = null
+    private readonly automationService: AutomationPort | null = null,
+    private readonly systemSettingsReadService: SystemSettingsReadService | null = null,
+    private readonly firebaseRealtimeAuthService: FirebaseRealtimeAuthService | null = null,
+    private readonly transportEtaService: TransportEtaReadServicePort | null = null,
+    private readonly transportEtaOutboxRepository: TransportEtaOutboxRepository = new TransportEtaOutboxRepository(),
+    private readonly transportEtaRepository: TransportEtaRepository = new TransportEtaRepository()
   ) {}
+
+  async getRealtimeToken(
+    authUser: AuthenticatedUser,
+    query: TransportRealtimeTokenQueryDto
+  ): Promise<TransportRealtimeTokenResponseDto> {
+    if (authUser.role !== "admin" && authUser.role !== "parent" && authUser.role !== "driver") {
+      throw new ForbiddenError("You do not have permission to access transport realtime tracking");
+    }
+
+    const pushNotificationSettings = await this.systemSettingsReadService?.getPushNotificationsSettings();
+
+    if (!pushNotificationSettings?.transportRealtimeEnabled) {
+      throw new ConflictError("Transport realtime tracking is disabled", [
+        {
+          field: "group",
+          code: "FEATURE_DISABLED",
+          message: "The pushNotifications system settings group has disabled transport realtime"
+        }
+      ]);
+    }
+
+    if (!this.firebaseRealtimeAuthService || !this.firebaseRealtimeAuthService.isConfigured()) {
+      throw new ConflictError("Transport realtime integration is not configured", [
+        {
+          field: "integration",
+          code: "INTEGRATION_NOT_CONFIGURED",
+          message: "Firebase transport realtime integration is not configured"
+        }
+      ]);
+    }
+
+    const trip = assertFound(await this.transportRepository.findTripById(query.tripId), "Trip");
+    let access: "read" | "write" = "read";
+
+    if (authUser.role === "driver") {
+      await this.assertDriverTripOwnership(authUser, query.tripId);
+      access = "write";
+    } else if (authUser.role === "parent") {
+      const hasAccess =
+        typeof this.transportRepository.hasParentTripAccess === "function"
+          ? await this.transportRepository.hasParentTripAccess(authUser.userId, query.tripId)
+          : false;
+
+      if (!hasAccess) {
+        throw new ForbiddenError("You do not have permission to access this trip");
+      }
+    }
+
+    return this.firebaseRealtimeAuthService.createTransportRealtimeToken({
+      backendUserId: authUser.userId,
+      role: authUser.role,
+      tripId: trip.id,
+      access
+    });
+  }
 
   async createBus(
     authUser: AuthenticatedUser,
@@ -610,6 +730,84 @@ export class TransportService {
     return toTripDetailResponseDto(trip, routeStops);
   }
 
+  async getTripEta(
+    authUser: AuthenticatedUser,
+    tripId: string
+  ): Promise<TransportTripEtaResponseDto> {
+    assertTripOperator(authUser);
+    await this.assertDriverTripOwnership(authUser, tripId);
+    const trip = assertFound(await this.transportRepository.findTripById(tripId), "Trip");
+    const readModel = this.transportEtaService
+      ? await this.transportEtaService.getTripEtaReadModel(tripId)
+      : {
+          tripId,
+          routeId: trip.routeId,
+          routePolyline: null,
+          etaSummary: null,
+          remainingStops: [],
+          computedAt: null
+        };
+
+    return toTripEtaResponseDto(trip, readModel);
+  }
+
+  async getTripLiveStatus(
+    authUser: AuthenticatedUser,
+    tripId: string
+  ): Promise<TransportTripLiveStatusResponseDto> {
+    assertParent(authUser);
+    const trip = assertFound(await this.transportRepository.findTripById(tripId), "Trip");
+    const hasAccess = await this.transportRepository.hasParentTripAccess(authUser.userId, tripId);
+
+    if (!hasAccess) {
+      throw new ForbiddenError("You do not have permission to access this trip");
+    }
+
+    const parentStops = await this.transportRepository.listParentTripStops(authUser.userId, tripId);
+    const stopSnapshots = await this.transportEtaRepository.listTripEtaStopSnapshotsByTripId(tripId);
+    const myStopSnapshot = this.selectNearestActiveParentStopSnapshot(parentStops, stopSnapshots);
+    const etaReadModel = this.transportEtaService
+      ? await this.transportEtaService.getTripEtaReadModel(tripId)
+      : null;
+
+    return toTripLiveStatusResponseDto(
+      trip,
+      `/transport/live-trips/${tripId}/latestLocation`,
+      myStopSnapshot,
+      etaReadModel?.routePolyline ?? null
+    );
+  }
+
+  async getTripSummary(
+    authUser: AuthenticatedUser,
+    tripId: string
+  ): Promise<TransportTripSummaryResponseDto> {
+    assertAdmin(authUser);
+    const trip = assertFound(await this.transportRepository.findTripById(tripId), "Trip");
+
+    if (trip.tripStatus !== "completed") {
+      throw new ConflictError("Trip summary is only available for completed trips", [
+        {
+          field: "tripStatus",
+          code: "TRIP_SUMMARY_REQUIRES_COMPLETED_STATUS",
+          message: "Trip summary is only available for completed trips"
+        }
+      ]);
+    }
+
+    const rosterRows = await this.transportRepository.listTripStudentRoster(tripId, {});
+    const presentCount = rosterRows.filter(
+      (row) => row.lastEventType === "boarded" || row.lastEventType === "dropped_off"
+    ).length;
+    const absentCount = rosterRows.filter((row) => row.lastEventType === "absent").length;
+
+    return toTripSummaryResponseDto(trip, {
+      totalStudents: rosterRows.length,
+      presentCount,
+      absentCount
+    });
+  }
+
   async getTripStudentRoster(
     authUser: AuthenticatedUser,
     tripId: string,
@@ -640,8 +838,20 @@ export class TransportService {
 
     const updatedTrip = await db.withTransaction(async (client) => {
       await this.transportRepository.updateTripStatus(tripId, "started", client);
+      const refreshedTrip = assertFound(
+        await this.transportRepository.findTripById(tripId, client),
+        "Trip"
+      );
 
-      return assertFound(await this.transportRepository.findTripById(tripId, client), "Trip");
+      await this.enqueueTransportEtaRefreshEvent(
+        refreshedTrip.id,
+        "trip_started",
+        buildTripStartedEtaRefreshIdempotencyKey(refreshedTrip.id),
+        undefined,
+        client
+      );
+
+      return refreshedTrip;
     });
 
     await (this.automationService?.onTripStarted({
@@ -675,6 +885,14 @@ export class TransportService {
       return assertFound(await this.transportRepository.findTripById(tripId, client), "Trip");
     });
 
+    await (this.automationService?.onTripEnded({
+      tripId: updatedTrip.id,
+      routeId: updatedTrip.routeId,
+      routeName: updatedTrip.routeName,
+      tripDate: updatedTrip.tripDate
+    }) ?? Promise.resolve());
+    await (this.transportEtaService?.markTripCompleted?.(updatedTrip.id) ?? Promise.resolve());
+
     return toTripListItemResponseDto(updatedTrip);
   }
 
@@ -699,10 +917,20 @@ export class TransportService {
         client
       );
 
-      return assertFound(
+      const latestLocation = assertFound(
         await this.transportRepository.findLatestTripLocationByTripId(tripId, client),
         "Trip location"
       );
+
+      await this.enqueueTransportEtaRefreshEvent(
+        tripId,
+        "heartbeat",
+        buildHeartbeatEtaRefreshIdempotencyKey(tripId, latestLocation.recordedAt),
+        latestLocation.recordedAt,
+        client
+      );
+
+      return latestLocation;
     });
 
     return toTripLocationResponseDto(location);
@@ -778,16 +1006,146 @@ export class TransportService {
       );
     });
 
-    if (event.eventType === "dropped_off") {
-      await (this.automationService?.onStudentDroppedOff({
-        tripStudentEventId: event.tripStudentEventId,
-        studentId: event.studentId,
-        studentName: event.studentFullName,
-        stopName: event.stopName ?? "نقطة غير معروفة"
-      }) ?? Promise.resolve());
-    }
+    await (this.automationService?.onTripStudentEventRecorded({
+      tripStudentEventId: event.tripStudentEventId,
+      tripId: trip.id,
+      routeId: trip.routeId,
+      routeName: trip.routeName,
+      tripDate: trip.tripDate,
+      studentId: event.studentId,
+      studentName: event.studentFullName,
+      eventType: event.eventType,
+      stopName: event.stopName
+    }) ?? Promise.resolve());
 
     return toTripStudentEventResponseDto(event);
+  }
+
+  async recordTripStopAttendance(
+    authUser: AuthenticatedUser,
+    tripId: string,
+    stopId: string,
+    payload: RecordTripStopAttendanceRequestDto
+  ): Promise<TransportTripStopAttendanceResponseDto> {
+    assertTripOperator(authUser);
+    await this.assertDriverTripOwnership(authUser, tripId);
+    const trip = assertFound(await this.transportRepository.findTripById(tripId), "Trip");
+    assertTripAttendanceStatus(trip);
+
+    const stop = assertFound(await this.transportRepository.findRouteStopById(stopId), "Bus stop");
+
+    if (stop.routeId !== trip.routeId) {
+      throw buildValidationError(
+        "Stop must belong to the trip route",
+        "stopId",
+        "TRIP_ATTENDANCE_STOP_ROUTE_MISMATCH"
+      );
+    }
+
+    const attendanceResult = await db.withTransaction(async (client) => {
+      const recordedEvents: TripStudentEventRow[] = [];
+
+      for (const attendance of payload.attendances) {
+        assertFound(
+          await this.transportRepository.findStudentTransportReferenceById(attendance.studentId, client),
+          "Student"
+        );
+
+        const assignment = await this.transportRepository.findStudentAssignmentByStudentIdOnDate(
+          attendance.studentId,
+          toDateOnlyString(trip.tripDate),
+          client
+        );
+
+        if (!assignment) {
+          throw buildValidationError(
+            "Student does not have a transport assignment for the trip date",
+            "attendances",
+            "STUDENT_TRIP_DATE_ASSIGNMENT_NOT_FOUND"
+          );
+        }
+
+        if (assignment.routeId !== trip.routeId) {
+          throw buildValidationError(
+            "Student bus assignment does not match the trip route",
+            "attendances",
+            "TRIP_STUDENT_ROUTE_MISMATCH"
+          );
+        }
+
+        if (assignment.stopId !== stopId) {
+          throw buildValidationError(
+            "Student bus assignment does not match the selected stop",
+            "attendances",
+            "TRIP_ATTENDANCE_STOP_ASSIGNMENT_MISMATCH"
+          );
+        }
+
+        const eventType = mapAttendanceStatusToEventType(trip.tripType, attendance.status);
+        const eventId = await this.transportRepository.createTripStudentEvent(
+          {
+            tripId,
+            studentId: attendance.studentId,
+            eventType,
+            stopId: eventType === "absent" ? undefined : stopId,
+            notes: attendance.notes
+          },
+          client
+        );
+        const event = assertFound(
+          await this.transportRepository.findTripStudentEventById(eventId, client),
+          "Trip student event"
+        );
+
+        recordedEvents.push(event);
+      }
+
+      const stopCompleted = await this.transportEtaRepository.markTripStopCompleted(
+        tripId,
+        stopId,
+        client
+      );
+
+      if (!stopCompleted) {
+        throw buildValidationError(
+          "Trip ETA stop snapshot was not found for the selected stop",
+          "stopId",
+          "TRIP_STOP_ETA_SNAPSHOT_NOT_FOUND"
+        );
+      }
+
+      const tripCompleted = await this.transportEtaRepository.areAllTripStopsCompleted(tripId, client);
+
+      if (tripCompleted) {
+        await this.transportRepository.updateTripStatus(tripId, "completed", client);
+      }
+
+      const refreshedTrip = assertFound(
+        await this.transportRepository.findTripById(tripId, client),
+        "Trip"
+      );
+
+      return {
+        recordedEvents,
+        tripStatus: refreshedTrip.tripStatus,
+        tripCompleted
+      };
+    });
+
+    if (attendanceResult.tripCompleted) {
+      await (this.transportEtaService?.markTripCompleted?.(tripId) ?? Promise.resolve());
+    }
+
+    return {
+      tripId,
+      stopId,
+      tripStatus: attendanceResult.tripStatus,
+      stopCompleted: true,
+      tripCompleted: attendanceResult.tripCompleted,
+      recordedEvents: attendanceResult.recordedEvents.map((event) =>
+        toTripStudentEventResponseDto(event)
+      )
+    };
   }
 
   async listTripEvents(
@@ -880,6 +1238,60 @@ export class TransportService {
       },
       homeLocation: null
     };
+  }
+
+  private selectNearestActiveParentStopSnapshot(
+    parentStops: Array<{ stopId: string; stopOrder: number }>,
+    stopSnapshots: TransportTripEtaStopSnapshotRow[]
+  ): TransportTripEtaStopSnapshotRow | null {
+    if (parentStops.length === 0 || stopSnapshots.length === 0) {
+      return null;
+    }
+
+    const stopSnapshotById = new Map(stopSnapshots.map((row) => [row.stopId, row]));
+    const orderedParentStops = [...parentStops].sort((a, b) => {
+      if (a.stopOrder !== b.stopOrder) {
+        return a.stopOrder - b.stopOrder;
+      }
+
+      return a.stopId.localeCompare(b.stopId);
+    });
+
+    for (const stop of orderedParentStops) {
+      const snapshot = stopSnapshotById.get(stop.stopId);
+
+      if (snapshot && !snapshot.isCompleted) {
+        return snapshot;
+      }
+    }
+
+    return null;
+  }
+
+  private async enqueueTransportEtaRefreshEvent(
+    tripId: string,
+    trigger: TransportEtaRefreshEventTrigger,
+    idempotencyKey: string,
+    heartbeatRecordedAt: Date | undefined,
+    queryable: Queryable
+  ): Promise<void> {
+    const payload: TransportEtaRefreshOutboxPayload = {
+      tripId,
+      trigger,
+      ...(heartbeatRecordedAt
+        ? { heartbeatRecordedAt: heartbeatRecordedAt.toISOString() }
+        : {})
+    };
+
+    await this.transportEtaOutboxRepository.enqueueTripRefreshEvent(
+      {
+        tripId,
+        payloadJson: payload,
+        idempotencyKey,
+        requestId: requestExecutionContextService.getCurrentContext()?.requestId ?? null
+      },
+      queryable
+    );
   }
 
   private assertRouteAssignmentApplicableForDate(

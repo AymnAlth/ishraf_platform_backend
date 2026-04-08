@@ -27,13 +27,16 @@
     "users:fix-placeholder-passwords": "tsx src/scripts/fix-placeholder-passwords.ts",
     "db:migrate": "node-pg-migrate up -m src/database/migrations -t pgmigrations",
     "db:migrate:down": "node-pg-migrate down -m src/database/migrations -t pgmigrations",
-    "db:migrate:create": "node-pg-migrate create -m src/database/migrations"
+    "db:migrate:create": "node-pg-migrate create -m src/database/migrations",
+    "automation:fcm-worker": "tsx src/scripts/run-firebase-outbox-worker.ts",
+    "automation:transport-eta-worker": "tsx src/scripts/run-transport-eta-worker.ts"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
+    "firebase-admin": "^13.7.0",
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.2",
     "pg": "^8.16.3",

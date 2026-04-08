@@ -11,11 +11,15 @@ import type {
   TransportStudentSummaryDto,
   TransportTripDetailResponseDto,
   TransportTripEventSummaryDto,
+  TransportTripLiveStatusResponseDto,
+  TransportTripLiveStatusStopSnapshotDto,
   TransportTripListItemResponseDto,
   TransportTripRosterResponseDto,
   TransportTripRosterStudentResponseDto,
   TransportTripResponseDto,
-  TransportTripStudentEventResponseDto
+  TransportTripSummaryResponseDto,
+  TransportTripStudentEventResponseDto,
+  TransportTripEtaResponseDto
 } from "../dto/transport.dto";
 import type {
   BusRow,
@@ -29,8 +33,14 @@ import type {
   TripStudentRosterRow,
   TripStudentEventRow
 } from "../types/transport.types";
+import type {
+  TransportTripEtaReadModel,
+  TransportTripEtaStopSnapshotRow
+} from "../types/transport-eta.types";
 
 const toNumber = (value: number | string): number => Number(value);
+const toNullableNumber = (value: number | string | null): number | null =>
+  value === null ? null : Number(value);
 
 const toTripEventSummary = (row: TripRow): TransportTripEventSummaryDto => ({
   boardedCount: row.boardedCount,
@@ -286,4 +296,88 @@ export const toStudentHomeLocationResponseDto = (
           updatedAt: row.updatedAt.toISOString()
         }
       : null
+});
+
+export const toTripEtaResponseDto = (
+  trip: TripRow,
+  readModel: TransportTripEtaReadModel
+): TransportTripEtaResponseDto => ({
+  tripId: trip.id,
+  tripStatus: trip.tripStatus,
+  routePolyline: readModel.routePolyline,
+  etaSummary: readModel.etaSummary
+    ? {
+        status: readModel.etaSummary.status,
+        calculationMode: readModel.etaSummary.calculationMode,
+        nextStop: readModel.etaSummary.nextStop,
+        nextStopEtaAt: readModel.etaSummary.nextStopEtaAt
+          ? readModel.etaSummary.nextStopEtaAt.toISOString()
+          : null,
+        finalEtaAt: readModel.etaSummary.finalEtaAt
+          ? readModel.etaSummary.finalEtaAt.toISOString()
+          : null,
+        remainingDistanceMeters: readModel.etaSummary.remainingDistanceMeters,
+        remainingDurationSeconds: readModel.etaSummary.remainingDurationSeconds,
+        computedAt: readModel.etaSummary.computedAt.toISOString(),
+        isStale: readModel.etaSummary.isStale
+      }
+    : null,
+  remainingStops: readModel.remainingStops.map((stop) => ({
+    stopId: stop.stopId,
+    stopName: stop.stopName,
+    stopOrder: stop.stopOrder,
+    etaAt: stop.etaAt ? stop.etaAt.toISOString() : null,
+    remainingDistanceMeters: stop.remainingDistanceMeters,
+    remainingDurationSeconds: stop.remainingDurationSeconds,
+    isNextStop: stop.isNextStop,
+    isCompleted: stop.isCompleted
+  })),
+  computedAt: readModel.computedAt ? readModel.computedAt.toISOString() : null
+});
+
+export const toTripLiveStatusStopSnapshotDto = (
+  row: TransportTripEtaStopSnapshotRow
+): TransportTripLiveStatusStopSnapshotDto => ({
+  stopId: row.stopId,
+  stopName: row.stopName,
+  stopOrder: row.stopOrder,
+  etaAt: row.etaAt ? row.etaAt.toISOString() : null,
+  remainingDistanceMeters: toNullableNumber(row.remainingDistanceMeters),
+  remainingDurationSeconds: toNullableNumber(row.remainingDurationSeconds),
+  isCompleted: row.isCompleted,
+  approachingNotified: row.approachingNotified,
+  arrivedNotified: row.arrivedNotified,
+  updatedAt: row.updatedAt.toISOString()
+});
+
+export const toTripLiveStatusResponseDto = (
+  trip: TripRow,
+  firebaseRtdbPath: string,
+  myStopSnapshot: TransportTripEtaStopSnapshotRow | null,
+  routePolyline: {
+    encodedPolyline: string;
+  } | null
+): TransportTripLiveStatusResponseDto => ({
+  tripId: trip.id,
+  tripStatus: trip.tripStatus,
+  firebaseRtdbPath,
+  myStopSnapshot: myStopSnapshot ? toTripLiveStatusStopSnapshotDto(myStopSnapshot) : null,
+  routePolyline
+});
+
+export const toTripSummaryResponseDto = (
+  trip: TripRow,
+  attendance: {
+    totalStudents: number;
+    presentCount: number;
+    absentCount: number;
+  }
+): TransportTripSummaryResponseDto => ({
+  tripId: trip.id,
+  tripStatus: trip.tripStatus,
+  scheduledStartTime: null,
+  actualStartTime: trip.startedAt ? trip.startedAt.toISOString() : null,
+  actualEndTime: trip.endedAt ? trip.endedAt.toISOString() : null,
+  startDelayMinutes: null,
+  attendance
 });

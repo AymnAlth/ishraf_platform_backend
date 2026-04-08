@@ -1,54 +1,51 @@
 # Driver App Screens And Tasks
 
-## 1. Core flow
+## 1. Start of day
 
-1. login
-2. hydrate driver session
-3. load assigned routes with `GET /transport/route-assignments/me`
+1. Login.
+2. Load `GET /transport/route-assignments/me`.
+3. Select assignment and call `POST /transport/trips/ensure-daily`.
+4. Open trip detail/roster.
 
-## 2. Daily trip flow
+## 2. Live trip screen
 
-1. choose route assignment
-2. call `POST /transport/trips/ensure-daily`
-3. inspect trip detail and student roster
-4. start the trip
-5. stream locations through repeated `POST /transport/trips/:id/locations`
-6. record student events
-7. end the trip
+1. Start trip (`POST /transport/trips/:id/start`).
+2. Request realtime token (`GET /transport/realtime-token?tripId=...`).
+3. Stream GPS to RTDB path:
+   - `/transport/live-trips/{tripId}/latestLocation`
+4. Keep periodic backend location writes when required:
+   - `POST /transport/trips/:id/locations`
+5. Read ETA cards from:
+   - `GET /transport/trips/:id/eta`
 
-## 3. State machine
+## 3. Stop attendance screen
 
-```text
-scheduled
-  -> start
-started
-  -> locations
-  -> student events
-  -> end
-ended
-  -> student events still allowed
-cancelled
-  enum value only in this round; no dedicated route transition is documented
-```
+1. Identify current stop.
+2. Submit one batch:
+   - `POST /transport/trips/:tripId/stops/:stopId/attendance`
+3. Send `attendances[]` for students at that stop.
+4. Show backend result:
+   - `stopCompleted`
+   - `tripCompleted`
+   - `tripStatus`
+5. If `tripCompleted=true`, stop live operations for that trip.
 
-قواعد:
+## 4. Student event screen
 
-- لا تسجل locations قبل `start`.
-- لا تنفذ `end` قبل `start`.
-- student events تعمل فقط أثناء `started` أو `ended`.
+1. For ad-hoc event logging use `POST /transport/trips/:id/events`.
+2. Respect stop rules:
+   - `boarded/dropped_off` require `stopId`
+   - `absent` forbids `stopId`
 
-## 4. Student event flow
+## 5. End of trip
 
-1. load roster for one trip
-2. choose student
-3. choose `eventType`
-4. apply stop rules:
-   - `boarded` يحتاج `stopId`
-   - `dropped_off` يحتاج `stopId`
-   - `absent` يمنع `stopId`
-5. submit event
+1. Manual end is still available:
+   - `POST /transport/trips/:id/end`
+2. Automatic completion can already happen after attendance closes all stops.
+3. Business rule:
+   - if `tripStatus = completed` (auto), hide or disable the manual `End Trip` button to prevent state conflicts.
 
-## 5. Driver monitoring
+## 6. Operational communication
 
-1. load `GET /reporting/transport/summary`
-2. use communication surfaces for operational coordination
+1. Use inbox/conversation endpoints for coordination.
+2. Use notification feed for operational alerts.

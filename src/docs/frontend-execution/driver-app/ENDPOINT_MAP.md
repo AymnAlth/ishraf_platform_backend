@@ -12,135 +12,65 @@
 
 - `GET /transport/route-assignments/me`
 
-قواعد:
+## 3. Trip lifecycle
 
-- هذه surface السائق الأساسية لاكتشاف المسارات المتاحة له.
-- تعيد assignments الخاصة بالسائق الحالي فقط.
+- `POST /transport/trips/ensure-daily`
+- `POST /transport/trips`
+- `GET /transport/trips`
+- `GET /transport/trips/:id`
+- `POST /transport/trips/:id/start`
+- `POST /transport/trips/:id/locations`
+- `POST /transport/trips/:id/events`
+- `GET /transport/trips/:id/events`
+- `POST /transport/trips/:id/end`
 
-## 3. Trip state machine
+### State semantics
 
 ```text
 scheduled -> started -> ended
-
-cancelled
-  قيمة enum موجودة
-  لكنها ليست transition موثقة عبر route مستقلة في السطح الحالي
+started/ended -> completed (automatic after all stop attendance is closed)
 ```
 
-قواعد transitions:
+## 4. Roster, ETA, realtime
 
-- `POST /transport/trips/:id/start`
-  - مسموح فقط عندما `tripStatus = scheduled`
-- `POST /transport/trips/:id/end`
-  - مسموح فقط عندما `tripStatus = started`
-- `POST /transport/trips/:id/locations`
-  - مسموح فقط عندما `tripStatus = started`
-- `POST /transport/trips/:id/events`
-  - مسموح فقط عندما `tripStatus = started` أو `ended`
-
-## 4. Trips
-
-- `POST /transport/trips`
-- `POST /transport/trips/ensure-daily`
-- `GET /transport/trips`
-- `GET /transport/trips/:id`
 - `GET /transport/trips/:id/students`
-- `POST /transport/trips/:id/start`
-- `POST /transport/trips/:id/end`
-- `POST /transport/trips/:id/locations`
-- `POST /transport/trips/:id/events`
-- `GET /transport/trips/:id/events`
+- `GET /transport/trips/:id/eta`
+- `GET /transport/realtime-token?tripId=...`
 
-### 4.1 Preferred create flow
+### Realtime split
 
-- استخدم `POST /transport/trips/ensure-daily` كـ primary driver flow
-- `POST /transport/trips` تبقى fallback أقدم
+- Live GPS: Firebase RTDB path `/transport/live-trips/{tripId}/latestLocation`
+- ETA: REST snapshot from `/transport/trips/:id/eta`
 
-`ensure-daily` rules:
+## 5. Stop attendance (Batch 5)
 
-- تعتمد `routeAssignmentId`
-- route assignment يجب أن:
-  - تكون مملوكة للسائق الحالي
-  - تكون active
-  - وتغطي `tripDate`
+- `POST /transport/trips/:tripId/stops/:stopId/attendance`
 
-إذا كانت الرحلة موجودة أصلًا لنفس:
+### Request body
 
-- `busId`
-- `routeId`
-- `tripDate`
-- `tripType`
+```json
+{
+  "attendances": [
+    { "studentId": "1", "status": "present", "notes": null },
+    { "studentId": "2", "status": "absent" }
+  ]
+}
+```
 
-فسيعود `created=false` بدل duplication.
+### Validation and behavior
 
-### 4.2 Ownership rules
+- `attendances` required and non-empty.
+- duplicate `studentId` in same payload is rejected.
+- trip must be `started`.
+- stop must belong to trip route.
+- each student must be assigned to same trip date + same stop.
+- after success:
+  - stop snapshot closed
+  - trip may auto-finalize to `completed`.
 
-- `GET /transport/route-assignments/me` يعرض assignments السائق فقط
-- `GET /transport/trips`
-- `GET /transport/trips/:id`
-- `GET /transport/trips/:id/students`
-- `POST /transport/trips/:id/start`
-- `POST /transport/trips/:id/end`
-- `POST /transport/trips/:id/locations`
-- `POST /transport/trips/:id/events`
-- `GET /transport/trips/:id/events`
-
-كلها ownership-scoped. السائق لا يصل إلى موارد سائق آخر.
-
-### 4.3 Trip roster response concept
-
-`GET /transport/trips/:id/students` يعيد لكل طالب:
-
-- stop assignment
-- stop coordinates
-- approved home location عند وجودها
-- `lastEventType`
-- `lastEventTime`
-- `lastEventStopId`
-
-### 4.4 Trip detail response concept
-
-`GET /transport/trips/:id` يعيد:
-
-- trip الأساسية
-- route stops
-- latest location
-- event summary
-
-## 5. Student event rule table
-
-| `eventType` | `stopId` rule |
-| --- | --- |
-| `boarded` | required |
-| `dropped_off` | required |
-| `absent` | forbidden |
-
-## 6. Driver-facing transport domain errors
-
-| Code | المعنى |
-| --- | --- |
-| `TRIP_STATUS_START_INVALID` | محاولة start لرحلة ليست `scheduled` |
-| `TRIP_STATUS_END_INVALID` | محاولة end لرحلة ليست `started` |
-| `TRIP_LOCATION_STATUS_INVALID` | location لا تسجل إلا عندما تكون الرحلة `started` |
-| `TRIP_EVENT_STATUS_INVALID` | student events لا تسجل إلا عندما تكون الرحلة `started` أو `ended` |
-| `TRIP_EVENT_STOP_REQUIRED` | `stopId` مطلوب لـ `boarded` و`dropped_off` |
-| `TRIP_EVENT_STOP_NOT_ALLOWED` | `stopId` ممنوع مع `absent` |
-| `TRANSPORT_ROUTE_ASSIGNMENT_NOT_ACTIVE_FOR_TRIP_DATE` | route assignment غير فعالة في تاريخ الرحلة |
-| `STUDENT_TRIP_DATE_ASSIGNMENT_NOT_FOUND` | الطالب لا يملك transport assignment تغطي تاريخ الرحلة |
-| `TRIP_STUDENT_ROUTE_MISMATCH` | route assignment الخاصة بالطالب لا تطابق route الرحلة |
-| `TRIP_EVENT_STOP_ROUTE_MISMATCH` | stop لا تتبع route الرحلة |
-
-## 7. Reporting
+## 6. Reporting and communication
 
 - `GET /reporting/transport/summary`
-
-ملاحظات:
-
-- هذه surface summary مشتركة بين admin وdriver.
-- ليست بديلًا عن trip detail أو roster.
-
-## 8. Communication
-
 - `GET /communication/recipients`
 - `POST /communication/messages`
 - `GET /communication/messages/inbox`

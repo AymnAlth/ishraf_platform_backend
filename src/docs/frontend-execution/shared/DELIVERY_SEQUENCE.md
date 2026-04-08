@@ -43,6 +43,11 @@ pnpm.cmd build
 
 ثم حدّث فقط handoff الحية التي تأثرت.
 
+إذا أعاد السكربت خطأ `Missing documentation manifest entry for runtime route`:
+
+- أضف endpoint للـ OpenAPI/Postman يدويًا بشكل مؤقت حتى لا تبقى فجوة توثيقية.
+- حدّث manifest التوثيق لاحقًا في السكربت ضمن دفعة مستقلة (غير دفعة docs-only).
+
 ## 5. ما لا نستخدمه
 
 - docs تاريخية

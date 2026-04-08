@@ -8,73 +8,33 @@
 - `POST /auth/logout`
 - `POST /auth/change-password`
 
-## 2. Parent dashboard
+## 2. Parent dashboards and student reports
 
 - `GET /reporting/dashboards/parent/me`
-
-Response concept:
-
-- dashboard تعيد children[] فقط للطلاب linked فعليًا.
-- كل child قد يحتوي attendanceSummary / assessmentSummary / behaviorSummary.
-
-## 3. Linked student reporting
-
 - `GET /reporting/dashboards/parent/me/students/:studentId/profile`
 - `GET /reporting/dashboards/parent/me/students/:studentId/reports/attendance-summary`
 - `GET /reporting/dashboards/parent/me/students/:studentId/reports/assessment-summary`
 - `GET /reporting/dashboards/parent/me/students/:studentId/reports/behavior-summary`
+- `GET /reporting/transport/parent/me/students/:studentId/live-status` (supporting surface)
 
-قواعد:
+## 3. Main transport live-tracking flow
 
-- كل route هنا تعمل فقط إذا كان الطالب linked لولي الأمر الحالي.
-- عدم الارتباط قد يظهر كـ `404` أو denial semantics حسب المسار والسياق.
+- `GET /transport/trips/:tripId/live-status` (primary endpoint)
+- `GET /transport/realtime-token?tripId=...` (Firebase bootstrap)
 
-Response concepts:
+### Live-tracking split
 
-- `profile`:
-  - student
-  - parents
-  - attendanceSummary
-  - assessmentSummary
-  - behaviorSummary
-- `attendance-summary`:
-  - totals + percentage
-- `assessment-summary`:
-  - `assessmentSummary.subjects[]`
-- `behavior-summary`:
-  - totals + recent highlights
+- GPS live stream:
+  - read RTDB path `/transport/live-trips/{tripId}/latestLocation`
+- ETA and notifications state:
+  - read from `GET /transport/trips/:tripId/live-status`
+  - use `myStopSnapshot` fields for ETA cards and approach/arrival UI state.
 
-## 4. Transport live status
-
-- `GET /reporting/transport/parent/me/students/:studentId/live-status`
-
-قواعد:
-
-- الطالب يجب أن يكون linked لولي الأمر الحالي.
-- إذا لم توجد assignment أو trip نشطة:
-  - الاستجابة تبقى `200`
-  - لكن `assignment` أو `activeTrip` قد تكون `null`
-
-Response concept:
-
-- `assignment` يشرح route/stop الحالية
-- `activeTrip` يشرح:
-  - trip status
-  - bus
-  - driver
-  - latest location
-  - latest events
-
-## 5. Student homework
+## 4. Homework
 
 - `GET /homework/students/:studentId`
 
-قواعد:
-
-- ولي الأمر يرى الواجبات لطلابه المرتبطين فقط.
-- response تبقى `200` مع `items=[]` عندما لا توجد واجبات بعد.
-
-## 6. Communication
+## 5. Communication
 
 - `GET /communication/recipients`
 - `POST /communication/messages`
@@ -85,3 +45,23 @@ Response concept:
 - `GET /communication/announcements/active`
 - `GET /communication/notifications/me`
 - `PATCH /communication/notifications/:notificationId/read`
+
+## 6. Proximity notifications payload reference
+
+### 6.1 Approaching event
+
+- `event_type`: `fcm.transport.bus_approaching`
+- `data.eventType`: `bus_approaching`
+- `data.notificationType`: `transport_bus_approaching`
+- `data.studentIds`: `string[]`
+- `referenceType`: `trip_stop`
+- `referenceId`: `{tripId}:{stopId}`
+
+### 6.2 Arrived event
+
+- `event_type`: `fcm.transport.bus_arrived`
+- `data.eventType`: `bus_arrived`
+- `data.notificationType`: `transport_bus_arrived`
+- `data.studentIds`: `string[]`
+- `referenceType`: `trip_stop`
+- `referenceId`: `{tripId}:{stopId}`

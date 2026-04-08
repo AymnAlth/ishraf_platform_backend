@@ -2,13 +2,16 @@ import type { PaginatedData } from "../../../common/types/pagination.types";
 import type {
   AnnouncementResponseDto,
   AvailableRecipientResponseDto,
+  CommunicationDeviceResponseDto,
   InboxResponseDto,
   MessageResponseDto,
   NotificationResponseDto,
-  NotificationsListResponseDto
+  NotificationsListResponseDto,
+  UnregisterCommunicationDeviceResponseDto
 } from "../dto/communication.dto";
 import type {
   AnnouncementRow,
+  CommunicationDeviceRow,
   MessageRow,
   NotificationRow
 } from "../types/communication.types";
@@ -56,7 +59,7 @@ export const toInboxResponseDto = (
     hasNextPage: false,
     hasPreviousPage: false
   },
-  unreadCount: toUnreadCount(unreadCount),
+  unreadCount: toUnreadCount(unreadCount)
 });
 
 export const toPaginatedInboxResponseDto = (
@@ -113,7 +116,7 @@ export const toNotificationsListResponseDto = (
     hasNextPage: false,
     hasPreviousPage: false
   },
-  unreadCount: toUnreadCount(unreadCount),
+  unreadCount: toUnreadCount(unreadCount)
 });
 
 export const toPaginatedNotificationsResponseDto = (
@@ -124,4 +127,26 @@ export const toPaginatedNotificationsResponseDto = (
   notifications: data.items,
   pagination: data.pagination,
   unreadCount: toUnreadCount(unreadCount)
+});
+
+export const toCommunicationDeviceResponseDto = (
+  row: CommunicationDeviceRow
+): CommunicationDeviceResponseDto => ({
+  deviceId: row.deviceId,
+  providerKey: row.providerKey,
+  platform: row.platform,
+  appId: row.appId,
+  deviceName: row.deviceName,
+  isActive: row.isActive,
+  subscriptions: row.subscriptions,
+  lastSeenAt: row.lastSeenAt.toISOString(),
+  updatedAt: row.updatedAt.toISOString()
+});
+
+export const toUnregisterCommunicationDeviceResponseDto = (
+  row: CommunicationDeviceRow
+): UnregisterCommunicationDeviceResponseDto => ({
+  deviceId: row.deviceId,
+  isActive: false,
+  unregisteredAt: (row.unregisteredAt ?? row.updatedAt).toISOString()
 });

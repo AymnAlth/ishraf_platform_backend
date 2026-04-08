@@ -31,6 +31,7 @@ import type {
   TripNaturalKey,
   TripStudentRosterFilters,
   TripStudentRosterRow,
+  ParentTripStopRow,
   TripScope,
   TripLocationWriteInput,
   TripRow,
@@ -918,7 +919,7 @@ export class TransportRepository {
 
   async updateTripStatus(
     tripId: string,
-    tripStatus: "started" | "ended",
+    tripStatus: "started" | "ended" | "completed",
     queryable: Queryable = db
   ): Promise<void> {
     await queryable.query(
@@ -1135,4 +1136,66 @@ export class TransportRepository {
       [studentId]
     );
   }
+  async hasParentTripAccess(
+    parentUserId: string,
+    tripId: string,
+    queryable: Queryable = db
+  ): Promise<boolean> {
+    const result = await queryable.query<{ exists: boolean }>(
+      `
+        SELECT EXISTS (
+          SELECT 1
+          FROM ${databaseTables.trips} tr
+          JOIN ${databaseTables.studentBusAssignments} sba
+            ON sba.route_id = tr.route_id
+           AND sba.is_active = TRUE
+           AND sba.start_date <= tr.trip_date
+           AND (sba.end_date IS NULL OR sba.end_date >= tr.trip_date)
+          JOIN ${databaseTables.studentParents} sp
+            ON sp.student_id = sba.student_id
+          JOIN ${databaseTables.parents} p
+            ON p.id = sp.parent_id
+          WHERE tr.id = $1
+            AND p.user_id = $2
+        ) AS exists
+      `,
+      [tripId, parentUserId]
+    );
+
+    return Boolean(result.rows[0]?.exists);
+  }
+
+  async listParentTripStops(
+    parentUserId: string,
+    tripId: string,
+    queryable: Queryable = db
+  ): Promise<ParentTripStopRow[]> {
+    const result = await queryable.query<ParentTripStopRow>(
+      `
+        SELECT DISTINCT
+          bs.id::text AS "stopId",
+          bs.stop_name AS "stopName",
+          bs.stop_order AS "stopOrder"
+        FROM ${databaseTables.trips} tr
+        JOIN ${databaseTables.studentBusAssignments} sba
+          ON sba.route_id = tr.route_id
+         AND sba.is_active = TRUE
+         AND sba.start_date <= tr.trip_date
+         AND (sba.end_date IS NULL OR sba.end_date >= tr.trip_date)
+        JOIN ${databaseTables.studentParents} sp
+          ON sp.student_id = sba.student_id
+        JOIN ${databaseTables.parents} p
+          ON p.id = sp.parent_id
+        JOIN ${databaseTables.busStops} bs
+          ON bs.id = sba.stop_id
+        WHERE tr.id = $1
+          AND p.user_id = $2
+        ORDER BY bs.stop_order ASC, bs.id::text ASC
+      `,
+      [tripId, parentUserId]
+    );
+
+    return result.rows;
+  }
 }
+

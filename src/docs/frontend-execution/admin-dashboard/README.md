@@ -2,16 +2,15 @@
 
 الدور المستهدف: `admin`
 
-هذه الحزمة تشرح التكامل التنفيذي للوحة الإدارة مع الباك الحالي. الهدف هنا ليس مجرد listing للمسارات، بل توضيح:
+هذا الدليل يصف عقود الإدارة كما هي مطبقة فعليًا في الباك الحالي، خصوصًا:
 
-- ما الذي يدار من لوحة الإدارة
-- ما الذي يعتمد على `Active Academic Context`
-- متى تكون الـ surfaces إدارية فقط
-- ومتى تدخل في التشغيل اليومي
+- إعدادات النظام المتقدمة (`system-settings`)
+- منظومة النقل (ETA / attendance / trip summary)
+- التكامل الهجين مع Firebase (`RTDB + FCM`)
 
 ## النطاق
 
-لوحة الإدارة هي المستهلك الكامل لـ:
+لوحة الإدارة تملك صلاحية كاملة على:
 
 - `users`
 - `academic-structure`
@@ -19,7 +18,7 @@
 - `system-settings`
 - `admin-imports`
 
-كما أنها تستهلك أيضًا:
+وتستهلك تشغيليًا أيضًا:
 
 - `attendance`
 - `assessments`
@@ -29,37 +28,38 @@
 - `communication`
 - `reporting`
 
-## القواعد المؤثرة
+## القواعد الحاكمة
 
-- السطوح اليومية تعتمد `Active Academic Context`.
-- `users.id` هي المرجع المعتمد في السطوح الحديثة الخاصة بالمعلمين والمشرفين والسائقين وأولياء الأمور.
-- `system-settings` هي control plane إدارية عامة:
-  - global-only
-  - admin-only
-  - وتتحكم حاليًا في feature flags للمجموعات:
-    - `pushNotifications`
-    - `transportMaps`
-    - `analytics`
-    - `imports`
-- في `attendance` و`assessments` و`homework`:
-  - admin-created request يجب أن ترسل `teacherId`
-  - ويفضل أن تكون `teacherId = users.id`
-- `admin-preview` surfaces في reporting هي read-only فقط.
-- `school onboarding import` لا تُنفذ عبر loops من الفرونت؛ التسلسل الرسمي هو:
-  - `dry-run`
-  - `apply`
-  - `history`
+- `system-settings` هي control plane إدارية `global-only` و`admin-only`.
+- مجموعة `transportMaps` تحتوي القيم التشغيلية الحية التالية:
+  - `etaProvider`: `mapbox | google` (default: `mapbox`)
+  - `etaDerivedEstimateEnabled`: `boolean` (default: `true`)
+  - `googleMapsEtaEnabled`
+  - `etaProviderRefreshIntervalSeconds`
+  - `etaProviderDeviationThresholdMeters`
+- `transportMaps.etaProvider` يؤثر فعليًا على runtime provider selection.
+- ETA في النقل هي **Backend Snapshot** وليست stream GPS مباشر.
+- GPS live يقرأ من Firebase RTDB بعد bootstrap عبر `GET /transport/realtime-token`.
+- في الرحلات، الحالة `completed` فعالة وتستخدم في analytics.
 
-## الحدود بين الإدارة والتشغيل
+## Transport من منظور الإدارة
 
-- صفحات `academic-structure`, `users`, `students`, `admin-imports` هي surfaces إدارية بحتة.
-- صفحات `system-settings` أيضًا surfaces إدارية بحتة.
-- `attendance`, `assessments`, `behavior`, `homework`, و`reporting` هي surfaces تشغيل يومي لكنها متاحة أيضًا للإدارة.
-- `transport` ينقسم إلى:
-  - surfaces إدارية: buses, routes, stops, assignments, route assignments, home locations
-  - surfaces live operations: trips, locations, trip events
+- الإدارة تستطيع تشغيل endpoints التشغيلية للرحلة (policy `operateTrips`):
+  - start/end/location/events
+  - attendance per stop
+- endpoint الملخص الإداري:
+  - `GET /transport/trips/:tripId/summary`
+  - يرجع `409` مع الكود `TRIP_SUMMARY_REQUIRES_COMPLETED_STATUS` إذا الرحلة غير مكتملة.
+- endpoint الحي الخاص بالوالد (`/transport/trips/:tripId/live-status`) ليس endpoint إدارة.
 
-## الملفات الحية هنا
+## Firebase / FCM من منظور الإدارة
+
+- `GET /transport/realtime-token` يعطي bootstrap token فقط.
+- بيانات GPS الحية تُقرأ مباشرة من RTDB path:
+  - `/transport/live-trips/{tripId}/latestLocation`
+- إشعارات الاقتراب/الوصول تُدار async عبر `integration_outbox` و`pushNotifications`.
+
+## الملفات المرتبطة
 
 - `ENDPOINT_MAP.md`
 - `SCREENS_AND_TASKS.md`

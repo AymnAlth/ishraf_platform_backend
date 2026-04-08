@@ -9,6 +9,7 @@ export const TRIP_STATUS_VALUES = [
   "scheduled",
   "started",
   "ended",
+  "completed",
   "cancelled"
 ] as const;
 export const TRIP_STUDENT_EVENT_TYPE_VALUES = [
@@ -16,6 +17,7 @@ export const TRIP_STUDENT_EVENT_TYPE_VALUES = [
   "dropped_off",
   "absent"
 ] as const;
+export const TRIP_STOP_ATTENDANCE_STATUS_VALUES = ["present", "absent"] as const;
 export const HOME_LOCATION_SOURCE_VALUES = ["admin", "parent"] as const;
 export const HOME_LOCATION_STATUS_VALUES = [
   "pending",
@@ -27,6 +29,7 @@ export type BusStatus = (typeof BUS_STATUS_VALUES)[number];
 export type TripType = (typeof TRIP_TYPE_VALUES)[number];
 export type TripStatus = (typeof TRIP_STATUS_VALUES)[number];
 export type TripStudentEventType = (typeof TRIP_STUDENT_EVENT_TYPE_VALUES)[number];
+export type TripStopAttendanceStatus = (typeof TRIP_STOP_ATTENDANCE_STATUS_VALUES)[number];
 export type TripRosterEventType = TripStudentEventType | "not_marked";
 export type HomeLocationSource = (typeof HOME_LOCATION_SOURCE_VALUES)[number];
 export type HomeLocationStatus = (typeof HOME_LOCATION_STATUS_VALUES)[number];
@@ -213,6 +216,12 @@ export interface TripStudentRosterRow {
   lastEventType: TripStudentEventType | null;
   lastEventTime: Date | null;
   lastEventStopId: string | null;
+}
+
+export interface ParentTripStopRow {
+  stopId: string;
+  stopName: string;
+  stopOrder: number;
 }
 
 export interface BusWriteInput {

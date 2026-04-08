@@ -48,6 +48,7 @@ import type {
   SupervisorProfile,
   TeacherProfile
 } from "../../../common/types/profile.types";
+import type { TransportEtaReadServicePort } from "../../transport/service/transport-eta.service";
 
 const RECENT_LIMIT = 5;
 const TRIP_EVENT_LIMIT = 5;
@@ -73,7 +74,8 @@ export class ReportingService {
     private readonly reportingRepository: ReportingRepository,
     private readonly profileResolutionService = new ProfileResolutionService(),
     private readonly ownershipService = new OwnershipService(),
-    private readonly activeAcademicContextService: ActiveAcademicContextService = new ActiveAcademicContextService()
+    private readonly activeAcademicContextService: ActiveAcademicContextService = new ActiveAcademicContextService(),
+    private readonly transportEtaService: TransportEtaReadServicePort | null = null
   ) {}
 
   async getStudentProfile(
@@ -579,6 +581,46 @@ export class ReportingService {
       student.studentId,
       TRIP_EVENT_LIMIT
     );
+    const etaReadModel = this.transportEtaService
+      ? await this.transportEtaService.getTripEtaReadModel(activeTrip.tripId)
+      : null;
+    const stopEta = etaReadModel?.remainingStops.find((stop) => stop.stopId === assignment.stopId) ?? null;
+    const latestStudentEvent = latestEvents[0] ?? null;
+    const eta =
+      latestStudentEvent !== null
+        ? {
+            status: "completed" as const,
+            calculationMode: etaReadModel?.etaSummary?.calculationMode ?? null,
+            targetStop: {
+              stopId: assignment.stopId,
+              stopName: assignment.stopName
+            },
+            etaAt: null,
+            remainingDurationSeconds: 0,
+            remainingDistanceMeters: 0,
+            computedAt: etaReadModel?.computedAt ? etaReadModel.computedAt.toISOString() : null,
+            isStale: etaReadModel?.etaSummary?.isStale ?? false
+          }
+        : etaReadModel
+          ? {
+              status:
+                stopEta && !stopEta.isCompleted
+                  ? etaReadModel.etaSummary?.status ?? "unavailable"
+                  : "unavailable",
+              calculationMode: etaReadModel.etaSummary?.calculationMode ?? null,
+              targetStop: {
+                stopId: assignment.stopId,
+                stopName: assignment.stopName
+              },
+              etaAt: stopEta && !stopEta.isCompleted && stopEta.etaAt ? stopEta.etaAt.toISOString() : null,
+              remainingDurationSeconds:
+                stopEta && !stopEta.isCompleted ? stopEta.remainingDurationSeconds : null,
+              remainingDistanceMeters:
+                stopEta && !stopEta.isCompleted ? stopEta.remainingDistanceMeters : null,
+              computedAt: etaReadModel.computedAt ? etaReadModel.computedAt.toISOString() : null,
+              isStale: etaReadModel.etaSummary?.isStale ?? true
+            }
+          : null;
 
     return {
       student: toReportingStudentDto(student),
@@ -617,6 +659,7 @@ export class ReportingService {
                 recordedAt: toIsoString(activeTrip.lastLocationAt)
               }
             : null,
+        eta,
         latestEvents: latestEvents.map((event) => toTripEventDto(event))
       }
     };
@@ -772,11 +815,16 @@ export class ReportingService {
     activeTrips: Awaited<ReturnType<ReportingRepository["listActiveTrips"]>>
   ) {
     const tripIds = activeTrips.map((trip) => trip.tripId);
-    const events = await this.reportingRepository.listLatestTripEventsByTripIds(
-      tripIds,
-      TRIP_EVENT_LIMIT
-    );
+    const [events, etaReadModels] = await Promise.all([
+      this.reportingRepository.listLatestTripEventsByTripIds(tripIds, TRIP_EVENT_LIMIT),
+      this.transportEtaService
+        ? Promise.all(
+            tripIds.map(async (tripId) => [tripId, await this.transportEtaService!.getTripEtaReadModel(tripId)] as const)
+          )
+        : Promise.resolve([] as const)
+    ]);
     const eventsByTripId = new Map<string, typeof events>();
+    const etaByTripId = new Map(etaReadModels);
 
     for (const event of events) {
       const tripEvents = eventsByTripId.get(event.tripId) ?? [];
@@ -785,7 +833,11 @@ export class ReportingService {
     }
 
     return activeTrips.map((trip) =>
-      toTransportTripDto(trip, eventsByTripId.get(trip.tripId) ?? [])
+      toTransportTripDto(
+        trip,
+        eventsByTripId.get(trip.tripId) ?? [],
+        etaByTripId.get(trip.tripId) ?? null
+      )
     );
   }
 

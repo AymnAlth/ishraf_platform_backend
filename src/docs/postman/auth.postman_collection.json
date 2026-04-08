@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Ishraf Platform Auth API",
-    "_postman_id": "c3c04a96-fa12-4b4b-912d-bcc73ad65b43",
+    "_postman_id": "552bde4c-9769-4b1c-b0e5-6256a74c3b17",
     "description": "Auth-only Postman subset synchronized with the full collection.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
@@ -149,6 +149,18 @@
     {
       "key": "otherUserId",
       "value": "47"
+    },
+    {
+      "key": "deviceId",
+      "value": ""
+    },
+    {
+      "key": "deviceToken",
+      "value": "fcm-device-token-sample"
+    },
+    {
+      "key": "appId",
+      "value": "ishraf-parent-app"
     },
     {
       "key": "homeworkId",

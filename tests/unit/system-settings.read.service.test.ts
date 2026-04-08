@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import type { Queryable } from "../../src/common/interfaces/queryable.interface";
 import { requestMemoService } from "../../src/common/services/request-memo.service";
+import type { SystemSettingEntryResponseDto } from "../../src/modules/system-settings/dto/system-settings.dto";
 import type { SystemSettingsRepository } from "../../src/modules/system-settings/repository/system-settings.repository";
 import { SystemSettingsReadService } from "../../src/modules/system-settings/service/system-settings-read.service";
 import type { SystemSettingOverrideRow } from "../../src/modules/system-settings/types/system-settings.types";
@@ -23,6 +24,19 @@ const createOverride = (
   updatedAt: overrides.updatedAt ?? new Date("2026-04-07T10:00:00.000Z")
 });
 
+const findEntry = (
+  entries: SystemSettingEntryResponseDto[],
+  key: string
+): SystemSettingEntryResponseDto => {
+  const entry = entries.find((item) => item.key === key);
+
+  if (!entry) {
+    throw new Error(`Expected system setting entry '${key}' to exist`);
+  }
+
+  return entry;
+};
+
 describe("system-settings.read.service", () => {
   it("returns default values when no overrides exist and memoizes within the same request scope", async () => {
     const repository = {
@@ -32,17 +46,10 @@ describe("system-settings.read.service", () => {
     const queryable = createQueryable();
 
     const [firstResult, secondResult] = await requestMemoService.run(async () =>
-      Promise.all([
-        service.getGroup("imports", queryable),
-        service.getGroup("imports", queryable)
-      ])
+      Promise.all([service.getGroup("imports", queryable), service.getGroup("imports", queryable)])
     );
 
-    const onboardingEntry = firstResult.entries.find(
-      (entry) => entry.key === "schoolOnboardingEnabled"
-    );
-
-    expect(onboardingEntry).toMatchObject({
+    expect(findEntry(firstResult.entries, "schoolOnboardingEnabled")).toMatchObject({
       value: true,
       defaultValue: true,
       source: "default"
@@ -51,25 +58,42 @@ describe("system-settings.read.service", () => {
     expect(repository.listOverridesByGroup).toHaveBeenCalledTimes(1);
   });
 
-  it("lets overrides win over defaults", async () => {
+  it("surfaces the default transport ETA provider and derived estimate flag when no override exists", async () => {
+    const repository = {
+      listOverridesByGroup: vi.fn().mockResolvedValue([])
+    } as unknown as SystemSettingsRepository;
+    const service = new SystemSettingsReadService(repository);
+
+    const result = await service.getGroup("transportMaps", createQueryable());
+
+    expect(findEntry(result.entries, "etaProvider")).toMatchObject({
+      value: "mapbox",
+      defaultValue: "mapbox",
+      source: "default"
+    });
+    expect(findEntry(result.entries, "etaDerivedEstimateEnabled")).toMatchObject({
+      value: true,
+      defaultValue: true,
+      source: "default"
+    });
+  });
+
+  it("lets overrides win over defaults", () => {
     const repository = {
       listOverridesByGroup: vi.fn().mockResolvedValue([createOverride()])
     } as unknown as SystemSettingsRepository;
     const service = new SystemSettingsReadService(repository);
 
-    const result = await service.getGroup("imports", createQueryable());
-    const onboardingEntry = result.entries.find(
-      (entry) => entry.key === "schoolOnboardingEnabled"
-    );
-
-    expect(onboardingEntry).toMatchObject({
-      value: false,
-      defaultValue: true,
-      source: "override",
-      updatedBy: {
-        userId: "1",
-        fullName: "Admin User"
-      }
+    return service.getGroup("imports", createQueryable()).then((result) => {
+      expect(findEntry(result.entries, "schoolOnboardingEnabled")).toMatchObject({
+        value: false,
+        defaultValue: true,
+        source: "override",
+        updatedBy: {
+          userId: "1",
+          fullName: "Admin User"
+        }
+      });
     });
   });
 
@@ -83,15 +107,21 @@ describe("system-settings.read.service", () => {
     const firstResult = await service.getAllGroups();
     const secondResult = await service.getAllGroups();
     const importsGroup = firstResult.groups.find((group) => group.group === "imports");
-    const onboardingEntry = importsGroup?.entries.find(
-      (entry) => entry.key === "schoolOnboardingEnabled"
-    );
+    const transportMapsGroup = firstResult.groups.find((group) => group.group === "transportMaps");
 
     expect(firstResult.groups).toHaveLength(4);
     expect(secondResult.groups).toEqual(firstResult.groups);
-    expect(onboardingEntry).toMatchObject({
+    expect(findEntry(importsGroup?.entries ?? [], "schoolOnboardingEnabled")).toMatchObject({
       value: false,
       source: "override"
+    });
+    expect(findEntry(transportMapsGroup?.entries ?? [], "etaProvider")).toMatchObject({
+      value: "mapbox",
+      source: "default"
+    });
+    expect(findEntry(transportMapsGroup?.entries ?? [], "etaDerivedEstimateEnabled")).toMatchObject({
+      value: true,
+      source: "default"
     });
     expect(repository.listOverrides).toHaveBeenCalledTimes(1);
     expect(repository.listOverridesByGroup).not.toHaveBeenCalled();
@@ -99,10 +129,7 @@ describe("system-settings.read.service", () => {
 
   it("drops stale cached group state after invalidation", async () => {
     const repository = {
-      listOverridesByGroup: vi
-        .fn()
-        .mockResolvedValueOnce([createOverride()])
-        .mockResolvedValueOnce([])
+      listOverridesByGroup: vi.fn().mockResolvedValueOnce([createOverride()]).mockResolvedValueOnce([])
     } as unknown as SystemSettingsRepository;
     const service = new SystemSettingsReadService(repository);
 
@@ -110,15 +137,11 @@ describe("system-settings.read.service", () => {
     service.invalidateGroup("imports");
     const secondResult = await service.getGroup("imports");
 
-    expect(
-      firstResult.entries.find((entry) => entry.key === "schoolOnboardingEnabled")
-    ).toMatchObject({
+    expect(findEntry(firstResult.entries, "schoolOnboardingEnabled")).toMatchObject({
       value: false,
       source: "override"
     });
-    expect(
-      secondResult.entries.find((entry) => entry.key === "schoolOnboardingEnabled")
-    ).toMatchObject({
+    expect(findEntry(secondResult.entries, "schoolOnboardingEnabled")).toMatchObject({
       value: true,
       source: "default"
     });

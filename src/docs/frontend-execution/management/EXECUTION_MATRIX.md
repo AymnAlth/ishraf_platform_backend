@@ -1,5 +1,7 @@
 # Frontend Execution Matrix
 
+Sync baseline: `2026-04-08` (project-wide backend docs audit, 163 live endpoints documented)
+
 | Consumer | Primary Role | Core Modules | Write Surfaces | Read Surfaces |
 | --- | --- | --- | --- | --- |
 | Admin Dashboard | `admin` | users, academic-structure, students, attendance, assessments, behavior, homework, transport, communication, reporting, admin-imports | معظم السطوح الإدارية والتشغيلية | كل السطوح الإدارية والرقابية |
@@ -14,3 +16,6 @@
 - `users`, `academic-structure`, و`students` surfaces إدارية بحتة.
 - `communication` ليست admin-only بالكامل؛ فقط bulk/announcement management/notification management هي admin-only.
 - daily academic surfaces تعمل مع active context الحالي.
+- parent live tracking الأساسي: `GET /transport/trips/:tripId/live-status`.
+- admin trip analytics الأساسي: `GET /transport/trips/:tripId/summary` (after `completed` only).
+- driver/admin stop closure surface: `POST /transport/trips/:tripId/stops/:stopId/attendance`.

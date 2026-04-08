@@ -38,7 +38,7 @@ export const registerSystemSettingsIntegrationTests = (
       expect(responses.map((response) => response.status)).toEqual([403, 403, 403, 403, 403]);
     });
 
-    it("returns default groups and allows direct group reads", async () => {
+    it("returns default groups and exposes etaProvider plus etaDerivedEstimateEnabled in transport maps settings", async () => {
       const adminLogin = await context.loginAsAdmin();
 
       const listResponse = await request(context.app)
@@ -56,6 +56,24 @@ export const registerSystemSettingsIntegrationTests = (
         "analytics",
         "imports"
       ]);
+      expect(
+        listResponse.body.data.groups
+          .find((group: { group: string; entries: Array<{ key: string }> }) => group.group === "transportMaps")
+          ?.entries.find((entry: { key: string }) => entry.key === "etaProvider")
+      ).toMatchObject({
+        value: "mapbox",
+        defaultValue: "mapbox",
+        source: "default"
+      });
+      expect(
+        listResponse.body.data.groups
+          .find((group: { group: string; entries: Array<{ key: string }> }) => group.group === "transportMaps")
+          ?.entries.find((entry: { key: string }) => entry.key === "etaDerivedEstimateEnabled")
+      ).toMatchObject({
+        value: true,
+        defaultValue: true,
+        source: "default"
+      });
       expect(groupResponse.status).toBe(200);
       expect(groupResponse.body.data).toMatchObject({
         group: "imports",
@@ -226,6 +244,16 @@ export const registerSystemSettingsIntegrationTests = (
         featureEnabled: true,
         pendingOutboxCount: 1,
         failedOutboxCount: 1
+      });
+      expect(
+        integrationsStatusResponse.body.data.integrations.find(
+          (item: { providerKey: string }) => item.providerKey === "transportMaps"
+        )
+      ).toMatchObject({
+        providerKey: "transportMaps",
+        featureEnabled: true,
+        pendingOutboxCount: 0,
+        failedOutboxCount: 0
       });
       expect(adminImportsHistoryResponse.status).toBe(409);
       expect(adminImportsHistoryResponse.body.errors).toContainEqual(

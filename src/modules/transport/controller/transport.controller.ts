@@ -15,12 +15,16 @@ import type {
   DeactivateTransportRouteAssignmentRequestDto,
   EnsureDailyTripRequestDto,
   ListTripsQueryDto,
+  RecordTripStopAttendanceRequestDto,
   RecordTripLocationRequestDto,
   RouteIdParamsDto,
+  SaveStudentHomeLocationRequestDto,
   StudentIdParamsDto,
+  TripResourceParamsDto,
+  TripStopAttendanceParamsDto,
+  TransportRealtimeTokenQueryDto,
   TripIdParamsDto,
-  TripStudentRosterQueryDto,
-  SaveStudentHomeLocationRequestDto
+  TripStudentRosterQueryDto
 } from "../dto/transport.dto";
 import type { TransportService } from "../service/transport.service";
 
@@ -158,10 +162,37 @@ export class TransportController {
     res.status(200).json(buildSuccessResponse("Trips fetched successfully", response));
   }
 
+  async getRealtimeToken(req: Request, res: Response): Promise<void> {
+    const query = req.validated?.query as TransportRealtimeTokenQueryDto;
+    const response = await this.transportService.getRealtimeToken(assertAuthUser(req), query);
+    res.status(200).json(buildSuccessResponse("Transport realtime token issued successfully", response));
+  }
+
   async getTripById(req: Request, res: Response): Promise<void> {
     const params = req.validated?.params as TripIdParamsDto;
     const response = await this.transportService.getTripById(assertAuthUser(req), params.id);
     res.status(200).json(buildSuccessResponse("Trip fetched successfully", response));
+  }
+
+  async getTripEta(req: Request, res: Response): Promise<void> {
+    const params = req.validated?.params as TripIdParamsDto;
+    const response = await this.transportService.getTripEta(assertAuthUser(req), params.id);
+    res.status(200).json(buildSuccessResponse("Trip ETA fetched successfully", response));
+  }
+
+  async getTripLiveStatus(req: Request, res: Response): Promise<void> {
+    const params = req.validated?.params as TripResourceParamsDto;
+    const response = await this.transportService.getTripLiveStatus(
+      assertAuthUser(req),
+      params.tripId
+    );
+    res.status(200).json(buildSuccessResponse("Trip live status fetched successfully", response));
+  }
+
+  async getTripSummary(req: Request, res: Response): Promise<void> {
+    const params = req.validated?.params as TripResourceParamsDto;
+    const response = await this.transportService.getTripSummary(assertAuthUser(req), params.tripId);
+    res.status(200).json(buildSuccessResponse("Trip summary fetched successfully", response));
   }
 
   async getTripStudentRoster(req: Request, res: Response): Promise<void> {
@@ -209,6 +240,18 @@ export class TransportController {
       payload
     );
     res.status(201).json(buildSuccessResponse("Trip student event created successfully", response));
+  }
+
+  async recordTripStopAttendance(req: Request, res: Response): Promise<void> {
+    const params = req.validated?.params as TripStopAttendanceParamsDto;
+    const payload = req.validated?.body as RecordTripStopAttendanceRequestDto;
+    const response = await this.transportService.recordTripStopAttendance(
+      assertAuthUser(req),
+      params.tripId,
+      params.stopId,
+      payload
+    );
+    res.status(200).json(buildSuccessResponse("Trip stop attendance recorded successfully", response));
   }
 
   async listTripEvents(req: Request, res: Response): Promise<void> {

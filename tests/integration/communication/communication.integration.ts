@@ -399,5 +399,108 @@ export const registerCommunicationIntegrationTests = (
         role: "supervisor"
       });
     });
+    it("registers, updates, and unregisters FCM devices for the authenticated user", async () => {
+      const teacherLogin = await context.loginAsTeacher();
+      const driverLogin = await context.loginAsDriver();
+
+      const registerResponse = await request(context.app)
+        .post("/api/v1/communication/devices")
+        .set("Authorization", `Bearer ${teacherLogin.accessToken}`)
+        .send({
+          providerKey: "fcm",
+          platform: "android",
+          appId: "teacher-app",
+          deviceToken: "teacher-device-token-1",
+          deviceName: "Teacher Pixel",
+          subscriptions: ["transportRealtime"]
+        });
+      const deviceId = registerResponse.body.data.deviceId as string;
+
+      const updateResponse = await request(context.app)
+        .patch(`/api/v1/communication/devices/${deviceId}`)
+        .set("Authorization", `Bearer ${teacherLogin.accessToken}`)
+        .send({
+          deviceToken: "teacher-device-token-2",
+          deviceName: null,
+          subscriptions: ["transportRealtime"]
+        });
+      const foreignUpdateResponse = await request(context.app)
+        .patch(`/api/v1/communication/devices/${deviceId}`)
+        .set("Authorization", `Bearer ${driverLogin.accessToken}`)
+        .send({
+          deviceName: "Foreign edit"
+        });
+      const unregisterResponse = await request(context.app)
+        .delete(`/api/v1/communication/devices/${deviceId}`)
+        .set("Authorization", `Bearer ${teacherLogin.accessToken}`);
+
+      expect(registerResponse.status).toBe(201);
+      expect(registerResponse.body.data).toMatchObject({
+        providerKey: "fcm",
+        platform: "android",
+        appId: "teacher-app",
+        deviceName: "Teacher Pixel",
+        isActive: true,
+        subscriptions: ["transportRealtime"]
+      });
+      expect(registerResponse.body.data.lastSeenAt).toBeTypeOf("string");
+      expect(updateResponse.status).toBe(200);
+      expect(updateResponse.body.data).toMatchObject({
+        deviceId,
+        deviceName: null,
+        isActive: true,
+        subscriptions: ["transportRealtime"]
+      });
+      expect(foreignUpdateResponse.status).toBe(404);
+      expect(unregisterResponse.status).toBe(200);
+      expect(unregisterResponse.body.data).toMatchObject({
+        deviceId,
+        isActive: false
+      });
+      expect(unregisterResponse.body.data.unregisteredAt).toBeTypeOf("string");
+    });
+
+    it("rebinds an existing device token to the latest authenticated user", async () => {
+      const teacherLogin = await context.loginAsTeacher();
+      const driverLogin = await context.loginAsDriver();
+
+      const teacherRegisterResponse = await request(context.app)
+        .post("/api/v1/communication/devices")
+        .set("Authorization", `Bearer ${teacherLogin.accessToken}`)
+        .send({
+          providerKey: "fcm",
+          platform: "android",
+          appId: "teacher-app",
+          deviceToken: "shared-device-token",
+          deviceName: "Teacher Device",
+          subscriptions: ["transportRealtime"]
+        });
+      const driverRegisterResponse = await request(context.app)
+        .post("/api/v1/communication/devices")
+        .set("Authorization", `Bearer ${driverLogin.accessToken}`)
+        .send({
+          providerKey: "fcm",
+          platform: "android",
+          appId: "driver-app",
+          deviceToken: "shared-device-token",
+          deviceName: "Driver Device",
+          subscriptions: ["transportRealtime"]
+        });
+      const teacherUpdateResponse = await request(context.app)
+        .patch(`/api/v1/communication/devices/${teacherRegisterResponse.body.data.deviceId}`)
+        .set("Authorization", `Bearer ${teacherLogin.accessToken}`)
+        .send({
+          deviceName: "Teacher Still Owns It"
+        });
+
+      expect(teacherRegisterResponse.status).toBe(201);
+      expect(driverRegisterResponse.status).toBe(201);
+      expect(driverRegisterResponse.body.data).toMatchObject({
+        appId: "driver-app",
+        deviceName: "Driver Device",
+        isActive: true
+      });
+      expect(teacherUpdateResponse.status).toBe(404);
+    });
   });
 };

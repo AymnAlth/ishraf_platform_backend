@@ -15,6 +15,40 @@ describe("system-settings.validator", () => {
     expect(result.success).toBe(true);
   });
 
+  it("accepts transport maps patches that select etaProvider and derived estimation", () => {
+    const result = getSystemSettingsGroupPatchBodySchema("transportMaps").safeParse({
+      reason: "Use Mapbox with derived ETA enabled",
+      values: {
+        etaProvider: "mapbox",
+        etaDerivedEstimateEnabled: true
+      }
+    });
+
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects invalid transport maps provider values", () => {
+    const result = getSystemSettingsGroupPatchBodySchema("transportMaps").safeParse({
+      reason: "Invalid provider",
+      values: {
+        etaProvider: "here"
+      }
+    });
+
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects wrong transport maps value types", () => {
+    const result = getSystemSettingsGroupPatchBodySchema("transportMaps").safeParse({
+      reason: "Invalid transport maps payload",
+      values: {
+        etaDerivedEstimateEnabled: "true"
+      }
+    });
+
+    expect(result.success).toBe(false);
+  });
+
   it("rejects unknown keys in group-specific patch payloads", () => {
     const result = getSystemSettingsGroupPatchBodySchema("imports").safeParse({
       reason: "Invalid patch",

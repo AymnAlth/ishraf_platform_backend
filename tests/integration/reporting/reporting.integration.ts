@@ -1,3 +1,5 @@
+import { createHash } from "node:crypto";
+
 import request from "supertest";
 import { describe, expect, it } from "vitest";
 
@@ -553,6 +555,205 @@ export const registerReportingIntegrationTests = (
       expect(liveStatusResponse.body.data.activeTrip.latestLocation).not.toBeNull();
       expect(liveStatusResponse.body.data.activeTrip.latestEvents).toHaveLength(1);
       expect(unrelatedStudentResponse.status).toBe(403);
+    });
+
+    it("exposes ETA snapshots through parent live-status and transport summary surfaces", async () => {
+      const adminLogin = await context.loginAsAdmin();
+      const driverLogin = await context.loginAsDriver();
+      const parentAccount = await context.createAdditionalParentAccount({
+        email: "eta-parent@example.com",
+        phone: "01000000021"
+      });
+
+      await request(context.app)
+        .post("/api/v1/students/1/parents")
+        .set("Authorization", `Bearer ${adminLogin.accessToken}`)
+        .send({
+          parentId: parentAccount.parentId,
+          relationType: "mother",
+          isPrimary: false
+        });
+
+      const routeResponse = await context.createRoute(adminLogin.accessToken, {
+        routeName: "ETA Reporting Route"
+      });
+      const routeId = routeResponse.body.data.id as string;
+      const stopResponse = await context.createRouteStop(adminLogin.accessToken, routeId, {
+        stopName: "ETA Parent Stop",
+        latitude: 14.3,
+        longitude: 44.3,
+        stopOrder: 1
+      });
+      const finalStopResponse = await context.createRouteStop(adminLogin.accessToken, routeId, {
+        stopName: "ETA Final Stop",
+        latitude: 14.3,
+        longitude: 44.31,
+        stopOrder: 2
+      });
+      const busResponse = await context.createBus(adminLogin.accessToken, {
+        plateNumber: "BUS-REPORT-ETA"
+      });
+
+      await context.createAssignment(adminLogin.accessToken, {
+        studentId: "1",
+        routeId,
+        stopId: stopResponse.body.data.stopId as string
+      });
+
+      const tripResponse = await context.createTrip(driverLogin.accessToken, {
+        busId: busResponse.body.data.id as string,
+        routeId
+      });
+      const tripId = tripResponse.body.data.id as string;
+
+      await request(context.app)
+        .post(`/api/v1/transport/trips/${tripId}/start`)
+        .set("Authorization", `Bearer ${driverLogin.accessToken}`)
+        .send({});
+      await request(context.app)
+        .post(`/api/v1/transport/trips/${tripId}/locations`)
+        .set("Authorization", `Bearer ${driverLogin.accessToken}`)
+        .send({
+          latitude: 14.3,
+          longitude: 44.305
+        });
+
+      const stopSignatureHash = createHash("sha256")
+        .update(
+          JSON.stringify([
+            {
+              stopId: stopResponse.body.data.stopId,
+              stopOrder: 1,
+              latitude: 14.3,
+              longitude: 44.3
+            },
+            {
+              stopId: finalStopResponse.body.data.stopId,
+              stopOrder: 2,
+              latitude: 14.3,
+              longitude: 44.31
+            }
+          ])
+        )
+        .digest("hex");
+      const routeMapCacheInsert = await context.pool.query<{ id: string }>(
+        `
+          INSERT INTO transport_route_map_cache (
+            route_id,
+            stop_signature_hash,
+            provider_key,
+            encoded_polyline,
+            total_distance_meters,
+            total_duration_seconds,
+            stop_metrics_json
+          )
+          VALUES ($1, $2, 'googleRoutes', '', 1200, 180, $3::jsonb)
+          RETURNING id::text AS id
+        `,
+        [
+          routeId,
+          stopSignatureHash,
+          JSON.stringify([
+            {
+              stopId: stopResponse.body.data.stopId,
+              stopOrder: 1,
+              cumulativeDistanceMeters: 0
+            },
+            {
+              stopId: finalStopResponse.body.data.stopId,
+              stopOrder: 2,
+              cumulativeDistanceMeters: 1200
+            }
+          ])
+        ]
+      );
+
+      await context.pool.query(
+        `
+          INSERT INTO transport_trip_eta_snapshots (
+            trip_id,
+            route_id,
+            route_map_cache_id,
+            status,
+            calculation_mode,
+            based_on_latitude,
+            based_on_longitude,
+            based_on_recorded_at,
+            projected_distance_meters,
+            remaining_distance_meters,
+            remaining_duration_seconds,
+            estimated_speed_mps,
+            next_stop_id,
+            next_stop_order,
+            next_stop_eta_at,
+            final_eta_at,
+            provider_refreshed_at,
+            computed_at,
+            last_deviation_meters
+          )
+          VALUES (
+            $1, $2, $3, 'fresh', 'derived_estimate',
+            14.3, 44.305, NOW(), 600, 600, 90, 6.6,
+            $4, 2, NOW() + INTERVAL '90 seconds', NOW() + INTERVAL '90 seconds',
+            NOW(), NOW(), 15
+          )
+        `,
+        [tripId, routeId, routeMapCacheInsert.rows[0].id, finalStopResponse.body.data.stopId]
+      );
+      await context.pool.query(
+        `
+          INSERT INTO transport_trip_eta_stop_snapshots (
+            trip_id,
+            stop_id,
+            stop_order,
+            stop_name,
+            eta_at,
+            remaining_distance_meters,
+            remaining_duration_seconds,
+            is_next_stop,
+            is_completed
+          )
+          VALUES
+            ($1, $2, 1, 'ETA Parent Stop', NOW() + INTERVAL '30 seconds', 200, 30, false, false),
+            ($1, $3, 2, 'ETA Final Stop', NOW() + INTERVAL '90 seconds', 600, 90, true, false)
+        `,
+        [tripId, stopResponse.body.data.stopId, finalStopResponse.body.data.stopId]
+      );
+
+      const parentLogin = await context.login(parentAccount.email, parentAccount.password);
+      const parentAccessToken = parentLogin.body.data.tokens.accessToken as string;
+
+      const liveStatusResponse = await request(context.app)
+        .get("/api/v1/reporting/transport/parent/me/students/1/live-status")
+        .set("Authorization", `Bearer ${parentAccessToken}`);
+      const transportSummaryResponse = await request(context.app)
+        .get("/api/v1/reporting/transport/summary")
+        .set("Authorization", `Bearer ${driverLogin.accessToken}`);
+
+      expect(liveStatusResponse.status).toBe(200);
+      expect(liveStatusResponse.body.data.activeTrip.eta).toMatchObject({
+        status: "fresh",
+        calculationMode: "derived_estimate",
+        targetStop: {
+          stopId: stopResponse.body.data.stopId,
+          stopName: "ETA Parent Stop"
+        },
+        remainingDurationSeconds: 30,
+        remainingDistanceMeters: 200,
+        isStale: false
+      });
+      expect(transportSummaryResponse.status).toBe(200);
+      expect(transportSummaryResponse.body.data.activeTrips[0].etaSummary).toMatchObject({
+        status: "fresh",
+        calculationMode: "derived_estimate",
+        nextStop: {
+          stopId: finalStopResponse.body.data.stopId,
+          stopName: "ETA Final Stop",
+          stopOrder: 2
+        },
+        remainingDurationSeconds: 90,
+        remainingDistanceMeters: 600
+      });
     });
 
     it("returns a domain-aware 404 when a teacher account has no teacher profile", async () => {

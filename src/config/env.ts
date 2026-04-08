@@ -9,6 +9,21 @@ const PLACEHOLDER_SECRET_PATTERNS = [
   /^secret$/i
 ];
 
+const blankStringToUndefined = (value: unknown): unknown => {
+  if (typeof value !== "string") {
+    return value;
+  }
+
+  return value.trim().length === 0 ? undefined : value;
+};
+
+const optionalTrimmedStringSchema = z.preprocess(
+  blankStringToUndefined,
+  z.string().trim().min(1).optional()
+);
+
+const optionalUrlSchema = z.preprocess(blankStringToUndefined, z.url().optional());
+
 const trustProxySchema = z
   .union([z.enum(["true", "false"]), z.string().regex(/^\d+$/)])
   .default("false")
@@ -34,8 +49,8 @@ const envSchema = z.object({
   PORT: z.coerce.number().int().positive().default(4000),
   APP_NAME: z.string().min(1).default("ishraf-platform-backend"),
   API_PREFIX: z.string().min(1).default("/api/v1"),
-  PUBLIC_ROOT_URL: z.url().optional(),
-  PUBLIC_API_BASE_URL: z.url().optional(),
+  PUBLIC_ROOT_URL: optionalUrlSchema,
+  PUBLIC_API_BASE_URL: optionalUrlSchema,
   DATABASE_URL: z.string().min(1),
   DATABASE_URL_MIGRATIONS: z.string().min(1).optional(),
   DATABASE_SCHEMA: z
@@ -60,6 +75,14 @@ const envSchema = z.object({
     .default(15 * 60 * 1000),
   AUTH_EXPOSE_RESET_TOKEN_IN_RESPONSE: booleanStringSchema,
   BCRYPT_SALT_ROUNDS: z.coerce.number().int().min(10).max(15).default(12),
+  FIREBASE_PROJECT_ID: optionalTrimmedStringSchema,
+  FIREBASE_CLIENT_EMAIL: optionalTrimmedStringSchema,
+  FIREBASE_PRIVATE_KEY: optionalTrimmedStringSchema,
+  FIREBASE_DATABASE_URL: optionalUrlSchema,
+  MAPBOX_API_KEY: optionalTrimmedStringSchema,
+  MAPBOX_API_TIMEOUT_MS: z.coerce.number().int().positive().default(4_000),
+  GOOGLE_MAPS_API_KEY: optionalTrimmedStringSchema,
+  GOOGLE_MAPS_API_TIMEOUT_MS: z.coerce.number().int().positive().default(4_000),
   LOG_LEVEL: z
     .enum(["fatal", "error", "warn", "info", "debug", "trace", "silent"])
     .default("info")

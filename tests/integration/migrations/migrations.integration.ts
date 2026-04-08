@@ -9,7 +9,7 @@ interface MigrationSuiteContext {
 
 export const registerMigrationSmokeTests = ({ pool }: MigrationSuiteContext): void => {
   it(
-    "applies migrations with user, role profile, academic, operational, homework, communication, and system settings tables",
+    "applies migrations with user, role profile, academic, operational, system settings, and ETA provider metadata tables",
     async () => {
       runMigration("up");
 
@@ -51,9 +51,14 @@ export const registerMigrationSmokeTests = ({ pool }: MigrationSuiteContext): vo
               'routes',
               'bus_stops',
               'student_bus_assignments',
+              'student_transport_home_locations',
+              'transport_route_assignments',
               'trips',
               'bus_location_history',
               'trip_student_events',
+              'transport_route_map_cache',
+              'transport_trip_eta_snapshots',
+              'transport_trip_eta_stop_snapshots',
               'messages',
               'announcements',
               'announcement_target_roles',
@@ -61,7 +66,9 @@ export const registerMigrationSmokeTests = ({ pool }: MigrationSuiteContext): vo
               'school_onboarding_import_runs',
               'system_settings',
               'system_setting_audit_logs',
-              'integration_outbox'
+              'integration_outbox',
+              'user_devices',
+              'user_device_subscriptions'
             )
         `
       );
@@ -98,6 +105,7 @@ export const registerMigrationSmokeTests = ({ pool }: MigrationSuiteContext): vo
         "student_bus_assignments",
         "student_parents",
         "student_promotions",
+        "student_transport_home_locations",
         "students",
         "subject_offerings",
         "subjects",
@@ -107,8 +115,14 @@ export const registerMigrationSmokeTests = ({ pool }: MigrationSuiteContext): vo
         "system_settings",
         "teacher_classes",
         "teachers",
+        "transport_route_assignments",
+        "transport_route_map_cache",
+        "transport_trip_eta_snapshots",
+        "transport_trip_eta_stop_snapshots",
         "trip_student_events",
         "trips",
+        "user_device_subscriptions",
+        "user_devices",
         "users"
       ]);
 
@@ -137,7 +151,37 @@ export const registerMigrationSmokeTests = ({ pool }: MigrationSuiteContext): vo
         "vw_student_attendance_summary"
       ]);
 
-      const systemSettingsIndexes = await pool.query<{ indexname: string }>(
+      const etaSnapshotColumns = await pool.query<{ column_name: string }>(
+        `
+          SELECT column_name
+          FROM information_schema.columns
+          WHERE table_schema = 'public'
+            AND table_name = 'transport_trip_eta_snapshots'
+            AND column_name IN ('provider_key', 'refresh_reason')
+        `
+      );
+
+      expect(etaSnapshotColumns.rows.map((row) => row.column_name).sort()).toEqual([
+        "provider_key",
+        "refresh_reason"
+      ]);
+
+      const etaStopSnapshotColumns = await pool.query<{ column_name: string }>(
+        `
+          SELECT column_name
+          FROM information_schema.columns
+          WHERE table_schema = 'public'
+            AND table_name = 'transport_trip_eta_stop_snapshots'
+            AND column_name IN ('approaching_notified', 'arrived_notified')
+        `
+      );
+
+      expect(etaStopSnapshotColumns.rows.map((row) => row.column_name).sort()).toEqual([
+        "approaching_notified",
+        "arrived_notified"
+      ]);
+
+      const indexes = await pool.query<{ indexname: string }>(
         `
           SELECT indexname
           FROM pg_indexes
@@ -152,12 +196,23 @@ export const registerMigrationSmokeTests = ({ pool }: MigrationSuiteContext): vo
               'idx_integration_outbox_provider_status_created_at',
               'idx_integration_outbox_aggregate_created_at',
               'uq_integration_outbox_idempotency_key',
-              'idx_integration_outbox_request_id'
+              'idx_integration_outbox_request_id',
+              'idx_user_devices_user_active_updated_at',
+              'idx_user_devices_provider_active_updated_at',
+              'idx_user_device_subscriptions_device_enabled',
+              'idx_user_device_subscriptions_key_enabled',
+              'idx_transport_route_map_cache_route_id',
+              'uq_transport_route_map_cache_route_provider_signature',
+              'idx_transport_route_map_cache_route_provider_signature',
+              'idx_transport_trip_eta_snapshots_trip_id',
+              'idx_transport_trip_eta_snapshots_status',
+              'idx_transport_trip_eta_snapshots_provider_refreshed_at',
+              'idx_transport_trip_eta_stop_snapshots_trip_stop_order'
             )
         `
       );
 
-      expect(systemSettingsIndexes.rows.map((row) => row.indexname).sort()).toEqual([
+      expect(indexes.rows.map((row) => row.indexname).sort()).toEqual([
         "idx_integration_outbox_aggregate_created_at",
         "idx_integration_outbox_dispatch_queue",
         "idx_integration_outbox_provider_status_created_at",
@@ -166,28 +221,43 @@ export const registerMigrationSmokeTests = ({ pool }: MigrationSuiteContext): vo
         "idx_system_setting_audit_logs_created_at",
         "idx_system_setting_audit_logs_group_key_created_at",
         "idx_system_setting_audit_logs_request_id",
+        "idx_transport_route_map_cache_route_id",
+        "idx_transport_route_map_cache_route_provider_signature",
+        "idx_transport_trip_eta_snapshots_provider_refreshed_at",
+        "idx_transport_trip_eta_snapshots_status",
+        "idx_transport_trip_eta_snapshots_trip_id",
+        "idx_transport_trip_eta_stop_snapshots_trip_stop_order",
+        "idx_user_device_subscriptions_device_enabled",
+        "idx_user_device_subscriptions_key_enabled",
+        "idx_user_devices_provider_active_updated_at",
+        "idx_user_devices_user_active_updated_at",
         "uq_integration_outbox_idempotency_key",
-        "uq_system_settings_group_key"
+        "uq_system_settings_group_key",
+        "uq_transport_route_map_cache_route_provider_signature"
       ]);
 
-      const systemSettingsTriggers = await pool.query<{ tgname: string }>(
+      const triggers = await pool.query<{ tgname: string }>(
         `
           SELECT tgname
           FROM pg_trigger
           WHERE NOT tgisinternal
             AND tgname IN (
               'trg_system_settings_set_updated_at',
-              'trg_integration_outbox_set_updated_at'
+              'trg_integration_outbox_set_updated_at',
+              'trg_user_devices_set_updated_at',
+              'trg_user_device_subscriptions_set_updated_at'
             )
         `
       );
 
-      expect(systemSettingsTriggers.rows.map((row) => row.tgname).sort()).toEqual([
+      expect(triggers.rows.map((row) => row.tgname).sort()).toEqual([
         "trg_integration_outbox_set_updated_at",
-        "trg_system_settings_set_updated_at"
+        "trg_system_settings_set_updated_at",
+        "trg_user_device_subscriptions_set_updated_at",
+        "trg_user_devices_set_updated_at"
       ]);
 
-      const systemSettingsConstraints = await pool.query<{ conname: string }>(
+      const constraints = await pool.query<{ conname: string }>(
         `
           SELECT conname
           FROM pg_constraint
@@ -199,12 +269,21 @@ export const registerMigrationSmokeTests = ({ pool }: MigrationSuiteContext): vo
             'chk_system_setting_audit_logs_values',
             'chk_integration_outbox_status',
             'chk_integration_outbox_attempt_count',
-            'chk_integration_outbox_max_attempts'
+            'chk_integration_outbox_max_attempts',
+            'chk_user_devices_provider_key',
+            'chk_user_devices_platform',
+            'uq_user_devices_provider_token',
+            'chk_user_device_subscriptions_key',
+            'uq_user_device_subscriptions_device_key',
+            'uq_transport_route_map_cache_route_provider_signature',
+            'chk_transport_trip_eta_snapshots_status',
+            'chk_transport_trip_eta_snapshots_calculation_mode',
+            'uq_transport_trip_eta_stop_snapshots_trip_stop'
           )
         `
       );
 
-      expect(systemSettingsConstraints.rows.map((row) => row.conname).sort()).toEqual([
+      expect(constraints.rows.map((row) => row.conname).sort()).toEqual([
         "chk_integration_outbox_attempt_count",
         "chk_integration_outbox_max_attempts",
         "chk_integration_outbox_status",
@@ -212,16 +291,180 @@ export const registerMigrationSmokeTests = ({ pool }: MigrationSuiteContext): vo
         "chk_system_setting_audit_logs_group",
         "chk_system_setting_audit_logs_values",
         "chk_system_settings_group",
-        "uq_system_settings_group_key"
+        "chk_transport_trip_eta_snapshots_calculation_mode",
+        "chk_transport_trip_eta_snapshots_status",
+        "chk_user_device_subscriptions_key",
+        "chk_user_devices_platform",
+        "chk_user_devices_provider_key",
+        "uq_system_settings_group_key",
+        "uq_transport_route_map_cache_route_provider_signature",
+        "uq_transport_trip_eta_stop_snapshots_trip_stop",
+        "uq_user_device_subscriptions_device_key",
+        "uq_user_devices_provider_token"
       ]);
+
+      const calculationModeConstraint = await pool.query<{ definition: string }>(
+        `
+          SELECT pg_get_constraintdef(oid) AS definition
+          FROM pg_constraint
+          WHERE conname = 'chk_transport_trip_eta_snapshots_calculation_mode'
+          LIMIT 1
+        `
+      );
+
+      expect(calculationModeConstraint.rows[0]?.definition).toContain("provider_snapshot");
+      expect(calculationModeConstraint.rows[0]?.definition).toContain("derived_estimate");
+
+      const tripStatusConstraint = await pool.query<{ definition: string }>(
+        `
+          SELECT pg_get_constraintdef(oid) AS definition
+          FROM pg_constraint
+          WHERE conname = 'chk_trips_status'
+          LIMIT 1
+        `
+      );
+
+      expect(tripStatusConstraint.rows[0]?.definition).toContain("completed");
     },
     20_000
   );
 
   it(
-    "rolls back the last migration and can be applied again",
+    "rolls back only the last ETA arrival migration and can be applied again",
     async () => {
       runMigration("down");
+
+      const etaTables = await pool.query<{ table_name: string }>(
+        `
+          SELECT table_name
+          FROM information_schema.tables
+          WHERE table_schema = 'public'
+            AND table_name IN (
+              'transport_route_map_cache',
+              'transport_trip_eta_snapshots',
+              'transport_trip_eta_stop_snapshots'
+            )
+        `
+      );
+
+      expect(etaTables.rows).toHaveLength(3);
+
+      const etaSnapshotColumns = await pool.query<{ column_name: string }>(
+        `
+          SELECT column_name
+          FROM information_schema.columns
+          WHERE table_schema = 'public'
+            AND table_name = 'transport_trip_eta_snapshots'
+            AND column_name IN ('provider_key', 'refresh_reason')
+        `
+      );
+
+      expect(etaSnapshotColumns.rows.map((row) => row.column_name).sort()).toEqual([
+        "provider_key",
+        "refresh_reason"
+      ]);
+
+      const etaStopSnapshotColumns = await pool.query<{ column_name: string }>(
+        `
+          SELECT column_name
+          FROM information_schema.columns
+          WHERE table_schema = 'public'
+            AND table_name = 'transport_trip_eta_stop_snapshots'
+            AND column_name IN ('approaching_notified', 'arrived_notified')
+        `
+      );
+
+      expect(etaStopSnapshotColumns.rows.map((row) => row.column_name).sort()).toEqual([
+        "approaching_notified"
+      ]);
+
+      const providerAwareIndexes = await pool.query<{ indexname: string }>(
+        `
+          SELECT indexname
+          FROM pg_indexes
+          WHERE schemaname = 'public'
+            AND indexname IN (
+              'idx_transport_route_map_cache_route_provider_signature',
+              'uq_transport_route_map_cache_route_provider_signature'
+            )
+        `
+      );
+
+      expect(providerAwareIndexes.rows).toHaveLength(2);
+
+      const etaIndexes = await pool.query<{ indexname: string }>(
+        `
+          SELECT indexname
+          FROM pg_indexes
+          WHERE schemaname = 'public'
+            AND indexname IN (
+              'idx_transport_route_map_cache_route_id',
+              'idx_transport_trip_eta_snapshots_trip_id',
+              'idx_transport_trip_eta_snapshots_status',
+              'idx_transport_trip_eta_snapshots_provider_refreshed_at',
+              'idx_transport_trip_eta_stop_snapshots_trip_stop_order'
+            )
+        `
+      );
+
+      expect(etaIndexes.rows).toHaveLength(5);
+
+      const etaConstraints = await pool.query<{ conname: string }>(
+        `
+          SELECT conname
+          FROM pg_constraint
+          WHERE conname IN (
+            'uq_transport_route_map_cache_route_provider_signature',
+            'chk_transport_trip_eta_snapshots_status',
+            'chk_transport_trip_eta_snapshots_calculation_mode',
+            'uq_transport_trip_eta_stop_snapshots_trip_stop'
+          )
+        `
+      );
+
+      expect(etaConstraints.rows.map((row) => row.conname).sort()).toEqual([
+        "chk_transport_trip_eta_snapshots_calculation_mode",
+        "chk_transport_trip_eta_snapshots_status",
+        "uq_transport_route_map_cache_route_provider_signature",
+        "uq_transport_trip_eta_stop_snapshots_trip_stop"
+      ]);
+
+      const calculationModeConstraint = await pool.query<{ definition: string }>(
+        `
+          SELECT pg_get_constraintdef(oid) AS definition
+          FROM pg_constraint
+          WHERE conname = 'chk_transport_trip_eta_snapshots_calculation_mode'
+          LIMIT 1
+        `
+      );
+
+      expect(calculationModeConstraint.rows[0]?.definition).toContain("provider_snapshot");
+      expect(calculationModeConstraint.rows[0]?.definition).toContain("derived_estimate");
+
+      const tripStatusConstraint = await pool.query<{ definition: string }>(
+        `
+          SELECT pg_get_constraintdef(oid) AS definition
+          FROM pg_constraint
+          WHERE conname = 'chk_trips_status'
+          LIMIT 1
+        `
+      );
+
+      expect(tripStatusConstraint.rows[0]?.definition).not.toContain("completed");
+
+      const deviceTables = await pool.query<{ table_name: string }>(
+        `
+          SELECT table_name
+          FROM information_schema.tables
+          WHERE table_schema = 'public'
+            AND table_name IN (
+              'user_devices',
+              'user_device_subscriptions'
+          )
+        `
+      );
+
+      expect(deviceTables.rows).toHaveLength(2);
 
       const systemSettingsTables = await pool.query<{ table_name: string }>(
         `
@@ -236,43 +479,7 @@ export const registerMigrationSmokeTests = ({ pool }: MigrationSuiteContext): vo
         `
       );
 
-      expect(systemSettingsTables.rows).toHaveLength(0);
-
-      const systemSettingsIndexes = await pool.query<{ indexname: string }>(
-        `
-          SELECT indexname
-          FROM pg_indexes
-          WHERE schemaname = 'public'
-            AND indexname IN (
-              'uq_system_settings_group_key',
-              'idx_system_setting_audit_logs_created_at',
-              'idx_system_setting_audit_logs_group_key_created_at',
-              'idx_system_setting_audit_logs_changed_by_created_at',
-              'idx_system_setting_audit_logs_request_id',
-              'idx_integration_outbox_dispatch_queue',
-              'idx_integration_outbox_provider_status_created_at',
-              'idx_integration_outbox_aggregate_created_at',
-              'uq_integration_outbox_idempotency_key',
-              'idx_integration_outbox_request_id'
-            )
-        `
-      );
-
-      expect(systemSettingsIndexes.rows).toHaveLength(0);
-
-      const systemSettingsTriggers = await pool.query<{ tgname: string }>(
-        `
-          SELECT tgname
-          FROM pg_trigger
-          WHERE NOT tgisinternal
-            AND tgname IN (
-              'trg_system_settings_set_updated_at',
-              'trg_integration_outbox_set_updated_at'
-            )
-        `
-      );
-
-      expect(systemSettingsTriggers.rows).toHaveLength(0);
+      expect(systemSettingsTables.rows).toHaveLength(3);
 
       const rosterIndexes = await pool.query<{ indexname: string }>(
         `

@@ -3,6 +3,12 @@
 هذا المجلد يحتوي فقط على **handoff حي** مبني على surfaces الباك الحالية.  
 إذا تعارض أي ملف هنا مع الكود في `src/modules` أو مع `OpenAPI/Postman`، فالكود هو الحقيقة.
 
+حالة المزامنة الحالية:
+
+- Project-wide sync date: `2026-04-08`
+- يغطي أدوار: `admin`, `teacher`, `supervisor`, `parent`, `driver`
+- كل role folder محدث بصيغة lifecycle (session -> day-to-day tasks -> QA acceptance)
+
 ## ترتيب القراءة
 
 1. `src/docs/API_REFERENCE.md`

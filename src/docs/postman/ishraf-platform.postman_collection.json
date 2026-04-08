@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Ishraf Platform Backend API",
-    "_postman_id": "591de9e5-e016-4267-9d5b-2d558e12be18",
+    "_postman_id": "b67f6333-b308-4962-b9ed-baa1db6528a6",
     "description": "Full Postman collection covering every live backend endpoint.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
@@ -149,6 +149,18 @@
     {
       "key": "otherUserId",
       "value": "47"
+    },
+    {
+      "key": "deviceId",
+      "value": ""
+    },
+    {
+      "key": "deviceToken",
+      "value": "fcm-device-token-sample"
+    },
+    {
+      "key": "appId",
+      "value": "ishraf-parent-app"
     },
     {
       "key": "homeworkId",
@@ -2078,7 +2090,7 @@
                 "value": "Bearer {{accessToken}}"
               }
             ],
-            "description": "Purpose: Return every implemented system settings group with effective values merged from code defaults and stored overrides.\n\nRoles: admin\n\nAuth: Bearer access token required\n\nNote: [NEW] Step 1 is global-only and currently implements pushNotifications, transportMaps, analytics, and imports.\n\nNote: [NEW] Each entry returns the effective value, the code default, and whether the source is default or override.",
+            "description": "Purpose: Return every implemented system settings group with effective values merged from code defaults and stored overrides.\n\nRoles: admin\n\nAuth: Bearer access token required\n\nNote: [NEW] Step 1 is global-only and currently implements pushNotifications, transportMaps, analytics, and imports.\n\nNote: [NEW] Each entry returns the effective value, the code default, and whether the source is default or override.\n\nNote: [NEW] transportMaps.etaProvider defaults to mapbox and is applied by runtime provider resolution.\n\nNote: [NEW] transportMaps.etaDerivedEstimateEnabled defaults to true and controls local ETA math between provider refreshes.",
             "url": {
               "raw": "{{baseUrl}}/system-settings",
               "host": [
@@ -2101,7 +2113,7 @@
                 "value": "Bearer {{accessToken}}"
               }
             ],
-            "description": "Purpose: Return one system settings group with effective values, defaults, descriptions, and override metadata.\n\nRoles: admin\n\nAuth: Bearer access token required\n\nNote: [NEW] Allowed groups are pushNotifications, transportMaps, analytics, and imports.",
+            "description": "Purpose: Return one system settings group with effective values, defaults, descriptions, and override metadata.\n\nRoles: admin\n\nAuth: Bearer access token required\n\nNote: [NEW] Allowed groups are pushNotifications, transportMaps, analytics, and imports.\n\nNote: [NEW] transportMaps.etaProvider is part of the admin control plane and defaults to mapbox.",
             "url": {
               "raw": "{{baseUrl}}/system-settings/{{group}}",
               "host": [
@@ -2129,7 +2141,7 @@
                 "value": "application/json"
               }
             ],
-            "description": "Purpose: Update one system settings group by writing overrides only for values that differ from code defaults.\n\nRoles: admin\n\nAuth: Bearer access token required\n\nBody schema: UpdateSystemSettingsGroupRequest\n\nNote: [NEW] The request body is group-specific. Use UpdatePushNotificationsSettingsRequest, UpdateTransportMapsSettingsRequest, UpdateAnalyticsSettingsRequest, or UpdateImportsSettingsRequest depending on :group.\n\nNote: [NEW] Sending a value equal to the code default clears any existing override instead of storing redundant data.\n\nNote: [NEW] The first live consumer is imports.schoolOnboardingEnabled. When it is false, school onboarding import endpoints reject with 409 FEATURE_DISABLED.",
+            "description": "Purpose: Update one system settings group by writing overrides only for values that differ from code defaults.\n\nRoles: admin\n\nAuth: Bearer access token required\n\nBody schema: UpdateSystemSettingsGroupRequest\n\nNote: [NEW] The request body is group-specific. Use UpdatePushNotificationsSettingsRequest, UpdateTransportMapsSettingsRequest, UpdateAnalyticsSettingsRequest, or UpdateImportsSettingsRequest depending on :group.\n\nNote: [NEW] Sending a value equal to the code default clears any existing override instead of storing redundant data.\n\nNote: [NEW] transportMaps updates runtime behavior through etaProvider and etaDerivedEstimateEnabled.\n\nNote: [NEW] The first live consumer is imports.schoolOnboardingEnabled. When it is false, school onboarding import endpoints reject with 409 FEATURE_DISABLED.",
             "url": {
               "raw": "{{baseUrl}}/system-settings/{{group}}",
               "host": [
@@ -2205,12 +2217,12 @@
                 },
                 {
                   "key": "since",
-                  "value": "2026-04-07T00:27:25.627Z",
+                  "value": "2026-04-08T07:37:35.672Z",
                   "description": "Filter audit rows created on or after this ISO datetime."
                 },
                 {
                   "key": "until",
-                  "value": "2026-04-07T00:27:25.627Z",
+                  "value": "2026-04-08T07:37:35.672Z",
                   "description": "Filter audit rows created on or before this ISO datetime."
                 }
               ]
@@ -2227,7 +2239,7 @@
                 "value": "Bearer {{accessToken}}"
               }
             ],
-            "description": "Purpose: Return feature-enabled status for external integration groups together with pending and failed integration outbox counts.\n\nRoles: admin\n\nAuth: Bearer access token required\n\nNote: [NEW] This surface only covers pushNotifications, transportMaps, and analytics.\n\nNote: [NEW] providerConfigured is intentionally not returned in step 1 because provider secrets still live only in env and no provider phase has been wired yet.",
+            "description": "Purpose: Return feature-enabled status for external integration groups together with pending and failed integration outbox counts.\n\nRoles: admin\n\nAuth: Bearer access token required\n\nNote: [NEW] This surface only covers pushNotifications, transportMaps, and analytics.\n\nNote: [NEW] providerConfigured is intentionally not returned; this surface tracks feature state and integration outbox workload only.",
             "url": {
               "raw": "{{baseUrl}}/system-settings/integrations/status",
               "host": [
@@ -2349,17 +2361,17 @@
                 },
                 {
                   "key": "sessionDate",
-                  "value": "2026-04-07",
+                  "value": "2026-04-08",
                   "description": "Filter by exact session date."
                 },
                 {
                   "key": "dateFrom",
-                  "value": "2026-04-07",
+                  "value": "2026-04-08",
                   "description": "Filter from session date."
                 },
                 {
                   "key": "dateTo",
-                  "value": "2026-04-07",
+                  "value": "2026-04-08",
                   "description": "Filter to session date."
                 }
               ]
@@ -2394,7 +2406,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"classId\": \"1\",\n  \"subjectId\": \"1\",\n  \"academicYearId\": \"1\",\n  \"semesterId\": \"1\",\n  \"sessionDate\": \"2026-04-07\",\n  \"periodNo\": 1,\n  \"title\": \"حصة الرياضيات\",\n  \"notes\": \"اختبار سريع\",\n  \"teacherId\": \"47\"\n}"
+              "raw": "{\n  \"classId\": \"1\",\n  \"subjectId\": \"1\",\n  \"academicYearId\": \"1\",\n  \"semesterId\": \"1\",\n  \"sessionDate\": \"2026-04-08\",\n  \"periodNo\": 1,\n  \"title\": \"حصة الرياضيات\",\n  \"notes\": \"اختبار سريع\",\n  \"teacherId\": \"47\"\n}"
             }
           }
         },
@@ -2535,17 +2547,17 @@
                 },
                 {
                   "key": "assessmentDate",
-                  "value": "2026-04-07",
+                  "value": "2026-04-08",
                   "description": "Filter by exact assessment date."
                 },
                 {
                   "key": "dateFrom",
-                  "value": "2026-04-07",
+                  "value": "2026-04-08",
                   "description": "Filter from assessment date."
                 },
                 {
                   "key": "dateTo",
-                  "value": "2026-04-07",
+                  "value": "2026-04-08",
                   "description": "Filter to assessment date."
                 },
                 {
@@ -2584,7 +2596,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"assessmentTypeId\": \"1\",\n  \"classId\": \"1\",\n  \"subjectId\": \"1\",\n  \"teacherId\": \"47\",\n  \"academicYearId\": \"1\",\n  \"semesterId\": \"1\",\n  \"title\": \"اختبار قصير 2\",\n  \"description\": \"الوحدة الثانية\",\n  \"maxScore\": 20,\n  \"weight\": 10,\n  \"assessmentDate\": \"2026-04-07\",\n  \"isPublished\": true\n}"
+              "raw": "{\n  \"assessmentTypeId\": \"1\",\n  \"classId\": \"1\",\n  \"subjectId\": \"1\",\n  \"teacherId\": \"47\",\n  \"academicYearId\": \"1\",\n  \"semesterId\": \"1\",\n  \"title\": \"اختبار قصير 2\",\n  \"description\": \"الوحدة الثانية\",\n  \"maxScore\": 20,\n  \"weight\": 10,\n  \"assessmentDate\": \"2026-04-08\",\n  \"isPublished\": true\n}"
             }
           }
         },
@@ -2899,17 +2911,17 @@
                 },
                 {
                   "key": "behaviorDate",
-                  "value": "2026-04-07",
+                  "value": "2026-04-08",
                   "description": "Filter by exact behavior date."
                 },
                 {
                   "key": "dateFrom",
-                  "value": "2026-04-07",
+                  "value": "2026-04-08",
                   "description": "Filter from behavior date."
                 },
                 {
                   "key": "dateTo",
-                  "value": "2026-04-07",
+                  "value": "2026-04-08",
                   "description": "Filter to behavior date."
                 }
               ]
@@ -2944,7 +2956,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"studentId\": \"1\",\n  \"behaviorCategoryId\": \"1\",\n  \"academicYearId\": \"1\",\n  \"semesterId\": \"1\",\n  \"description\": \"تأخر عن الطابور\",\n  \"severity\": 3,\n  \"behaviorDate\": \"2026-04-07\",\n  \"teacherId\": \"47\"\n}"
+              "raw": "{\n  \"studentId\": \"1\",\n  \"behaviorCategoryId\": \"1\",\n  \"academicYearId\": \"1\",\n  \"semesterId\": \"1\",\n  \"description\": \"تأخر عن الطابور\",\n  \"severity\": 3,\n  \"behaviorDate\": \"2026-04-08\",\n  \"teacherId\": \"47\"\n}"
             }
           }
         },
@@ -3066,7 +3078,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"studentId\": \"1\",\n  \"routeId\": \"1\",\n  \"stopId\": \"1\",\n  \"startDate\": \"2026-04-07\",\n  \"endDate\": null\n}"
+              "raw": "{\n  \"studentId\": \"1\",\n  \"routeId\": \"1\",\n  \"stopId\": \"1\",\n  \"startDate\": \"2026-04-08\",\n  \"endDate\": null\n}"
             }
           }
         },
@@ -3100,7 +3112,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"endDate\": \"2026-04-07\"\n}"
+              "raw": "{\n  \"endDate\": \"2026-04-08\"\n}"
             }
           }
         },
@@ -3186,6 +3198,36 @@
           }
         },
         {
+          "name": "Get Transport Realtime Token",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "description": "Purpose: Issue a Firebase custom token scoped to one trip live-location path. Admin gets read access, driver owners get write access, and linked parents get read access.\n\nRoles: admin, parent, driver\n\nAuth: Bearer access token required\n\nQuery params: tripId\n\nNote: The token is scoped to /transport/live-trips/{tripId}/latestLocation in Firebase Realtime Database.\n\nNote: The endpoint returns 409 FEATURE_DISABLED when pushNotifications.transportRealtimeEnabled is false.\n\nNote: The endpoint returns 409 INTEGRATION_NOT_CONFIGURED when Firebase env secrets are missing.\n\nNote: This endpoint is low-frequency bootstrap auth; live GPS points bypass the backend after token issuance.",
+            "url": {
+              "raw": "{{baseUrl}}/transport/realtime-token",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "transport",
+                "realtime-token"
+              ],
+              "query": [
+                {
+                  "key": "tripId",
+                  "value": "1",
+                  "description": "Trip numeric string identifier used to scope the Firebase realtime token."
+                }
+              ]
+            }
+          }
+        },
+        {
           "name": "List Route Assignments",
           "request": {
             "method": "GET",
@@ -3237,7 +3279,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"busId\": \"1\",\n  \"routeId\": \"1\",\n  \"startDate\": \"2026-04-07\",\n  \"endDate\": null\n}"
+              "raw": "{\n  \"busId\": \"1\",\n  \"routeId\": \"1\",\n  \"startDate\": \"2026-04-08\",\n  \"endDate\": null\n}"
             }
           }
         },
@@ -3271,7 +3313,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"endDate\": \"2026-04-07\"\n}"
+              "raw": "{\n  \"endDate\": \"2026-04-08\"\n}"
             }
           }
         },
@@ -3565,17 +3607,17 @@
                 },
                 {
                   "key": "tripDate",
-                  "value": "2026-04-07",
+                  "value": "2026-04-08",
                   "description": "Filter by exact trip date."
                 },
                 {
                   "key": "dateFrom",
-                  "value": "2026-04-07",
+                  "value": "2026-04-08",
                   "description": "Filter from trip date."
                 },
                 {
                   "key": "dateTo",
-                  "value": "2026-04-07",
+                  "value": "2026-04-08",
                   "description": "Filter to trip date."
                 }
               ]
@@ -3610,7 +3652,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"busId\": \"1\",\n  \"routeId\": \"1\",\n  \"tripDate\": \"2026-04-07\",\n  \"tripType\": \"pickup\"\n}"
+              "raw": "{\n  \"busId\": \"1\",\n  \"routeId\": \"1\",\n  \"tripDate\": \"2026-04-08\",\n  \"tripType\": \"pickup\"\n}"
             }
           }
         },
@@ -3649,7 +3691,7 @@
                 "value": "Bearer {{accessToken}}"
               }
             ],
-            "description": "Purpose: Mark a trip as ended.\n\nRoles: admin, driver\n\nAuth: Bearer access token required\n\nNote: The trip must currently be started. Otherwise the request fails with TRIP_STATUS_END_INVALID.",
+            "description": "Purpose: Mark a trip as ended.\n\nRoles: admin, driver\n\nAuth: Bearer access token required\n\nNote: The trip must currently be started. Otherwise the request fails with TRIP_STATUS_END_INVALID.\n\nNote: When pushNotifications.fcmEnabled and pushNotifications.transportRealtimeEnabled are both true, the backend enqueues FCM wake-up events for subscribed parents and admins.\n\nSide effects: Trip end writes the transport state to PostgreSQL first, then emits async automation work through integration_outbox.",
             "url": {
               "raw": "{{baseUrl}}/transport/trips/{{tripId}}/end",
               "host": [
@@ -3660,6 +3702,32 @@
                 "trips",
                 "{{tripId}}",
                 "end"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Get Trip ETA",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "description": "Purpose: Return the stop-based ETA read model for one trip, including the route polyline cache, ETA summary, and remaining stop snapshots.\n\nRoles: admin, driver\n\nAuth: Bearer access token required\n\nNote: ETA responses are provider-neutral at the API surface and expose calculationMode as provider_snapshot or derived_estimate.\n\nNote: Runtime provider selection is active through transportMaps.etaProvider with mapbox as the default selected provider.\n\nNote: ETA is a backend snapshot surface; live GPS streaming is read directly from Firebase RTDB after realtime token bootstrap.\n\nDerived data: The response is built from transport_trip_eta_snapshots, transport_trip_eta_stop_snapshots, and the cached route polyline when available.",
+            "url": {
+              "raw": "{{baseUrl}}/transport/trips/{{tripId}}/eta",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "transport",
+                "trips",
+                "{{tripId}}",
+                "eta"
               ],
               "query": []
             }
@@ -3705,7 +3773,7 @@
                 "value": "application/json"
               }
             ],
-            "description": "Purpose: Create one trip student event. stopId is required for boarded and dropped_off events, and must be omitted for absent.\n\nRoles: admin, driver\n\nAuth: Bearer access token required\n\nBody schema: CreateTripStudentEventRequest\n\nNote: Trip student event validation is trip-date aware: the student must have a transport assignment covering the trip date and route.\n\nNote: Events are only accepted while the trip is started or ended. Invalid state returns TRIP_EVENT_STATUS_INVALID.\n\nNote: A mismatching route assignment or stop produces STUDENT_TRIP_DATE_ASSIGNMENT_NOT_FOUND, TRIP_STUDENT_ROUTE_MISMATCH, or TRIP_EVENT_STOP_ROUTE_MISMATCH.\n\nSide effects: Dropped-off events trigger parent notifications through the internal automation service.",
+            "description": "Purpose: Create one trip student event. stopId is required for boarded and dropped_off events, and must be omitted for absent.\n\nRoles: admin, driver\n\nAuth: Bearer access token required\n\nBody schema: CreateTripStudentEventRequest\n\nNote: Trip student event validation is trip-date aware: the student must have a transport assignment covering the trip date and route.\n\nNote: Events are only accepted while the trip is started or ended. Invalid state returns TRIP_EVENT_STATUS_INVALID.\n\nNote: A mismatching route assignment or stop produces STUDENT_TRIP_DATE_ASSIGNMENT_NOT_FOUND, TRIP_STUDENT_ROUTE_MISMATCH, or TRIP_EVENT_STOP_ROUTE_MISMATCH.\n\nNote: All trip student events can enqueue FCM wake-up events when pushNotifications.fcmEnabled and pushNotifications.transportRealtimeEnabled are both true. dropped_off also writes an in-app parent notification.\n\nSide effects: Trip student events write PostgreSQL truth first, then emit async automation work through integration_outbox.",
             "url": {
               "raw": "{{baseUrl}}/transport/trips/{{tripId}}/events",
               "host": [
@@ -3739,7 +3807,7 @@
                 "value": "application/json"
               }
             ],
-            "description": "Purpose: Record one location point for a started trip.\n\nRoles: admin, driver\n\nAuth: Bearer access token required\n\nBody schema: RecordTripLocationRequest\n\nNote: Locations are only accepted while the trip is started. Invalid state returns TRIP_LOCATION_STATUS_INVALID.",
+            "description": "Purpose: Record one location point for a started trip.\n\nRoles: admin, driver\n\nAuth: Bearer access token required\n\nBody schema: RecordTripLocationRequest\n\nNote: Locations are only accepted while the trip is started. Invalid state returns TRIP_LOCATION_STATUS_INVALID.\n\nNote: This endpoint stores operational trip locations in PostgreSQL. High-frequency driver GPS for the live map should go directly to Firebase RTDB after GET /transport/realtime-token.",
             "url": {
               "raw": "{{baseUrl}}/transport/trips/{{tripId}}/locations",
               "host": [
@@ -3769,7 +3837,7 @@
                 "value": "Bearer {{accessToken}}"
               }
             ],
-            "description": "Purpose: Mark a scheduled trip as started.\n\nRoles: admin, driver\n\nAuth: Bearer access token required\n\nNote: The trip must currently be scheduled. Otherwise the request fails with TRIP_STATUS_START_INVALID.\n\nSide effects: Trip start triggers parent notifications per assigned student through the internal automation service.",
+            "description": "Purpose: Mark a scheduled trip as started.\n\nRoles: admin, driver\n\nAuth: Bearer access token required\n\nNote: The trip must currently be scheduled. Otherwise the request fails with TRIP_STATUS_START_INVALID.\n\nNote: When pushNotifications.fcmEnabled and pushNotifications.transportRealtimeEnabled are both true, the backend enqueues FCM wake-up events for subscribed parents and admins.\n\nSide effects: Trip start writes the transport state to PostgreSQL first, then emits async automation work through integration_outbox.",
             "url": {
               "raw": "{{baseUrl}}/transport/trips/{{tripId}}/start",
               "host": [
@@ -3823,6 +3891,94 @@
           }
         },
         {
+          "name": "Get Trip Live Status",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "description": "Purpose: Return the parent-facing live tracking payload for one trip.\n\nRoles: parent\n\nAuth: Bearer access token required\n\nNote: Access is ownership-scoped. The parent must be linked to at least one student on the trip route/date or the request is denied.\n\nNote: The response separates live GPS and ETA snapshots: firebaseRtdbPath is for RTDB live location, while myStopSnapshot is backend ETA snapshot data.\n\nDerived data: myStopSnapshot is selected from trip ETA stop snapshots using nearest active parent stop order.",
+            "url": {
+              "raw": "{{baseUrl}}/transport/trips/{{tripId}}/live-status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "transport",
+                "trips",
+                "{{tripId}}",
+                "live-status"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Get Trip Summary",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "description": "Purpose: Return summary analytics for one completed trip.\n\nRoles: admin\n\nAuth: Bearer access token required\n\nNote: This endpoint is restricted to completed trips. If tripStatus is not completed, the backend returns 409 with code TRIP_SUMMARY_REQUIRES_COMPLETED_STATUS.",
+            "url": {
+              "raw": "{{baseUrl}}/transport/trips/{{tripId}}/summary",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "transport",
+                "trips",
+                "{{tripId}}",
+                "summary"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Record Trip Stop Attendance",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "Purpose: Record attendance for one trip stop and close the stop snapshot.\n\nRoles: admin, driver\n\nAuth: Bearer access token required\n\nBody schema: RecordTripStopAttendanceRequest\n\nNote: trip must be started.\n\nNote: Each attendance item must map to a student assigned to the same trip date, route, and stop.\n\nNote: present maps to boarded/dropped_off based on trip type; absent maps to absent.\n\nNote: If all trip stop snapshots are completed after this call, trip status transitions to completed.",
+            "url": {
+              "raw": "{{baseUrl}}/transport/trips/{{tripId}}/stops/{{stopId}}/attendance",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "transport",
+                "trips",
+                "{{tripId}}",
+                "stops",
+                "{{stopId}}",
+                "attendance"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"attendances\": [\n    {\n      \"studentId\": \"1\",\n      \"status\": \"present\",\n      \"notes\": null\n    },\n    {\n      \"studentId\": \"2\",\n      \"status\": \"absent\"\n    }\n  ]\n}"
+            }
+          }
+        },
+        {
           "name": "Ensure Daily Trip",
           "request": {
             "method": "POST",
@@ -3851,7 +4007,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"routeAssignmentId\": \"1\",\n  \"tripDate\": \"2026-04-07\",\n  \"tripType\": \"pickup\"\n}"
+              "raw": "{\n  \"routeAssignmentId\": \"1\",\n  \"tripDate\": \"2026-04-08\",\n  \"tripType\": \"pickup\"\n}"
             }
           }
         }
@@ -3939,6 +4095,96 @@
                 "active"
               ],
               "query": []
+            }
+          }
+        },
+        {
+          "name": "Register Communication Device",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "Purpose: Register or rebind one authenticated user device token for FCM delivery and wake-up subscriptions.\n\nRoles: admin, parent, teacher, supervisor, driver\n\nAuth: Bearer access token required\n\nBody schema: RegisterCommunicationDeviceRequest\n\nNote: Registration is available even when pushNotifications.fcmEnabled is false so the rollout can be pre-provisioned.\n\nNote: providerKey currently supports only fcm and subscriptions currently support only transportRealtime.\n\nNote: If the same providerKey + deviceToken already belongs to another user, the backend rebinds it to the current authenticated user inside the same transaction.",
+            "url": {
+              "raw": "{{baseUrl}}/communication/devices",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "communication",
+                "devices"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"providerKey\": \"fcm\",\n  \"platform\": \"android\",\n  \"appId\": \"ishraf-parent-app\",\n  \"deviceToken\": \"fcm-device-token-sample\",\n  \"deviceName\": \"Parent Pixel 8\",\n  \"subscriptions\": [\n    \"transportRealtime\"\n  ]\n}"
+            }
+          }
+        },
+        {
+          "name": "Unregister Communication Device",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "description": "Purpose: Soft-unregister one device owned by the authenticated user. The row remains for audit and token hygiene, but it stops receiving push traffic.\n\nRoles: admin, parent, teacher, supervisor, driver\n\nAuth: Bearer access token required\n\nNote: Ownership is enforced: users can only unregister their own devices.\n\nNote: Subscriptions remain stored historically, but inactive devices are excluded from delivery resolution.",
+            "url": {
+              "raw": "{{baseUrl}}/communication/devices/{{deviceId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "communication",
+                "devices",
+                "{{deviceId}}"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Update Communication Device",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "Purpose: Update one registered device owned by the authenticated user, including token rotation, display name, and subscriptions.\n\nRoles: admin, parent, teacher, supervisor, driver\n\nAuth: Bearer access token required\n\nBody schema: UpdateCommunicationDeviceRequest\n\nNote: Ownership is enforced: users can only update their own registered devices.\n\nNote: Updating deviceToken preserves uniqueness by provider and reactivates the device if it had been unregistered.",
+            "url": {
+              "raw": "{{baseUrl}}/communication/devices/{{deviceId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "communication",
+                "devices",
+                "{{deviceId}}"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"deviceName\": \"Updated Parent Pixel 8\",\n  \"subscriptions\": [\n    \"transportRealtime\"\n  ]\n}"
             }
           }
         },
@@ -4610,22 +4856,22 @@
                 },
                 {
                   "key": "assignedDate",
-                  "value": "2026-04-07",
+                  "value": "2026-04-08",
                   "description": "Filter by exact assigned date."
                 },
                 {
                   "key": "dueDate",
-                  "value": "2026-04-07",
+                  "value": "2026-04-08",
                   "description": "Filter by exact due date."
                 },
                 {
                   "key": "dateFrom",
-                  "value": "2026-04-07",
+                  "value": "2026-04-08",
                   "description": "Filter from date range."
                 },
                 {
                   "key": "dateTo",
-                  "value": "2026-04-07",
+                  "value": "2026-04-08",
                   "description": "Filter to date range."
                 }
               ]
@@ -4659,7 +4905,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"teacherId\": \"47\",\n  \"classId\": \"1\",\n  \"subjectId\": \"1\",\n  \"academicYearId\": \"1\",\n  \"semesterId\": \"1\",\n  \"title\": \"واجب الرياضيات 2\",\n  \"description\": \"حل الصفحات 12-14\",\n  \"assignedDate\": \"2026-04-07\",\n  \"dueDate\": \"2026-03-28\"\n}"
+              "raw": "{\n  \"teacherId\": \"47\",\n  \"classId\": \"1\",\n  \"subjectId\": \"1\",\n  \"academicYearId\": \"1\",\n  \"semesterId\": \"1\",\n  \"title\": \"واجب الرياضيات 2\",\n  \"description\": \"حل الصفحات 12-14\",\n  \"assignedDate\": \"2026-04-08\",\n  \"dueDate\": \"2026-03-28\"\n}"
             }
           }
         },
@@ -4716,7 +4962,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"records\": [\n    {\n      \"studentId\": \"1\",\n      \"status\": \"submitted\",\n      \"submittedAt\": \"2026-04-07\",\n      \"notes\": \"تم التسليم\"\n    },\n    {\n      \"studentId\": \"2\",\n      \"status\": \"late\",\n      \"submittedAt\": \"2026-04-07\",\n      \"notes\": \"تسليم متأخر\"\n    }\n  ]\n}"
+              "raw": "{\n  \"records\": [\n    {\n      \"studentId\": \"1\",\n      \"status\": \"submitted\",\n      \"submittedAt\": \"2026-04-08\",\n      \"notes\": \"تم التسليم\"\n    },\n    {\n      \"studentId\": \"2\",\n      \"status\": \"late\",\n      \"submittedAt\": \"2026-04-08\",\n      \"notes\": \"تسليم متأخر\"\n    }\n  ]\n}"
             }
           }
         },
@@ -4907,7 +5153,7 @@
                 "value": "Bearer {{accessToken}}"
               }
             ],
-            "description": "Purpose: Return the canonical parent transport live-status surface for one linked child under a selected parent user.\n\nRoles: admin\n\nAuth: Bearer access token required\n\nNote: Admin-only, read-only preview surface.\n\nNote: Requires parent-child linkage or returns 404 Student not linked to parent.\n\nNote: Wave 1 is polling-based and does not include Firebase or ETA.\n\nDerived data: This response is view-backed and combines active assignment, active trip live status, latest location, and recent event projections.",
+            "description": "Purpose: Return the canonical parent transport live-status surface for one linked child under a selected parent user.\n\nRoles: admin\n\nAuth: Bearer access token required\n\nNote: Admin-only, read-only preview surface.\n\nNote: Requires parent-child linkage or returns 404 Student not linked to parent.\n\nNote: ETA fields are backend-managed snapshots; live GPS streaming is consumed directly from Firebase RTDB after realtime token bootstrap.\n\nDerived data: This response is view-backed and combines active assignment, active trip live status, latest location, and recent event projections.",
             "url": {
               "raw": "{{baseUrl}}/reporting/admin-preview/parents/{{parentUserId}}/students/{{studentId}}/transport/live-status",
               "host": [
@@ -5321,7 +5567,7 @@
                 "value": "Bearer {{accessToken}}"
               }
             ],
-            "description": "Purpose: Return the transport live status for one linked child. Wave 1 is polling-based and does not include Firebase or ETA.\n\nRoles: parent\n\nAuth: Bearer access token required\n\nDerived data: This response is view-backed and combines active assignment, active trip live status, latest location, and recent event projections.",
+            "description": "Purpose: Return the transport live status for one linked child with backend ETA snapshots and Firebase-backed live GPS context.\n\nRoles: parent\n\nAuth: Bearer access token required\n\nDerived data: This response is view-backed and combines active assignment, active trip live status, latest location, and recent event projections.",
             "url": {
               "raw": "{{baseUrl}}/reporting/transport/parent/me/students/{{studentId}}/live-status",
               "host": [

@@ -7,6 +7,9 @@ import {
 } from "../../../common/validators/query.validator";
 import { ROLE_VALUES } from "../../../config/constants";
 import {
+  COMMUNICATION_DEVICE_PLATFORM_VALUES,
+  COMMUNICATION_DEVICE_PROVIDER_VALUES,
+  COMMUNICATION_DEVICE_SUBSCRIPTION_VALUES,
   MESSAGE_LIST_SORT_FIELDS,
   NOTIFICATION_LIST_SORT_FIELDS
 } from "../types/communication.types";
@@ -40,6 +43,10 @@ const optionalTrimmedString = (maxLength: number) =>
 
 const audienceIdsSchema = z.array(idSchema).min(1).optional();
 const audienceRolesSchema = z.array(z.enum(ROLE_VALUES)).min(1).optional();
+const deviceSubscriptionsSchema = z
+  .array(z.enum(COMMUNICATION_DEVICE_SUBSCRIPTION_VALUES))
+  .min(1)
+  .transform((values) => [...new Set(values)]);
 
 const ensureAudienceDefined = (
   data: {
@@ -72,6 +79,10 @@ export const notificationIdParamsSchema = z.object({
 
 export const otherUserIdParamsSchema = z.object({
   otherUserId: idSchema
+});
+
+export const communicationDeviceIdParamsSchema = z.object({
+  deviceId: idSchema
 });
 
 export const availableRecipientsQuerySchema = z
@@ -184,3 +195,35 @@ export const notificationsQuerySchema = buildPaginatedQuerySchema(
     sortBy: "createdAt"
   }
 ).strict();
+
+export const registerCommunicationDeviceSchema = z
+  .object({
+    providerKey: z.enum(COMMUNICATION_DEVICE_PROVIDER_VALUES),
+    platform: z.enum(COMMUNICATION_DEVICE_PLATFORM_VALUES),
+    appId: trimmedString(50),
+    deviceToken: trimmedString(4096),
+    deviceName: trimmedString(100).optional(),
+    subscriptions: deviceSubscriptionsSchema
+  })
+  .strict();
+
+export const updateCommunicationDeviceSchema = z
+  .object({
+    deviceToken: trimmedString(4096).optional(),
+    deviceName: optionalTrimmedString(100),
+    subscriptions: deviceSubscriptionsSchema.optional()
+  })
+  .strict()
+  .superRefine((data, ctx) => {
+    if (
+      data.deviceToken === undefined &&
+      data.deviceName === undefined &&
+      data.subscriptions === undefined
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["deviceToken"],
+        message: "At least one device field must be provided"
+      });
+    }
+  });

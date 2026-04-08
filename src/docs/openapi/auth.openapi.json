@@ -32,12 +32,12 @@
       "DateString": {
         "type": "string",
         "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-        "example": "2026-04-07"
+        "example": "2026-04-08"
       },
       "DateTimeString": {
         "type": "string",
         "format": "date-time",
-        "example": "2026-04-07T00:27:25.627Z"
+        "example": "2026-04-08T07:37:35.672Z"
       },
       "GenericObject": {
         "type": "object",
@@ -346,12 +346,12 @@
           "startDate": {
             "type": "string",
             "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-            "example": "2026-04-07"
+            "example": "2026-04-08"
           },
           "endDate": {
             "type": "string",
             "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-            "example": "2026-04-07"
+            "example": "2026-04-08"
           },
           "isActive": {
             "type": "boolean"
@@ -381,12 +381,12 @@
           "startDate": {
             "type": "string",
             "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-            "example": "2026-04-07"
+            "example": "2026-04-08"
           },
           "endDate": {
             "type": "string",
             "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-            "example": "2026-04-07"
+            "example": "2026-04-08"
           },
           "isActive": {
             "type": "boolean"
@@ -408,12 +408,12 @@
           "startDate": {
             "type": "string",
             "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-            "example": "2026-04-07"
+            "example": "2026-04-08"
           },
           "endDate": {
             "type": "string",
             "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-            "example": "2026-04-07"
+            "example": "2026-04-08"
           },
           "isActive": {
             "type": "boolean"
@@ -443,12 +443,12 @@
           "startDate": {
             "type": "string",
             "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-            "example": "2026-04-07"
+            "example": "2026-04-08"
           },
           "endDate": {
             "type": "string",
             "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-            "example": "2026-04-07"
+            "example": "2026-04-08"
           },
           "isActive": {
             "type": "boolean"
@@ -947,7 +947,7 @@
           "assessmentDate": {
             "type": "string",
             "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-            "example": "2026-04-07"
+            "example": "2026-04-08"
           },
           "isPublished": {
             "type": "boolean"
@@ -973,7 +973,7 @@
           "description": "الوحدة الثانية",
           "maxScore": 20,
           "weight": 10,
-          "assessmentDate": "2026-04-07",
+          "assessmentDate": "2026-04-08",
           "isPublished": true
         }
       },
@@ -1069,7 +1069,7 @@
           "sessionDate": {
             "type": "string",
             "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-            "example": "2026-04-07"
+            "example": "2026-04-08"
           },
           "periodNo": {
             "type": "integer",
@@ -1114,7 +1114,7 @@
           "subjectId": "1",
           "academicYearId": "1",
           "semesterId": "1",
-          "sessionDate": "2026-04-07",
+          "sessionDate": "2026-04-08",
           "periodNo": 1,
           "title": "حصة الرياضيات",
           "notes": "اختبار سريع",
@@ -1212,7 +1212,7 @@
           "semesterId": "1",
           "description": "تأخر عن الطابور",
           "severity": 3,
-          "behaviorDate": "2026-04-07",
+          "behaviorDate": "2026-04-08",
           "teacherId": "47"
         }
       },
@@ -1291,7 +1291,7 @@
           "studentId": "1",
           "routeId": "1",
           "stopId": "1",
-          "startDate": "2026-04-07",
+          "startDate": "2026-04-08",
           "endDate": null
         }
       },
@@ -1299,7 +1299,7 @@
         "type": "object",
         "additionalProperties": true,
         "example": {
-          "endDate": "2026-04-07"
+          "endDate": "2026-04-08"
         }
       },
       "CreateTransportRouteAssignmentRequest": {
@@ -1308,7 +1308,7 @@
         "example": {
           "busId": "1",
           "routeId": "1",
-          "startDate": "2026-04-07",
+          "startDate": "2026-04-08",
           "endDate": null
         }
       },
@@ -1316,7 +1316,7 @@
         "type": "object",
         "additionalProperties": true,
         "example": {
-          "endDate": "2026-04-07"
+          "endDate": "2026-04-08"
         }
       },
       "CreateTripRequest": {
@@ -1335,7 +1335,7 @@
           "tripDate": {
             "type": "string",
             "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-            "example": "2026-04-07"
+            "example": "2026-04-08"
           },
           "tripType": {
             "type": "string",
@@ -1356,7 +1356,7 @@
         "example": {
           "busId": "1",
           "routeId": "1",
-          "tripDate": "2026-04-07",
+          "tripDate": "2026-04-08",
           "tripType": "pickup"
         }
       },
@@ -1371,7 +1371,7 @@
           "tripDate": {
             "type": "string",
             "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-            "example": "2026-04-07"
+            "example": "2026-04-08"
           },
           "tripType": {
             "type": "string",
@@ -1390,7 +1390,7 @@
         "additionalProperties": false,
         "example": {
           "routeAssignmentId": "1",
-          "tripDate": "2026-04-07",
+          "tripDate": "2026-04-08",
           "tripType": "pickup"
         }
       },
@@ -1635,12 +1635,12 @@
           "assignedDate": {
             "type": "string",
             "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-            "example": "2026-04-07"
+            "example": "2026-04-08"
           },
           "dueDate": {
             "type": "string",
             "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-            "example": "2026-04-07"
+            "example": "2026-04-08"
           }
         },
         "required": [
@@ -1659,7 +1659,7 @@
           "semesterId": "1",
           "title": "واجب الرياضيات 2",
           "description": "حل الصفحات 12-14",
-          "assignedDate": "2026-04-07",
+          "assignedDate": "2026-04-08",
           "dueDate": "2026-03-28"
         }
       },
@@ -1691,7 +1691,7 @@
                     {
                       "type": "string",
                       "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-                      "example": "2026-04-07"
+                      "example": "2026-04-08"
                     },
                     {
                       "type": "null"
@@ -1726,13 +1726,13 @@
             {
               "studentId": "1",
               "status": "submitted",
-              "submittedAt": "2026-04-07",
+              "submittedAt": "2026-04-08",
               "notes": "تم التسليم"
             },
             {
               "studentId": "2",
               "status": "late",
-              "submittedAt": "2026-04-07",
+              "submittedAt": "2026-04-08",
               "notes": "تسليم متأخر"
             }
           ]
@@ -2274,8 +2274,26 @@
           "values": {
             "type": "object",
             "properties": {
+              "etaProvider": {
+                "type": "string",
+                "enum": [
+                  "mapbox",
+                  "google"
+                ]
+              },
+              "etaDerivedEstimateEnabled": {
+                "type": "boolean"
+              },
               "googleMapsEtaEnabled": {
                 "type": "boolean"
+              },
+              "etaProviderRefreshIntervalSeconds": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "etaProviderDeviationThresholdMeters": {
+                "type": "integer",
+                "minimum": 1
               }
             },
             "additionalProperties": false,
@@ -2288,9 +2306,10 @@
         ],
         "additionalProperties": false,
         "example": {
-          "reason": "Prepare Google Maps ETA rollout",
+          "reason": "Enable derived ETA between provider refreshes",
           "values": {
-            "googleMapsEtaEnabled": true
+            "etaProvider": "mapbox",
+            "etaDerivedEstimateEnabled": true
           }
         }
       },
@@ -2447,11 +2466,11 @@
         ],
         "additionalProperties": false,
         "example": {
-          "key": "schoolOnboardingEnabled",
-          "value": true,
-          "defaultValue": true,
+          "key": "etaProvider",
+          "value": "mapbox",
+          "defaultValue": "mapbox",
           "source": "default",
-          "description": "Enables the structured school onboarding dry-run/apply workflow.",
+          "description": "Selects the preferred ETA provider. Batch 2 activates runtime provider resolution with mapbox as the default selected provider.",
           "updatedAt": null,
           "updatedBy": null
         }
@@ -2485,29 +2504,53 @@
         ],
         "additionalProperties": false,
         "example": {
-          "group": "imports",
-          "description": "Operational switches for admin-managed import capabilities.",
+          "group": "transportMaps",
+          "description": "Feature flags and provider selection for external map and ETA integrations used by transport surfaces.",
           "entries": [
             {
-              "key": "schoolOnboardingEnabled",
-              "value": true,
-              "defaultValue": true,
+              "key": "etaProvider",
+              "value": "mapbox",
+              "defaultValue": "mapbox",
               "source": "default",
-              "description": "Enables the structured school onboarding dry-run/apply workflow.",
+              "description": "Selects the preferred ETA provider. Batch 2 activates runtime provider resolution with mapbox as the default selected provider.",
               "updatedAt": null,
               "updatedBy": null
             },
             {
-              "key": "csvImportEnabled",
+              "key": "etaDerivedEstimateEnabled",
               "value": true,
+              "defaultValue": true,
+              "source": "default",
+              "description": "Allows the backend worker to derive ETA snapshots locally between provider refreshes using the cached polyline and recent trip locations.",
+              "updatedAt": null,
+              "updatedBy": null
+            },
+            {
+              "key": "googleMapsEtaEnabled",
+              "value": false,
               "defaultValue": false,
-              "source": "override",
-              "description": "Enables future CSV import surfaces when that operational flow is introduced.",
-              "updatedAt": "2026-04-07T00:27:25.627Z",
-              "updatedBy": {
-                "userId": "1",
-                "fullName": "أيمن أحمد محسن الذاهبي"
-              }
+              "source": "default",
+              "description": "Keeps Google Maps ETA execution available when the admin explicitly selects Google as the active provider.",
+              "updatedAt": null,
+              "updatedBy": null
+            },
+            {
+              "key": "etaProviderRefreshIntervalSeconds",
+              "value": 300,
+              "defaultValue": 300,
+              "source": "default",
+              "description": "Minimum seconds between provider refreshes for one active trip ETA snapshot.",
+              "updatedAt": null,
+              "updatedBy": null
+            },
+            {
+              "key": "etaProviderDeviationThresholdMeters",
+              "value": 300,
+              "defaultValue": 300,
+              "source": "default",
+              "description": "Route deviation threshold in meters that forces a fresh provider ETA snapshot.",
+              "updatedAt": null,
+              "updatedBy": null
             }
           ]
         }
@@ -2553,6 +2596,72 @@
               ]
             },
             {
+              "group": "transportMaps",
+              "description": "Feature flags and provider selection for external map and ETA integrations used by transport surfaces.",
+              "entries": [
+                {
+                  "key": "etaProvider",
+                  "value": "mapbox",
+                  "defaultValue": "mapbox",
+                  "source": "default",
+                  "description": "Selects the preferred ETA provider. Batch 2 activates runtime provider resolution with mapbox as the default selected provider.",
+                  "updatedAt": null,
+                  "updatedBy": null
+                },
+                {
+                  "key": "etaDerivedEstimateEnabled",
+                  "value": true,
+                  "defaultValue": true,
+                  "source": "default",
+                  "description": "Allows the backend worker to derive ETA snapshots locally between provider refreshes using the cached polyline and recent trip locations.",
+                  "updatedAt": null,
+                  "updatedBy": null
+                },
+                {
+                  "key": "googleMapsEtaEnabled",
+                  "value": false,
+                  "defaultValue": false,
+                  "source": "default",
+                  "description": "Keeps Google Maps ETA execution available when the admin explicitly selects Google as the active provider.",
+                  "updatedAt": null,
+                  "updatedBy": null
+                },
+                {
+                  "key": "etaProviderRefreshIntervalSeconds",
+                  "value": 300,
+                  "defaultValue": 300,
+                  "source": "default",
+                  "description": "Minimum seconds between provider refreshes for one active trip ETA snapshot.",
+                  "updatedAt": null,
+                  "updatedBy": null
+                },
+                {
+                  "key": "etaProviderDeviationThresholdMeters",
+                  "value": 300,
+                  "defaultValue": 300,
+                  "source": "default",
+                  "description": "Route deviation threshold in meters that forces a fresh provider ETA snapshot.",
+                  "updatedAt": null,
+                  "updatedBy": null
+                }
+              ]
+            },
+            {
+              "group": "analytics",
+              "description": "Feature flags for external analytics and AI-assisted insight generation.",
+              "entries": [
+                {
+                  "key": "aiAnalyticsEnabled",
+                  "value": false,
+                  "defaultValue": false,
+                  "source": "default",
+                  "description": "Enables AI analytics capabilities when the analytics provider phase is implemented.",
+                  "updatedAt": null,
+                  "updatedBy": null
+                }
+              ]
+            },
+            {
               "group": "imports",
               "description": "Operational switches for admin-managed import capabilities.",
               "entries": [
@@ -2571,7 +2680,7 @@
                   "defaultValue": false,
                   "source": "override",
                   "description": "Enables future CSV import surfaces when that operational flow is introduced.",
-                  "updatedAt": "2026-04-07T00:27:25.627Z",
+                  "updatedAt": "2026-04-08T07:37:35.672Z",
                   "updatedBy": {
                     "userId": "1",
                     "fullName": "أيمن أحمد محسن الذاهبي"
@@ -2702,7 +2811,7 @@
           "newValue": true,
           "reason": "Enable pilot CSV workflow",
           "requestId": "6b55c8c8-63ce-4c45-bf77-4c7b9a7547d5",
-          "changedAt": "2026-04-07T00:27:25.627Z",
+          "changedAt": "2026-04-08T07:37:35.672Z",
           "changedBy": {
             "userId": "1",
             "fullName": "أيمن أحمد محسن الذاهبي"
@@ -2761,7 +2870,7 @@
             },
             {
               "providerKey": "transportMaps",
-              "featureEnabled": false,
+              "featureEnabled": true,
               "pendingOutboxCount": 0,
               "failedOutboxCount": 0
             },
@@ -2771,6 +2880,114 @@
               "pendingOutboxCount": 0,
               "failedOutboxCount": 0
             }
+          ]
+        }
+      },
+      "RegisterCommunicationDeviceRequest": {
+        "type": "object",
+        "properties": {
+          "providerKey": {
+            "type": "string",
+            "enum": [
+              "fcm"
+            ],
+            "example": "fcm"
+          },
+          "platform": {
+            "type": "string",
+            "enum": [
+              "android",
+              "ios",
+              "web"
+            ],
+            "example": "android"
+          },
+          "appId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 50
+          },
+          "deviceToken": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096
+          },
+          "deviceName": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "subscriptions": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "enum": [
+                "transportRealtime"
+              ],
+              "example": "transportRealtime"
+            }
+          }
+        },
+        "required": [
+          "providerKey",
+          "platform",
+          "appId",
+          "deviceToken",
+          "subscriptions"
+        ],
+        "additionalProperties": false,
+        "example": {
+          "providerKey": "fcm",
+          "platform": "android",
+          "appId": "ishraf-parent-app",
+          "deviceToken": "fcm-device-token-sample",
+          "deviceName": "Parent Pixel 8",
+          "subscriptions": [
+            "transportRealtime"
+          ]
+        }
+      },
+      "UpdateCommunicationDeviceRequest": {
+        "type": "object",
+        "properties": {
+          "deviceToken": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096
+          },
+          "deviceName": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "subscriptions": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "enum": [
+                "transportRealtime"
+              ],
+              "example": "transportRealtime"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "minProperties": 1,
+        "example": {
+          "deviceName": "Updated Parent Pixel 8",
+          "subscriptions": [
+            "transportRealtime"
           ]
         }
       }
@@ -3052,8 +3269,8 @@
                     "phone": null,
                     "role": "admin",
                     "isActive": true,
-                    "createdAt": "2026-04-07T00:27:25.627Z",
-                    "updatedAt": "2026-04-07T00:27:25.627Z"
+                    "createdAt": "2026-04-08T07:37:35.672Z",
+                    "updatedAt": "2026-04-08T07:37:35.672Z"
                   }
                 }
               }
@@ -3244,8 +3461,8 @@
                     "phone": null,
                     "role": "admin",
                     "isActive": true,
-                    "createdAt": "2026-04-07T00:27:25.627Z",
-                    "updatedAt": "2026-04-07T00:27:25.627Z"
+                    "createdAt": "2026-04-08T07:37:35.672Z",
+                    "updatedAt": "2026-04-08T07:37:35.672Z"
                   }
                 }
               }
@@ -3343,8 +3560,8 @@
                     "phone": null,
                     "role": "admin",
                     "isActive": true,
-                    "createdAt": "2026-04-07T00:27:25.627Z",
-                    "updatedAt": "2026-04-07T00:27:25.627Z"
+                    "createdAt": "2026-04-08T07:37:35.672Z",
+                    "updatedAt": "2026-04-08T07:37:35.672Z"
                   }
                 }
               }

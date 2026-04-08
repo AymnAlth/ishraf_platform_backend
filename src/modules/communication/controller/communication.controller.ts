@@ -4,6 +4,7 @@ import { buildSuccessResponse } from "../../../common/base/http-response";
 import type { AuthenticatedUser } from "../../../common/types/auth.types";
 import type {
   AvailableRecipientsQueryDto,
+  CommunicationDeviceIdParamsDto,
   CommunicationMessageIdParamsDto,
   CommunicationNotificationIdParamsDto,
   CommunicationOtherUserIdParamsDto,
@@ -13,9 +14,11 @@ import type {
   CreateNotificationRequestDto,
   InboxQueryDto,
   NotificationsQueryDto,
+  RegisterCommunicationDeviceRequestDto,
   SendBulkMessageRequestDto,
   SendMessageRequestDto,
-  SentQueryDto
+  SentQueryDto,
+  UpdateCommunicationDeviceRequestDto
 } from "../dto/communication.dto";
 import type { CommunicationService } from "../service/communication.service";
 
@@ -141,5 +144,31 @@ export class CommunicationController {
       params.notificationId
     );
     res.status(200).json(buildSuccessResponse("Notification marked as read", response));
+  }
+
+  async registerDevice(req: Request, res: Response): Promise<void> {
+    const payload = req.validated?.body as RegisterCommunicationDeviceRequestDto;
+    const response = await this.communicationService.registerDevice(assertAuthUser(req), payload);
+    res.status(201).json(buildSuccessResponse("Device registered successfully", response));
+  }
+
+  async updateDevice(req: Request, res: Response): Promise<void> {
+    const params = req.validated?.params as CommunicationDeviceIdParamsDto;
+    const payload = req.validated?.body as UpdateCommunicationDeviceRequestDto;
+    const response = await this.communicationService.updateDevice(
+      assertAuthUser(req),
+      params.deviceId,
+      payload
+    );
+    res.status(200).json(buildSuccessResponse("Device updated successfully", response));
+  }
+
+  async unregisterDevice(req: Request, res: Response): Promise<void> {
+    const params = req.validated?.params as CommunicationDeviceIdParamsDto;
+    const response = await this.communicationService.unregisterDevice(
+      assertAuthUser(req),
+      params.deviceId
+    );
+    res.status(200).json(buildSuccessResponse("Device unregistered successfully", response));
   }
 }

@@ -1,6 +1,11 @@
-import { logger } from "../../../config/logger";
+import { createHash } from "node:crypto";
+
+import { requestExecutionContextService } from "../../../common/services/request-execution-context.service";
 import { toDateOnly } from "../../../common/utils/date.util";
+import { logger } from "../../../config/logger";
+import { IntegrationOutboxRepository } from "../../../common/repositories/integration-outbox.repository";
 import { CommunicationRepository } from "../../communication/repository/communication.repository";
+import type { SystemSettingsReadService } from "../../system-settings/service/system-settings-read.service";
 import { AutomationRepository } from "../repository/automation.repository";
 import type {
   AutomationPort,
@@ -8,14 +13,65 @@ import type {
   ParentNotificationRecipient,
   RouteParentNotificationRecipient,
   StudentAbsentAutomationContext,
-  StudentDroppedOffAutomationContext,
-  TripStartedAutomationContext
+  TripEndedAutomationContext,
+  TripStartedAutomationContext,
+  TripStudentEventAutomationContext
 } from "../types/automation.types";
+
+interface TransportPushPayload {
+  targetUserIds: string[];
+  subscriptionKey: "transportRealtime";
+  title: string;
+  body: string;
+  data: {
+    eventType: string;
+    tripId: string;
+    routeId: string;
+    studentId?: string;
+    notificationType?: string;
+  };
+  referenceType: string;
+  referenceId: string;
+}
+
+const buildTargetHash = (userIds: string[]): string =>
+  createHash("sha256").update([...new Set(userIds)].sort().join(",")).digest("hex").slice(0, 20);
+
+const buildStudentEventPresentation = (
+  context: TripStudentEventAutomationContext
+): { title: string; body: string; notificationType: string; dataEventType: string } => {
+  if (context.eventType === "boarded") {
+    return {
+      title: "صعود الطالب إلى الحافلة",
+      body: `تم تسجيل صعود الطالب ${context.studentName} إلى حافلة النقل${context.stopName ? ` عند نقطة ${context.stopName}` : ""}.`,
+      notificationType: "transport_student_boarded",
+      dataEventType: "boarded"
+    };
+  }
+
+  if (context.eventType === "absent") {
+    return {
+      title: "غياب الطالب عن رحلة النقل",
+      body: `تم تسجيل غياب الطالب ${context.studentName} عن رحلة النقل.`,
+      notificationType: "transport_student_absent",
+      dataEventType: "absent"
+    };
+  }
+
+  return {
+    title: "وصول الطالب",
+    body: `تم تسجيل نزول الطالب ${context.studentName} من حافلة النقل${context.stopName ? ` عند نقطة ${context.stopName}` : ""}.`,
+    notificationType: "transport_student_dropped_off",
+    dataEventType: "dropped_off"
+  };
+};
 
 export class AutomationService implements AutomationPort {
   constructor(
     private readonly automationRepository: AutomationRepository = new AutomationRepository(),
-    private readonly communicationRepository: CommunicationRepository = new CommunicationRepository()
+    private readonly communicationRepository: CommunicationRepository = new CommunicationRepository(),
+    private readonly systemSettingsReadService: SystemSettingsReadService | null = null,
+    private readonly integrationOutboxRepository: IntegrationOutboxRepository = new IntegrationOutboxRepository()
   ) {}
 
   async onStudentAbsent(context: StudentAbsentAutomationContext): Promise<void> {
@@ -92,13 +148,63 @@ export class AutomationService implements AutomationPort {
         message: `بدأت رحلة النقل للطالب ${recipient.studentFullName} على المسار ${context.routeName} بتاريخ ${tripDate}.`
       })
     );
+
+    await this.enqueueTransportPush(
+      "trip_started",
+      {
+        aggregateType: "trip",
+        aggregateId: context.tripId,
+        title: "بدء رحلة الحافلة",
+        body: `بدأت رحلة النقل على المسار ${context.routeName} بتاريخ ${tripDate}.`,
+        data: {
+          eventType: "trip_started",
+          tripId: context.tripId,
+          routeId: context.routeId,
+          notificationType: "transport_trip_started"
+        },
+        referenceType: "trip",
+        referenceId: context.tripId
+      },
+      recipients.map((recipient) => recipient.parentUserId)
+    );
   }
 
-  async onStudentDroppedOff(
-    context: StudentDroppedOffAutomationContext
-  ): Promise<void> {
+  async onTripEnded(context: TripEndedAutomationContext): Promise<void> {
+    const tripDate = toDateOnly(context.tripDate);
     const recipients = await this.safeLoadRecipients(
-      "student_dropped_off",
+      "trip_ended",
+      "trip",
+      context.tripId,
+      () => this.automationRepository.listRouteParentRecipients(context.routeId, tripDate)
+    );
+
+    if (!recipients) {
+      return;
+    }
+
+    await this.enqueueTransportPush(
+      "trip_ended",
+      {
+        aggregateType: "trip",
+        aggregateId: context.tripId,
+        title: "انتهاء رحلة الحافلة",
+        body: `انتهت رحلة النقل على المسار ${context.routeName} بتاريخ ${tripDate}.`,
+        data: {
+          eventType: "trip_ended",
+          tripId: context.tripId,
+          routeId: context.routeId,
+          notificationType: "transport_trip_ended"
+        },
+        referenceType: "trip",
+        referenceId: context.tripId
+      },
+      recipients.map((recipient) => recipient.parentUserId)
+    );
+  }
+
+  async onTripStudentEventRecorded(context: TripStudentEventAutomationContext): Promise<void> {
+    const recipients = await this.safeLoadRecipients(
+      "trip_student_event",
       "trip_student_event",
       context.tripStudentEventId,
       () => this.automationRepository.listParentRecipientsForStudent(context.studentId)
@@ -108,16 +214,40 @@ export class AutomationService implements AutomationPort {
       return;
     }
 
-    await this.notifyRecipients(
-      "student_dropped_off",
+    const presentation = buildStudentEventPresentation(context);
+
+    if (context.eventType === "dropped_off") {
+      await this.notifyRecipients(
+        "student_dropped_off",
+        "trip_student_event",
+        context.tripStudentEventId,
+        recipients,
+        () => ({
+          notificationType: presentation.notificationType,
+          title: presentation.title,
+          message: presentation.body
+        })
+      );
+    }
+
+    await this.enqueueTransportPush(
       "trip_student_event",
-      context.tripStudentEventId,
-      recipients,
-      () => ({
-        notificationType: "transport_student_dropped_off",
-        title: "وصول الطالب",
-        message: `تم تسجيل نزول الطالب ${context.studentName} من حافلة النقل عند نقطة ${context.stopName}.`
-      })
+      {
+        aggregateType: "trip_student_event",
+        aggregateId: context.tripStudentEventId,
+        title: presentation.title,
+        body: presentation.body,
+        data: {
+          eventType: presentation.dataEventType,
+          tripId: context.tripId,
+          routeId: context.routeId,
+          studentId: context.studentId,
+          notificationType: presentation.notificationType
+        },
+        referenceType: "trip_student_event",
+        referenceId: context.tripStudentEventId
+      },
+      recipients.map((recipient) => recipient.parentUserId)
     );
   }
 
@@ -195,6 +325,59 @@ export class AutomationService implements AutomationPort {
           "Automation notification delivery failed"
         );
       }
+    }
+  }
+
+  private async enqueueTransportPush(
+    automationEvent: string,
+    payload: Omit<TransportPushPayload, "targetUserIds" | "subscriptionKey"> & {
+      aggregateType: string;
+      aggregateId: string;
+    },
+    parentUserIds: string[]
+  ): Promise<void> {
+    try {
+      const pushSettings = await this.systemSettingsReadService?.getPushNotificationsSettings();
+
+      if (!pushSettings?.fcmEnabled || !pushSettings.transportRealtimeEnabled) {
+        return;
+      }
+
+      const adminUserIds = await this.automationRepository.listActiveAdminUserIds();
+      const targetUserIds = [...new Set([...parentUserIds, ...adminUserIds])];
+
+      if (targetUserIds.length === 0) {
+        return;
+      }
+
+      await this.integrationOutboxRepository.enqueueEvent({
+        providerKey: "pushNotifications",
+        eventType: `fcm.transport.${automationEvent}`,
+        aggregateType: payload.aggregateType,
+        aggregateId: payload.aggregateId,
+        payloadJson: {
+          targetUserIds,
+          subscriptionKey: "transportRealtime",
+          title: payload.title,
+          body: payload.body,
+          data: payload.data,
+          referenceType: payload.referenceType,
+          referenceId: payload.referenceId
+        } satisfies TransportPushPayload,
+        headersJson: {},
+        idempotencyKey: `fcm:fcm.transport.${automationEvent}:${payload.referenceType}:${payload.referenceId}:${buildTargetHash(targetUserIds)}`,
+        requestId: requestExecutionContextService.getCurrentContext()?.requestId ?? null
+      });
+    } catch (error) {
+      logger.error(
+        {
+          automationEvent,
+          aggregateType: payload.aggregateType,
+          aggregateId: payload.aggregateId,
+          err: error
+        },
+        "Automation transport push enqueue failed"
+      );
     }
   }
 }

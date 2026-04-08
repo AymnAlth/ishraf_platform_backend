@@ -14,5 +14,6 @@ export const communicationPolicies = {
   manageAnnouncements: adminOnly,
   readNotifications: activeUser,
   manageNotifications: adminOnly,
-  bulkNotifications: adminOnly
+  bulkNotifications: adminOnly,
+  deviceRegistry: activeUser
 } as const;

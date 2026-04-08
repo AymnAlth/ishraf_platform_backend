@@ -95,7 +95,7 @@
 | --- | --- | --- |
 | `BUS_STATUS` | `active`, `inactive`, `maintenance` | حالة الحافلة |
 | `TRIP_TYPE` | `pickup`, `dropoff` | نوع الرحلة |
-| `TRIP_STATUS` | `scheduled`, `started`, `ended`, `cancelled` | حالة الرحلة |
+| `TRIP_STATUS` | `scheduled`, `started`, `ended`, `completed`, `cancelled` | حالة الرحلة |
 | `TRIP_STUDENT_EVENT_TYPE` | `boarded`, `dropped_off`, `absent` | نوع حدث الطالب داخل الرحلة |
 | `HOME_LOCATION_STATUS` | `pending`, `approved`, `rejected` | حالة موقع المنزل |
 

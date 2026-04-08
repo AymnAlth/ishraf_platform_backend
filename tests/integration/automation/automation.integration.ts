@@ -1,6 +1,7 @@
 import request from "supertest";
 import { describe, expect, it } from "vitest";
 
+import { IntegrationOutboxRepository } from "../../../src/common/repositories/integration-outbox.repository";
 import type { IntegrationTestContext } from "../../helpers/integration-context";
 
 export const registerAutomationIntegrationTests = (
@@ -223,6 +224,51 @@ export const registerAutomationIntegrationTests = (
       ).toHaveLength(1);
       expect(firstParentAfterDroppedOff.body.data.unreadCount).toBeGreaterThanOrEqual(4);
     });
+
+    it("claims outbox batches safely with FOR UPDATE SKIP LOCKED semantics", async () => {
+      const repository = new IntegrationOutboxRepository();
+
+      await context.pool.query(
+        `
+          INSERT INTO integration_outbox (
+            provider_key,
+            event_type,
+            aggregate_type,
+            aggregate_id,
+            payload_json,
+            headers_json
+          )
+          VALUES
+            ('pushNotifications', 'fcm.transport.trip_started', 'trip', '1', '{}'::jsonb, '{}'::jsonb),
+            ('pushNotifications', 'fcm.transport.trip_started', 'trip', '2', '{}'::jsonb, '{}'::jsonb),
+            ('pushNotifications', 'fcm.transport.trip_started', 'trip', '3', '{}'::jsonb, '{}'::jsonb)
+        `
+      );
+
+      const firstClient = await context.pool.connect();
+      const secondClient = await context.pool.connect();
+
+      try {
+        await firstClient.query("BEGIN");
+        await secondClient.query("BEGIN");
+
+        const [firstBatch, secondBatch] = await Promise.all([
+          repository.claimDispatchBatch("pushNotifications", 2, firstClient),
+          repository.claimDispatchBatch("pushNotifications", 2, secondClient)
+        ]);
+
+        const claimedIds = [...firstBatch, ...secondBatch].map((row) => row.id);
+        const uniqueClaimedIds = new Set(claimedIds);
+
+        expect(firstBatch).toHaveLength(2);
+        expect(secondBatch).toHaveLength(1);
+        expect(uniqueClaimedIds.size).toBe(3);
+      } finally {
+        await firstClient.query("ROLLBACK");
+        await secondClient.query("ROLLBACK");
+        firstClient.release();
+        secondClient.release();
+      }
+    });
   });
 };
-

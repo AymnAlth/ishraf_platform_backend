@@ -9,6 +9,14 @@
 
 إذا تعارض أي نص في هذا الملف مع الكود، فالكود هو الحقيقة.
 
+حالة المزامنة الحالية (Project-wide docs audit):
+
+- تاريخ التدقيق: `2026-04-08`
+- عدد endpoints الحية: `163` (يشمل `/health` و`/health/ready`)
+- تغطية التوثيق:
+  - `src/docs/openapi/ishraf-platform.openapi.json` = `163/163`
+  - `src/docs/postman/ishraf-platform.postman_collection.json` = `163/163`
+
 ## Base URLs
 
 ```text
@@ -192,12 +200,20 @@ Local Root:  http://localhost:4000
   - `featureEnabled`
   - `pendingOutboxCount`
   - `failedOutboxCount`
-- أول consumer حي في هذه الدفعة هو `admin-imports`:
-  - إذا كانت `imports.schoolOnboardingEnabled = false`
+- `transportMaps.etaProvider` هو اختيار إداري عام للمزوّد المفضل بين `mapbox` و`google`.
+- default الحالي لـ `transportMaps.etaProvider` هو `mapbox` لحماية الميزانية.
+- `transportMaps.etaDerivedEstimateEnabled` يحدد ما إذا كان الباك يحسب ETA محليًا بين دورات تحديث المزود الخارجي.
+- runtime provider selection فعّال في الدفعة الحالية عبر `transportMaps.etaProvider`، مع `mapbox` كخيار افتراضي.
+- المستهلكون الأحياء حاليًا:
+  - `imports.schoolOnboardingEnabled` لتعطيل أو تفعيل school onboarding import
+  - `pushNotifications.fcmEnabled` و`pushNotifications.transportRealtimeEnabled` لتفعيل FCM/realtime transport
+  - `transportMaps.etaProvider` و`transportMaps.etaDerivedEstimateEnabled` كجزء من admin control plane التشغيلي للخرائط والـ ETA
+- إذا كانت `imports.schoolOnboardingEnabled = false`:
   - ترفض school onboarding endpoints بـ `409 FEATURE_DISABLED`
+- إذا كانت `pushNotifications.transportRealtimeEnabled = false`:
+  - `GET /transport/realtime-token` ترفض بـ `409 FEATURE_DISABLED`
 
 ## Attendance
-
 الموديول: `src/modules/attendance`
 
 الصلاحيات:
@@ -295,9 +311,11 @@ Local Root:  http://localhost:4000
 
 الصلاحيات:
 
-- `admin`: static data, assignments, route assignments, home locations
+- `admin`: static data, assignments, route assignments, home locations, transport monitoring
 - `admin`, `driver`: trips access/operations
 - `driver`: `GET /transport/route-assignments/me`
+- `admin`, `parent`, `driver`: `GET /transport/realtime-token`
+- `parent`: `GET /transport/trips/:tripId/live-status`
 
 المسارات:
 
@@ -314,24 +332,59 @@ Local Root:  http://localhost:4000
 - `GET /transport/route-assignments`
 - `GET /transport/route-assignments/me`
 - `PATCH /transport/route-assignments/:id/deactivate`
+- `GET /transport/realtime-token`
 - `POST /transport/trips`
 - `POST /transport/trips/ensure-daily`
 - `GET /transport/trips`
 - `GET /transport/trips/:id`
+- `GET /transport/trips/:id/eta`
 - `GET /transport/trips/:id/students`
 - `POST /transport/trips/:id/start`
 - `POST /transport/trips/:id/end`
 - `POST /transport/trips/:id/locations`
 - `POST /transport/trips/:id/events`
 - `GET /transport/trips/:id/events`
+- `POST /transport/trips/:tripId/stops/:stopId/attendance`
+- `GET /transport/trips/:tripId/live-status`
+- `GET /transport/trips/:tripId/summary`
 - `GET /transport/students/:studentId/home-location`
 - `PUT /transport/students/:studentId/home-location`
 - `DELETE /transport/students/:studentId/home-location`
 
 قواعد تشغيلية:
 
+- `tripStatus` التشغيلي يشمل: `scheduled`, `started`, `ended`, `completed`, `cancelled`.
 - driver references في الطبقات الحديثة تعتمد `users.id`.
-- السطوح التشغيلية الخاصة بالرحلات live وتخضع لملكية route assignment/trip.
+- `GET /transport/realtime-token?tripId=...` لا تحمل GPS نفسها؛ بل تصدر Firebase custom token للوصول المباشر إلى RTDB.
+- القرار access-based:
+  - `driver` المالك للرحلة يحصل على `write`
+  - `parent` المرتبط فعليًا برحلة الطالب يحصل على `read`
+  - `admin` يحصل على `read`
+- إذا كانت `pushNotifications.transportRealtimeEnabled = false` يعود `409 FEATURE_DISABLED`.
+- إذا لم تكن أسرار Firebase مضبوطة في env يعود `409 INTEGRATION_NOT_CONFIGURED`.
+- REST/PostgreSQL تبقيان مصدر الحقيقة لحالة الرحلة وأحداث الركوب/الإنزال.
+- GPS عالية التردد لا تمر عبر الباك بعد إصدار token؛ الاتصال الحي يذهب مباشرة إلى Firebase RTDB.
+- مسار RTDB الحي:
+  - `/transport/live-trips/{tripId}/latestLocation`
+- `GET /transport/trips/:id/eta` يعيد Snapshot ETA محسوبة داخل الباك (provider snapshot أو derived estimate) وليست قناة GPS live.
+- `GET /transport/trips/:tripId/live-status` يعيد payload موحدًا لولي الأمر:
+  - `tripStatus`
+  - `firebaseRtdbPath`
+  - `myStopSnapshot`
+  - `routePolyline`
+- `POST /transport/trips/:tripId/stops/:stopId/attendance`:
+  - body: `attendances: [{ studentId, status: present|absent, notes? }]`
+  - duplicate `studentId` مرفوض
+  - إذا كانت `tripType=pickup` فـ `present -> boarded`
+  - إذا كانت `tripType=dropoff` فـ `present -> dropped_off`
+  - `absent -> absent`
+  - يغلق stop snapshot، وإذا اكتملت كل المحطات تتحول الرحلة تلقائيًا إلى `completed`.
+- `GET /transport/trips/:tripId/summary`:
+  - admin-only
+  - متاح فقط عند `tripStatus=completed`
+  - غير ذلك يعود `409` بكود:
+    - `TRIP_SUMMARY_REQUIRES_COMPLETED_STATUS`
+- `POST /transport/trips/:id/start`, `POST /transport/trips/:id/end`, و`POST /transport/trips/:id/events` تكتب الحقيقة في PostgreSQL أولًا ثم تنشئ FCM wake-up work داخل `integration_outbox` عندما تكون feature flags مفعلة.
 
 ## Communication
 
@@ -339,11 +392,14 @@ Local Root:  http://localhost:4000
 
 الصلاحيات:
 
-- كل user نشط: الرسائل، announcements feed, notifications me
+- كل user نشط: device registry, الرسائل، announcements feed, notifications me
 - `admin`: bulk messages, announcements management, notifications creation/bulk
 
 المسارات:
 
+- `POST /communication/devices`
+- `PATCH /communication/devices/:deviceId`
+- `DELETE /communication/devices/:deviceId`
 - `GET /communication/recipients`
 - `POST /communication/messages`
 - `POST /communication/messages/bulk`
@@ -361,10 +417,18 @@ Local Root:  http://localhost:4000
 
 قواعد تشغيلية:
 
+- `POST /communication/devices` تسجل أو تعيد ربط token الجهاز بالمستخدم الحالي داخل transaction واحدة.
+- provider المدعوم في هذه المرحلة هو `fcm` فقط.
+- subscription المدعومة في هذه المرحلة هي `transportRealtime` فقط.
+- endpoints الأجهزة ownership-scoped:
+  - المستخدم يحدث أو يلغي تسجيل أجهزته هو فقط
+  - admin لا يدير أجهزة الآخرين من هذه السطوح
+- device registration تبقى متاحة حتى لو `pushNotifications.fcmEnabled = false` حتى تسمح بالتهيئة قبل التفعيل.
 - bulk endpoints admin-only.
 - bulk messages تمنع self-targeting.
 - announcements تدعم `targetRoles[]` مع إبقاء `targetRole` كحقل توافق.
 - لا يوجد group thread surface؛ direct multi-target ينشئ one-to-one copies.
+- FCM push هنا wake-up channel فقط؛ التطبيق يعيد قراءة REST الحالية بعد وصول الإشارة.
 
 ## Reporting
 
@@ -438,3 +502,6 @@ Local Root:  http://localhost:4000
 - Postman auth subset: `src/docs/postman/auth.postman_collection.json`
 - Postman staging environment: `src/docs/postman/ishraf-platform.staging.postman_environment.json`
 - Frontend execution docs: `src/docs/frontend-execution/README.md`
+
+
+

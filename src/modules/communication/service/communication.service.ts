@@ -12,6 +12,7 @@ import type {
   AvailableRecipientResponseDto,
   AvailableRecipientsQueryDto,
   CommunicationBulkDeliveryResponseDto,
+  CommunicationDeviceResponseDto,
   ConversationQueryDto,
   CreateAnnouncementRequestDto,
   CreateBulkNotificationRequestDto,
@@ -22,19 +23,25 @@ import type {
   NotificationResponseDto,
   NotificationsListResponseDto,
   NotificationsQueryDto,
+  RegisterCommunicationDeviceRequestDto,
   SendBulkMessageRequestDto,
   SendMessageRequestDto,
-  SentQueryDto
+  SentQueryDto,
+  UnregisterCommunicationDeviceResponseDto,
+  UpdateCommunicationDeviceRequestDto
 } from "../dto/communication.dto";
 import {
   toAnnouncementResponseDto,
   toAvailableRecipientResponseDto,
-  toPaginatedInboxResponseDto,
+  toCommunicationDeviceResponseDto,
   toMessageResponseDto,
   toNotificationResponseDto,
-  toPaginatedNotificationsResponseDto
+  toPaginatedInboxResponseDto,
+  toPaginatedNotificationsResponseDto,
+  toUnregisterCommunicationDeviceResponseDto
 } from "../mapper/communication.mapper";
 import type { CommunicationRepository } from "../repository/communication.repository";
+import type { CommunicationDeviceSubscriptionKey } from "../types/communication.types";
 
 type CommunicationTransactionRunner = <T>(
   callback: (queryable: Queryable) => Promise<T>
@@ -120,6 +127,10 @@ const normalizePaginatedRows = <T>(
 const dedupeStrings = (values: string[] | undefined): string[] => [...new Set(values ?? [])];
 
 const dedupeRoles = (values: Role[] | undefined): Role[] => [...new Set(values ?? [])];
+
+const dedupeSubscriptions = (
+  values: CommunicationDeviceSubscriptionKey[] | undefined
+): CommunicationDeviceSubscriptionKey[] => [...new Set(values ?? [])];
 
 const defaultInboxQuery = (): InboxQueryDto => ({
   page: DEFAULT_PAGE,
@@ -537,5 +548,143 @@ export class CommunicationService {
     );
 
     return toNotificationResponseDto(updatedNotification);
+  }
+
+  async registerDevice(
+    authUser: AuthenticatedUser,
+    payload: RegisterCommunicationDeviceRequestDto
+  ): Promise<CommunicationDeviceResponseDto> {
+    const subscriptions = dedupeSubscriptions(payload.subscriptions);
+
+    return this.withTransaction(async (queryable) => {
+      const existingDevice = await this.communicationRepository.lockDeviceByProviderToken(
+        payload.providerKey,
+        payload.deviceToken,
+        queryable
+      );
+      const lastSeenAt = new Date();
+      let deviceId = existingDevice?.deviceId;
+
+      if (existingDevice) {
+        await this.communicationRepository.updateDevice(
+          existingDevice.deviceId,
+          {
+            userId: authUser.userId,
+            providerKey: payload.providerKey,
+            platform: payload.platform,
+            appId: payload.appId,
+            deviceToken: payload.deviceToken,
+            deviceName: payload.deviceName ?? existingDevice.deviceName,
+            isActive: true,
+            lastSeenAt,
+            unregisteredAt: null
+          },
+          queryable
+        );
+      } else {
+        deviceId = await this.communicationRepository.createDevice(
+          {
+            userId: authUser.userId,
+            providerKey: payload.providerKey,
+            platform: payload.platform,
+            appId: payload.appId,
+            deviceToken: payload.deviceToken,
+            deviceName: payload.deviceName ?? null,
+            isActive: true,
+            lastSeenAt,
+            unregisteredAt: null
+          },
+          queryable
+        );
+      }
+
+      await this.communicationRepository.replaceDeviceSubscriptions(deviceId as string, subscriptions, queryable);
+
+      const device = assertFound(
+        await this.communicationRepository.findDeviceByIdForUser(deviceId as string, authUser.userId, queryable),
+        "Device"
+      );
+
+      return toCommunicationDeviceResponseDto(device);
+    });
+  }
+
+  async updateDevice(
+    authUser: AuthenticatedUser,
+    deviceId: string,
+    payload: UpdateCommunicationDeviceRequestDto
+  ): Promise<CommunicationDeviceResponseDto> {
+    return this.withTransaction(async (queryable) => {
+      const currentDevice = assertFound(
+        await this.communicationRepository.lockDeviceByIdForUser(deviceId, authUser.userId, queryable),
+        "Device"
+      );
+      const nextDeviceToken = payload.deviceToken ?? currentDevice.deviceToken;
+
+      if (nextDeviceToken !== currentDevice.deviceToken) {
+        const conflictingDevice = await this.communicationRepository.lockDeviceByProviderToken(
+          currentDevice.providerKey,
+          nextDeviceToken,
+          queryable
+        );
+
+        if (conflictingDevice && conflictingDevice.deviceId !== currentDevice.deviceId) {
+          await this.communicationRepository.deleteDeviceHard(conflictingDevice.deviceId, queryable);
+        }
+      }
+
+      await this.communicationRepository.updateDevice(
+        currentDevice.deviceId,
+        {
+          userId: authUser.userId,
+          providerKey: currentDevice.providerKey,
+          platform: currentDevice.platform,
+          appId: currentDevice.appId,
+          deviceToken: nextDeviceToken,
+          deviceName:
+            payload.deviceName === undefined ? currentDevice.deviceName : payload.deviceName,
+          isActive: true,
+          lastSeenAt: new Date(),
+          unregisteredAt: null
+        },
+        queryable
+      );
+
+      if (payload.subscriptions !== undefined) {
+        await this.communicationRepository.replaceDeviceSubscriptions(
+          currentDevice.deviceId,
+          dedupeSubscriptions(payload.subscriptions),
+          queryable
+        );
+      }
+
+      const device = assertFound(
+        await this.communicationRepository.findDeviceByIdForUser(currentDevice.deviceId, authUser.userId, queryable),
+        "Device"
+      );
+
+      return toCommunicationDeviceResponseDto(device);
+    });
+  }
+
+  async unregisterDevice(
+    authUser: AuthenticatedUser,
+    deviceId: string
+  ): Promise<UnregisterCommunicationDeviceResponseDto> {
+    return this.withTransaction(async (queryable) => {
+      assertFound(
+        await this.communicationRepository.lockDeviceByIdForUser(deviceId, authUser.userId, queryable),
+        "Device"
+      );
+
+      await this.communicationRepository.softUnregisterDevice(deviceId, queryable);
+
+      const device = assertFound(
+        await this.communicationRepository.findDeviceByIdForUser(deviceId, authUser.userId, queryable),
+        "Device"
+      );
+
+      return toUnregisterCommunicationDeviceResponseDto(device);
+    });
   }
 }

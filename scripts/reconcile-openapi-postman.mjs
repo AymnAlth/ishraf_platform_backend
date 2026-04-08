@@ -632,6 +632,41 @@ const examples = {
       totalEvents: 1
     }
   },
+  tripEta: {
+    tripId: "1",
+    tripStatus: "started",
+    routePolyline: {
+      encodedPolyline: "_p~iF~ps|U_ulLnnqC_mqNvxq`@"
+    },
+    etaSummary: {
+      status: "fresh",
+      calculationMode: "provider_snapshot",
+      nextStop: {
+        stopId: "2",
+        stopName: "Stop 2",
+        stopOrder: 2
+      },
+      nextStopEtaAt: NOW,
+      finalEtaAt: NOW,
+      remainingDistanceMeters: 850,
+      remainingDurationSeconds: 180,
+      computedAt: NOW,
+      isStale: false
+    },
+    remainingStops: [
+      {
+        stopId: "2",
+        stopName: "Stop 2",
+        stopOrder: 2,
+        etaAt: NOW,
+        remainingDistanceMeters: 850,
+        remainingDurationSeconds: 180,
+        isNextStop: true,
+        isCompleted: false
+      }
+    ],
+    computedAt: NOW
+  },
   ensureDailyTrip: {
     created: true,
     trip: {
@@ -759,6 +794,30 @@ const examples = {
     successCount: 3,
     failedCount: 0,
     failedTargets: []
+  },
+  communicationDevice: {
+    deviceId: "1",
+    providerKey: "fcm",
+    platform: "android",
+    appId: "ishraf-parent-app",
+    deviceName: "Parent Pixel 8",
+    isActive: true,
+    subscriptions: ["transportRealtime"],
+    lastSeenAt: NOW,
+    updatedAt: NOW
+  },
+  unregisteredCommunicationDevice: {
+    deviceId: "1",
+    isActive: false,
+    unregisteredAt: NOW
+  },
+  transportRealtimeToken: {
+    customToken: "firebase-custom-token-sample",
+    databaseUrl: "https://ishraf-platform.firebaseio.com",
+    path: "/transport/live-trips/1/latestLocation",
+    tripId: "1",
+    access: "read",
+    refreshAfterSeconds: 840
   },
   schoolOnboardingImport: {
     importId: "1",
@@ -1376,31 +1435,59 @@ const examples = {
 };
 
 examples.systemSettingsGroup = {
-  group: "imports",
-  description: "Operational switches for admin-managed import capabilities.",
+  group: "transportMaps",
+  description:
+    "Feature flags and provider selection for external map and ETA integrations used by transport surfaces.",
   entries: [
     {
-      key: "schoolOnboardingEnabled",
-      value: true,
-      defaultValue: true,
+      key: "etaProvider",
+      value: "mapbox",
+      defaultValue: "mapbox",
       source: "default",
       description:
-        "Enables the structured school onboarding dry-run/apply workflow.",
+        "Selects the preferred ETA provider. Batch 2 activates runtime provider resolution with mapbox as the default selected provider.",
       updatedAt: null,
       updatedBy: null
     },
     {
-      key: "csvImportEnabled",
+      key: "etaDerivedEstimateEnabled",
       value: true,
-      defaultValue: false,
-      source: "override",
+      defaultValue: true,
+      source: "default",
       description:
-        "Enables future CSV import surfaces when that operational flow is introduced.",
-      updatedAt: NOW,
-      updatedBy: {
-        userId: "1",
-        fullName: "أيمن أحمد محسن الذاهبي"
-      }
+        "Allows the backend worker to derive ETA snapshots locally between provider refreshes using the cached polyline and recent trip locations.",
+      updatedAt: null,
+      updatedBy: null
+    },
+    {
+      key: "googleMapsEtaEnabled",
+      value: false,
+      defaultValue: false,
+      source: "default",
+      description:
+        "Keeps Google Maps ETA execution available when the admin explicitly selects Google as the active provider.",
+      updatedAt: null,
+      updatedBy: null
+    },
+    {
+      key: "etaProviderRefreshIntervalSeconds",
+      value: 300,
+      defaultValue: 300,
+      source: "default",
+      description:
+        "Minimum seconds between provider refreshes for one active trip ETA snapshot.",
+      updatedAt: null,
+      updatedBy: null
+    },
+    {
+      key: "etaProviderDeviationThresholdMeters",
+      value: 300,
+      defaultValue: 300,
+      source: "default",
+      description:
+        "Route deviation threshold in meters that forces a fresh provider ETA snapshot.",
+      updatedAt: null,
+      updatedBy: null
     }
   ]
 };
@@ -1434,11 +1521,53 @@ examples.systemSettingsList = {
         }
       ]
     },
-    clone({
+    clone(examples.systemSettingsGroup),
+    {
+      group: "analytics",
+      description:
+        "Feature flags for external analytics and AI-assisted insight generation.",
+      entries: [
+        {
+          key: "aiAnalyticsEnabled",
+          value: false,
+          defaultValue: false,
+          source: "default",
+          description:
+            "Enables AI analytics capabilities when the analytics provider phase is implemented.",
+          updatedAt: null,
+          updatedBy: null
+        }
+      ]
+    },
+    {
       group: "imports",
       description: "Operational switches for admin-managed import capabilities.",
-      entries: examples.systemSettingsGroup.entries
-    })
+      entries: [
+        {
+          key: "schoolOnboardingEnabled",
+          value: true,
+          defaultValue: true,
+          source: "default",
+          description:
+            "Enables the structured school onboarding dry-run/apply workflow.",
+          updatedAt: null,
+          updatedBy: null
+        },
+        {
+          key: "csvImportEnabled",
+          value: true,
+          defaultValue: false,
+          source: "override",
+          description:
+            "Enables future CSV import surfaces when that operational flow is introduced.",
+          updatedAt: NOW,
+          updatedBy: {
+            userId: "1",
+            fullName: "أيمن أحمد محسن الذاهبي"
+          }
+        }
+      ]
+    }
   ]
 };
 
@@ -1468,7 +1597,7 @@ examples.systemIntegrationsStatus = {
     },
     {
       providerKey: "transportMaps",
-      featureEnabled: false,
+      featureEnabled: true,
       pendingOutboxCount: 0,
       failedOutboxCount: 0
     },
@@ -2087,7 +2216,20 @@ addSchema("UpdateTransportMapsSettingsRequest", {
     values: {
       type: "object",
       properties: {
-        googleMapsEtaEnabled: { type: "boolean" }
+        etaProvider: {
+          type: "string",
+          enum: ["mapbox", "google"]
+        },
+        etaDerivedEstimateEnabled: { type: "boolean" },
+        googleMapsEtaEnabled: { type: "boolean" },
+        etaProviderRefreshIntervalSeconds: {
+          type: "integer",
+          minimum: 1
+        },
+        etaProviderDeviationThresholdMeters: {
+          type: "integer",
+          minimum: 1
+        }
       },
       additionalProperties: false,
       minProperties: 1
@@ -2096,8 +2238,11 @@ addSchema("UpdateTransportMapsSettingsRequest", {
   required: ["reason", "values"],
   additionalProperties: false,
   example: {
-    reason: "Prepare Google Maps ETA rollout",
-    values: { googleMapsEtaEnabled: true }
+    reason: "Enable derived ETA between provider refreshes",
+    values: {
+      etaProvider: "mapbox",
+      etaDerivedEstimateEnabled: true
+    }
   }
 });
 
@@ -2533,6 +2678,61 @@ addSchema("SaveStudentHomeLocationRequest", {
   example: componentSchemas.SaveStudentHomeLocationRequest.example
 });
 
+addSchema("RegisterCommunicationDeviceRequest", {
+  type: "object",
+  properties: {
+    providerKey: { type: "string", enum: ["fcm"], example: "fcm" },
+    platform: { type: "string", enum: ["android", "ios", "web"], example: "android" },
+    appId: { type: "string", minLength: 1, maxLength: 50 },
+    deviceToken: { type: "string", minLength: 1, maxLength: 4096 },
+    deviceName: { type: "string", minLength: 1, maxLength: 100 },
+    subscriptions: {
+      type: "array",
+      minItems: 1,
+      uniqueItems: true,
+      items: {
+        type: "string",
+        enum: ["transportRealtime"],
+        example: "transportRealtime"
+      }
+    }
+  },
+  required: ["providerKey", "platform", "appId", "deviceToken", "subscriptions"],
+  additionalProperties: false,
+  example: {
+    providerKey: "fcm",
+    platform: "android",
+    appId: "ishraf-parent-app",
+    deviceToken: "fcm-device-token-sample",
+    deviceName: "Parent Pixel 8",
+    subscriptions: ["transportRealtime"]
+  }
+});
+
+addSchema("UpdateCommunicationDeviceRequest", {
+  type: "object",
+  properties: {
+    deviceToken: { type: "string", minLength: 1, maxLength: 4096 },
+    deviceName: { anyOf: [{ type: "string", minLength: 1, maxLength: 100 }, { type: "null" }] },
+    subscriptions: {
+      type: "array",
+      minItems: 1,
+      uniqueItems: true,
+      items: {
+        type: "string",
+        enum: ["transportRealtime"],
+        example: "transportRealtime"
+      }
+    }
+  },
+  additionalProperties: false,
+  minProperties: 1,
+  example: {
+    deviceName: "Updated Parent Pixel 8",
+    subscriptions: ["transportRealtime"]
+  }
+});
+
 addSchema("SchoolOnboardingDryRunRequest", {
   type: "object",
   properties: {
@@ -2618,6 +2818,7 @@ function pathParamDescription(routePath, paramName) {
   if (paramName === "otherUserId") return "The other conversation participant user id.";
   if (paramName === "messageId") return "Message numeric string identifier.";
   if (paramName === "notificationId") return "Notification numeric string identifier.";
+  if (paramName === "deviceId") return "Communication device numeric string identifier.";
   if (paramName === "importId") return "School onboarding import run numeric string identifier.";
   if (paramName === "parentId")
     return "Parent identifier. These student-parent endpoints accept either the parent user id from /users?role=parent or the underlying parent profile id.";
@@ -2746,6 +2947,7 @@ const supervisorAssignmentsQuery = [
 ];
 const tripListQuery = paginatedQuery(["tripDate", "tripStatus", "startedAt", "createdAt"], [commonQuery.id("busId", "Filter by bus id."), commonQuery.id("routeId", "Filter by route id."), commonQuery.text("tripType", "Filter by trip type.", "pickup"), commonQuery.text("tripStatus", "Filter by trip status.", "started"), commonQuery.date("tripDate", "Filter by exact trip date."), commonQuery.date("dateFrom", "Filter from trip date."), commonQuery.date("dateTo", "Filter to trip date.")], "tripDate");
 const tripRosterQuery = [commonQuery.text("search", "Filter roster rows by student full name or academic number.", "Student One"), commonQuery.id("stopId", "Filter roster rows by assigned stop id.")];
+const transportRealtimeTokenQuery = [commonQuery.id("tripId", "Trip numeric string identifier used to scope the Firebase realtime token.")];
 const inboxQuery = paginatedQuery(["sentAt"], [commonQuery.boolean("isRead", "Filter by read state.")], "sentAt");
 const sentQuery = paginatedQuery(["sentAt"], [commonQuery.id("receiverUserId", "Filter by receiver user id.")], "sentAt");
 const conversationQuery = paginatedQuery(["sentAt"], [], "sentAt", "asc");
@@ -2844,11 +3046,11 @@ endpoints.push(
   makeEndpoint({ m: "GET", p: "/students/:id/parents", t: "Students", s: "List Student Parents", u: "Return parent links for one student.", kind: "array", e: "user", status: 200 }),
   makeEndpoint({ m: "PATCH", p: "/students/:studentId/parents/:parentId/primary", t: "Students", s: "Set Primary Parent", u: "Mark one linked parent as the primary parent for that student. parentId may be either the parent user id returned by /users?role=parent or the underlying parent profile id.", e: "user", status: 200, notes: ["The backend resolves parentId to the stored parent profile id automatically. Prefer sending the user id returned by /users?role=parent in admin frontend flows."] }),
   makeEndpoint({ m: "POST", p: "/students/:id/promotions", t: "Students", s: "Promote Student", u: "Promote a student to another class for a target academic year while writing structured enrollment state and promotion history.", b: "PromoteStudentRequest", e: "student", notes: ["The promotion writes the target academic enrollment even when the target year is not active yet.", "students.class_id is only synchronized immediately when the target year is the active academic year."] }),
-  makeEndpoint({ m: "GET", p: "/system-settings", t: "System Settings", s: "[NEW] List System Settings", u: "Return every implemented system settings group with effective values merged from code defaults and stored overrides.", r: ["admin"], e: "systemSettingsList", status: 200, notes: ["[NEW] Step 1 is global-only and currently implements pushNotifications, transportMaps, analytics, and imports.", "[NEW] Each entry returns the effective value, the code default, and whether the source is default or override."] }),
+  makeEndpoint({ m: "GET", p: "/system-settings", t: "System Settings", s: "[NEW] List System Settings", u: "Return every implemented system settings group with effective values merged from code defaults and stored overrides.", r: ["admin"], e: "systemSettingsList", status: 200, notes: ["[NEW] Step 1 is global-only and currently implements pushNotifications, transportMaps, analytics, and imports.", "[NEW] Each entry returns the effective value, the code default, and whether the source is default or override.", "[NEW] transportMaps.etaProvider defaults to mapbox and is applied by runtime provider resolution.", "[NEW] transportMaps.etaDerivedEstimateEnabled defaults to true and controls local ETA math between provider refreshes."] }),
   makeEndpoint({ m: "GET", p: "/system-settings/audit", t: "System Settings", s: "[NEW] List System Settings Audit", u: "List append-only audit rows for setting changes with pagination and optional filters.", r: ["admin"], q: systemSettingsAuditQuery, kind: "paginated", e: "systemSettingAuditLog", status: 200, notes: ["[NEW] Audit rows capture created, updated, and cleared actions.", "[NEW] requestId lets admin trace one change batch across multiple keys."] }),
-  makeEndpoint({ m: "GET", p: "/system-settings/integrations/status", t: "System Settings", s: "[NEW] Get Integration Feature Status", u: "Return feature-enabled status for external integration groups together with pending and failed integration outbox counts.", r: ["admin"], e: "systemIntegrationsStatus", status: 200, notes: ["[NEW] This surface only covers pushNotifications, transportMaps, and analytics.", "[NEW] providerConfigured is intentionally not returned in step 1 because provider secrets still live only in env and no provider phase has been wired yet."] }),
-  makeEndpoint({ m: "GET", p: "/system-settings/:group", t: "System Settings", s: "[NEW] Get System Settings Group", u: "Return one system settings group with effective values, defaults, descriptions, and override metadata.", r: ["admin"], e: "systemSettingsGroup", status: 200, notes: ["[NEW] Allowed groups are pushNotifications, transportMaps, analytics, and imports."] }),
-  makeEndpoint({ m: "PATCH", p: "/system-settings/:group", t: "System Settings", s: "[NEW] Update System Settings Group", u: "Update one system settings group by writing overrides only for values that differ from code defaults.", r: ["admin"], b: "UpdateSystemSettingsGroupRequest", e: "systemSettingsGroup", status: 200, notes: ["[NEW] The request body is group-specific. Use UpdatePushNotificationsSettingsRequest, UpdateTransportMapsSettingsRequest, UpdateAnalyticsSettingsRequest, or UpdateImportsSettingsRequest depending on :group.", "[NEW] Sending a value equal to the code default clears any existing override instead of storing redundant data.", "[NEW] The first live consumer is imports.schoolOnboardingEnabled. When it is false, school onboarding import endpoints reject with 409 FEATURE_DISABLED."] }),
+  makeEndpoint({ m: "GET", p: "/system-settings/integrations/status", t: "System Settings", s: "[NEW] Get Integration Feature Status", u: "Return feature-enabled status for external integration groups together with pending and failed integration outbox counts.", r: ["admin"], e: "systemIntegrationsStatus", status: 200, notes: ["[NEW] This surface only covers pushNotifications, transportMaps, and analytics.", "[NEW] providerConfigured is intentionally not returned; this surface tracks feature state and integration outbox workload only."] }),
+  makeEndpoint({ m: "GET", p: "/system-settings/:group", t: "System Settings", s: "[NEW] Get System Settings Group", u: "Return one system settings group with effective values, defaults, descriptions, and override metadata.", r: ["admin"], e: "systemSettingsGroup", status: 200, notes: ["[NEW] Allowed groups are pushNotifications, transportMaps, analytics, and imports.", "[NEW] transportMaps.etaProvider is part of the admin control plane and defaults to mapbox."] }),
+  makeEndpoint({ m: "PATCH", p: "/system-settings/:group", t: "System Settings", s: "[NEW] Update System Settings Group", u: "Update one system settings group by writing overrides only for values that differ from code defaults.", r: ["admin"], b: "UpdateSystemSettingsGroupRequest", e: "systemSettingsGroup", status: 200, notes: ["[NEW] The request body is group-specific. Use UpdatePushNotificationsSettingsRequest, UpdateTransportMapsSettingsRequest, UpdateAnalyticsSettingsRequest, or UpdateImportsSettingsRequest depending on :group.", "[NEW] Sending a value equal to the code default clears any existing override instead of storing redundant data.", "[NEW] transportMaps updates runtime behavior through etaProvider and etaDerivedEstimateEnabled.", "[NEW] The first live consumer is imports.schoolOnboardingEnabled. When it is false, school onboarding import endpoints reject with 409 FEATURE_DISABLED."] }),
   makeEndpoint({ m: "POST", p: "/assessments/types", t: "Assessments", s: "Create Assessment Type", u: "Create a reusable assessment type.", b: "CreateAssessmentTypeRequest", e: "assessment" }),
   makeEndpoint({ m: "GET", p: "/assessments/types", t: "Assessments", s: "List Assessment Types", u: "List assessment types.", r: ["admin", "teacher"], kind: "array", e: "assessment", status: 200 }),
   makeEndpoint({ m: "POST", p: "/assessments", t: "Assessments", s: "Create Assessment", u: "Create an assessment inside the active academic context. Teachers must omit teacherId and rely on the authenticated teacher profile. Admin teacherId accepts the teacher user id from /users?role=teacher or the legacy teacher profile id.", r: ["admin", "teacher"], b: "CreateAssessmentRequest", e: "assessment", notes: ["academicYearId and semesterId may be omitted; the backend resolves the active academic context automatically.", "If academicYearId or semesterId is sent, it must match the active context.", "The selected subjectId must have an active subject offering for the resolved semester.", "Admin frontend flows should send teacherId as the teacher user id returned by GET /users?role=teacher.", "Teacher frontend flows must not send teacherId; the backend returns TEACHER_ID_NOT_ALLOWED if it is present.", "Relevant domain errors include CLASS_YEAR_MISMATCH, SEMESTER_YEAR_MISMATCH, SUBJECT_GRADE_LEVEL_MISMATCH, SUBJECT_NOT_OFFERED_IN_SEMESTER, TEACHER_ID_REQUIRED, TEACHER_ID_NOT_ALLOWED, and ACADEMIC_CONTEXT_NOT_CONFIGURED."] }),
@@ -2882,21 +3084,26 @@ endpoints.push(
   makeEndpoint({ m: "GET", p: "/transport/route-assignments", t: "Transport", s: "List Route Assignments", u: "List recurring bus-to-route assignments for admin transport management.", kind: "array", e: "routeAssignment", status: 200 }),
   makeEndpoint({ m: "GET", p: "/transport/route-assignments/me", t: "Transport", s: "List My Route Assignments", u: "Return the active recurring route assignments owned by the authenticated driver.", r: ["driver"], kind: "array", e: "routeAssignment", status: 200 }),
   makeEndpoint({ m: "PATCH", p: "/transport/route-assignments/:id/deactivate", t: "Transport", s: "Deactivate Route Assignment", u: "Deactivate a recurring bus-to-route assignment. Legacy trips remain intact.", b: "DeactivateTransportRouteAssignmentRequest", e: "routeAssignment", status: 200 }),
+  makeEndpoint({ m: "GET", p: "/transport/realtime-token", t: "Transport", s: "Get Transport Realtime Token", u: "Issue a Firebase custom token scoped to one trip live-location path. Admin gets read access, driver owners get write access, and linked parents get read access.", r: ["admin", "parent", "driver"], q: transportRealtimeTokenQuery, e: "transportRealtimeToken", status: 200, notes: ["The token is scoped to /transport/live-trips/{tripId}/latestLocation in Firebase Realtime Database.", "The endpoint returns 409 FEATURE_DISABLED when pushNotifications.transportRealtimeEnabled is false.", "The endpoint returns 409 INTEGRATION_NOT_CONFIGURED when Firebase env secrets are missing.", "This endpoint is low-frequency bootstrap auth; live GPS points bypass the backend after token issuance."] }),
   makeEndpoint({ m: "POST", p: "/transport/trips", t: "Transport", s: "Create Trip", u: "Create a trip for a bus and route. Drivers and admins can create trips.", r: ["admin", "driver"], b: "CreateTripRequest", e: "trip", notes: ["Driver access is ownership-scoped to buses they are allowed to operate."] }),
   makeEndpoint({ m: "POST", p: "/transport/trips/ensure-daily", t: "Transport", s: "Ensure Daily Trip", u: "Create or reuse the operational trip for one route assignment, trip date, and trip type without creating duplicates.", r: ["admin", "driver"], b: "EnsureDailyTripRequest", e: "ensureDailyTrip", status: 200, notes: ["If a matching trip already exists for the same bus, route, tripDate, and tripType, the response remains 200 with created=false.", "This is the preferred driver-facing daily trip flow. POST /transport/trips remains a legacy fallback.", "routeAssignmentId must be active for the requested tripDate or the request fails with TRANSPORT_ROUTE_ASSIGNMENT_NOT_ACTIVE_FOR_TRIP_DATE."], derived: "The endpoint reuses the natural uniqueness of bus + route + tripDate + tripType." }),
   makeEndpoint({ m: "GET", p: "/transport/trips", t: "Transport", s: "List Trips", u: "List trips with pagination. Drivers only see trips within their scope.", r: ["admin", "driver"], q: tripListQuery, kind: "paginated", e: "trip", status: 200 }),
   makeEndpoint({ m: "GET", p: "/transport/trips/:id", t: "Transport", s: "Get Trip", u: "Return one trip detail including latest location, route stops, and event summary.", r: ["admin", "driver"], e: "tripDetail", status: 200, derived: "Trip detail aggregates transport views such as vw_trip_details, vw_route_stops, and vw_latest_trip_location." }),
+  makeEndpoint({ m: "GET", p: "/transport/trips/:id/eta", t: "Transport", s: "Get Trip ETA", u: "Return the stop-based ETA read model for one trip, including the route polyline cache, ETA summary, and remaining stop snapshots.", r: ["admin", "driver"], e: "tripEta", status: 200, notes: ["ETA responses are provider-neutral at the API surface and expose calculationMode as provider_snapshot or derived_estimate.", "Runtime provider selection is active through transportMaps.etaProvider with mapbox as the default selected provider.", "ETA is a backend snapshot surface; live GPS streaming is read directly from Firebase RTDB after realtime token bootstrap."], derived: "The response is built from transport_trip_eta_snapshots, transport_trip_eta_stop_snapshots, and the cached route polyline when available." }),
   makeEndpoint({ m: "GET", p: "/transport/trips/:id/students", t: "Transport", s: "Get Trip Student Roster", u: "Return the full student roster for one trip, including assigned stop coordinates, the latest event state inside the same trip, and approved home location when available.", r: ["admin", "driver"], q: tripRosterQuery, e: "tripRoster", status: 200, notes: ["The roster returns all students assigned to the trip route for the trip date, even when no trip event has been recorded yet.", "If the trip exists but has no eligible students, the response remains 200 with students=[].", "Only approved homeLocation data is exposed to the driver-facing roster."], derived: "Roster rows are derived from trip-date transport assignments, route stop coordinates, approved student_transport_home_locations, and the latest trip_student_events row per student inside the same trip." }),
-  makeEndpoint({ m: "POST", p: "/transport/trips/:id/start", t: "Transport", s: "Start Trip", u: "Mark a scheduled trip as started.", r: ["admin", "driver"], e: "trip", status: 200, notes: ["The trip must currently be scheduled. Otherwise the request fails with TRIP_STATUS_START_INVALID."], side: "Trip start triggers parent notifications per assigned student through the internal automation service." }),
-  makeEndpoint({ m: "POST", p: "/transport/trips/:id/end", t: "Transport", s: "End Trip", u: "Mark a trip as ended.", r: ["admin", "driver"], e: "trip", status: 200, notes: ["The trip must currently be started. Otherwise the request fails with TRIP_STATUS_END_INVALID."] }),
-  makeEndpoint({ m: "POST", p: "/transport/trips/:id/locations", t: "Transport", s: "Record Trip Location", u: "Record one location point for a started trip.", r: ["admin", "driver"], b: "RecordTripLocationRequest", e: "trip", status: 201, notes: ["Locations are only accepted while the trip is started. Invalid state returns TRIP_LOCATION_STATUS_INVALID."] }),
-  makeEndpoint({ m: "POST", p: "/transport/trips/:id/events", t: "Transport", s: "Create Trip Student Event", u: "Create one trip student event. stopId is required for boarded and dropped_off events, and must be omitted for absent.", r: ["admin", "driver"], b: "CreateTripStudentEventRequest", e: "tripEvent", status: 201, notes: ["Trip student event validation is trip-date aware: the student must have a transport assignment covering the trip date and route.", "Events are only accepted while the trip is started or ended. Invalid state returns TRIP_EVENT_STATUS_INVALID.", "A mismatching route assignment or stop produces STUDENT_TRIP_DATE_ASSIGNMENT_NOT_FOUND, TRIP_STUDENT_ROUTE_MISMATCH, or TRIP_EVENT_STOP_ROUTE_MISMATCH."], side: "Dropped-off events trigger parent notifications through the internal automation service." }),
+  makeEndpoint({ m: "POST", p: "/transport/trips/:id/start", t: "Transport", s: "Start Trip", u: "Mark a scheduled trip as started.", r: ["admin", "driver"], e: "trip", status: 200, notes: ["The trip must currently be scheduled. Otherwise the request fails with TRIP_STATUS_START_INVALID.", "When pushNotifications.fcmEnabled and pushNotifications.transportRealtimeEnabled are both true, the backend enqueues FCM wake-up events for subscribed parents and admins."], side: "Trip start writes the transport state to PostgreSQL first, then emits async automation work through integration_outbox." }),
+  makeEndpoint({ m: "POST", p: "/transport/trips/:id/end", t: "Transport", s: "End Trip", u: "Mark a trip as ended.", r: ["admin", "driver"], e: "trip", status: 200, notes: ["The trip must currently be started. Otherwise the request fails with TRIP_STATUS_END_INVALID.", "When pushNotifications.fcmEnabled and pushNotifications.transportRealtimeEnabled are both true, the backend enqueues FCM wake-up events for subscribed parents and admins."], side: "Trip end writes the transport state to PostgreSQL first, then emits async automation work through integration_outbox." }),
+  makeEndpoint({ m: "POST", p: "/transport/trips/:id/locations", t: "Transport", s: "Record Trip Location", u: "Record one location point for a started trip.", r: ["admin", "driver"], b: "RecordTripLocationRequest", e: "trip", status: 201, notes: ["Locations are only accepted while the trip is started. Invalid state returns TRIP_LOCATION_STATUS_INVALID.", "This endpoint stores operational trip locations in PostgreSQL. High-frequency driver GPS for the live map should go directly to Firebase RTDB after GET /transport/realtime-token." ] }),
+  makeEndpoint({ m: "POST", p: "/transport/trips/:id/events", t: "Transport", s: "Create Trip Student Event", u: "Create one trip student event. stopId is required for boarded and dropped_off events, and must be omitted for absent.", r: ["admin", "driver"], b: "CreateTripStudentEventRequest", e: "tripEvent", status: 201, notes: ["Trip student event validation is trip-date aware: the student must have a transport assignment covering the trip date and route.", "Events are only accepted while the trip is started or ended. Invalid state returns TRIP_EVENT_STATUS_INVALID.", "A mismatching route assignment or stop produces STUDENT_TRIP_DATE_ASSIGNMENT_NOT_FOUND, TRIP_STUDENT_ROUTE_MISMATCH, or TRIP_EVENT_STOP_ROUTE_MISMATCH.", "All trip student events can enqueue FCM wake-up events when pushNotifications.fcmEnabled and pushNotifications.transportRealtimeEnabled are both true. dropped_off also writes an in-app parent notification."], side: "Trip student events write PostgreSQL truth first, then emit async automation work through integration_outbox." }),
   makeEndpoint({ m: "GET", p: "/transport/trips/:id/events", t: "Transport", s: "List Trip Events", u: "List student events recorded for a trip.", r: ["admin", "driver"], kind: "array", e: "tripEvent", status: 200 }),
   makeEndpoint({ m: "GET", p: "/transport/students/:studentId/home-location", t: "Transport", s: "Get Student Home Location", u: "Return the current saved home location reference for one student. In this round the endpoint is admin-only.", e: "studentHomeLocation", status: 200, notes: ["If the student exists but no home location has been saved yet, the response remains 200 with homeLocation=null."] }),
   makeEndpoint({ m: "PUT", p: "/transport/students/:studentId/home-location", t: "Transport", s: "Save Student Home Location", u: "Create or update the current student home location reference. v1 uses admin as the submitting source.", b: "SaveStudentHomeLocationRequest", e: "studentHomeLocation", status: 200, notes: ["Admin may save pending, approved, or rejected locations. Only approved locations appear in the driver roster."] }),
   makeEndpoint({ m: "DELETE", p: "/transport/students/:studentId/home-location", t: "Transport", s: "Delete Student Home Location", u: "Delete the current saved home location for one student.", e: "studentHomeLocation", status: 200 })
 );
 endpoints.push(
+  makeEndpoint({ m: "POST", p: "/communication/devices", t: "Communication", s: "Register Communication Device", u: "Register or rebind one authenticated user device token for FCM delivery and wake-up subscriptions.", r: ["admin", "parent", "teacher", "supervisor", "driver"], b: "RegisterCommunicationDeviceRequest", e: "communicationDevice", status: 201, notes: ["Registration is available even when pushNotifications.fcmEnabled is false so the rollout can be pre-provisioned.", "providerKey currently supports only fcm and subscriptions currently support only transportRealtime.", "If the same providerKey + deviceToken already belongs to another user, the backend rebinds it to the current authenticated user inside the same transaction."] }),
+  makeEndpoint({ m: "PATCH", p: "/communication/devices/:deviceId", t: "Communication", s: "Update Communication Device", u: "Update one registered device owned by the authenticated user, including token rotation, display name, and subscriptions.", r: ["admin", "parent", "teacher", "supervisor", "driver"], b: "UpdateCommunicationDeviceRequest", e: "communicationDevice", status: 200, notes: ["Ownership is enforced: users can only update their own registered devices.", "Updating deviceToken preserves uniqueness by provider and reactivates the device if it had been unregistered."] }),
+  makeEndpoint({ m: "DELETE", p: "/communication/devices/:deviceId", t: "Communication", s: "Unregister Communication Device", u: "Soft-unregister one device owned by the authenticated user. The row remains for audit and token hygiene, but it stops receiving push traffic.", r: ["admin", "parent", "teacher", "supervisor", "driver"], e: "unregisteredCommunicationDevice", status: 200, notes: ["Ownership is enforced: users can only unregister their own devices.", "Subscriptions remain stored historically, but inactive devices are excluded from delivery resolution."] }),
   makeEndpoint({ m: "GET", p: "/communication/recipients", t: "Communication", s: "List Available Recipients", u: "Return the active users that the authenticated caller can currently message. v1 mirrors the current messaging policy: any active user except self.", r: ["admin", "parent", "teacher", "supervisor", "driver"], q: recipientsQuery, kind: "paginated", e: "recipient", status: 200, notes: ["The response is scope-limited to active users and excludes the authenticated user.", "Empty result sets return 200 with items=[]."] }),
   makeEndpoint({ m: "POST", p: "/communication/messages", t: "Communication", s: "Send Message", u: "Send a direct message to another active user.", r: ["admin", "parent", "teacher", "supervisor", "driver"], b: "SendMessageRequest", e: "message" }),
   makeEndpoint({ m: "POST", p: "/communication/messages/bulk", t: "Communication", s: "[NEW] Send Bulk Messages", u: "Create admin-only multi-target direct messages as individual one-to-one copies. The endpoint is all-or-nothing and uses the same audience rules as /communication/recipients.", r: ["admin"], b: "SendBulkMessageRequest", e: "bulkDelivery", status: 201, notes: ["[NEW] Direct multi-target delivery creates individual copies inside messages; it does not create a group thread.", "[NEW] At least one of receiverUserIds[] or targetRoles[] is required.", "[NEW] Explicit self-targeting is rejected.", "[NEW] If resolved audience is empty or explicit user ids are outside the available-recipient surface, the request fails with 400."], derived: "Audience resolution reuses the same active-user and self-exclusion policy exposed by GET /communication/recipients." }),
@@ -2929,7 +3136,7 @@ endpoints.push(
   makeEndpoint({ m: "GET", p: "/reporting/admin-preview/parents/:parentUserId/students/:studentId/reports/attendance-summary", t: "Reporting", s: "Get Admin Preview Parent Child Attendance Summary", u: "Return the canonical child attendance summary under one selected parent user for admin monitoring.", r: ["admin"], e: "attendanceSummaryReport", status: 200, notes: ["Admin-only, read-only preview surface.", "Requires parent-child linkage or returns 404 Student not linked to parent.", "No data yet returns 200 with zero-safe totals."] }),
   makeEndpoint({ m: "GET", p: "/reporting/admin-preview/parents/:parentUserId/students/:studentId/reports/assessment-summary", t: "Reporting", s: "Get Admin Preview Parent Child Assessment Summary", u: "Return the canonical child assessment summary under one selected parent user for admin monitoring.", r: ["admin"], e: "assessmentSummaryReport", status: 200, notes: ["Admin-only, read-only preview surface.", "Requires parent-child linkage or returns 404 Student not linked to parent.", "Use assessmentSummary.subjects[] rather than items[]."] }),
   makeEndpoint({ m: "GET", p: "/reporting/admin-preview/parents/:parentUserId/students/:studentId/reports/behavior-summary", t: "Reporting", s: "Get Admin Preview Parent Child Behavior Summary", u: "Return the canonical child behavior summary under one selected parent user for admin monitoring.", r: ["admin"], e: "behaviorSummaryReport", status: 200, notes: ["Admin-only, read-only preview surface.", "Requires parent-child linkage or returns 404 Student not linked to parent.", "Use /behavior/students/:studentId/records for the detailed timeline outside this summary view."] }),
-  makeEndpoint({ m: "GET", p: "/reporting/admin-preview/parents/:parentUserId/students/:studentId/transport/live-status", t: "Reporting", s: "Get Admin Preview Parent Child Transport Live Status", u: "Return the canonical parent transport live-status surface for one linked child under a selected parent user.", r: ["admin"], e: "parentTransportLiveStatus", status: 200, notes: ["Admin-only, read-only preview surface.", "Requires parent-child linkage or returns 404 Student not linked to parent.", "Wave 1 is polling-based and does not include Firebase or ETA."], derived: "This response is view-backed and combines active assignment, active trip live status, latest location, and recent event projections." }),
+  makeEndpoint({ m: "GET", p: "/reporting/admin-preview/parents/:parentUserId/students/:studentId/transport/live-status", t: "Reporting", s: "Get Admin Preview Parent Child Transport Live Status", u: "Return the canonical parent transport live-status surface for one linked child under a selected parent user.", r: ["admin"], e: "parentTransportLiveStatus", status: 200, notes: ["Admin-only, read-only preview surface.", "Requires parent-child linkage or returns 404 Student not linked to parent.", "ETA fields are backend-managed snapshots; live GPS streaming is consumed directly from Firebase RTDB after realtime token bootstrap."], derived: "This response is view-backed and combines active assignment, active trip live status, latest location, and recent event projections." }),
   makeEndpoint({ m: "GET", p: "/reporting/admin-preview/teachers/:teacherUserId/dashboard", t: "Reporting", s: "Get Admin Preview Teacher Dashboard", u: "Return the canonical teacher dashboard surface for admin monitoring, starting from the selected teacher user account.", r: ["admin"], e: "teacherDashboard", status: 200, notes: ["Admin-only, read-only preview surface.", "Path identifier is the teacher users.id from /users?role=teacher.", "Use this instead of reconstructing teacher dashboard parity from multiple admin endpoints."] }),
   makeEndpoint({ m: "GET", p: "/reporting/admin-preview/supervisors/:supervisorUserId/dashboard", t: "Reporting", s: "Get Admin Preview Supervisor Dashboard", u: "Return the canonical supervisor dashboard surface for admin monitoring, starting from the selected supervisor user account.", r: ["admin"], e: "supervisorDashboard", status: 200, notes: ["Admin-only, read-only preview surface.", "Path identifier is the supervisor users.id from /users?role=supervisor.", "Use this instead of reconstructing supervisor dashboard parity from multiple admin endpoints."] }),
   makeEndpoint({ m: "GET", p: "/reporting/dashboards/parent/me", t: "Reporting", s: "Get Parent Dashboard", u: "Return the parent dashboard summary surface.", r: ["parent"], e: "parentDashboard", status: 200, notes: ["The dashboard only includes students linked to the authenticated parent profile."] }),
@@ -2941,7 +3148,7 @@ endpoints.push(
   makeEndpoint({ m: "GET", p: "/reporting/dashboards/supervisor/me", t: "Reporting", s: "Get Supervisor Dashboard", u: "Return the supervisor dashboard surface.", r: ["supervisor"], e: "supervisorDashboard", status: 200, notes: ["Supervisor student access is limited to class-year assignments owned by the authenticated supervisor."] }),
   makeEndpoint({ m: "GET", p: "/reporting/dashboards/admin/me", t: "Reporting", s: "Get Admin Dashboard", u: "Return the admin dashboard surface.", r: ["admin"], e: "adminDashboard", status: 200 }),
   makeEndpoint({ m: "GET", p: "/reporting/transport/summary", t: "Reporting", s: "Get Transport Summary", u: "Return the transport summary surface shared by admin and driver.", r: ["admin", "driver"], e: "transportSummary", status: 200, derived: "Transport summaries rely on views such as vw_trip_details, vw_latest_trip_location, vw_active_trip_live_status, and vw_trip_student_event_details." }),
-  makeEndpoint({ m: "GET", p: "/reporting/transport/parent/me/students/:studentId/live-status", t: "Reporting", s: "Get Parent Child Transport Live Status", u: "Return the transport live status for one linked child. Wave 1 is polling-based and does not include Firebase or ETA.", r: ["parent"], e: "parentTransportLiveStatus", status: 200, derived: "This response is view-backed and combines active assignment, active trip live status, latest location, and recent event projections." })
+  makeEndpoint({ m: "GET", p: "/reporting/transport/parent/me/students/:studentId/live-status", t: "Reporting", s: "Get Parent Child Transport Live Status", u: "Return the transport live status for one linked child with backend ETA snapshots and Firebase-backed live GPS context.", r: ["parent"], e: "parentTransportLiveStatus", status: 200, derived: "This response is view-backed and combines active assignment, active trip live status, latest location, and recent event projections." })
 );
 
 const endpointMap = new Map(endpoints.map((entry) => [routeKey(entry.method, entry.path), entry]));
@@ -3170,6 +3377,9 @@ function buildCollection(name, description, subset) {
       { key: "dryRunId", value: "" },
       { key: "group", value: "imports" },
       { key: "otherUserId", value: "47" },
+      { key: "deviceId", value: "" },
+      { key: "deviceToken", value: "fcm-device-token-sample" },
+      { key: "appId", value: "ishraf-parent-app" },
       { key: "homeworkId", value: "" }
     ],
     item: Array.from(folders.entries()).filter(([, items]) => items.length > 0).map(([nameValue, item]) => ({ name: nameValue, description: tagDescriptions[nameValue], item }))

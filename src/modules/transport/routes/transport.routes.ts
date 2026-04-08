@@ -17,12 +17,16 @@ import {
   deactivateTransportRouteAssignmentSchema,
   ensureDailyTripSchema,
   listTripsQuerySchema,
+  recordTripStopAttendanceSchema,
   recordTripLocationSchema,
   routeIdParamsSchema,
+  tripResourceParamsSchema,
+  saveStudentHomeLocationSchema,
   studentIdParamsSchema,
+  transportRealtimeTokenQuerySchema,
   tripIdParamsSchema,
-  tripStudentRosterQuerySchema,
-  saveStudentHomeLocationSchema
+  tripStopAttendanceParamsSchema,
+  tripStudentRosterQuerySchema
 } from "../validator/transport.validator";
 
 export const createTransportRouter = (controller: TransportController): Router => {
@@ -123,6 +127,13 @@ export const createTransportRouter = (controller: TransportController): Router =
     asyncHandler((req, res) => controller.deactivateRouteAssignment(req, res))
   );
 
+  router.get(
+    "/realtime-token",
+    ...transportPolicies.realtimeAccess,
+    validateRequest({ query: transportRealtimeTokenQuerySchema }),
+    asyncHandler((req, res) => controller.getRealtimeToken(req, res))
+  );
+
   router.post(
     "/trips",
     ...transportPolicies.accessTrips,
@@ -149,6 +160,27 @@ export const createTransportRouter = (controller: TransportController): Router =
     ...transportPolicies.accessTrips,
     validateRequest({ params: tripIdParamsSchema }),
     asyncHandler((req, res) => controller.getTripById(req, res))
+  );
+
+  router.get(
+    "/trips/:id/eta",
+    ...transportPolicies.accessTrips,
+    validateRequest({ params: tripIdParamsSchema }),
+    asyncHandler((req, res) => controller.getTripEta(req, res))
+  );
+
+  router.get(
+    "/trips/:tripId/live-status",
+    ...transportPolicies.parentTripLiveStatus,
+    validateRequest({ params: tripResourceParamsSchema }),
+    asyncHandler((req, res) => controller.getTripLiveStatus(req, res))
+  );
+
+  router.get(
+    "/trips/:tripId/summary",
+    ...transportPolicies.adminTripSummary,
+    validateRequest({ params: tripResourceParamsSchema }),
+    asyncHandler((req, res) => controller.getTripSummary(req, res))
   );
 
   router.get(
@@ -193,6 +225,16 @@ export const createTransportRouter = (controller: TransportController): Router =
       body: createTripStudentEventSchema
     }),
     asyncHandler((req, res) => controller.createTripStudentEvent(req, res))
+  );
+
+  router.post(
+    "/trips/:tripId/stops/:stopId/attendance",
+    ...transportPolicies.operateTrips,
+    validateRequest({
+      params: tripStopAttendanceParamsSchema,
+      body: recordTripStopAttendanceSchema
+    }),
+    asyncHandler((req, res) => controller.recordTripStopAttendance(req, res))
   );
 
   router.get(

@@ -1,11 +1,16 @@
 import type {
   BusStatus,
   HomeLocationStatus,
-  TripRosterEventType,
   TripStatus,
+  TripRosterEventType,
+  TripStopAttendanceStatus,
   TripStudentEventType,
   TripType
 } from "../types/transport.types";
+import type {
+  TransportEtaCalculationMode,
+  TransportEtaStatus
+} from "../types/transport-eta.types";
 
 export interface RouteIdParamsDto {
   routeId: string;
@@ -23,9 +28,22 @@ export interface TripIdParamsDto {
   id: string;
 }
 
+export interface TripResourceParamsDto {
+  tripId: string;
+}
+
+export interface TripStopAttendanceParamsDto {
+  tripId: string;
+  stopId: string;
+}
+
 export interface TripStudentRosterQueryDto {
   search?: string;
   stopId?: string;
+}
+
+export interface TransportRealtimeTokenQueryDto {
+  tripId: string;
 }
 
 export interface CreateBusRequestDto {
@@ -110,6 +128,16 @@ export interface CreateTripStudentEventRequestDto {
   eventType: TripStudentEventType;
   stopId?: string;
   notes?: string | null;
+}
+
+export interface RecordTripStopAttendanceItemDto {
+  studentId: string;
+  status: TripStopAttendanceStatus;
+  notes?: string | null;
+}
+
+export interface RecordTripStopAttendanceRequestDto {
+  attendances: RecordTripStopAttendanceItemDto[];
 }
 
 export interface SaveStudentHomeLocationRequestDto {
@@ -292,6 +320,15 @@ export interface TransportTripStudentEventResponseDto {
   notes: string | null;
 }
 
+export interface TransportTripStopAttendanceResponseDto {
+  tripId: string;
+  stopId: string;
+  tripStatus: TripStatus;
+  stopCompleted: boolean;
+  tripCompleted: boolean;
+  recordedEvents: TransportTripStudentEventResponseDto[];
+}
+
 export interface TransportStudentHomeLocationResponseDto {
   student: TransportStudentSummaryDto;
   homeLocation: {
@@ -309,4 +346,88 @@ export interface TransportStudentHomeLocationResponseDto {
     createdAt: string;
     updatedAt: string;
   } | null;
+}
+
+export interface TransportRealtimeTokenResponseDto {
+  customToken: string;
+  databaseUrl: string;
+  path: string;
+  tripId: string;
+  access: "read" | "write";
+  refreshAfterSeconds: number;
+}
+
+export interface TransportTripEtaSummaryDto {
+  status: TransportEtaStatus;
+  calculationMode: TransportEtaCalculationMode | null;
+  nextStop: {
+    stopId: string;
+    stopName: string;
+    stopOrder: number;
+  } | null;
+  nextStopEtaAt: string | null;
+  finalEtaAt: string | null;
+  remainingDistanceMeters: number | null;
+  remainingDurationSeconds: number | null;
+  computedAt: string;
+  isStale: boolean;
+}
+
+export interface TransportTripEtaStopResponseDto {
+  stopId: string;
+  stopName: string;
+  stopOrder: number;
+  etaAt: string | null;
+  remainingDistanceMeters: number | null;
+  remainingDurationSeconds: number | null;
+  isNextStop: boolean;
+  isCompleted: boolean;
+}
+
+export interface TransportTripEtaResponseDto {
+  tripId: string;
+  tripStatus: TripStatus;
+  routePolyline: {
+    encodedPolyline: string;
+  } | null;
+  etaSummary: TransportTripEtaSummaryDto | null;
+  remainingStops: TransportTripEtaStopResponseDto[];
+  computedAt: string | null;
+}
+
+export interface TransportTripLiveStatusStopSnapshotDto {
+  stopId: string;
+  stopName: string;
+  stopOrder: number;
+  etaAt: string | null;
+  remainingDistanceMeters: number | null;
+  remainingDurationSeconds: number | null;
+  isCompleted: boolean;
+  approachingNotified: boolean;
+  arrivedNotified: boolean;
+  updatedAt: string;
+}
+
+export interface TransportTripLiveStatusResponseDto {
+  tripId: string;
+  tripStatus: TripStatus;
+  firebaseRtdbPath: string;
+  myStopSnapshot: TransportTripLiveStatusStopSnapshotDto | null;
+  routePolyline: {
+    encodedPolyline: string;
+  } | null;
+}
+
+export interface TransportTripSummaryResponseDto {
+  tripId: string;
+  tripStatus: TripStatus;
+  scheduledStartTime: string | null;
+  actualStartTime: string | null;
+  actualEndTime: string | null;
+  startDelayMinutes: number | null;
+  attendance: {
+    totalStudents: number;
+    presentCount: number;
+    absentCount: number;
+  };
 }

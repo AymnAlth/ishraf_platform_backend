@@ -84,4 +84,18 @@ export class AutomationRepository {
 
     return mapRows(result.rows);
   }
+
+  async listActiveAdminUserIds(queryable: Queryable = db): Promise<string[]> {
+    const result = await queryable.query<{ userId: string }>(
+      `
+        SELECT id::text AS "userId"
+        FROM ${databaseTables.users}
+        WHERE role = 'admin'
+          AND is_active = TRUE
+        ORDER BY id ASC
+      `
+    );
+
+    return result.rows.map((row) => row.userId);
+  }
 }

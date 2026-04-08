@@ -5,6 +5,7 @@ import {
   BUS_STATUS_VALUES,
   HOME_LOCATION_STATUS_VALUES,
   TRIP_LIST_SORT_FIELDS,
+  TRIP_STOP_ATTENDANCE_STATUS_VALUES,
   TRIP_STATUS_VALUES,
   TRIP_STUDENT_EVENT_TYPE_VALUES,
   TRIP_TYPE_VALUES
@@ -74,10 +75,25 @@ export const tripIdParamsSchema = z.object({
   id: idSchema
 });
 
+export const tripResourceParamsSchema = z.object({
+  tripId: idSchema
+});
+
+export const tripStopAttendanceParamsSchema = z.object({
+  tripId: idSchema,
+  stopId: idSchema
+});
+
 export const tripStudentRosterQuerySchema = z
   .object({
     search: z.string().trim().min(1).max(150).optional(),
     stopId: idSchema.optional()
+  })
+  .strict();
+
+export const transportRealtimeTokenQuerySchema = z
+  .object({
+    tripId: idSchema
   })
   .strict();
 
@@ -230,6 +246,38 @@ export const createTripStudentEventSchema = z
         message: "stopId is required for boarded and dropped_off events"
       });
     }
+  });
+
+export const recordTripStopAttendanceSchema = z
+  .object({
+    attendances: z
+      .array(
+        z
+          .object({
+            studentId: idSchema,
+            status: z.enum(TRIP_STOP_ATTENDANCE_STATUS_VALUES),
+            notes: optionalTrimmedString(1000)
+          })
+          .strict()
+      )
+      .min(1, { message: "At least one attendance entry is required" })
+  })
+  .strict()
+  .superRefine((payload, ctx) => {
+    const seen = new Set<string>();
+
+    payload.attendances.forEach((entry, index) => {
+      if (seen.has(entry.studentId)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["attendances", index, "studentId"],
+          message: "Duplicate studentId is not allowed in attendances"
+        });
+        return;
+      }
+
+      seen.add(entry.studentId);
+    });
   });
 
 export const saveStudentHomeLocationSchema = z

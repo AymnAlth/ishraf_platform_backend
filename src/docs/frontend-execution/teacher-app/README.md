@@ -4,6 +4,8 @@
 
 هذا المجلد يشرح السطوح التي يستهلكها تطبيق المعلم من الباك الحالي مع التركيز على المنطق التشغيلي، لا مجرد المسارات.
 
+حالة التزامن: `2026-04-08` (project-wide audit)
+
 ## النطاق
 
 - attendance
@@ -30,3 +32,9 @@
 | --- | --- |
 | `ATTENDANCE_STATUS` | `present`, `absent`, `late`, `excused` |
 | `HOMEWORK_SUBMISSION_STATUS` | `submitted`, `not_submitted`, `late` |
+
+## دورة الاستخدام
+
+- `ENDPOINT_MAP.md`: خريطة العقود والقيود لكل endpoint.
+- `SCREENS_AND_TASKS.md`: التسلسل التنفيذي اليومي من login إلى متابعة الطالب.
+- `QA_AND_ACCEPTANCE.md`: معايير القبول وأخطاء domain المتوقعة.

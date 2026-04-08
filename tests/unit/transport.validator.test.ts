@@ -7,7 +7,9 @@ import {
   createTripStudentEventSchema,
   ensureDailyTripSchema,
   listTripsQuerySchema,
-  saveStudentHomeLocationSchema
+  recordTripStopAttendanceSchema,
+  saveStudentHomeLocationSchema,
+  tripResourceParamsSchema
 } from "../../src/modules/transport/validator/transport.validator";
 
 describe("transport.validator", () => {
@@ -99,5 +101,43 @@ describe("transport.validator", () => {
 
     expect(missingStop.success).toBe(false);
     expect(unexpectedStop.success).toBe(false);
+  });
+
+  it("requires non-empty attendance payloads with unique student ids", () => {
+    const valid = recordTripStopAttendanceSchema.safeParse({
+      attendances: [
+        { studentId: "1", status: "present" },
+        { studentId: "2", status: "absent" }
+      ]
+    });
+    const duplicateStudent = recordTripStopAttendanceSchema.safeParse({
+      attendances: [
+        { studentId: "1", status: "present" },
+        { studentId: "1", status: "absent" }
+      ]
+    });
+    const empty = recordTripStopAttendanceSchema.safeParse({
+      attendances: []
+    });
+
+    expect(valid.success).toBe(true);
+    expect(duplicateStudent.success).toBe(false);
+    expect(empty.success).toBe(false);
+  });
+
+  it("parses trip resource params for live-status and summary routes", () => {
+    const valid = tripResourceParamsSchema.safeParse({
+      tripId: 30
+    });
+    const invalid = tripResourceParamsSchema.safeParse({
+      tripId: "abc"
+    });
+
+    expect(valid.success).toBe(true);
+    expect(invalid.success).toBe(false);
+
+    if (valid.success) {
+      expect(valid.data.tripId).toBe("30");
+    }
   });
 });

@@ -9,7 +9,10 @@ import type {
   SystemSettingsGroupValues,
   TransportMapsSettings
 } from "./types/system-settings.types";
-import { SYSTEM_SETTING_GROUP_VALUES } from "./types/system-settings.types";
+import {
+  ETA_PROVIDER_VALUES,
+  SYSTEM_SETTING_GROUP_VALUES
+} from "./types/system-settings.types";
 
 interface SystemSettingDefinition<TValue> {
   schema: z.ZodType<TValue>;
@@ -33,6 +36,25 @@ const booleanSetting = (
   description
 });
 
+const positiveIntegerSetting = (
+  defaultValue: number,
+  description: string
+): SystemSettingDefinition<number> => ({
+  schema: z.coerce.number().int().positive(),
+  defaultValue,
+  description
+});
+
+const enumSetting = <TValue extends string>(
+  allowedValues: readonly [TValue, ...TValue[]],
+  defaultValue: TValue,
+  description: string
+): SystemSettingDefinition<TValue> => ({
+  schema: z.enum(allowedValues),
+  defaultValue,
+  description
+});
+
 export const systemSettingsRegistry = {
   pushNotifications: {
     description: "Feature flags that gate future FCM and realtime push delivery behavior.",
@@ -48,11 +70,28 @@ export const systemSettingsRegistry = {
     }
   },
   transportMaps: {
-    description: "Feature flags for external map and ETA integrations used by transport surfaces.",
+    description: "Feature flags and provider selection for external map and ETA integrations used by transport surfaces.",
     settings: {
+      etaProvider: enumSetting(
+        ETA_PROVIDER_VALUES,
+        "mapbox",
+        "Selects the preferred ETA provider. Batch 2 activates runtime provider resolution with mapbox as the default selected provider."
+      ),
+      etaDerivedEstimateEnabled: booleanSetting(
+        true,
+        "Allows the backend worker to derive ETA snapshots locally between provider refreshes using the cached polyline and recent trip locations."
+      ),
       googleMapsEtaEnabled: booleanSetting(
         false,
-        "Enables Google Maps ETA integration when the provider phase is implemented."
+        "Keeps Google Maps ETA execution available when the admin explicitly selects Google as the active provider."
+      ),
+      etaProviderRefreshIntervalSeconds: positiveIntegerSetting(
+        300,
+        "Minimum seconds between provider refreshes for one active trip ETA snapshot."
+      ),
+      etaProviderDeviationThresholdMeters: positiveIntegerSetting(
+        300,
+        "Route deviation threshold in meters that forces a fresh provider ETA snapshot."
       )
     }
   },
@@ -179,7 +218,13 @@ export const isSystemIntegrationEnabled = (
   }
 
   if (group === "transportMaps") {
-    return (values as TransportMapsSettings).googleMapsEtaEnabled;
+    const transportValues = values as TransportMapsSettings;
+
+    return (
+      transportValues.etaProvider === "mapbox" ||
+      transportValues.googleMapsEtaEnabled ||
+      transportValues.etaDerivedEstimateEnabled
+    );
   }
 
   return (values as AnalyticsSettings).aiAnalyticsEnabled;

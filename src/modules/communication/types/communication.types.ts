@@ -65,6 +65,51 @@ export interface UserNotificationSummaryRow {
   unreadNotifications: number | string;
 }
 
+export const COMMUNICATION_DEVICE_PROVIDER_VALUES = ["fcm"] as const;
+export const COMMUNICATION_DEVICE_PLATFORM_VALUES = ["android", "ios", "web"] as const;
+export const COMMUNICATION_DEVICE_SUBSCRIPTION_VALUES = ["transportRealtime"] as const;
+
+export type CommunicationDeviceProvider =
+  (typeof COMMUNICATION_DEVICE_PROVIDER_VALUES)[number];
+export type CommunicationDevicePlatform =
+  (typeof COMMUNICATION_DEVICE_PLATFORM_VALUES)[number];
+export type CommunicationDeviceSubscriptionKey =
+  (typeof COMMUNICATION_DEVICE_SUBSCRIPTION_VALUES)[number];
+
+export interface CommunicationDeviceRow {
+  deviceId: string;
+  userId: string;
+  providerKey: CommunicationDeviceProvider;
+  platform: CommunicationDevicePlatform;
+  appId: string;
+  deviceToken: string;
+  deviceName: string | null;
+  isActive: boolean;
+  lastSeenAt: Date;
+  unregisteredAt: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+  subscriptions: CommunicationDeviceSubscriptionKey[];
+}
+
+export interface CommunicationDeviceTokenRow {
+  deviceId: string;
+  userId: string;
+  deviceToken: string;
+}
+
+export interface CommunicationDeviceWriteInput {
+  userId: string;
+  providerKey: CommunicationDeviceProvider;
+  platform: CommunicationDevicePlatform;
+  appId: string;
+  deviceToken: string;
+  deviceName?: string | null;
+  isActive: boolean;
+  lastSeenAt: Date;
+  unregisteredAt?: Date | null;
+}
+
 export const MESSAGE_LIST_SORT_FIELDS = ["sentAt"] as const;
 export const NOTIFICATION_LIST_SORT_FIELDS = ["createdAt", "readAt"] as const;
 

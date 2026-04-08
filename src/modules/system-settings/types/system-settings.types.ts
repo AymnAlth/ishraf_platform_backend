@@ -33,13 +33,21 @@ export const INTEGRATION_OUTBOX_STATUS_VALUES = [
 
 export type IntegrationOutboxStatus = (typeof INTEGRATION_OUTBOX_STATUS_VALUES)[number];
 
+export const ETA_PROVIDER_VALUES = ["mapbox", "google"] as const;
+
+export type EtaProvider = (typeof ETA_PROVIDER_VALUES)[number];
+
 export interface PushNotificationsSettings {
   fcmEnabled: boolean;
   transportRealtimeEnabled: boolean;
 }
 
 export interface TransportMapsSettings {
+  etaProvider: EtaProvider;
+  etaDerivedEstimateEnabled: boolean;
   googleMapsEtaEnabled: boolean;
+  etaProviderRefreshIntervalSeconds: number;
+  etaProviderDeviationThresholdMeters: number;
 }
 
 export interface AnalyticsSettings {

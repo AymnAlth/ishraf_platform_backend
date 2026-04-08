@@ -5,6 +5,8 @@ import { ForbiddenError } from "../../src/common/errors/forbidden-error";
 import { ValidationError } from "../../src/common/errors/validation-error";
 import { db } from "../../src/database/db";
 import type { AutomationPort } from "../../src/modules/automation/types/automation.types";
+import type { TransportEtaRepository } from "../../src/modules/transport/repository/transport-eta.repository";
+import type { TransportEtaOutboxRepository } from "../../src/modules/transport/repository/transport-eta-outbox.repository";
 import { TransportService } from "../../src/modules/transport/service/transport.service";
 import type { TransportRepository } from "../../src/modules/transport/repository/transport.repository";
 import type {
@@ -18,8 +20,10 @@ import type {
   StudentTransportReferenceRow,
   TransportRouteAssignmentRow,
   TripRow,
+  TripStudentRosterRow,
   TripStudentEventRow
 } from "../../src/modules/transport/types/transport.types";
+import type { TransportEtaReadServicePort } from "../../src/modules/transport/service/transport-eta.service";
 
 const driverRow = (overrides: Partial<DriverReferenceRow> = {}): DriverReferenceRow => ({
   driverId: "1",
@@ -202,6 +206,27 @@ const tripEventRow = (
   ...overrides
 });
 
+const tripRosterRow = (
+  overrides: Partial<TripStudentRosterRow> = {}
+): TripStudentRosterRow => ({
+  studentId: "1",
+  academicNo: "STU-1001",
+  fullName: "Student One",
+  stopId: "10",
+  stopName: "Main Stop",
+  stopLatitude: 14.1234567,
+  stopLongitude: 44.1234567,
+  stopOrder: 1,
+  homeLatitude: null,
+  homeLongitude: null,
+  homeAddressLabel: null,
+  homeAddressText: null,
+  lastEventType: null,
+  lastEventTime: null,
+  lastEventStopId: null,
+  ...overrides
+});
+
 describe("TransportService", () => {
   const repositoryMock = {
     findDriverProfileByUserId: vi.fn(),
@@ -231,7 +256,10 @@ describe("TransportService", () => {
     findTripByNaturalKey: vi.fn(),
     listTrips: vi.fn(),
     findTripById: vi.fn(),
+    listTripStudentRoster: vi.fn(),
     hasDriverTripOwnership: vi.fn(),
+    hasParentTripAccess: vi.fn(),
+    listParentTripStops: vi.fn(),
     updateTripStatus: vi.fn(),
     createTripLocation: vi.fn(),
     findLatestTripLocationByTripId: vi.fn(),
@@ -249,11 +277,24 @@ describe("TransportService", () => {
   };
 
   let transportService: TransportService;
+  const transportEtaOutboxRepositoryMock = {
+    enqueueTripRefreshEvent: vi.fn()
+  };
+  const transportEtaServiceMock = {
+    getTripEtaReadModel: vi.fn(),
+    markTripCompleted: vi.fn()
+  };
+  const transportEtaRepositoryMock = {
+    listTripEtaStopSnapshotsByTripId: vi.fn(),
+    markTripStopCompleted: vi.fn(),
+    areAllTripStopsCompleted: vi.fn()
+  };
   const automationMock = {
     onStudentAbsent: vi.fn(),
     onNegativeBehavior: vi.fn(),
     onTripStarted: vi.fn(),
-    onStudentDroppedOff: vi.fn()
+    onTripEnded: vi.fn(),
+    onTripStudentEventRecorded: vi.fn()
   };
 
   beforeEach(() => {
@@ -261,7 +302,12 @@ describe("TransportService", () => {
       repositoryMock as unknown as TransportRepository,
       profileResolutionServiceMock as never,
       undefined,
-      automationMock as unknown as AutomationPort
+      automationMock as unknown as AutomationPort,
+      null,
+      null,
+      transportEtaServiceMock as unknown as TransportEtaReadServicePort,
+      transportEtaOutboxRepositoryMock as unknown as TransportEtaOutboxRepository,
+      transportEtaRepositoryMock as unknown as TransportEtaRepository
     );
 
     vi.restoreAllMocks();
@@ -277,6 +323,22 @@ describe("TransportService", () => {
     Object.values(repositoryMock).forEach((mockFn) => mockFn.mockReset());
     Object.values(profileResolutionServiceMock).forEach((mockFn) => mockFn.mockReset());
     Object.values(automationMock).forEach((mockFn) => mockFn.mockReset());
+    Object.values(transportEtaServiceMock).forEach((mockFn) => mockFn.mockReset());
+    Object.values(transportEtaRepositoryMock).forEach((mockFn) => mockFn.mockReset());
+    Object.values(transportEtaOutboxRepositoryMock).forEach((mockFn) => mockFn.mockReset());
+    vi.mocked(transportEtaOutboxRepositoryMock.enqueueTripRefreshEvent).mockResolvedValue(null);
+    vi.mocked(transportEtaServiceMock.getTripEtaReadModel).mockResolvedValue({
+      tripId: "30",
+      routeId: "1",
+      routePolyline: null,
+      etaSummary: null,
+      remainingStops: [],
+      computedAt: null
+    });
+    vi.mocked(transportEtaServiceMock.markTripCompleted).mockResolvedValue(undefined);
+    vi.mocked(transportEtaRepositoryMock.listTripEtaStopSnapshotsByTripId).mockResolvedValue([]);
+    vi.mocked(transportEtaRepositoryMock.markTripStopCompleted).mockResolvedValue(true);
+    vi.mocked(transportEtaRepositoryMock.areAllTripStopsCompleted).mockResolvedValue(false);
     vi.mocked(repositoryMock.findDriverProfileByUserId).mockResolvedValue(driverRow());
     vi.mocked(profileResolutionServiceMock.findDriverProfileByUserId).mockResolvedValue({
       driverId: "1",
@@ -299,6 +361,9 @@ describe("TransportService", () => {
     vi.mocked(repositoryMock.hasDriverBusOwnership).mockResolvedValue(true);
     vi.mocked(repositoryMock.hasDriverTripOwnership).mockResolvedValue(true);
     vi.mocked(repositoryMock.hasDriverRouteAssignmentOwnership).mockResolvedValue(true);
+    vi.mocked(repositoryMock.hasParentTripAccess).mockResolvedValue(true);
+    vi.mocked(repositoryMock.listParentTripStops).mockResolvedValue([]);
+    vi.mocked(repositoryMock.listTripStudentRoster).mockResolvedValue([]);
   });
 
   it("creates buses for admins", async () => {
@@ -639,6 +704,18 @@ describe("TransportService", () => {
     );
 
     expect(locationResponse.latitude).toBeCloseTo(14.2233445);
+    expect(transportEtaOutboxRepositoryMock.enqueueTripRefreshEvent).toHaveBeenCalledTimes(1);
+    expect(
+      transportEtaOutboxRepositoryMock.enqueueTripRefreshEvent.mock.calls[0][0]
+    ).toMatchObject({
+      tripId: "30",
+      payloadJson: expect.objectContaining({
+        tripId: "30",
+        trigger: "heartbeat"
+      }),
+      idempotencyKey: expect.stringContaining("heartbeat:30:2026-03-13T10:15"),
+      requestId: null
+    });
   });
 
   it("rejects trip student events when assignment route does not match trip route", async () => {
@@ -737,9 +814,70 @@ describe("TransportService", () => {
       routeName: "Route 1",
       tripDate: "2026-03-13"
     });
+    expect(transportEtaOutboxRepositoryMock.enqueueTripRefreshEvent).toHaveBeenCalledTimes(1);
+    expect(
+      transportEtaOutboxRepositoryMock.enqueueTripRefreshEvent.mock.calls[0][0]
+    ).toMatchObject({
+      tripId: "30",
+      payloadJson: {
+        tripId: "30",
+        trigger: "trip_started"
+      },
+      idempotencyKey: "eta:transport_eta_refresh:trip_started:30",
+      requestId: null
+    });
   });
 
-  it("triggers dropped-off automation for dropped_off trip events only", async () => {
+  it("builds the same heartbeat idempotency key inside one UTC minute bucket", async () => {
+    vi.mocked(repositoryMock.findTripById).mockResolvedValue(
+      tripRow({
+        tripStatus: "started",
+        startedAt: new Date("2026-03-13T10:05:00.000Z")
+      })
+    );
+    vi.mocked(repositoryMock.createTripLocation).mockResolvedValue(undefined);
+    vi.mocked(repositoryMock.findLatestTripLocationByTripId).mockResolvedValue(
+      latestLocationRow({
+        recordedAt: new Date("2026-03-13T10:15:40.000Z")
+      })
+    );
+
+    await transportService.recordTripLocation(
+      {
+        userId: "1004",
+        role: "driver",
+        email: "driver@example.com",
+        isActive: true
+      },
+      "30",
+      {
+        latitude: 14.22,
+        longitude: 44.22
+      }
+    );
+    await transportService.recordTripLocation(
+      {
+        userId: "1004",
+        role: "driver",
+        email: "driver@example.com",
+        isActive: true
+      },
+      "30",
+      {
+        latitude: 14.2201,
+        longitude: 44.2201
+      }
+    );
+
+    expect(transportEtaOutboxRepositoryMock.enqueueTripRefreshEvent).toHaveBeenCalledTimes(2);
+    expect(
+      transportEtaOutboxRepositoryMock.enqueueTripRefreshEvent.mock.calls[0][0].idempotencyKey
+    ).toBe(
+      transportEtaOutboxRepositoryMock.enqueueTripRefreshEvent.mock.calls[1][0].idempotencyKey
+    );
+  });
+
+  it("triggers trip student event automation with the recorded dropped_off payload", async () => {
     vi.mocked(repositoryMock.findTripById).mockResolvedValue(
       tripRow({
         tripStatus: "started"
@@ -773,11 +911,351 @@ describe("TransportService", () => {
       }
     );
 
-    expect(automationMock.onStudentDroppedOff).toHaveBeenCalledWith({
+    expect(automationMock.onTripStudentEventRecorded).toHaveBeenCalledWith({
       tripStudentEventId: "40",
+      tripId: "30",
+      routeId: "1",
+      routeName: "Route 1",
+      tripDate: "2026-03-13",
       studentId: "1",
       studentName: "Student One",
+      eventType: "dropped_off",
       stopName: "Main Stop"
     });
+  });
+
+  it("returns parent trip live status with nearest active stop snapshot and route polyline", async () => {
+    vi.mocked(repositoryMock.findTripById).mockResolvedValue(
+      tripRow({
+        tripStatus: "started"
+      })
+    );
+    vi.mocked(repositoryMock.hasParentTripAccess).mockResolvedValue(true);
+    vi.mocked(repositoryMock.listParentTripStops).mockResolvedValue([
+      {
+        stopId: "10",
+        stopName: "Main Stop",
+        stopOrder: 1
+      },
+      {
+        stopId: "20",
+        stopName: "Second Stop",
+        stopOrder: 2
+      }
+    ]);
+    vi.mocked(transportEtaRepositoryMock.listTripEtaStopSnapshotsByTripId).mockResolvedValue([
+      {
+        tripId: "30",
+        stopId: "10",
+        stopOrder: 1,
+        stopName: "Main Stop",
+        etaAt: new Date("2026-03-13T10:10:00.000Z"),
+        remainingDistanceMeters: 150,
+        remainingDurationSeconds: 60,
+        isNextStop: true,
+        isCompleted: false,
+        approachingNotified: true,
+        arrivedNotified: false,
+        updatedAt: new Date("2026-03-13T10:09:00.000Z")
+      },
+      {
+        tripId: "30",
+        stopId: "20",
+        stopOrder: 2,
+        stopName: "Second Stop",
+        etaAt: new Date("2026-03-13T10:20:00.000Z"),
+        remainingDistanceMeters: 450,
+        remainingDurationSeconds: 180,
+        isNextStop: false,
+        isCompleted: false,
+        approachingNotified: false,
+        arrivedNotified: false,
+        updatedAt: new Date("2026-03-13T10:09:00.000Z")
+      }
+    ]);
+    vi.mocked(transportEtaServiceMock.getTripEtaReadModel).mockResolvedValue({
+      tripId: "30",
+      routeId: "1",
+      routePolyline: {
+        encodedPolyline: "abc123"
+      },
+      etaSummary: null,
+      remainingStops: [],
+      computedAt: null
+    });
+
+    const response = await transportService.getTripLiveStatus(
+      {
+        userId: "2001",
+        role: "parent",
+        email: "parent@example.com",
+        isActive: true
+      },
+      "30"
+    );
+
+    expect(response.tripId).toBe("30");
+    expect(response.tripStatus).toBe("started");
+    expect(response.firebaseRtdbPath).toBe("/transport/live-trips/30/latestLocation");
+    expect(response.routePolyline).toEqual({
+      encodedPolyline: "abc123"
+    });
+    expect(response.myStopSnapshot?.stopId).toBe("10");
+    expect(response.myStopSnapshot?.approachingNotified).toBe(true);
+    expect(response.myStopSnapshot?.arrivedNotified).toBe(false);
+  });
+
+  it("rejects parent trip live status when parent does not own trip", async () => {
+    vi.mocked(repositoryMock.findTripById).mockResolvedValue(tripRow());
+    vi.mocked(repositoryMock.hasParentTripAccess).mockResolvedValue(false);
+
+    await expect(
+      transportService.getTripLiveStatus(
+        {
+          userId: "2002",
+          role: "parent",
+          email: "parent2@example.com",
+          isActive: true
+        },
+        "30"
+      )
+    ).rejects.toBeInstanceOf(ForbiddenError);
+  });
+
+  it("builds completed trip summary attendance from latest trip events", async () => {
+    vi.mocked(repositoryMock.findTripById).mockResolvedValue(
+      tripRow({
+        tripStatus: "completed",
+        startedAt: new Date("2026-03-13T10:00:00.000Z"),
+        endedAt: new Date("2026-03-13T10:30:00.000Z")
+      })
+    );
+    vi.mocked(repositoryMock.listTripStudentRoster).mockResolvedValue([
+      tripRosterRow({
+        studentId: "1",
+        lastEventType: "boarded"
+      }),
+      tripRosterRow({
+        studentId: "2",
+        academicNo: "STU-1002",
+        fullName: "Student Two",
+        stopId: "20",
+        stopName: "Second Stop",
+        stopOrder: 2,
+        lastEventType: "absent"
+      }),
+      tripRosterRow({
+        studentId: "3",
+        academicNo: "STU-1003",
+        fullName: "Student Three",
+        stopId: "30",
+        stopName: "Third Stop",
+        stopOrder: 3,
+        lastEventType: null
+      })
+    ]);
+
+    const response = await transportService.getTripSummary(
+      {
+        userId: "1001",
+        role: "admin",
+        email: "admin@example.com",
+        isActive: true
+      },
+      "30"
+    );
+
+    expect(response.tripStatus).toBe("completed");
+    expect(response.scheduledStartTime).toBeNull();
+    expect(response.startDelayMinutes).toBeNull();
+    expect(response.actualStartTime).toBe("2026-03-13T10:00:00.000Z");
+    expect(response.actualEndTime).toBe("2026-03-13T10:30:00.000Z");
+    expect(response.attendance).toEqual({
+      totalStudents: 3,
+      presentCount: 1,
+      absentCount: 1
+    });
+  });
+
+  it("rejects trip summary when trip status is not completed", async () => {
+    vi.mocked(repositoryMock.findTripById).mockResolvedValue(
+      tripRow({
+        tripStatus: "started"
+      })
+    );
+
+    await expect(
+      transportService.getTripSummary(
+        {
+          userId: "1001",
+          role: "admin",
+          email: "admin@example.com",
+          isActive: true
+        },
+        "30"
+      )
+    ).rejects.toBeInstanceOf(ConflictError);
+  });
+
+  it("rejects stop attendance when trip is not started", async () => {
+    vi.mocked(repositoryMock.findTripById).mockResolvedValue(
+      tripRow({
+        tripStatus: "ended"
+      })
+    );
+
+    await expect(
+      transportService.recordTripStopAttendance(
+        {
+          userId: "1004",
+          role: "driver",
+          email: "driver@example.com",
+          isActive: true
+        },
+        "30",
+        "10",
+        {
+          attendances: [{ studentId: "1", status: "present" }]
+        }
+      )
+    ).rejects.toBeInstanceOf(ValidationError);
+  });
+
+  it("maps attendance statuses to trip student events and closes the stop snapshot", async () => {
+    vi.mocked(repositoryMock.findTripById).mockResolvedValue(
+      tripRow({
+        tripStatus: "started",
+        tripType: "pickup"
+      })
+    );
+    vi.mocked(repositoryMock.findRouteStopById).mockResolvedValue(routeStopRow());
+    vi.mocked(repositoryMock.findStudentTransportReferenceById).mockResolvedValue(studentRow());
+    vi.mocked(repositoryMock.findStudentAssignmentByStudentIdOnDate).mockResolvedValue(
+      assignmentRow({
+        stopId: "10"
+      })
+    );
+    vi.mocked(repositoryMock.createTripStudentEvent)
+      .mockResolvedValueOnce("40")
+      .mockResolvedValueOnce("41");
+    vi.mocked(repositoryMock.findTripStudentEventById)
+      .mockResolvedValueOnce(
+        tripEventRow({
+          tripStudentEventId: "40",
+          eventType: "boarded"
+        })
+      )
+      .mockResolvedValueOnce(
+        tripEventRow({
+          tripStudentEventId: "41",
+          eventType: "absent",
+          stopId: null,
+          stopName: null
+        })
+      );
+    vi.mocked(transportEtaRepositoryMock.markTripStopCompleted).mockResolvedValue(true);
+    vi.mocked(transportEtaRepositoryMock.areAllTripStopsCompleted).mockResolvedValue(false);
+
+    const response = await transportService.recordTripStopAttendance(
+      {
+        userId: "1004",
+        role: "driver",
+        email: "driver@example.com",
+        isActive: true
+      },
+      "30",
+      "10",
+      {
+        attendances: [
+          { studentId: "1", status: "present" },
+          { studentId: "2", status: "absent" }
+        ]
+      }
+    );
+
+    expect(repositoryMock.createTripStudentEvent).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({
+        studentId: "1",
+        eventType: "boarded",
+        stopId: "10"
+      }),
+      expect.anything()
+    );
+    expect(repositoryMock.createTripStudentEvent).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({
+        studentId: "2",
+        eventType: "absent",
+        stopId: undefined
+      }),
+      expect.anything()
+    );
+    expect(transportEtaRepositoryMock.markTripStopCompleted).toHaveBeenCalledWith(
+      "30",
+      "10",
+      expect.anything()
+    );
+    expect(response.stopCompleted).toBe(true);
+    expect(response.tripCompleted).toBe(false);
+    expect(response.recordedEvents).toHaveLength(2);
+    expect(transportEtaServiceMock.markTripCompleted).not.toHaveBeenCalled();
+  });
+
+  it("finalizes the trip as completed when all ETA stops are completed", async () => {
+    vi.mocked(repositoryMock.findTripById)
+      .mockResolvedValueOnce(
+        tripRow({
+          tripStatus: "started",
+          tripType: "dropoff"
+        })
+      )
+      .mockResolvedValueOnce(
+        tripRow({
+          tripStatus: "completed",
+          tripType: "dropoff",
+          endedAt: new Date("2026-03-13T10:30:00.000Z")
+        })
+      );
+    vi.mocked(repositoryMock.findRouteStopById).mockResolvedValue(routeStopRow());
+    vi.mocked(repositoryMock.findStudentTransportReferenceById).mockResolvedValue(studentRow());
+    vi.mocked(repositoryMock.findStudentAssignmentByStudentIdOnDate).mockResolvedValue(
+      assignmentRow({
+        stopId: "10"
+      })
+    );
+    vi.mocked(repositoryMock.createTripStudentEvent).mockResolvedValue("50");
+    vi.mocked(repositoryMock.findTripStudentEventById).mockResolvedValue(
+      tripEventRow({
+        tripStudentEventId: "50",
+        eventType: "dropped_off"
+      })
+    );
+    vi.mocked(transportEtaRepositoryMock.markTripStopCompleted).mockResolvedValue(true);
+    vi.mocked(transportEtaRepositoryMock.areAllTripStopsCompleted).mockResolvedValue(true);
+    vi.mocked(repositoryMock.updateTripStatus).mockResolvedValue(undefined);
+
+    const response = await transportService.recordTripStopAttendance(
+      {
+        userId: "1004",
+        role: "driver",
+        email: "driver@example.com",
+        isActive: true
+      },
+      "30",
+      "10",
+      {
+        attendances: [{ studentId: "1", status: "present" }]
+      }
+    );
+
+    expect(repositoryMock.updateTripStatus).toHaveBeenCalledWith(
+      "30",
+      "completed",
+      expect.anything()
+    );
+    expect(transportEtaServiceMock.markTripCompleted).toHaveBeenCalledWith("30");
+    expect(response.tripStatus).toBe("completed");
+    expect(response.tripCompleted).toBe(true);
   });
 });

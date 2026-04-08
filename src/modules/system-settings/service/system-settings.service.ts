@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 
 import type { Queryable } from "../../../common/interfaces/queryable.interface";
+import { IntegrationOutboxRepository } from "../../../common/repositories/integration-outbox.repository";
 import { requestExecutionContextService } from "../../../common/services/request-execution-context.service";
 import type { AuthenticatedUser } from "../../../common/types/auth.types";
 import type { PaginatedData } from "../../../common/types/pagination.types";
@@ -51,7 +52,8 @@ const toAuditLogItem = (row: SystemSettingAuditLogRow): SystemSettingAuditLogIte
 export class SystemSettingsService {
   constructor(
     private readonly systemSettingsRepository: SystemSettingsRepository,
-    private readonly systemSettingsReadService: SystemSettingsReadService
+    private readonly systemSettingsReadService: SystemSettingsReadService,
+    private readonly integrationOutboxRepository: IntegrationOutboxRepository = new IntegrationOutboxRepository()
   ) {}
 
   async listSettings(): Promise<ListSystemSettingsResponseDto> {
@@ -116,7 +118,7 @@ export class SystemSettingsService {
 
   async getIntegrationsStatus(): Promise<SystemIntegrationsStatusResponseDto> {
     const providerKeys = this.systemSettingsReadService.getIntegrationProviderKeys();
-    const outboxSummary = await this.systemSettingsRepository.summarizeOutboxByProvider(providerKeys);
+    const outboxSummary = await this.integrationOutboxRepository.summarizeByProvider(providerKeys);
     const summaryMap = new Map(outboxSummary.map((row) => [row.providerKey, row]));
     const integrations = await Promise.all(
       providerKeys.map(async (providerKey): Promise<SystemIntegrationStatusItemDto> => {
@@ -203,4 +205,3 @@ export class SystemSettingsService {
     return operations;
   }
 }
-

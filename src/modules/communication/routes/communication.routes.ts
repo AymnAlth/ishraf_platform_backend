@@ -6,6 +6,7 @@ import type { CommunicationController } from "../controller/communication.contro
 import { communicationPolicies } from "../policies/communication.policy";
 import {
   availableRecipientsQuerySchema,
+  communicationDeviceIdParamsSchema,
   conversationQuerySchema,
   createAnnouncementSchema,
   createBulkNotificationSchema,
@@ -15,15 +16,41 @@ import {
   notificationIdParamsSchema,
   notificationsQuerySchema,
   otherUserIdParamsSchema,
+  registerCommunicationDeviceSchema,
   sendBulkMessageSchema,
   sentQuerySchema,
-  sendMessageSchema
+  sendMessageSchema,
+  updateCommunicationDeviceSchema
 } from "../validator/communication.validator";
 
 export const createCommunicationRouter = (
   controller: CommunicationController
 ): Router => {
   const router = Router();
+
+  router.post(
+    "/devices",
+    ...communicationPolicies.deviceRegistry,
+    validateRequest({ body: registerCommunicationDeviceSchema }),
+    asyncHandler((req, res) => controller.registerDevice(req, res))
+  );
+
+  router.patch(
+    "/devices/:deviceId",
+    ...communicationPolicies.deviceRegistry,
+    validateRequest({
+      params: communicationDeviceIdParamsSchema,
+      body: updateCommunicationDeviceSchema
+    }),
+    asyncHandler((req, res) => controller.updateDevice(req, res))
+  );
+
+  router.delete(
+    "/devices/:deviceId",
+    ...communicationPolicies.deviceRegistry,
+    validateRequest({ params: communicationDeviceIdParamsSchema }),
+    asyncHandler((req, res) => controller.unregisterDevice(req, res))
+  );
 
   router.get(
     "/recipients",

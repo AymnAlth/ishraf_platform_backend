@@ -48,6 +48,7 @@ import type {
   TeacherProfileRow,
   TripStudentEventRow
 } from "../types/reporting.types";
+import type { TransportTripEtaReadModel } from "../../transport/types/transport-eta.types";
 
 const toIsoString = (value: Date): string => value.toISOString();
 
@@ -467,9 +468,34 @@ export const toTripEventDto = (row: TripStudentEventRow): ReportingTripEventDto 
   notes: row.notes
 });
 
+const toTransportEtaSummaryDto = (
+  etaReadModel: TransportTripEtaReadModel | null
+) => {
+  if (!etaReadModel?.etaSummary) {
+    return null;
+  }
+
+  return {
+    status: etaReadModel.etaSummary.status,
+    calculationMode: etaReadModel.etaSummary.calculationMode,
+    nextStop: etaReadModel.etaSummary.nextStop,
+    nextStopEtaAt: etaReadModel.etaSummary.nextStopEtaAt
+      ? toIsoString(etaReadModel.etaSummary.nextStopEtaAt)
+      : null,
+    finalEtaAt: etaReadModel.etaSummary.finalEtaAt
+      ? toIsoString(etaReadModel.etaSummary.finalEtaAt)
+      : null,
+    remainingDistanceMeters: etaReadModel.etaSummary.remainingDistanceMeters,
+    remainingDurationSeconds: etaReadModel.etaSummary.remainingDurationSeconds,
+    computedAt: toIsoString(etaReadModel.etaSummary.computedAt),
+    isStale: etaReadModel.etaSummary.isStale
+  };
+};
+
 export const toTransportTripDto = (
   row: ActiveTripLiveStatusRow,
-  latestEvents: TripStudentEventRow[]
+  latestEvents: TripStudentEventRow[],
+  etaReadModel: TransportTripEtaReadModel | null = null
 ): ReportingTransportTripDto => ({
   tripId: row.tripId,
   tripDate: toDateOnly(row.tripDate),
@@ -495,6 +521,7 @@ export const toTransportTripDto = (
           recordedAt: toIsoString(row.lastLocationAt)
         }
       : null,
+  etaSummary: toTransportEtaSummaryDto(etaReadModel),
   latestEvents: latestEvents.map((event) => toTripEventDto(event))
 });
 

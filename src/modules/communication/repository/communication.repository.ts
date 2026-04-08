@@ -14,6 +14,11 @@ import type {
   AnnouncementWriteInput,
   BulkMessageWriteInput,
   BulkNotificationWriteInput,
+  CommunicationDeviceProvider,
+  CommunicationDeviceRow,
+  CommunicationDeviceSubscriptionKey,
+  CommunicationDeviceTokenRow,
+  CommunicationDeviceWriteInput,
   CommunicationUserRow,
   ConversationListQuery,
   InboxListQuery,
@@ -27,6 +32,21 @@ import type {
   UserInboxSummaryRow,
   UserNotificationSummaryRow
 } from "../types/communication.types";
+
+interface CommunicationDeviceCoreRow {
+  deviceId: string;
+  userId: string;
+  providerKey: CommunicationDeviceProvider;
+  platform: CommunicationDeviceRow["platform"];
+  appId: string;
+  deviceToken: string;
+  deviceName: string | null;
+  isActive: boolean;
+  lastSeenAt: Date;
+  unregisteredAt: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
 
 const mapSingleRow = <T extends QueryResultRow>(rows: T[]): T | null => rows[0] ?? null;
 
@@ -82,6 +102,68 @@ const notificationSelect = `
     created_at AS "createdAt",
     read_at AS "readAt"
   FROM ${databaseViews.vwNotificationDetails}
+`;
+
+const communicationDeviceCoreSelect = `
+  SELECT
+    ud.id::text AS "deviceId",
+    ud.user_id::text AS "userId",
+    ud.provider_key AS "providerKey",
+    ud.platform,
+    ud.app_id AS "appId",
+    ud.device_token AS "deviceToken",
+    ud.device_name AS "deviceName",
+    ud.is_active AS "isActive",
+    ud.last_seen_at AS "lastSeenAt",
+    ud.unregistered_at AS "unregisteredAt",
+    ud.created_at AS "createdAt",
+    ud.updated_at AS "updatedAt"
+  FROM ${databaseTables.userDevices} ud
+`;
+
+const communicationDeviceSelect = `
+  SELECT
+    ud.id::text AS "deviceId",
+    ud.user_id::text AS "userId",
+    ud.provider_key AS "providerKey",
+    ud.platform,
+    ud.app_id AS "appId",
+    ud.device_token AS "deviceToken",
+    ud.device_name AS "deviceName",
+    ud.is_active AS "isActive",
+    ud.last_seen_at AS "lastSeenAt",
+    ud.unregistered_at AS "unregisteredAt",
+    ud.created_at AS "createdAt",
+    ud.updated_at AS "updatedAt",
+    COALESCE(
+      ARRAY_REMOVE(
+        ARRAY_AGG(
+          CASE WHEN uds.is_enabled THEN uds.subscription_key END
+          ORDER BY uds.subscription_key
+        ),
+        NULL
+      ),
+      ARRAY[]::varchar[]
+    ) AS subscriptions
+  FROM ${databaseTables.userDevices} ud
+  LEFT JOIN ${databaseTables.userDeviceSubscriptions} uds
+    ON uds.device_id = ud.id
+`;
+
+const communicationDeviceGroupBy = `
+  GROUP BY
+    ud.id,
+    ud.user_id,
+    ud.provider_key,
+    ud.platform,
+    ud.app_id,
+    ud.device_token,
+    ud.device_name,
+    ud.is_active,
+    ud.last_seen_at,
+    ud.unregistered_at,
+    ud.created_at,
+    ud.updated_at
 `;
 
 const messageSortColumns = {
@@ -274,9 +356,7 @@ export class CommunicationRepository {
 
     if (filters.isRead !== undefined) {
       values.push(filters.isRead);
-      conditions.push(
-        filters.isRead ? "read_at IS NOT NULL" : "read_at IS NULL"
-      );
+      conditions.push(filters.isRead ? "read_at IS NOT NULL" : "read_at IS NULL");
     }
 
     const whereClause = `WHERE ${conditions.join(" AND ")}`;
@@ -713,6 +793,278 @@ export class CommunicationRepository {
           AND user_id = $2
       `,
       [notificationId, userId]
+    );
+  }
+
+  async findDeviceById(
+    deviceId: string,
+    queryable: Queryable = db
+  ): Promise<CommunicationDeviceRow | null> {
+    const result = await queryable.query<CommunicationDeviceRow>(
+      `
+        ${communicationDeviceSelect}
+        WHERE ud.id = $1
+        ${communicationDeviceGroupBy}
+        LIMIT 1
+      `,
+      [deviceId]
+    );
+
+    return mapSingleRow(result.rows);
+  }
+
+  async findDeviceByIdForUser(
+    deviceId: string,
+    userId: string,
+    queryable: Queryable = db
+  ): Promise<CommunicationDeviceRow | null> {
+    const result = await queryable.query<CommunicationDeviceRow>(
+      `
+        ${communicationDeviceSelect}
+        WHERE ud.id = $1
+          AND ud.user_id = $2
+        ${communicationDeviceGroupBy}
+        LIMIT 1
+      `,
+      [deviceId, userId]
+    );
+
+    return mapSingleRow(result.rows);
+  }
+
+  async findDeviceByProviderToken(
+    providerKey: CommunicationDeviceProvider,
+    deviceToken: string,
+    queryable: Queryable = db
+  ): Promise<CommunicationDeviceRow | null> {
+    const result = await queryable.query<CommunicationDeviceRow>(
+      `
+        ${communicationDeviceSelect}
+        WHERE ud.provider_key = $1
+          AND ud.device_token = $2
+        ${communicationDeviceGroupBy}
+        LIMIT 1
+      `,
+      [providerKey, deviceToken]
+    );
+
+    return mapSingleRow(result.rows);
+  }
+
+  async lockDeviceByIdForUser(
+    deviceId: string,
+    userId: string,
+    queryable: Queryable = db
+  ): Promise<CommunicationDeviceCoreRow | null> {
+    const result = await queryable.query<CommunicationDeviceCoreRow>(
+      `
+        ${communicationDeviceCoreSelect}
+        WHERE ud.id = $1
+          AND ud.user_id = $2
+        LIMIT 1
+        FOR UPDATE
+      `,
+      [deviceId, userId]
+    );
+
+    return mapSingleRow(result.rows);
+  }
+
+  async lockDeviceByProviderToken(
+    providerKey: CommunicationDeviceProvider,
+    deviceToken: string,
+    queryable: Queryable = db
+  ): Promise<CommunicationDeviceCoreRow | null> {
+    const result = await queryable.query<CommunicationDeviceCoreRow>(
+      `
+        ${communicationDeviceCoreSelect}
+        WHERE ud.provider_key = $1
+          AND ud.device_token = $2
+        LIMIT 1
+        FOR UPDATE
+      `,
+      [providerKey, deviceToken]
+    );
+
+    return mapSingleRow(result.rows);
+  }
+
+  async createDevice(
+    input: CommunicationDeviceWriteInput,
+    queryable: Queryable = db
+  ): Promise<string> {
+    const result = await queryable.query<{ id: string }>(
+      `
+        INSERT INTO ${databaseTables.userDevices} (
+          user_id,
+          provider_key,
+          platform,
+          app_id,
+          device_token,
+          device_name,
+          is_active,
+          last_seen_at,
+          unregistered_at
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+        RETURNING id::text AS id
+      `,
+      [
+        input.userId,
+        input.providerKey,
+        input.platform,
+        input.appId,
+        input.deviceToken,
+        input.deviceName ?? null,
+        input.isActive,
+        input.lastSeenAt,
+        input.unregisteredAt ?? null
+      ]
+    );
+
+    return result.rows[0].id;
+  }
+
+  async updateDevice(
+    deviceId: string,
+    input: CommunicationDeviceWriteInput,
+    queryable: Queryable = db
+  ): Promise<void> {
+    await queryable.query(
+      `
+        UPDATE ${databaseTables.userDevices}
+        SET user_id = $2,
+            provider_key = $3,
+            platform = $4,
+            app_id = $5,
+            device_token = $6,
+            device_name = $7,
+            is_active = $8,
+            last_seen_at = $9,
+            unregistered_at = $10
+        WHERE id = $1
+      `,
+      [
+        deviceId,
+        input.userId,
+        input.providerKey,
+        input.platform,
+        input.appId,
+        input.deviceToken,
+        input.deviceName ?? null,
+        input.isActive,
+        input.lastSeenAt,
+        input.unregisteredAt ?? null
+      ]
+    );
+  }
+
+  async replaceDeviceSubscriptions(
+    deviceId: string,
+    subscriptions: CommunicationDeviceSubscriptionKey[],
+    queryable: Queryable = db
+  ): Promise<void> {
+    await queryable.query(
+      `
+        DELETE FROM ${databaseTables.userDeviceSubscriptions}
+        WHERE device_id = $1
+      `,
+      [deviceId]
+    );
+
+    if (subscriptions.length === 0) {
+      return;
+    }
+
+    await queryable.query(
+      `
+        INSERT INTO ${databaseTables.userDeviceSubscriptions} (
+          device_id,
+          subscription_key,
+          is_enabled
+        )
+        SELECT
+          $1::bigint,
+          subscription_key::varchar(50),
+          true
+        FROM UNNEST($2::text[]) AS subscription_key
+      `,
+      [deviceId, subscriptions]
+    );
+  }
+
+  async deleteDeviceHard(deviceId: string, queryable: Queryable = db): Promise<void> {
+    await queryable.query(
+      `
+        DELETE FROM ${databaseTables.userDevices}
+        WHERE id = $1
+      `,
+      [deviceId]
+    );
+  }
+
+  async softUnregisterDevice(deviceId: string, queryable: Queryable = db): Promise<void> {
+    await queryable.query(
+      `
+        UPDATE ${databaseTables.userDevices}
+        SET is_active = false,
+            unregistered_at = NOW()
+        WHERE id = $1
+      `,
+      [deviceId]
+    );
+  }
+
+  async listActiveDeviceTokensByUserIds(
+    userIds: string[],
+    providerKey: CommunicationDeviceProvider,
+    subscriptionKey: CommunicationDeviceSubscriptionKey,
+    queryable: Queryable = db
+  ): Promise<CommunicationDeviceTokenRow[]> {
+    if (userIds.length === 0) {
+      return [];
+    }
+
+    const result = await queryable.query<CommunicationDeviceTokenRow>(
+      `
+        SELECT DISTINCT
+          ud.id::text AS "deviceId",
+          ud.user_id::text AS "userId",
+          ud.device_token AS "deviceToken"
+        FROM ${databaseTables.userDevices} ud
+        JOIN ${databaseTables.userDeviceSubscriptions} uds
+          ON uds.device_id = ud.id
+        WHERE ud.user_id::text = ANY($1::text[])
+          AND ud.provider_key = $2
+          AND uds.subscription_key = $3
+          AND ud.is_active = true
+          AND uds.is_enabled = true
+        ORDER BY ud.id ASC
+      `,
+      [userIds, providerKey, subscriptionKey]
+    );
+
+    return result.rows;
+  }
+
+  async deactivateDevicesByTokens(
+    providerKey: CommunicationDeviceProvider,
+    deviceTokens: string[],
+    queryable: Queryable = db
+  ): Promise<void> {
+    if (deviceTokens.length === 0) {
+      return;
+    }
+
+    await queryable.query(
+      `
+        UPDATE ${databaseTables.userDevices}
+        SET is_active = false,
+            unregistered_at = COALESCE(unregistered_at, NOW())
+        WHERE provider_key = $1
+          AND device_token = ANY($2::text[])
+      `,
+      [providerKey, deviceTokens]
     );
   }
 }
