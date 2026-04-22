@@ -1,51 +1,58 @@
-# Driver App Screens And Tasks
+# Driver App Screens And Tasks (Code-Truth)
 
 ## 1. Start of day
 
 1. Login.
 2. Load `GET /transport/route-assignments/me`.
-3. Select assignment and call `POST /transport/trips/ensure-daily`.
-4. Open trip detail/roster.
+3. Use `POST /transport/trips/ensure-daily`.
+4. Open trip detail + roster.
 
-## 2. Live trip screen
+## 2. Trip execution
 
 1. Start trip (`POST /transport/trips/:id/start`).
-2. Request realtime token (`GET /transport/realtime-token?tripId=...`).
-3. Stream GPS to RTDB path:
-   - `/transport/live-trips/{tripId}/latestLocation`
-4. Keep periodic backend location writes when required:
-   - `POST /transport/trips/:id/locations`
-5. Read ETA cards from:
-   - `GET /transport/trips/:id/eta`
+2. Request realtime token.
+3. Connect RTDB for live location channel.
+4. Send locations (`POST /transport/trips/:id/locations`) أثناء الرحلة.
+5. Read ETA cards من `GET /transport/trips/:id/eta`.
 
-## 3. Stop attendance screen
+## 3. Stop attendance
 
-1. Identify current stop.
-2. Submit one batch:
+1. عند كل محطة:
    - `POST /transport/trips/:tripId/stops/:stopId/attendance`
-3. Send `attendances[]` for students at that stop.
-4. Show backend result:
+2. body:
+
+```json
+{
+  "attendances": [
+    { "studentId": "1", "status": "present", "notes": null },
+    { "studentId": "2", "status": "absent" }
+  ]
+}
+```
+
+3. راقب response:
    - `stopCompleted`
    - `tripCompleted`
    - `tripStatus`
-5. If `tripCompleted=true`, stop live operations for that trip.
 
-## 4. Student event screen
+## 4. End trip behavior
 
-1. For ad-hoc event logging use `POST /transport/trips/:id/events`.
-2. Respect stop rules:
-   - `boarded/dropped_off` require `stopId`
-   - `absent` forbids `stopId`
-
-## 5. End of trip
-
-1. Manual end is still available:
+1. manual end endpoint:
    - `POST /transport/trips/:id/end`
-2. Automatic completion can already happen after attendance closes all stops.
-3. Business rule:
-   - if `tripStatus = completed` (auto), hide or disable the manual `End Trip` button to prevent state conflicts.
+2. auto-complete:
+   - عند اكتمال كل المحطات عبر attendance.
+3. UX rule:
+   - إذا `tripStatus=completed` => hide/disable زر `End Trip`.
 
-## 6. Operational communication
+## 5. Optional event logging
 
-1. Use inbox/conversation endpoints for coordination.
-2. Use notification feed for operational alerts.
+- `POST /transport/trips/:id/events`
+- قواعد:
+  - `boarded/dropped_off` تتطلب `stopId`
+  - `absent` يمنع `stopId`
+
+## 6. Communication
+
+1. Direct messaging.
+2. Inbox/sent/conversation.
+3. Notifications and announcements feed.

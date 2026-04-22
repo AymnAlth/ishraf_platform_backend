@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Ishraf Platform Backend API",
-    "_postman_id": "b67f6333-b308-4962-b9ed-baa1db6528a6",
+    "_postman_id": "ee6f4eb5-96df-456c-92d3-3e70244976f1",
     "description": "Full Postman collection covering every live backend endpoint.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
@@ -2217,12 +2217,12 @@
                 },
                 {
                   "key": "since",
-                  "value": "2026-04-08T07:37:35.672Z",
+                  "value": "2026-04-22T23:45:14.461Z",
                   "description": "Filter audit rows created on or after this ISO datetime."
                 },
                 {
                   "key": "until",
-                  "value": "2026-04-08T07:37:35.672Z",
+                  "value": "2026-04-22T23:45:14.461Z",
                   "description": "Filter audit rows created on or before this ISO datetime."
                 }
               ]
@@ -2361,17 +2361,17 @@
                 },
                 {
                   "key": "sessionDate",
-                  "value": "2026-04-08",
+                  "value": "2026-04-23",
                   "description": "Filter by exact session date."
                 },
                 {
                   "key": "dateFrom",
-                  "value": "2026-04-08",
+                  "value": "2026-04-23",
                   "description": "Filter from session date."
                 },
                 {
                   "key": "dateTo",
-                  "value": "2026-04-08",
+                  "value": "2026-04-23",
                   "description": "Filter to session date."
                 }
               ]
@@ -2406,7 +2406,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"classId\": \"1\",\n  \"subjectId\": \"1\",\n  \"academicYearId\": \"1\",\n  \"semesterId\": \"1\",\n  \"sessionDate\": \"2026-04-08\",\n  \"periodNo\": 1,\n  \"title\": \"حصة الرياضيات\",\n  \"notes\": \"اختبار سريع\",\n  \"teacherId\": \"47\"\n}"
+              "raw": "{\n  \"classId\": \"1\",\n  \"subjectId\": \"1\",\n  \"academicYearId\": \"1\",\n  \"semesterId\": \"1\",\n  \"sessionDate\": \"2026-04-23\",\n  \"periodNo\": 1,\n  \"title\": \"حصة الرياضيات\",\n  \"notes\": \"اختبار سريع\",\n  \"teacherId\": \"47\"\n}"
             }
           }
         },
@@ -2547,17 +2547,17 @@
                 },
                 {
                   "key": "assessmentDate",
-                  "value": "2026-04-08",
+                  "value": "2026-04-23",
                   "description": "Filter by exact assessment date."
                 },
                 {
                   "key": "dateFrom",
-                  "value": "2026-04-08",
+                  "value": "2026-04-23",
                   "description": "Filter from assessment date."
                 },
                 {
                   "key": "dateTo",
-                  "value": "2026-04-08",
+                  "value": "2026-04-23",
                   "description": "Filter to assessment date."
                 },
                 {
@@ -2596,7 +2596,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"assessmentTypeId\": \"1\",\n  \"classId\": \"1\",\n  \"subjectId\": \"1\",\n  \"teacherId\": \"47\",\n  \"academicYearId\": \"1\",\n  \"semesterId\": \"1\",\n  \"title\": \"اختبار قصير 2\",\n  \"description\": \"الوحدة الثانية\",\n  \"maxScore\": 20,\n  \"weight\": 10,\n  \"assessmentDate\": \"2026-04-08\",\n  \"isPublished\": true\n}"
+              "raw": "{\n  \"assessmentTypeId\": \"1\",\n  \"classId\": \"1\",\n  \"subjectId\": \"1\",\n  \"teacherId\": \"47\",\n  \"academicYearId\": \"1\",\n  \"semesterId\": \"1\",\n  \"title\": \"اختبار قصير 2\",\n  \"description\": \"الوحدة الثانية\",\n  \"maxScore\": 20,\n  \"weight\": 10,\n  \"assessmentDate\": \"2026-04-23\",\n  \"isPublished\": true\n}"
             }
           }
         },
@@ -2911,17 +2911,17 @@
                 },
                 {
                   "key": "behaviorDate",
-                  "value": "2026-04-08",
+                  "value": "2026-04-23",
                   "description": "Filter by exact behavior date."
                 },
                 {
                   "key": "dateFrom",
-                  "value": "2026-04-08",
+                  "value": "2026-04-23",
                   "description": "Filter from behavior date."
                 },
                 {
                   "key": "dateTo",
-                  "value": "2026-04-08",
+                  "value": "2026-04-23",
                   "description": "Filter to behavior date."
                 }
               ]
@@ -2956,7 +2956,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"studentId\": \"1\",\n  \"behaviorCategoryId\": \"1\",\n  \"academicYearId\": \"1\",\n  \"semesterId\": \"1\",\n  \"description\": \"تأخر عن الطابور\",\n  \"severity\": 3,\n  \"behaviorDate\": \"2026-04-08\",\n  \"teacherId\": \"47\"\n}"
+              "raw": "{\n  \"studentId\": \"1\",\n  \"behaviorCategoryId\": \"1\",\n  \"academicYearId\": \"1\",\n  \"semesterId\": \"1\",\n  \"description\": \"تأخر عن الطابور\",\n  \"severity\": 3,\n  \"behaviorDate\": \"2026-04-23\",\n  \"teacherId\": \"47\"\n}"
             }
           }
         },
@@ -3047,6 +3047,525 @@
       ]
     },
     {
+      "name": "Analytics",
+      "description": "AI analytics jobs, snapshot publishing/review, feedback, and read-only analytics summary endpoints.",
+      "item": [
+        {
+          "name": "[NEW] Get Admin Operational Digest",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "description": "Purpose: Return the latest admin operational digest snapshot for the active academic context.\n\nRoles: admin\n\nAuth: Bearer access token required",
+            "url": {
+              "raw": "{{baseUrl}}/analytics/admin/operational-digest",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "analytics",
+                "admin",
+                "operational-digest"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "[NEW] Get Class Overview",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "description": "Purpose: Return the latest class overview analytics snapshot for one class in the active academic context.\n\nRoles: admin, teacher, supervisor\n\nAuth: Bearer access token required\n\nNote: [NEW] Teachers and supervisors may read only classes assigned to them and only approved snapshots.\n\nNote: [NEW] Admin receives the latest snapshot regardless of reviewStatus.",
+            "url": {
+              "raw": "{{baseUrl}}/analytics/classes/{{classId}}/overview",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "analytics",
+                "classes",
+                "{{classId}}",
+                "overview"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "[NEW] Get Analytics Job",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "description": "Purpose: Return one analytics job execution record by id.\n\nRoles: admin\n\nAuth: Bearer access token required",
+            "url": {
+              "raw": "{{baseUrl}}/analytics/jobs/{{jobId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "analytics",
+                "jobs",
+                "{{jobId}}"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "[NEW] Create Admin Operational Digest Job",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "Purpose: Create or reuse the admin operational digest analytics job for the active academic context.\n\nRoles: admin\n\nAuth: Bearer access token required\n\nBody schema: CreateAdminOperationalDigestJobRequest\n\nNote: [NEW] There is one digest subject per active academic context.\n\nNote: [NEW] Analytics execution is asynchronous and continues through integration_outbox and the analytics worker.",
+            "url": {
+              "raw": "{{baseUrl}}/analytics/jobs/admin-operational-digest",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "analytics",
+                "jobs",
+                "admin-operational-digest"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            }
+          }
+        },
+        {
+          "name": "[NEW] Create Class Overview Job",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "Purpose: Create or reuse one class overview analytics job for the active academic context.\n\nRoles: admin\n\nAuth: Bearer access token required\n\nBody schema: CreateClassOverviewJobRequest\n\nNote: [NEW] Analytics execution is asynchronous and continues through integration_outbox and the analytics worker.",
+            "url": {
+              "raw": "{{baseUrl}}/analytics/jobs/class-overview",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "analytics",
+                "jobs",
+                "class-overview"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"classId\": \"4\"\n}"
+            }
+          }
+        },
+        {
+          "name": "[NEW] Create Analytics Recompute Jobs",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "Purpose: Dispatch one or more analytics recompute jobs for the selected target and optional explicit subject ids.\n\nRoles: admin\n\nAuth: Bearer access token required\n\nBody schema: CreateAnalyticsRecomputeJobRequest\n\nNote: [NEW] target may be a single analytics type or all_supported.\n\nNote: [NEW] When ids are omitted, the backend expands active subjects from the active academic context.",
+            "url": {
+              "raw": "{{baseUrl}}/analytics/jobs/recompute",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "analytics",
+                "jobs",
+                "recompute"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"target\": \"all_supported\",\n  \"studentIds\": [\n    \"12\"\n  ],\n  \"teacherIds\": [\n    \"47\"\n  ],\n  \"classIds\": [\n    \"4\"\n  ],\n  \"routeIds\": [\n    \"7\"\n  ]\n}"
+            }
+          }
+        },
+        {
+          "name": "[NEW] Run Analytics Retention Cleanup",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "Purpose: Delete obsolete analytics snapshots and stale terminal analytics execution records according to the configured retention windows.\n\nRoles: admin\n\nAuth: Bearer access token required\n\nBody schema: CreateAnalyticsRetentionCleanupRequest\n\nNote: [NEW] This endpoint requires analytics.aiAnalyticsEnabled=true and analytics.retentionCleanupEnabled=true.",
+            "url": {
+              "raw": "{{baseUrl}}/analytics/jobs/retention-cleanup",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "analytics",
+                "jobs",
+                "retention-cleanup"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            }
+          }
+        },
+        {
+          "name": "[NEW] Dispatch Scheduled Analytics Recompute",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "Purpose: Dispatch stale analytics jobs for the configured scheduled targets using the active academic context.\n\nRoles: admin\n\nAuth: Bearer access token required\n\nBody schema: CreateAnalyticsScheduledDispatchRequest\n\nNote: [NEW] This endpoint requires analytics.aiAnalyticsEnabled=true and analytics.scheduledRecomputeEnabled=true.\n\nNote: [NEW] The response reports eligible, dispatched, and reused counts per analytics target.",
+            "url": {
+              "raw": "{{baseUrl}}/analytics/jobs/scheduled-dispatch",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "analytics",
+                "jobs",
+                "scheduled-dispatch"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            }
+          }
+        },
+        {
+          "name": "[NEW] Create Student Risk Job",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "Purpose: Create or reuse one student risk analytics job for the active academic context.\n\nRoles: admin\n\nAuth: Bearer access token required\n\nBody schema: CreateStudentRiskJobRequest\n\nNote: [NEW] The endpoint may return 200 instead of 201 when a matching pending or processing job already exists.\n\nNote: [NEW] Analytics execution is asynchronous and continues through integration_outbox and the analytics worker.",
+            "url": {
+              "raw": "{{baseUrl}}/analytics/jobs/student-risk",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "analytics",
+                "jobs",
+                "student-risk"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"studentId\": \"12\"\n}"
+            }
+          }
+        },
+        {
+          "name": "[NEW] Create Teacher Compliance Job",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "Purpose: Create or reuse one teacher compliance analytics job for the active academic context.\n\nRoles: admin\n\nAuth: Bearer access token required\n\nBody schema: CreateTeacherComplianceJobRequest\n\nNote: [NEW] Analytics execution is asynchronous and continues through integration_outbox and the analytics worker.",
+            "url": {
+              "raw": "{{baseUrl}}/analytics/jobs/teacher-compliance",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "analytics",
+                "jobs",
+                "teacher-compliance"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"teacherId\": \"47\"\n}"
+            }
+          }
+        },
+        {
+          "name": "[NEW] Create Transport Route Anomaly Job",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "Purpose: Create or reuse one transport route anomaly analytics job for the active academic context.\n\nRoles: admin\n\nAuth: Bearer access token required\n\nBody schema: CreateTransportRouteAnomalyJobRequest\n\nNote: [NEW] Analytics execution is asynchronous and continues through integration_outbox and the analytics worker.",
+            "url": {
+              "raw": "{{baseUrl}}/analytics/jobs/transport-route-anomalies",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "analytics",
+                "jobs",
+                "transport-route-anomalies"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"routeId\": \"7\"\n}"
+            }
+          }
+        },
+        {
+          "name": "[NEW] List Analytics Snapshot Feedback",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "description": "Purpose: Return all feedback rows recorded for one analytics snapshot.\n\nRoles: admin\n\nAuth: Bearer access token required",
+            "url": {
+              "raw": "{{baseUrl}}/analytics/snapshots/{{snapshotId}}/feedback",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "analytics",
+                "snapshots",
+                "{{snapshotId}}",
+                "feedback"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "[NEW] Create Analytics Snapshot Feedback",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "Purpose: Create feedback for one analytics snapshot. Non-admin roles may submit feedback only for approved snapshots they are allowed to read.\n\nRoles: admin, parent, teacher, supervisor\n\nAuth: Bearer access token required\n\nBody schema: CreateAnalyticsFeedbackRequest",
+            "url": {
+              "raw": "{{baseUrl}}/analytics/snapshots/{{snapshotId}}/feedback",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "analytics",
+                "snapshots",
+                "{{snapshotId}}",
+                "feedback"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rating\": 4,\n  \"feedbackText\": \"التوصيات واضحة ومفيدة.\"\n}"
+            }
+          }
+        },
+        {
+          "name": "[NEW] Review Analytics Snapshot",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "Purpose: Approve or reject one analytics snapshot. Approval publishes the snapshot and supersedes any older approved snapshot for the same subject context.\n\nRoles: admin\n\nAuth: Bearer access token required\n\nBody schema: ReviewAnalyticsSnapshotRequest",
+            "url": {
+              "raw": "{{baseUrl}}/analytics/snapshots/{{snapshotId}}/review",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "analytics",
+                "snapshots",
+                "{{snapshotId}}",
+                "review"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"action\": \"approve\",\n  \"reviewNotes\": \"Approved for frontend consumption\"\n}"
+            }
+          }
+        },
+        {
+          "name": "[NEW] Get Student Risk Summary",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "description": "Purpose: Return the latest student risk analytics snapshot for one student in the active academic context.\n\nRoles: admin, parent\n\nAuth: Bearer access token required\n\nNote: [NEW] Parents may read only their linked children and only approved snapshots.\n\nNote: [NEW] Admin receives the latest snapshot regardless of reviewStatus.",
+            "url": {
+              "raw": "{{baseUrl}}/analytics/students/{{studentId}}/risk-summary",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "analytics",
+                "students",
+                "{{studentId}}",
+                "risk-summary"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "[NEW] Get Teacher Compliance Summary",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "description": "Purpose: Return the latest teacher compliance analytics snapshot for one teacher in the active academic context.\n\nRoles: admin\n\nAuth: Bearer access token required",
+            "url": {
+              "raw": "{{baseUrl}}/analytics/teachers/{{teacherId}}/compliance-summary",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "analytics",
+                "teachers",
+                "{{teacherId}}",
+                "compliance-summary"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "[NEW] Get Transport Route Anomalies",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "description": "Purpose: Return the latest transport route anomaly analytics snapshot for one route in the active academic context.\n\nRoles: admin\n\nAuth: Bearer access token required",
+            "url": {
+              "raw": "{{baseUrl}}/analytics/transport/routes/{{routeId}}/anomalies",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "analytics",
+                "transport",
+                "routes",
+                "{{routeId}}",
+                "anomalies"
+              ],
+              "query": []
+            }
+          }
+        }
+      ]
+    },
+    {
       "name": "Transport",
       "description": "Transport static data, assignments, trips, live locations, and trip student events.",
       "item": [
@@ -3078,7 +3597,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"studentId\": \"1\",\n  \"routeId\": \"1\",\n  \"stopId\": \"1\",\n  \"startDate\": \"2026-04-08\",\n  \"endDate\": null\n}"
+              "raw": "{\n  \"studentId\": \"1\",\n  \"routeId\": \"1\",\n  \"stopId\": \"1\",\n  \"startDate\": \"2026-04-23\",\n  \"endDate\": null\n}"
             }
           }
         },
@@ -3112,7 +3631,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"endDate\": \"2026-04-08\"\n}"
+              "raw": "{\n  \"endDate\": \"2026-04-23\"\n}"
             }
           }
         },
@@ -3279,7 +3798,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"busId\": \"1\",\n  \"routeId\": \"1\",\n  \"startDate\": \"2026-04-08\",\n  \"endDate\": null\n}"
+              "raw": "{\n  \"busId\": \"1\",\n  \"routeId\": \"1\",\n  \"startDate\": \"2026-04-23\",\n  \"endDate\": null\n}"
             }
           }
         },
@@ -3313,7 +3832,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"endDate\": \"2026-04-08\"\n}"
+              "raw": "{\n  \"endDate\": \"2026-04-23\"\n}"
             }
           }
         },
@@ -3607,17 +4126,17 @@
                 },
                 {
                   "key": "tripDate",
-                  "value": "2026-04-08",
+                  "value": "2026-04-23",
                   "description": "Filter by exact trip date."
                 },
                 {
                   "key": "dateFrom",
-                  "value": "2026-04-08",
+                  "value": "2026-04-23",
                   "description": "Filter from trip date."
                 },
                 {
                   "key": "dateTo",
-                  "value": "2026-04-08",
+                  "value": "2026-04-23",
                   "description": "Filter to trip date."
                 }
               ]
@@ -3652,7 +4171,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"busId\": \"1\",\n  \"routeId\": \"1\",\n  \"tripDate\": \"2026-04-08\",\n  \"tripType\": \"pickup\"\n}"
+              "raw": "{\n  \"busId\": \"1\",\n  \"routeId\": \"1\",\n  \"tripDate\": \"2026-04-23\",\n  \"tripType\": \"pickup\"\n}"
             }
           }
         },
@@ -3900,7 +4419,7 @@
                 "value": "Bearer {{accessToken}}"
               }
             ],
-            "description": "Purpose: Return the parent-facing live tracking payload for one trip.\n\nRoles: parent\n\nAuth: Bearer access token required\n\nNote: Access is ownership-scoped. The parent must be linked to at least one student on the trip route/date or the request is denied.\n\nNote: The response separates live GPS and ETA snapshots: firebaseRtdbPath is for RTDB live location, while myStopSnapshot is backend ETA snapshot data.\n\nDerived data: myStopSnapshot is selected from trip ETA stop snapshots using nearest active parent stop order.",
+            "description": "Purpose: Return the parent live-tracking payload for one trip, including provider-neutral ETA stop snapshot fields and the Firebase RTDB path used for live GPS.\n\nRoles: parent\n\nAuth: Bearer access token required\n\nNote: The caller must be a parent linked to the selected trip; ownership violations return 403.\n\nNote: myStopSnapshot is selected server-side as the nearest active parent-linked stop by stopOrder and may be null.\n\nNote: This endpoint is a REST snapshot surface. Bus movement itself must be read from RTDB using firebaseRtdbPath.",
             "url": {
               "raw": "{{baseUrl}}/transport/trips/{{tripId}}/live-status",
               "host": [
@@ -3911,32 +4430,6 @@
                 "trips",
                 "{{tripId}}",
                 "live-status"
-              ],
-              "query": []
-            }
-          }
-        },
-        {
-          "name": "Get Trip Summary",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{accessToken}}"
-              }
-            ],
-            "description": "Purpose: Return summary analytics for one completed trip.\n\nRoles: admin\n\nAuth: Bearer access token required\n\nNote: This endpoint is restricted to completed trips. If tripStatus is not completed, the backend returns 409 with code TRIP_SUMMARY_REQUIRES_COMPLETED_STATUS.",
-            "url": {
-              "raw": "{{baseUrl}}/transport/trips/{{tripId}}/summary",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "transport",
-                "trips",
-                "{{tripId}}",
-                "summary"
               ],
               "query": []
             }
@@ -3979,6 +4472,32 @@
           }
         },
         {
+          "name": "Get Trip Summary",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "description": "Purpose: Return summary analytics for one completed trip.\n\nRoles: admin\n\nAuth: Bearer access token required\n\nNote: This endpoint is restricted to completed trips. If tripStatus is not completed, the backend returns 409 with code TRIP_SUMMARY_REQUIRES_COMPLETED_STATUS.",
+            "url": {
+              "raw": "{{baseUrl}}/transport/trips/{{tripId}}/summary",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "transport",
+                "trips",
+                "{{tripId}}",
+                "summary"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
           "name": "Ensure Daily Trip",
           "request": {
             "method": "POST",
@@ -4007,7 +4526,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"routeAssignmentId\": \"1\",\n  \"tripDate\": \"2026-04-08\",\n  \"tripType\": \"pickup\"\n}"
+              "raw": "{\n  \"routeAssignmentId\": \"1\",\n  \"tripDate\": \"2026-04-23\",\n  \"tripType\": \"pickup\"\n}"
             }
           }
         }
@@ -4856,22 +5375,22 @@
                 },
                 {
                   "key": "assignedDate",
-                  "value": "2026-04-08",
+                  "value": "2026-04-23",
                   "description": "Filter by exact assigned date."
                 },
                 {
                   "key": "dueDate",
-                  "value": "2026-04-08",
+                  "value": "2026-04-23",
                   "description": "Filter by exact due date."
                 },
                 {
                   "key": "dateFrom",
-                  "value": "2026-04-08",
+                  "value": "2026-04-23",
                   "description": "Filter from date range."
                 },
                 {
                   "key": "dateTo",
-                  "value": "2026-04-08",
+                  "value": "2026-04-23",
                   "description": "Filter to date range."
                 }
               ]
@@ -4905,7 +5424,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"teacherId\": \"47\",\n  \"classId\": \"1\",\n  \"subjectId\": \"1\",\n  \"academicYearId\": \"1\",\n  \"semesterId\": \"1\",\n  \"title\": \"واجب الرياضيات 2\",\n  \"description\": \"حل الصفحات 12-14\",\n  \"assignedDate\": \"2026-04-08\",\n  \"dueDate\": \"2026-03-28\"\n}"
+              "raw": "{\n  \"teacherId\": \"47\",\n  \"classId\": \"1\",\n  \"subjectId\": \"1\",\n  \"academicYearId\": \"1\",\n  \"semesterId\": \"1\",\n  \"title\": \"واجب الرياضيات 2\",\n  \"description\": \"حل الصفحات 12-14\",\n  \"assignedDate\": \"2026-04-23\",\n  \"dueDate\": \"2026-03-28\"\n}"
             }
           }
         },
@@ -4962,7 +5481,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"records\": [\n    {\n      \"studentId\": \"1\",\n      \"status\": \"submitted\",\n      \"submittedAt\": \"2026-04-08\",\n      \"notes\": \"تم التسليم\"\n    },\n    {\n      \"studentId\": \"2\",\n      \"status\": \"late\",\n      \"submittedAt\": \"2026-04-08\",\n      \"notes\": \"تسليم متأخر\"\n    }\n  ]\n}"
+              "raw": "{\n  \"records\": [\n    {\n      \"studentId\": \"1\",\n      \"status\": \"submitted\",\n      \"submittedAt\": \"2026-04-23\",\n      \"notes\": \"تم التسليم\"\n    },\n    {\n      \"studentId\": \"2\",\n      \"status\": \"late\",\n      \"submittedAt\": \"2026-04-23\",\n      \"notes\": \"تسليم متأخر\"\n    }\n  ]\n}"
             }
           }
         },

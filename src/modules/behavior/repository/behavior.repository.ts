@@ -69,7 +69,11 @@ const studentReferenceSelect = `
     ay.id AS "academicYearId",
     ay.name AS "academicYearName"
   FROM ${databaseTables.students} st
-  JOIN ${databaseTables.classes} c ON c.id = st.class_id
+  LEFT JOIN ${databaseTables.studentAcademicEnrollments} sae
+    ON sae.student_id = st.id
+   AND sae.academic_year_id = $2
+  JOIN ${databaseTables.classes} c
+    ON c.id = COALESCE(sae.class_id, st.class_id)
   JOIN ${databaseTables.academicYears} ay ON ay.id = c.academic_year_id
 `;
 
@@ -245,6 +249,7 @@ export class BehaviorRepository {
 
   async findStudentBehaviorReferenceById(
     studentId: string,
+    academicYearId?: string,
     queryable: Queryable = db
   ): Promise<StudentBehaviorReferenceRow | null> {
     const result = await queryable.query<StudentBehaviorReferenceRow>(
@@ -253,7 +258,7 @@ export class BehaviorRepository {
         WHERE st.id = $1
         LIMIT 1
       `,
-      [studentId]
+      [studentId, academicYearId ?? null]
     );
 
     return mapSingleRow(result.rows);

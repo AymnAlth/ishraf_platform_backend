@@ -30,6 +30,12 @@ const createValidEnv = (overrides: Record<string, string> = {}): NodeJS.ProcessE
   FIREBASE_CLIENT_EMAIL: "",
   FIREBASE_PRIVATE_KEY: "",
   FIREBASE_DATABASE_URL: "",
+  OPENAI_API_KEY: "",
+  OPENAI_API_MODEL: "gpt-5-mini",
+  OPENAI_API_TIMEOUT_MS: "15000",
+  GROQ_API_KEY: "",
+  GROQ_API_MODEL: "openai/gpt-oss-20b",
+  GROQ_API_TIMEOUT_MS: "15000",
   MAPBOX_API_KEY: "",
   MAPBOX_API_TIMEOUT_MS: "4000",
   GOOGLE_MAPS_API_KEY: "",
@@ -49,19 +55,31 @@ describe("buildEnv", () => {
     expect(env.BCRYPT_SALT_ROUNDS).toBe(10);
     expect(env.TRUST_PROXY).toBe(false);
     expect(env.PUBLIC_ROOT_URL).toBe("https://ishraf-platform-backend-staging.onrender.com");
+    expect(env.OPENAI_API_KEY).toBeUndefined();
+    expect(env.GROQ_API_KEY).toBeUndefined();
+    expect(env.OPENAI_API_MODEL).toBe("gpt-5-mini");
+    expect(env.GROQ_API_MODEL).toBe("openai/gpt-oss-20b");
     expect(env.MAPBOX_API_KEY).toBeUndefined();
     expect(env.GOOGLE_MAPS_API_KEY).toBeUndefined();
   });
 
-  it("accepts blank provider API keys and explicit mapbox timeout overrides", () => {
+  it("accepts blank AI and maps provider keys with explicit timeout overrides", () => {
     const env = buildEnv(
       createValidEnv({
+        OPENAI_API_KEY: "",
+        OPENAI_API_TIMEOUT_MS: "12000",
+        GROQ_API_KEY: "",
+        GROQ_API_TIMEOUT_MS: "9000",
         MAPBOX_API_KEY: "",
         MAPBOX_API_TIMEOUT_MS: "4500",
         GOOGLE_MAPS_API_KEY: ""
       })
     );
 
+    expect(env.OPENAI_API_KEY).toBeUndefined();
+    expect(env.GROQ_API_KEY).toBeUndefined();
+    expect(env.OPENAI_API_TIMEOUT_MS).toBe(12000);
+    expect(env.GROQ_API_TIMEOUT_MS).toBe(9000);
     expect(env.MAPBOX_API_KEY).toBeUndefined();
     expect(env.GOOGLE_MAPS_API_KEY).toBeUndefined();
     expect(env.MAPBOX_API_TIMEOUT_MS).toBe(4500);

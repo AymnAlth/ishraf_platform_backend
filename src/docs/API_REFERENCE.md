@@ -11,11 +11,11 @@
 
 حالة المزامنة الحالية (Project-wide docs audit):
 
-- تاريخ التدقيق: `2026-04-08`
-- عدد endpoints الحية: `163` (يشمل `/health` و`/health/ready`)
+- تاريخ التدقيق: `2026-04-23`
+- عدد endpoints الحية: `180` (يشمل `/health` و`/health/ready`)
 - تغطية التوثيق:
-  - `src/docs/openapi/ishraf-platform.openapi.json` = `163/163`
-  - `src/docs/postman/ishraf-platform.postman_collection.json` = `163/163`
+  - `src/docs/openapi/ishraf-platform.openapi.json` = `180/180`
+  - `src/docs/postman/ishraf-platform.postman_collection.json` = `180/180`
 
 ## Base URLs
 
@@ -204,14 +204,101 @@ Local Root:  http://localhost:4000
 - default الحالي لـ `transportMaps.etaProvider` هو `mapbox` لحماية الميزانية.
 - `transportMaps.etaDerivedEstimateEnabled` يحدد ما إذا كان الباك يحسب ETA محليًا بين دورات تحديث المزود الخارجي.
 - runtime provider selection فعّال في الدفعة الحالية عبر `transportMaps.etaProvider`، مع `mapbox` كخيار افتراضي.
+- `analytics` أصبحت control plane كاملة وليست مجرد flag واحدة. المفاتيح الحية الآن:
+  - `aiAnalyticsEnabled`
+  - `primaryProvider`
+  - `fallbackProvider`
+  - `scheduledRecomputeEnabled`
+  - `scheduledRecomputeIntervalMinutes`
+  - `scheduledRecomputeMaxSubjectsPerTarget`
+  - `scheduledTargets`
+  - `autonomousDispatchEnabled`
+  - `autonomousDispatchActorUserId`
+  - `retentionCleanupEnabled`
+  - `obsoleteSnapshotRetentionDays`
+  - `jobRetentionDays`
+  - `schedulerRunRetentionDays`
 - المستهلكون الأحياء حاليًا:
   - `imports.schoolOnboardingEnabled` لتعطيل أو تفعيل school onboarding import
   - `pushNotifications.fcmEnabled` و`pushNotifications.transportRealtimeEnabled` لتفعيل FCM/realtime transport
   - `transportMaps.etaProvider` و`transportMaps.etaDerivedEstimateEnabled` كجزء من admin control plane التشغيلي للخرائط والـ ETA
+  - `analytics.*` لتفعيل jobs التحليلية، اختيار المزود الأساسي/الاحتياطي، وضبط scheduled dispatch وretention cleanup
 - إذا كانت `imports.schoolOnboardingEnabled = false`:
   - ترفض school onboarding endpoints بـ `409 FEATURE_DISABLED`
 - إذا كانت `pushNotifications.transportRealtimeEnabled = false`:
   - `GET /transport/realtime-token` ترفض بـ `409 FEATURE_DISABLED`
+- إذا كانت `analytics.aiAnalyticsEnabled = false`:
+  - ترفض analytics job endpoints بـ `409`
+- إذا كانت `analytics.scheduledRecomputeEnabled = false`:
+  - يرفض `POST /analytics/jobs/scheduled-dispatch`
+- إذا كانت `analytics.retentionCleanupEnabled = false`:
+  - يرفض `POST /analytics/jobs/retention-cleanup`
+
+## AI Analytics
+
+الموديول: `src/modules/analytics`
+
+الصلاحيات:
+
+- `admin`: إنشاء jobs، قراءة كل الأسطح، مراجعة snapshots، قراءة feedback، تشغيل scheduled dispatch وretention cleanup
+- `parent`: قراءة `student risk summary` للطلاب المرتبطين به فقط، وكتابة feedback على snapshots المنشورة
+- `teacher`, `supervisor`: قراءة `class overview` لصفوفهم المعيّنة فقط، وكتابة feedback على snapshots المنشورة
+
+المسارات:
+
+- `POST /analytics/jobs/student-risk`
+- `POST /analytics/jobs/teacher-compliance`
+- `POST /analytics/jobs/admin-operational-digest`
+- `POST /analytics/jobs/class-overview`
+- `POST /analytics/jobs/transport-route-anomalies`
+- `POST /analytics/jobs/scheduled-dispatch`
+- `POST /analytics/jobs/recompute`
+- `POST /analytics/jobs/retention-cleanup`
+- `POST /analytics/snapshots/:snapshotId/review`
+- `POST /analytics/snapshots/:snapshotId/feedback`
+- `GET /analytics/jobs/:jobId`
+- `GET /analytics/snapshots/:snapshotId/feedback`
+- `GET /analytics/students/:studentId/risk-summary`
+- `GET /analytics/teachers/:teacherId/compliance-summary`
+- `GET /analytics/admin/operational-digest`
+- `GET /analytics/classes/:classId/overview`
+- `GET /analytics/transport/routes/:routeId/anomalies`
+
+قواعد تشغيلية:
+
+- analytics تعمل بنمط `job -> integration_outbox -> analytics worker -> snapshot`.
+- لا يوجد استدعاء مباشر لمزود AI من الفرونت. الفرونت يقرأ snapshots فقط.
+- المزوّد الأساسي والاحتياطي يداران من `system-settings.analytics`:
+  - `primaryProvider`: `openai | groq`
+  - `fallbackProvider`: `openai | groq`
+  - يجب أن يكونا مختلفين.
+- التنفيذ التحليلي يجمع:
+  - deterministic feature extraction داخل الباك
+  - AI narrative فوقها عبر `OpenAI` ثم `Groq` كـ fallback
+- `student_risk_summary` و`class_overview` المقروءة من غير `admin` لا تعيد إلا snapshots `approved`.
+- `teacher_compliance_summary` و`admin_operational_digest` و`transport_route_anomaly_summary` أسطح إدارية فقط.
+- `POST /analytics/snapshots/:snapshotId/review`:
+  - `approve` ينشر snapshot ويحوّل أي snapshot معتمدة سابقة لنفس السياق إلى `superseded`
+  - `reject` يمنع استخدامها كسطح منشور
+- `POST /analytics/snapshots/:snapshotId/feedback`:
+  - body: `rating?`, `feedbackText?`
+  - يجب وجود واحد على الأقل
+  - غير `admin` لا يمكنه إرسال feedback على snapshot غير `approved`
+- `POST /analytics/jobs/recompute` يدعم targets:
+  - `student_risk_summary`
+  - `teacher_compliance_summary`
+  - `admin_operational_digest`
+  - `class_overview`
+  - `transport_route_anomaly_summary`
+  - `all_supported`
+- `POST /analytics/jobs/scheduled-dispatch`:
+  - admin-only
+  - يعتمد على `scheduledTargets`, `scheduledRecomputeIntervalMinutes`, `scheduledRecomputeMaxSubjectsPerTarget`
+  - يعيد breakdown للـ eligible/dispatched/reused
+- التشغيل الذاتي موجود backend-side عبر scheduler worker، لكن الفرونت لا يشغّله مباشرة.
+- `POST /analytics/jobs/retention-cleanup`:
+  - admin-only
+  - يحذف obsolete snapshots وterminal jobs وscheduler runs حسب سياسات retention في `system-settings.analytics`
 
 ## Attendance
 الموديول: `src/modules/attendance`

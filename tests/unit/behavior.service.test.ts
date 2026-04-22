@@ -10,10 +10,7 @@ import type { BehaviorRepository } from "../../src/modules/behavior/repository/b
 import type {
   BehaviorCategoryRow,
   BehaviorRecordRow,
-  StudentBehaviorReferenceRow,
-  SupervisorProfileRow,
-  TeacherProfileRow
-} from "../../src/modules/behavior/types/behavior.types";
+  StudentBehaviorReferenceRow} from "../../src/modules/behavior/types/behavior.types";
 
 const categoryRow = (
   overrides: Partial<BehaviorCategoryRow> = {}
@@ -41,27 +38,7 @@ const studentRow = (
   ...overrides
 });
 
-const teacherProfile = (
-  overrides: Partial<TeacherProfileRow> = {}
-): TeacherProfileRow => ({
-  teacherId: "1",
-  teacherUserId: "1002",
-  teacherFullName: "Sara Teacher",
-  teacherEmail: "teacher@example.com",
-  teacherPhone: "700000003",
-  ...overrides
-});
 
-const supervisorProfile = (
-  overrides: Partial<SupervisorProfileRow> = {}
-): SupervisorProfileRow => ({
-  supervisorId: "1",
-  supervisorUserId: "1005",
-  supervisorFullName: "Mona Supervisor",
-  supervisorEmail: "supervisor@example.com",
-  supervisorPhone: "700000005",
-  ...overrides
-});
 
 const behaviorRecordRow = (
   overrides: Partial<BehaviorRecordRow> = {}
@@ -240,6 +217,10 @@ describe("BehaviorService", () => {
     );
 
     expect(response.id).toBe("10");
+    expect(repositoryMock.findStudentBehaviorReferenceById).toHaveBeenCalledWith(
+      "1",
+      "1"
+    );
     expect(repositoryMock.createBehaviorRecord).toHaveBeenCalledOnce();
     expect(automationMock.onNegativeBehavior).toHaveBeenCalledWith({
       behaviorRecordId: "10",
@@ -475,6 +456,10 @@ describe("BehaviorService", () => {
       "1"
     );
 
+    expect(repositoryMock.findStudentBehaviorReferenceById).toHaveBeenCalledWith(
+      "1",
+      "1"
+    );
     expect(response.summary.totalBehaviorRecords).toBe(1);
     expect(response.records[0].actorType).toBe("teacher");
   });

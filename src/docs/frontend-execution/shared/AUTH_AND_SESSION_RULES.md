@@ -1,8 +1,8 @@
-# Auth And Session Rules
+# Auth And Session Rules (Code-Truth)
 
-Sync baseline: `2026-04-08` (applies to admin, teacher, supervisor, parent, driver)
+Sync baseline: `2026-04-16`
 
-## Auth surfaces
+## 1. Auth endpoints
 
 - `POST /auth/login`
 - `POST /auth/forgot-password`
@@ -12,31 +12,56 @@ Sync baseline: `2026-04-08` (applies to admin, teacher, supervisor, parent, driv
 - `POST /auth/change-password`
 - `GET /auth/me`
 
-## Session model
+## 2. Session model
 
-- `login` تعيد access token + refresh token + current user payload
-- `refresh` تدور access/refresh pair
-- `logout` تبطل refresh token المرسلة
-- `me` هي المرجع السريع لتأكيد الجلسة الحالية
+- `login` يرجع:
+  - `user`
+  - `tokens.accessToken`
+  - `tokens.refreshToken`
+  - `tokens.expiresIn`
+- `refresh` يرجع زوج tokens جديد (access + refresh).
+- `logout` يلغي refresh token المرسل.
+- `me` هو مرجع role/session الحالي.
 
-## Frontend expectations
+## 3. قواعد frontend للجلسة
 
-- خزّن access token بالطريقة التي يعتمدها التطبيق المستهلك
-- أرسل `Authorization: Bearer <token>` لكل route محمية
-- استخدم `refresh` فقط عندما تكون الجلسة قابلة للاستمرار
-- لا تعتمد على claims محلية فقط؛ `GET /auth/me` هي التحقق الحي
+- كل endpoint محمي يحتاج:
+  - `Authorization: Bearer <accessToken>`
+- عند `401`:
+  - حاول `POST /auth/refresh` مرة واحدة.
+  - إذا فشل، اعمل logout كامل.
+- لا تعتمد على role محفوظ محليًا فقط؛ استخدم `GET /auth/me`.
 
-## Password recovery
+## 4. Reset password flow
 
-- `forgot-password` لا تكشف الحسابات الموجودة عبر success branching مختلف
-- `reset-password` تعتمد token صالحة غير منتهية
-- auth rate limits جزء من العقد التشغيلية
+- `forgot-password` لا يكشف وجود الحساب.
+- إذا `AUTH_EXPOSE_RESET_TOKEN_IN_RESPONSE=true` (غالبًا dev/test):
+  - الاستجابة قد تتضمن `resetToken`.
+- `reset-password` يتطلب token صالحة غير منتهية.
 
-## Role hydration
+## 5. Rate limiting (Auth)
 
-اعتمد على user payload الفعلية من:
+من السياسة الفعلية:
 
-- `login`
-- أو `me`
+- login rate limit:
+  - `AUTH_LOGIN_RATE_LIMIT_MAX`
+  - `AUTH_LOGIN_RATE_LIMIT_WINDOW_MS`
+- forgot/reset password rate limit:
+  - `AUTH_PASSWORD_RESET_RATE_LIMIT_MAX`
+  - `AUTH_PASSWORD_RESET_RATE_LIMIT_WINDOW_MS`
 
-ولا تبنِ routing على تخمينات منفصلة عن `role` الحالية.
+النتيجة عند تجاوز الحد:
+
+- `429 Too Many Requests`
+
+## 6. Password operations
+
+- `change-password` يتطلب user نشط + currentPassword صحيح.
+- بعد `change-password` أو `reset-password`:
+  - يتم revoke لجلسات refresh السابقة.
+  - يجب على التطبيق تحديث state الجلسة حسب التدفق.
+
+## 7. Device metadata
+
+الخادم يخزن metadata للجلسة (device/ip) عند login/refresh.
+لا يوجد متطلب إضافي على frontend غير إرسال الطلبات بشكل طبيعي.

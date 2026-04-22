@@ -1,18 +1,18 @@
-# Admin Dashboard Endpoint Map
+# Admin Dashboard Endpoint Map (Code-Truth)
 
-## 1. Session and bootstrap
+كل المسارات هنا تحت `/api/v1` ما لم يُذكر غير ذلك.
+
+## 1. Session + Health
 
 - `POST /auth/login`
 - `GET /auth/me`
 - `POST /auth/refresh`
 - `POST /auth/logout`
 - `POST /auth/change-password`
-- `GET /health`
-- `GET /health/ready`
-- `GET /academic-structure/context/active`
-- `GET /reporting/dashboards/admin/me`
+- `GET /health` (root)
+- `GET /health/ready` (root)
 
-## 2. User administration
+## 2. Users (admin-only)
 
 - `POST /users`
 - `GET /users`
@@ -20,7 +20,7 @@
 - `PATCH /users/:id`
 - `PATCH /users/:id/status`
 
-## 3. Academic structure
+## 3. Academic Structure (admin-only)
 
 - `GET /academic-structure/context/active`
 - `PATCH /academic-structure/context/active`
@@ -55,7 +55,7 @@
 - `GET /academic-structure/supervisor-assignments/:id`
 - `PATCH /academic-structure/supervisor-assignments/:id`
 
-## 4. Students
+## 4. Students (admin-only)
 
 - `POST /students`
 - `GET /students`
@@ -71,7 +71,7 @@
 - `PATCH /students/:studentId/parents/:parentId/primary`
 - `POST /students/:id/promotions`
 
-## 5. System Settings Control Plane
+## 5. System Settings (admin-only)
 
 - `GET /system-settings`
 - `GET /system-settings/:group`
@@ -79,49 +79,48 @@
 - `GET /system-settings/audit`
 - `GET /system-settings/integrations/status`
 
-### 5.1 `transportMaps` keys
+## 6. Daily Academics
 
-- `etaProvider`: `mapbox | google`
-- `etaDerivedEstimateEnabled`: `boolean`
-- `googleMapsEtaEnabled`: `boolean`
-- `etaProviderRefreshIntervalSeconds`: `number`
-- `etaProviderDeviationThresholdMeters`: `number`
+## Attendance
 
-## 6. Daily academic operations
+- `POST /attendance/sessions`
+- `GET /attendance/sessions`
+- `GET /attendance/sessions/:id`
+- `PUT /attendance/sessions/:id/records`
+- `PATCH /attendance/records/:attendanceId`
 
-- Attendance:
-  - `POST /attendance/sessions`
-  - `GET /attendance/sessions`
-  - `GET /attendance/sessions/:id`
-  - `PUT /attendance/sessions/:id/records`
-  - `PATCH /attendance/records/:attendanceId`
-- Assessments:
-  - `POST /assessments/types`
-  - `GET /assessments/types`
-  - `POST /assessments`
-  - `GET /assessments`
-  - `GET /assessments/:id`
-  - `GET /assessments/:id/scores`
-  - `PUT /assessments/:id/scores`
-  - `PATCH /assessments/scores/:studentAssessmentId`
-- Behavior:
-  - `POST /behavior/categories`
-  - `GET /behavior/categories`
-  - `POST /behavior/records`
-  - `GET /behavior/records`
-  - `GET /behavior/records/:id`
-  - `PATCH /behavior/records/:id`
-  - `GET /behavior/students/:studentId/records`
-- Homework:
-  - `POST /homework`
-  - `GET /homework`
-  - `GET /homework/:id`
-  - `PUT /homework/:id/submissions`
-  - `GET /homework/students/:studentId`
+## Assessments
+
+- `POST /assessments/types`
+- `GET /assessments/types`
+- `POST /assessments`
+- `GET /assessments`
+- `GET /assessments/:id`
+- `GET /assessments/:id/scores`
+- `PUT /assessments/:id/scores`
+- `PATCH /assessments/scores/:studentAssessmentId`
+
+## Behavior
+
+- `POST /behavior/categories`
+- `GET /behavior/categories`
+- `POST /behavior/records`
+- `GET /behavior/records`
+- `GET /behavior/records/:id`
+- `PATCH /behavior/records/:id`
+- `GET /behavior/students/:studentId/records`
+
+## Homework
+
+- `POST /homework`
+- `GET /homework`
+- `GET /homework/:id`
+- `PUT /homework/:id/submissions`
+- `GET /homework/students/:studentId`
 
 ## 7. Transport
 
-### 7.1 Static management
+## Static + assignments
 
 - `POST /transport/buses`
 - `GET /transport/buses`
@@ -139,7 +138,7 @@
 - `PUT /transport/students/:studentId/home-location`
 - `DELETE /transport/students/:studentId/home-location`
 
-### 7.2 Trip operations and analytics
+## Trips + realtime + ETA
 
 - `GET /transport/realtime-token`
 - `POST /transport/trips`
@@ -155,15 +154,6 @@
 - `GET /transport/trips/:id/events`
 - `POST /transport/trips/:tripId/stops/:stopId/attendance`
 - `GET /transport/trips/:tripId/summary`
-- `GET /reporting/transport/summary`
-
-### 7.3 Attendance and summary semantics
-
-- Attendance endpoint records per-student status and auto-closes the stop snapshot.
-- If all stops become completed, trip status auto-transitions to `completed`.
-- `GET /transport/trips/:tripId/summary` is admin-only and requires `tripStatus = completed`.
-- If not completed, backend returns `409` with:
-  - `code: TRIP_SUMMARY_REQUIRES_COMPLETED_STATUS`
 
 ## 8. Communication
 
@@ -185,8 +175,9 @@
 - `GET /communication/notifications/me`
 - `PATCH /communication/notifications/:notificationId/read`
 
-## 9. Reporting and admin preview
+## 9. Reporting
 
+- `GET /reporting/dashboards/admin/me`
 - `GET /reporting/students/:studentId/profile`
 - `GET /reporting/students/:studentId/reports/attendance-summary`
 - `GET /reporting/students/:studentId/reports/assessment-summary`
@@ -199,8 +190,37 @@
 - `GET /reporting/admin-preview/parents/:parentUserId/students/:studentId/transport/live-status`
 - `GET /reporting/admin-preview/teachers/:teacherUserId/dashboard`
 - `GET /reporting/admin-preview/supervisors/:supervisorUserId/dashboard`
+- `GET /reporting/transport/summary`
 
-## 10. Admin imports
+## 10. AI Analytics (admin-only control plane)
+
+## Jobs
+
+- `POST /analytics/jobs/student-risk`
+- `POST /analytics/jobs/teacher-compliance`
+- `POST /analytics/jobs/admin-operational-digest`
+- `POST /analytics/jobs/class-overview`
+- `POST /analytics/jobs/transport-route-anomalies`
+- `POST /analytics/jobs/scheduled-dispatch`
+- `POST /analytics/jobs/recompute`
+- `POST /analytics/jobs/retention-cleanup`
+- `GET /analytics/jobs/:jobId`
+
+## Snapshots
+
+- `POST /analytics/snapshots/:snapshotId/review`
+- `POST /analytics/snapshots/:snapshotId/feedback`
+- `GET /analytics/snapshots/:snapshotId/feedback`
+
+## Read surfaces
+
+- `GET /analytics/students/:studentId/risk-summary`
+- `GET /analytics/teachers/:teacherId/compliance-summary`
+- `GET /analytics/admin/operational-digest`
+- `GET /analytics/classes/:classId/overview`
+- `GET /analytics/transport/routes/:routeId/anomalies`
+
+## 11. Admin Imports (admin-only)
 
 - `POST /admin-imports/school-onboarding/dry-run`
 - `POST /admin-imports/school-onboarding/apply`

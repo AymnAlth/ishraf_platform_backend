@@ -38,7 +38,7 @@ export const registerSystemSettingsIntegrationTests = (
       expect(responses.map((response) => response.status)).toEqual([403, 403, 403, 403, 403]);
     });
 
-    it("returns default groups and exposes etaProvider plus etaDerivedEstimateEnabled in transport maps settings", async () => {
+    it("returns default groups and exposes transport maps plus analytics scheduling settings", async () => {
       const adminLogin = await context.loginAsAdmin();
 
       const listResponse = await request(context.app)
@@ -72,6 +72,29 @@ export const registerSystemSettingsIntegrationTests = (
       ).toMatchObject({
         value: true,
         defaultValue: true,
+        source: "default"
+      });
+      expect(
+        listResponse.body.data.groups
+          .find((group: { group: string; entries: Array<{ key: string }> }) => group.group === "analytics")
+          ?.entries.find((entry: { key: string }) => entry.key === "scheduledRecomputeEnabled")
+      ).toMatchObject({
+        value: false,
+        defaultValue: false,
+        source: "default"
+      });
+      expect(
+        listResponse.body.data.groups
+          .find((group: { group: string; entries: Array<{ key: string }> }) => group.group === "analytics")
+          ?.entries.find((entry: { key: string }) => entry.key === "scheduledTargets")
+      ).toMatchObject({
+        value: [
+          "student_risk_summary",
+          "teacher_compliance_summary",
+          "admin_operational_digest",
+          "class_overview",
+          "transport_route_anomaly_summary"
+        ],
         source: "default"
       });
       expect(groupResponse.status).toBe(200);
@@ -265,3 +288,4 @@ export const registerSystemSettingsIntegrationTests = (
     });
   });
 };
+

@@ -25,13 +25,15 @@ describe("BehaviorRepository", () => {
     const repository = new BehaviorRepository();
     const queryable = createQueryable();
 
-    await repository.findStudentBehaviorReferenceById("11", queryable);
+    await repository.findStudentBehaviorReferenceById("11", "3", queryable);
 
     expect(queryable.query).toHaveBeenCalledTimes(1);
-    const [sql] = queryable.query.mock.calls[0] as [string, unknown[]];
+    const [sql, params] = queryable.query.mock.calls[0] as [string, unknown[]];
     expect(sql).toContain("FROM public.students st");
+    expect(sql).toContain("LEFT JOIN public.student_academic_enrollments sae");
     expect(sql).toContain("JOIN public.classes c");
     expect(sql).not.toContain("vw_student_profiles");
+    expect(params).toEqual(["11", "3"]);
   });
 
   it("builds student behavior summaries from base tables without summary views", async () => {

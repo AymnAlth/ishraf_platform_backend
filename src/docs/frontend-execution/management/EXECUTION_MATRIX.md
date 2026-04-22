@@ -1,21 +1,44 @@
-# Frontend Execution Matrix
+# Frontend Execution Matrix (Code-Truth)
 
-Sync baseline: `2026-04-08` (project-wide backend docs audit, 163 live endpoints documented)
+Sync baseline: `2026-04-16`
+
+- Runtime API surface: `161` endpoint تحت `/api/v1`
+- Root health:
+  - `GET /health`
+  - `GET /health/ready`
+
+## Role Matrix
 
 | Consumer | Primary Role | Core Modules | Write Surfaces | Read Surfaces |
 | --- | --- | --- | --- | --- |
-| Admin Dashboard | `admin` | users, academic-structure, students, attendance, assessments, behavior, homework, transport, communication, reporting, admin-imports | معظم السطوح الإدارية والتشغيلية | كل السطوح الإدارية والرقابية |
-| Teacher App | `teacher` | attendance, assessments, behavior, homework, reporting, communication | attendance, assessments, behavior, homework, direct messages | dashboard, reports, announcements, notifications |
-| Supervisor App | `supervisor` | attendance, behavior, reporting, communication | attendance records, behavior records, direct messages | dashboard, student summaries, announcements, notifications |
-| Parent App | `parent` | reporting, homework, communication, transport | direct messages فقط | dashboard, linked student reports, active announcements, notifications, transport live status, student homework |
-| Driver App | `driver` | transport, reporting, communication | trip operations, trip locations, trip events, direct messages | route assignments me, trips, transport summary, announcements, notifications |
+| Admin Dashboard | `admin` | users, academic-structure, students, attendance, assessments, behavior, homework, transport, communication, reporting, system-settings, admin-imports | كل surfaces الإدارية والتشغيلية | كل surfaces الإدارية والرقابية |
+| Teacher App | `teacher` | attendance, assessments, behavior, homework, reporting, communication | attendance create/save, assessments create/save, behavior records, homework create/save, direct messages | dashboard, student reports, announcements(active), notifications |
+| Supervisor App | `supervisor` | attendance, behavior, reporting, communication | attendance update only, behavior records, direct messages | dashboard, student reports ضمن ownership, announcements(active), notifications |
+| Parent App | `parent` | reporting, transport, homework, communication | direct messages, device registry, mark-read | parent dashboard + child reports + live status + announcements + notifications |
+| Driver App | `driver` | transport, reporting, communication | trip operations, locations, trip events, stop attendance, direct messages, device registry | route-assignments/me, trips, eta, transport summary, announcements(active), notifications |
 
-## Notes
+## Role-policy highlights
 
-- `admin-imports` مخصصة لـ admin dashboard فقط.
-- `users`, `academic-structure`, و`students` surfaces إدارية بحتة.
-- `communication` ليست admin-only بالكامل؛ فقط bulk/announcement management/notification management هي admin-only.
-- daily academic surfaces تعمل مع active context الحالي.
-- parent live tracking الأساسي: `GET /transport/trips/:tripId/live-status`.
-- admin trip analytics الأساسي: `GET /transport/trips/:tripId/summary` (after `completed` only).
-- driver/admin stop closure surface: `POST /transport/trips/:tripId/stops/:stopId/attendance`.
+- `admin`:
+  - الوحيد المسموح له `system-settings`, `users`, `academic-structure`, `students`, `admin-imports`.
+- `teacher`:
+  - لا يملك `users/academic-structure/students/system-settings/admin-imports`.
+- `supervisor`:
+  - لا يملك create attendance session.
+  - لا يملك assessments/homework management endpoints.
+- `parent`:
+  - لا يملك transport operations.
+  - يملك `GET /transport/trips/:tripId/live-status` بشرط ownership.
+- `driver`:
+  - يملك transport operations مع ownership checks.
+  - يملك `GET /reporting/transport/summary`.
+
+## Critical shared rules
+
+- Active Academic Context يحكم daily academics.
+- Live GPS source = RTDB.
+- ETA/business source = REST snapshots.
+- Trip summary admin endpoint:
+  - `GET /transport/trips/:tripId/summary`
+  - متاح فقط عند `tripStatus=completed`
+  - وإلا `409 TRIP_SUMMARY_REQUIRES_COMPLETED_STATUS`.

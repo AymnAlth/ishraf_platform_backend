@@ -654,6 +654,39 @@ export class ReportingRepository {
     return Boolean(result.rows[0]?.exists);
   }
 
+  async listStudentsByClass(
+    classId: string,
+    academicYearId: string,
+    queryable: Queryable = db
+  ): Promise<ReportingStudentRow[]> {
+    const result = await queryable.query<ReportingStudentRow>(
+      `
+        SELECT
+          spv.student_id AS "studentId",
+          spv.academic_no AS "academicNo",
+          spv.student_name AS "fullName",
+          spv.date_of_birth AS "dateOfBirth",
+          spv.gender,
+          spv.student_status AS status,
+          spv.enrollment_date AS "enrollmentDate",
+          spv.class_id AS "classId",
+          spv.class_name AS "className",
+          spv.section,
+          spv.grade_level_id AS "gradeLevelId",
+          spv.grade_level_name AS "gradeLevelName",
+          spv.academic_year_id AS "academicYearId",
+          spv.academic_year_name AS "academicYearName"
+        FROM ${databaseViews.studentProfiles} spv
+        WHERE spv.class_id = $1
+          AND spv.academic_year_id = $2
+        ORDER BY spv.academic_no ASC, spv.student_id ASC
+      `,
+      [classId, academicYearId]
+    );
+
+    return result.rows;
+  }
+
   async listChildrenForParent(
     parentId: string,
     queryable: Queryable = db
@@ -1271,3 +1304,4 @@ export class ReportingRepository {
     return result.rows;
   }
 }
+

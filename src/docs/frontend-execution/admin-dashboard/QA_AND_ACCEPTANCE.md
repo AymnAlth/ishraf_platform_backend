@@ -1,61 +1,80 @@
-# Admin Dashboard QA And Acceptance
+# Admin Dashboard QA And Acceptance (Code-Truth)
 
-## Bootstrap and access
+## 1. Access + bootstrap
 
-- admin login works and `GET /auth/me` returns role `admin`.
-- `/health` and `/health/ready` load successfully.
-- non-admin tokens receive `403` on admin-only management surfaces.
+- admin login succeeds.
+- `GET /auth/me` يرجع role = `admin`.
+- غير admin يحصل `403` على modules الإدارية.
 
-## Active academic context
+## 2. Active context behavior
 
-- `GET /academic-structure/context/active` loads before daily operations.
-- `PATCH /academic-structure/context/active` updates context correctly.
-- daily academic flows return `409 ACADEMIC_CONTEXT_NOT_CONFIGURED` when context is missing.
+- قراءة/تحديث context تعمل عبر `academic-structure/context/active`.
+- daily surfaces تُظهر خطأ واضح عند:
+  - `ACADEMIC_CONTEXT_NOT_CONFIGURED` (409)
+  - `ACTIVE_ACADEMIC_YEAR_ONLY` (400)
+  - `ACTIVE_SEMESTER_ONLY` (400)
 
-## System settings (advanced transport controls)
+## 3. System settings transportMaps + analytics
 
-- `GET /system-settings` includes group `transportMaps`.
-- `GET /system-settings/:group` for `transportMaps` returns keys:
-  - `etaProvider`
-  - `etaDerivedEstimateEnabled`
-  - `googleMapsEtaEnabled`
-  - `etaProviderRefreshIntervalSeconds`
-  - `etaProviderDeviationThresholdMeters`
-- `etaProvider` accepts only `mapbox | google`.
-- `etaDerivedEstimateEnabled` default is `true`.
-- `PATCH /system-settings/transportMaps` updates effective values and audit trail.
+- `GET /system-settings/transportMaps` يرجع المفاتيح الخمسة الفعلية.
+- `PATCH /system-settings/transportMaps` يقبل update جزئي مع `reason`.
+- `GET /system-settings/analytics` يرجع مفاتيح analytics الفعلية كاملة.
+- `PATCH /system-settings/analytics`:
+  - يرفض `primaryProvider=fallbackProvider`.
+  - يقبل update جزئي مع `reason`.
+- audit logs تُحدث بعد أي تغيير فعلي.
 
-## Transport summary for completed trips
+## 4. Transport summary
 
-- `GET /transport/trips/:tripId/summary` returns `200` for `tripStatus=completed`.
-- response includes:
-  - `scheduledStartTime: null`
+- `GET /transport/trips/:tripId/summary`:
+  - `200` فقط عند `tripStatus=completed`.
+  - وإلا `409` مع:
+    - `code: TRIP_SUMMARY_REQUIRES_COMPLETED_STATUS`.
+- response keys المتوقعة:
+  - `scheduledStartTime` (حاليًا `null`)
   - `actualStartTime`
   - `actualEndTime`
-  - `startDelayMinutes: null`
+  - `startDelayMinutes` (حاليًا `null`)
   - `attendance.totalStudents/presentCount/absentCount`
-- same endpoint returns `409` when trip is not completed with:
-  - `code: TRIP_SUMMARY_REQUIRES_COMPLETED_STATUS`
-  - suggested UX toast:
-    - `الرحلة لا تزال قائمة، سيظهر الملخص النهائي فور اكتمال كافة المحطات.`
 
-## Stop attendance from admin operations
+## 5. Attendance per stop
 
-- `POST /transport/trips/:tripId/stops/:stopId/attendance` accepts:
-  - `attendances: [{ studentId, status: present|absent, notes? }]`
-- duplicate `studentId` in same request is rejected.
-- stop mismatch or assignment mismatch returns domain validation errors.
-- successful submission closes stop snapshot and can finalize trip to `completed`.
+- `POST /transport/trips/:tripId/stops/:stopId/attendance`:
+  - يرفض duplicate `studentId`.
+  - يرفض stop غير متطابق مع route.
+  - يرفض طالب بدون assignment مطابق.
+  - يغلق stop snapshot عند النجاح.
+  - إذا كانت آخر محطة => الرحلة تصبح `completed`.
 
-## Firebase hybrid flow checks
+## 6. Realtime split validation
 
-- `GET /transport/realtime-token?tripId=...` returns bootstrap payload only.
-- RTDB live GPS path is used directly by frontend:
+- `GET /transport/realtime-token` يعطي bootstrap data.
+- RTDB path المستخدم:
   - `/transport/live-trips/{tripId}/latestLocation`
-- ETA is read from REST snapshot endpoints, not RTDB.
+- ETA لا تُقرأ من RTDB بل من REST snapshot.
 
-## Communication and device registry
+## 7. Communication + imports
 
-- admin can register/update/delete own FCM device.
-- device registration remains available even if `fcmEnabled=false`.
-- messaging/announcements/notifications endpoints work with admin scope.
+- admin يملك bulk surfaces:
+  - `messages/bulk`
+  - `notifications/bulk`
+- admin-imports flow (dry-run/apply/history/details) يعمل بصلاحية admin فقط.
+
+## 8. AI Analytics
+
+- عندما `analytics.aiAnalyticsEnabled=false`:
+  - إنشاء jobs التحليلية يرفض `409`.
+- `POST /analytics/jobs/student-risk|teacher-compliance|admin-operational-digest|class-overview|transport-route-anomalies`:
+  - يعيد `201` عند الإنشاء الفعلي.
+  - قد يعيد `200` عند إعادة استخدام job pending موجودة.
+- `POST /analytics/jobs/recompute`:
+  - يعيد breakdown + created/reused counts.
+- `POST /analytics/jobs/scheduled-dispatch`:
+  - يرفض `409` إذا `scheduledRecomputeEnabled=false`.
+- `POST /analytics/snapshots/:snapshotId/review`:
+  - `approve` يجعل snapshot منشورة.
+  - اعتماد snapshot جديدة لنفس subject/context يجب أن يجعل القديمة `superseded`.
+- `POST /analytics/jobs/retention-cleanup`:
+  - يرفض `409` إذا `retentionCleanupEnabled=false`.
+- `GET /analytics/snapshots/:snapshotId/feedback`:
+  - admin-only.

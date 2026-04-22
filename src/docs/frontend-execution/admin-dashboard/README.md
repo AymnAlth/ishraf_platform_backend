@@ -1,16 +1,12 @@
-# Admin Dashboard Backend Contract
+# Admin Dashboard Backend Contract (Code-Truth)
 
 الدور المستهدف: `admin`
 
-هذا الدليل يصف عقود الإدارة كما هي مطبقة فعليًا في الباك الحالي، خصوصًا:
+هذا الدليل يشرح ما يمكن للوحة الإدارة تنفيذه فعليًا في الكود الحالي.
 
-- إعدادات النظام المتقدمة (`system-settings`)
-- منظومة النقل (ETA / attendance / trip summary)
-- التكامل الهجين مع Firebase (`RTDB + FCM`)
+## 1. نطاق الإدارة
 
-## النطاق
-
-لوحة الإدارة تملك صلاحية كاملة على:
+الإدارة تملك كامل الوصول إلى:
 
 - `users`
 - `academic-structure`
@@ -18,7 +14,7 @@
 - `system-settings`
 - `admin-imports`
 
-وتستهلك تشغيليًا أيضًا:
+وتملك أيضًا تشغيل daily modules:
 
 - `attendance`
 - `assessments`
@@ -28,39 +24,82 @@
 - `communication`
 - `reporting`
 
-## القواعد الحاكمة
+## 2. قواعد تشغيل مؤثرة
 
-- `system-settings` هي control plane إدارية `global-only` و`admin-only`.
-- مجموعة `transportMaps` تحتوي القيم التشغيلية الحية التالية:
-  - `etaProvider`: `mapbox | google` (default: `mapbox`)
-  - `etaDerivedEstimateEnabled`: `boolean` (default: `true`)
-  - `googleMapsEtaEnabled`
-  - `etaProviderRefreshIntervalSeconds`
-  - `etaProviderDeviationThresholdMeters`
-- `transportMaps.etaProvider` يؤثر فعليًا على runtime provider selection.
-- ETA في النقل هي **Backend Snapshot** وليست stream GPS مباشر.
-- GPS live يقرأ من Firebase RTDB بعد bootstrap عبر `GET /transport/realtime-token`.
-- في الرحلات، الحالة `completed` فعالة وتستخدم في analytics.
-
-## Transport من منظور الإدارة
-
-- الإدارة تستطيع تشغيل endpoints التشغيلية للرحلة (policy `operateTrips`):
-  - start/end/location/events
-  - attendance per stop
-- endpoint الملخص الإداري:
+- Active Academic Context هو المرجع اليومي للبيانات الدراسية.
+- `system-settings` هي control plane إدارية فقط.
+- `analytics` الآن جزء من control plane الإداري والتشغيلي، وليس تقريرًا static فقط.
+- transport analytics endpoint:
   - `GET /transport/trips/:tripId/summary`
-  - يرجع `409` مع الكود `TRIP_SUMMARY_REQUIRES_COMPLETED_STATUS` إذا الرحلة غير مكتملة.
-- endpoint الحي الخاص بالوالد (`/transport/trips/:tripId/live-status`) ليس endpoint إدارة.
+  - متاح فقط عندما الرحلة `completed`.
+- attendance per stop يمكن أن يغلق المحطة ويُنهي الرحلة تلقائيًا.
 
-## Firebase / FCM من منظور الإدارة
+## 3. transportMaps settings (effective keys)
 
-- `GET /transport/realtime-token` يعطي bootstrap token فقط.
-- بيانات GPS الحية تُقرأ مباشرة من RTDB path:
+ضمن `system-settings` group = `transportMaps`:
+
+- `etaProvider`: `mapbox | google`
+- `etaDerivedEstimateEnabled`: `boolean`
+- `googleMapsEtaEnabled`: `boolean`
+- `etaProviderRefreshIntervalSeconds`: `number`
+- `etaProviderDeviationThresholdMeters`: `number`
+
+## 4. analytics settings (effective keys)
+
+ضمن `system-settings` group = `analytics`:
+
+- `aiAnalyticsEnabled`: `boolean`
+- `primaryProvider`: `openai | groq`
+- `fallbackProvider`: `openai | groq`
+- `scheduledRecomputeEnabled`: `boolean`
+- `scheduledRecomputeIntervalMinutes`: `number`
+- `scheduledRecomputeMaxSubjectsPerTarget`: `number`
+- `scheduledTargets`: `student_risk_summary[] | teacher_compliance_summary[] | admin_operational_digest[] | class_overview[] | transport_route_anomaly_summary[]`
+- `autonomousDispatchEnabled`: `boolean`
+- `autonomousDispatchActorUserId`: `string | null`
+- `retentionCleanupEnabled`: `boolean`
+- `obsoleteSnapshotRetentionDays`: `number`
+- `jobRetentionDays`: `number`
+- `schedulerRunRetentionDays`: `number`
+
+قواعد إلزامية:
+
+- `primaryProvider` و`fallbackProvider` يجب أن يكونا مختلفين.
+- الواجهة لا تستدعي `OpenAI` أو `Groq` مباشرة؛ هذه القيم backend-only.
+
+## 5. AI Analytics من منظور الإدارة
+
+- الإدارة هي الجهة الوحيدة التي:
+  - تطلق analytics jobs
+  - تشغّل recompute/scheduled dispatch/retention cleanup
+  - تعتمد أو ترفض snapshots
+  - تقرأ feedback الكامل
+- lifecycle الفعلي:
+  1. تفعيل `system-settings.analytics`
+  2. إطلاق job أو dispatch
+  3. backend يمررها عبر `integration_outbox`
+  4. worker يبني snapshot
+  5. الإدارة تراجع snapshot
+  6. بعد `approve` تصبح متاحة للأسطح غير الإدارية
+
+## 6. Firebase/Maps من منظور الإدارة
+
+- `GET /transport/realtime-token` يعطي bootstrap auth فقط.
+- live GPS يقرأ من RTDB path:
   - `/transport/live-trips/{tripId}/latestLocation`
-- إشعارات الاقتراب/الوصول تُدار async عبر `integration_outbox` و`pushNotifications`.
+- ETA تبقى snapshot عبر REST (`/transport/trips/:id/eta`).
+- لا يوجد maps API call مباشر من الواجهة لحساب ETA.
 
-## الملفات المرتبطة
+## 7. Trip status semantics
 
-- `ENDPOINT_MAP.md`
-- `SCREENS_AND_TASKS.md`
-- `QA_AND_ACCEPTANCE.md`
+status المستخدمة في النقل:
+
+- `scheduled`
+- `started`
+- `ended`
+- `completed`
+- `cancelled`
+
+مهم:
+
+- `completed` قد يحدث تلقائيًا بعد إغلاق آخر محطة عبر attendance endpoint.

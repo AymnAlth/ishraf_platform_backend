@@ -1,156 +1,117 @@
-# Teacher App Endpoint Map
+# Teacher App Endpoint Map (Code-Truth, Endpoint-by-Endpoint)
 
-## 1. Session
+كل المسارات أدناه تحت `/api/v1` ما لم يُذكر غير ذلك.
 
-- `POST /auth/login`
-- `GET /auth/me`
-- `POST /auth/refresh`
-- `POST /auth/logout`
-- `POST /auth/change-password`
+## 1) Auth
 
-## 2. Teacher dashboard
+| Method | Path | Purpose | Contract |
+| --- | --- | --- | --- |
+| `POST` | `/auth/login` | بدء الجلسة | `identifier`, `password` |
+| `GET` | `/auth/me` | قراءة هوية الجلسة | Bearer token |
+| `POST` | `/auth/refresh` | تدوير access token | `refreshToken` |
+| `POST` | `/auth/logout` | إنهاء جلسة refresh | `refreshToken` |
+| `POST` | `/auth/change-password` | تغيير كلمة المرور | `currentPassword`, `newPassword` |
 
-- `GET /reporting/dashboards/teacher/me`
+## 2) Reporting
 
-## 3. Active academic context rule
+| Method | Path | Purpose | Contract |
+| --- | --- | --- | --- |
+| `GET` | `/reporting/dashboards/teacher/me` | لوحة المعلم | بدون body |
+| `GET` | `/reporting/students/:studentId/profile` | ملف الطالب | path `studentId` |
+| `GET` | `/reporting/students/:studentId/reports/attendance-summary` | تقرير الحضور | path `studentId` |
+| `GET` | `/reporting/students/:studentId/reports/assessment-summary` | تقرير الدرجات | path `studentId` |
+| `GET` | `/reporting/students/:studentId/reports/behavior-summary` | تقرير السلوك | path `studentId` |
 
-هذه القاعدة تنطبق على attendance, assessments, behavior, homework, والتقارير اليومية:
+## 3) Attendance
 
-- يمكن إغفال `academicYearId` و`semesterId`
-- الباك يحلهما من السياق النشط
-- إذا أُرسلتا، يجب أن تطابقا السياق النشط
+| Method | Path | Purpose | Contract |
+| --- | --- | --- | --- |
+| `POST` | `/attendance/sessions` | إنشاء جلسة حضور | `classId`, `subjectId`, `sessionDate`, `periodNo`, optional: `academicYearId`, `semesterId`, `title`, `notes`, `teacherId` |
+| `GET` | `/attendance/sessions` | قائمة الجلسات | query: `page`, `limit`, `sortBy`, `sortOrder`, filters: `classId`, `subjectId`, `teacherId`, `academicYearId`, `semesterId`, `sessionDate`, `dateFrom`, `dateTo` |
+| `GET` | `/attendance/sessions/:id` | تفاصيل الجلسة + roster | path `id` |
+| `PUT` | `/attendance/sessions/:id/records` | حفظ الحضور الكامل للروستر | `records[]` with `studentId`, `status`, `notes?` |
+| `PATCH` | `/attendance/records/:attendanceId` | تعديل سجل فردي | `status?`, `notes?` |
 
-Relevant errors:
+## 4) Assessments
 
-| Code | المعنى |
-| --- | --- |
-| `ACADEMIC_CONTEXT_NOT_CONFIGURED` | لا توجد سنة/فصل نشطان |
-| `ACTIVE_ACADEMIC_YEAR_ONLY` | `academicYearId` لا تطابق السنة النشطة |
-| `ACTIVE_SEMESTER_ONLY` | `semesterId` لا يطابق الفصل النشط |
+| Method | Path | Purpose | Contract |
+| --- | --- | --- | --- |
+| `GET` | `/assessments/types` | أنواع التقييم | بدون body |
+| `POST` | `/assessments` | إنشاء تقييم | `assessmentTypeId`, `classId`, `subjectId`, `title`, `maxScore`, `assessmentDate`, optional: `teacherId`, `academicYearId`, `semesterId`, `description`, `weight`, `isPublished` |
+| `GET` | `/assessments` | قائمة التقييمات | query: `page`, `limit`, `sortBy`, `sortOrder`, filters: `assessmentTypeId`, `classId`, `subjectId`, `teacherId`, `academicYearId`, `semesterId`, `assessmentDate`, `dateFrom`, `dateTo`, `isPublished` |
+| `GET` | `/assessments/:id` | تفاصيل تقييم | path `id` |
+| `GET` | `/assessments/:id/scores` | roster الدرجات | path `id` |
+| `PUT` | `/assessments/:id/scores` | حفظ درجات كاملة | `records[]` with `studentId`, `score`, `remarks?` |
+| `PATCH` | `/assessments/scores/:studentAssessmentId` | تعديل درجة فردية | `score?`, `remarks?` |
 
-## 4. Attendance
+## 5) Behavior
 
-- `POST /attendance/sessions`
-- `GET /attendance/sessions`
-- `GET /attendance/sessions/:id`
-- `PUT /attendance/sessions/:id/records`
-- `PATCH /attendance/records/:attendanceId`
+| Method | Path | Purpose | Contract |
+| --- | --- | --- | --- |
+| `GET` | `/behavior/categories` | فئات السلوك | بدون body |
+| `POST` | `/behavior/records` | إنشاء سجل سلوك | `studentId`, `behaviorCategoryId`, `behaviorDate`, optional: `academicYearId`, `semesterId`, `description`, `severity`, `teacherId`, `supervisorId` |
+| `GET` | `/behavior/records` | قائمة سجلات السلوك | query: `page`, `limit`, `sortBy`, `sortOrder`, filters: `studentId`, `behaviorCategoryId`, `behaviorType`, `academicYearId`, `semesterId`, `teacherId`, `supervisorId`, `behaviorDate`, `dateFrom`, `dateTo` |
+| `GET` | `/behavior/records/:id` | تفاصيل سجل سلوك | path `id` |
+| `PATCH` | `/behavior/records/:id` | تعديل سجل سلوك | optional: `behaviorCategoryId`, `academicYearId`, `semesterId`, `description`, `severity`, `behaviorDate` |
+| `GET` | `/behavior/students/:studentId/records` | سجل سلوك الطالب | path `studentId` |
 
-Teacher payload rules:
+## 6) Homework
 
-- teacher-created attendance session:
-  - يجب ألا ترسل `teacherId`
-  - المعلم يُحل من الجلسة
-- `PUT /attendance/sessions/:id/records`:
-  - يتطلب roster كاملة
-  - كل طالب active يجب أن يظهر مرة واحدة بالضبط
+| Method | Path | Purpose | Contract |
+| --- | --- | --- | --- |
+| `POST` | `/homework` | إنشاء واجب | `classId`, `subjectId`, `title`, `assignedDate`, `dueDate`, optional: `teacherId`, `academicYearId`, `semesterId`, `description` |
+| `GET` | `/homework` | قائمة الواجبات | query: `page`, `limit`, `sortBy`, `sortOrder`, filters: `classId`, `subjectId`, `teacherId`, `academicYearId`, `semesterId`, `assignedDate`, `dueDate`, `dateFrom`, `dateTo` |
+| `GET` | `/homework/:id` | تفاصيل واجب + roster | path `id` |
+| `PUT` | `/homework/:id/submissions` | حفظ تسليمات الطلاب | `records[]` with `studentId`, `status`, `submittedAt?`, `notes?` |
+| `GET` | `/homework/students/:studentId` | واجبات طالب | path `studentId` |
 
-Domain errors:
+## 7) Communication
 
-| Code | المعنى |
-| --- | --- |
-| `CLASS_YEAR_MISMATCH` | الصف لا ينتمي إلى السنة المحددة |
-| `SEMESTER_YEAR_MISMATCH` | الفصل لا ينتمي إلى السنة المحددة |
-| `SUBJECT_GRADE_LEVEL_MISMATCH` | المادة لا تتبع نفس مرحلة الصف |
-| `SUBJECT_NOT_OFFERED_IN_SEMESTER` | المادة غير مفعلة في الفصل |
-| `ATTENDANCE_DUPLICATE_STUDENT` | الطالب مكرر داخل payload |
-| `ATTENDANCE_ROSTER_STUDENT_MISSING` | طالب roster مفقود من payload |
-| `ATTENDANCE_ROSTER_STUDENT_NOT_ALLOWED` | payload تحتوي طالبًا خارج roster الجلسة |
+| Method | Path | Purpose | Contract |
+| --- | --- | --- | --- |
+| `POST` | `/communication/devices` | تسجيل جهاز FCM | `providerKey`, `platform`, `appId`, `deviceToken`, `subscriptions[]`, `deviceName?` |
+| `PATCH` | `/communication/devices/:deviceId` | تحديث الجهاز | `deviceToken?`, `deviceName?`, `subscriptions?` |
+| `DELETE` | `/communication/devices/:deviceId` | إلغاء تسجيل الجهاز | path `deviceId` |
+| `GET` | `/communication/recipients` | البحث عن مستلمين | query: `page`, `limit`, `search?`, `role?` |
+| `POST` | `/communication/messages` | إرسال رسالة مباشرة | `receiverUserId`, `messageBody` |
+| `GET` | `/communication/messages/inbox` | صندوق الوارد | query paginated + `isRead?` |
+| `GET` | `/communication/messages/sent` | الرسائل المرسلة | query paginated + `receiverUserId?` |
+| `GET` | `/communication/messages/conversations/:otherUserId` | محادثة مع مستخدم | path `otherUserId`, query paginated |
+| `PATCH` | `/communication/messages/:messageId/read` | تعليم الرسالة كمقروءة | path `messageId` |
+| `GET` | `/communication/announcements/active` | الإعلانات النشطة | بدون body |
+| `GET` | `/communication/notifications/me` | إشعاراتي | query paginated + `isRead?`, `notificationType?` |
+| `PATCH` | `/communication/notifications/:notificationId/read` | تعليم الإشعار كمقروء | path `notificationId` |
 
-## 5. Assessments
+## 8) Analytics
 
-- `GET /assessments/types`
-- `POST /assessments`
-- `GET /assessments`
-- `GET /assessments/:id`
-- `GET /assessments/:id/scores`
-- `PUT /assessments/:id/scores`
-- `PATCH /assessments/scores/:studentAssessmentId`
+| Method | Path | Purpose | Contract |
+| --- | --- | --- | --- |
+| `GET` | `/analytics/classes/:classId/overview` | قراءة class overview للصف المعيّن | path `classId` |
+| `POST` | `/analytics/snapshots/:snapshotId/feedback` | إرسال feedback على snapshot منشورة | `rating?`, `feedbackText?` |
 
-Teacher payload rules:
+قواعد تشغيل:
 
-- teacher-created assessment:
-  - `teacherId` ممنوع
-  - إذا أُرسلت سيعود `TEACHER_ID_NOT_ALLOWED`
-- `PUT /assessments/:id/scores`:
-  - لا يتطلب full snapshot
-  - لكنه يرفض أي طالب خارج roster
+1. المعلم لا يطلق jobs analytics.
+2. المعلم لا يرى إلا snapshots المنشورة.
+3. `GET /analytics/classes/:classId/overview` يرفض `403` إذا كان الصف خارج teacher assignments.
 
-Domain errors:
+## 9) قواعد أخطاء متوقعة
 
-| Code | المعنى |
-| --- | --- |
-| `TEACHER_ID_NOT_ALLOWED` | المعلم أرسل `teacherId` في create assessment |
-| `CLASS_YEAR_MISMATCH` | الصف لا ينتمي إلى السنة المحددة |
-| `SEMESTER_YEAR_MISMATCH` | الفصل لا ينتمي إلى السنة المحددة |
-| `SUBJECT_GRADE_LEVEL_MISMATCH` | المادة لا تتبع نفس مرحلة الصف |
-| `SUBJECT_NOT_OFFERED_IN_SEMESTER` | المادة غير مفعلة في الفصل |
-| `ASSESSMENT_SCORE_EXCEEDS_MAX_SCORE` | score أكبر من `maxScore` |
-| `STUDENT_ASSESSMENT_DUPLICATE_STUDENT` | الطالب مكرر داخل payload الدرجات |
-| `STUDENT_ASSESSMENT_STUDENT_NOT_ALLOWED` | الطالب لا ينتمي إلى roster الاختبار |
+1. `409 ACADEMIC_CONTEXT_NOT_CONFIGURED` عند غياب السنة/الفصل النشط.
+2. `400 ACTIVE_ACADEMIC_YEAR_ONLY` أو `ACTIVE_SEMESTER_ONLY` عند mismatch في context.
+3. `TEACHER_ID_NOT_ALLOWED` في create flows الخاصة بالمعلم.
+4. `403` عند محاولة الوصول لطلاب/صفوف خارج assignment.
 
-## 6. Behavior
+## 10) Non-Allowed (Teacher)
 
-- `GET /behavior/categories`
-- `POST /behavior/records`
-- `GET /behavior/records`
-- `GET /behavior/records/:id`
-- `PATCH /behavior/records/:id`
-- `GET /behavior/students/:studentId/records`
-
-ملاحظات:
-
-- behavior record ترتبط بالسياق الأكاديمي النشط.
-- الوصول إلى سجلات behavior محكوم بملكية teacher assignment على الصف/السنة.
-
-## 7. Homework
-
-- `POST /homework`
-- `GET /homework`
-- `GET /homework/:id`
-- `PUT /homework/:id/submissions`
-- `GET /homework/students/:studentId`
-
-Teacher payload rules:
-
-- teacher-created homework:
-  - `teacherId` ممنوع
-  - إذا أُرسلت سيعود `TEACHER_ID_NOT_ALLOWED`
-- `PUT /homework/:id/submissions`:
-  - لا تقبل طلابًا خارج roster الواجب
-
-Domain errors:
-
-| Code | المعنى |
-| --- | --- |
-| `TEACHER_ID_NOT_ALLOWED` | المعلم أرسل `teacherId` في create homework |
-| `CLASS_YEAR_MISMATCH` | الصف لا ينتمي إلى السنة المحددة |
-| `SEMESTER_YEAR_MISMATCH` | الفصل لا ينتمي إلى السنة المحددة |
-| `SUBJECT_GRADE_LEVEL_MISMATCH` | المادة لا تتبع نفس مرحلة الصف |
-| `SUBJECT_NOT_OFFERED_IN_SEMESTER` | المادة غير مفعلة في الفصل |
-| `HOMEWORK_SUBMISSION_DUPLICATE_STUDENT` | الطالب مكرر داخل payload التسليمات |
-| `HOMEWORK_SUBMISSION_STUDENT_NOT_ALLOWED` | الطالب لا ينتمي إلى roster الواجب |
-
-## 8. Student reporting
-
-- `GET /reporting/students/:studentId/profile`
-- `GET /reporting/students/:studentId/reports/attendance-summary`
-- `GET /reporting/students/:studentId/reports/assessment-summary`
-- `GET /reporting/students/:studentId/reports/behavior-summary`
-
-ملاحظات:
-
-- الوصول ليس عامًا.
-- المعلم لا يرى إلا الطالب الذي يملك له assignment على صفه/سنته.
-
-## 9. Communication
-
-- `GET /communication/recipients`
-- `POST /communication/messages`
-- `GET /communication/messages/inbox`
-- `GET /communication/messages/sent`
-- `GET /communication/messages/conversations/:otherUserId`
-- `PATCH /communication/messages/:messageId/read`
-- `GET /communication/announcements/active`
-- `GET /communication/notifications/me`
-- `PATCH /communication/notifications/:notificationId/read`
+1. كل مسارات الإدارة:
+   - `/users/*`
+   - `/academic-structure/*`
+   - `/students/*`
+   - `/system-settings/*`
+   - `/admin-imports/*`
+2. communication admin-only:
+   - `POST /communication/messages/bulk`
+   - `POST /communication/announcements`
+   - `POST /communication/notifications`
+   - `POST /communication/notifications/bulk`

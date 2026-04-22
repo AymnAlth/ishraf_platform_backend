@@ -1,40 +1,53 @@
-# Supervisor App Backend Contract
+# Supervisor App Backend Contract (Code-Truth, Detailed)
+
+آخر مزامنة مع الكود: `2026-04-16`
 
 الدور المستهدف: `supervisor`
 
-هذا المجلد يوضح surfaces المشرف مع التركيز على ownership والقواعد التشغيلية، وليس مجرد listing للمسارات.
+## 1) نطاق التطبيق
 
-حالة التزامن: `2026-04-08` (project-wide audit)
+المشرف يستهلك:
 
-## النطاق
+1. `auth` للجلسة.
+2. `reporting` (supervisor dashboard + student reports ضمن scope).
+3. `attendance` (قراءة الجلسات + تحديث السجلات فقط).
+4. `behavior` (إنشاء/تحديث/قراءة السجلات).
+5. `communication` (رسائل مباشرة + إشعارات + announcements active + device registry).
+6. `analytics` (قراءة class overview للصفوف المعيّنة + feedback على snapshots المنشورة).
 
-- attendance
-- behavior
-- reporting
-- communication
-- auth
+## 2) قواعد تشغيل إلزامية
 
-## القواعد المؤثرة
+1. المشرف لا يملك `POST /attendance/sessions`.
+2. تحديثات attendance مسموحة فقط داخل class-year assignments الخاصة بالمشرف.
+3. `Active Academic Context` يحكم attendance/behavior/reporting.
+4. أي طالب خارج assignment => `403`.
+5. في behavior create/update:
+   - إذا أرسل المشرف `teacherId` أو `supervisorId` في الطلب، يتم رفضه (`BEHAVIOR_ACTOR_NOT_ALLOWED`).
+6. `GET /analytics/classes/:classId/overview` مقيد بـ supervisor assignments الفعلية.
+7. `POST /analytics/snapshots/:snapshotId/feedback` لا يقبل snapshots غير `approved` لغير `admin`.
 
-- المشرف لا ينشئ attendance sessions.
-- المشرف يستطيع update attendance records داخل الصفوف/السنوات التي هو مكلّف بها.
-- student reporting access ليس عامًا؛ يخضع `assertSupervisorAssignedToClassYear`.
-- السطوح اليومية التي تعتمد السنة/الفصل النشطين تتأثر بـ `Active Academic Context`.
+## 3) أخطاء يجب أن يدعمها UX
 
-## Enums المهمة
+### سياق أكاديمي
+- `ACADEMIC_CONTEXT_NOT_CONFIGURED` (`409`)
+- `ACTIVE_ACADEMIC_YEAR_ONLY` (`400`)
+- `ACTIVE_SEMESTER_ONLY` (`400`)
 
-| Enum | Values |
-| --- | --- |
-| `ATTENDANCE_STATUS` | `present`, `absent`, `late`, `excused` |
+### Attendance/Behavior
+- `CLASS_YEAR_MISMATCH`
+- `SEMESTER_YEAR_MISMATCH`
+- `SUBJECT_GRADE_LEVEL_MISMATCH`
+- `SUBJECT_NOT_OFFERED_IN_SEMESTER`
+- `ATTENDANCE_ROSTER_STUDENT_MISSING`
+- `ATTENDANCE_ROSTER_STUDENT_NOT_ALLOWED`
+- `BEHAVIOR_CATEGORY_INACTIVE`
+- `STUDENT_YEAR_MISMATCH`
+- `BEHAVIOR_ACTOR_NOT_ALLOWED`
 
-## FCM inbound payload reference (SDK)
-
-عند استقبال إشعار Push في التطبيق، اعتمد القراءة التالية:
+## 4) Full SDK Inbound FCM Payload (Reference)
 
 ```json
 {
-  "messageId": "0:1730000000000000%example",
-  "from": "1234567890",
   "notification": {
     "title": "وصول الحافلة",
     "body": "الحافلة بالخارج في انتظار الطلاب أحمد و سارة."
@@ -44,25 +57,48 @@
     "notificationType": "transport_bus_arrived",
     "tripId": "1201",
     "routeId": "31",
-    "studentIds": "[\"501\",\"502\"]",
-    "referenceType": "trip_stop",
-    "referenceId": "1201:7"
+    "studentIds": "501,502"
   }
 }
 ```
 
-قاعدة التعامل:
+قواعد parsing:
 
-- `notification`: للعرض المباشر (banner/system notification).
-- `data`: للمنطق البرمجي داخل التطبيق (routing/state).
+1. `notification` للعرض.
+2. `data` للمنطق (routing/state).
+3. العلاقة التشغيلية:
+   - `integration_outbox.event_type = fcm.transport.bus_approaching` => `data.eventType = bus_approaching`
+   - `integration_outbox.event_type = fcm.transport.bus_arrived` => `data.eventType = bus_arrived`
+4. `studentIds` تصل كسلسلة CSV ويجب تحويلها إلى array داخل التطبيق.
 
-تطابق event names:
+## 5) Analytics contracts
 
-- `integration_outbox.event_type = fcm.transport.bus_approaching` -> `data.eventType = bus_approaching`
-- `integration_outbox.event_type = fcm.transport.bus_arrived` -> `data.eventType = bus_arrived`
+- `GET /analytics/classes/:classId/overview`
+- `POST /analytics/snapshots/:snapshotId/feedback`
 
-## دورة الاستخدام
+قواعد:
 
-- `ENDPOINT_MAP.md`: خريطة العقود والصلاحيات وقيود الملكية.
-- `SCREENS_AND_TASKS.md`: التسلسل التنفيذي اليومي من login إلى الإشراف والمتابعة.
-- `QA_AND_ACCEPTANCE.md`: معايير القبول والرفض المتوقعة.
+1. المشرف لا يطلق jobs.
+2. المشرف لا يراجع snapshots.
+3. المشرف يرى snapshots المنشورة فقط.
+
+## 6) ما لا يملكه المشرف
+
+1. إنشاء attendance sessions:
+   - `POST /attendance/sessions`.
+2. إدارة assessments/homework.
+3. كل مسارات الإدارة:
+   - `/users/*`
+   - `/academic-structure/*`
+   - `/students/*`
+   - `/system-settings/*`
+   - `/admin-imports/*`
+4. communication admin-only:
+   - bulk messages/notifications
+   - announcement management
+5. analytics admin-only:
+   - كل `POST /analytics/jobs/*`
+   - `POST /analytics/snapshots/:snapshotId/review`
+   - `GET /analytics/teachers/:teacherId/compliance-summary`
+   - `GET /analytics/admin/operational-digest`
+   - `GET /analytics/transport/routes/:routeId/anomalies`

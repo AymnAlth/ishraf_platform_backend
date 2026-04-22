@@ -204,7 +204,10 @@ export class BehaviorService {
         semesterId: payload.semesterId
       });
     const student = assertFound(
-      await this.behaviorRepository.findStudentBehaviorReferenceById(payload.studentId),
+      await this.behaviorRepository.findStudentBehaviorReferenceById(
+        payload.studentId,
+        operationalContext.academicYearId
+      ),
       "Student"
     );
     const category = assertFound(
@@ -340,7 +343,10 @@ export class BehaviorService {
 
       if (payload.academicYearId !== undefined) {
         const student = assertFound(
-          await this.behaviorRepository.findStudentBehaviorReferenceById(currentRecord.studentId),
+          await this.behaviorRepository.findStudentBehaviorReferenceById(
+            currentRecord.studentId,
+            nextAcademicYearId
+          ),
           "Student"
         );
 
@@ -379,10 +385,13 @@ export class BehaviorService {
     authUser: AuthenticatedUser,
     studentId: string
   ): Promise<StudentBehaviorRecordsResponseDto> {
-    await this.activeAcademicContextService.requireActiveContext();
+    const activeContext = await this.activeAcademicContextService.requireActiveContext();
     const actor = await this.resolveActor(authUser);
     const student = assertFound(
-      await this.behaviorRepository.findStudentBehaviorReferenceById(studentId),
+      await this.behaviorRepository.findStudentBehaviorReferenceById(
+        studentId,
+        activeContext.academicYearId
+      ),
       "Student"
     );
 

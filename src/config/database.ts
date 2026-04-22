@@ -56,6 +56,10 @@ export const databaseTables = {
   notifications: `${databaseConfig.schema}.notifications`,
   userDevices: `${databaseConfig.schema}.user_devices`,
   userDeviceSubscriptions: `${databaseConfig.schema}.user_device_subscriptions`,
+  analyticsJobs: `${databaseConfig.schema}.analytics_jobs`,
+  analyticsSnapshots: `${databaseConfig.schema}.analytics_snapshots`,
+  analyticsFeedback: `${databaseConfig.schema}.analytics_feedback`,
+  analyticsSchedulerRuns: `${databaseConfig.schema}.analytics_scheduler_runs`,
   schoolOnboardingImportRuns: `${databaseConfig.schema}.school_onboarding_import_runs`,
   systemSettings: `${databaseConfig.schema}.system_settings`,
   systemSettingAuditLogs: `${databaseConfig.schema}.system_setting_audit_logs`,
@@ -91,3 +95,4 @@ export const databaseViews = {
   vwUserNotificationSummary: `${databaseConfig.schema}.vw_user_notification_summary`,
   adminDashboardSummary: `${databaseConfig.schema}.vw_admin_dashboard_summary`
 } as const;
+

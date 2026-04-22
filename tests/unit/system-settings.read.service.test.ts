@@ -78,6 +78,31 @@ describe("system-settings.read.service", () => {
     });
   });
 
+  it("surfaces analytics provider and autonomous scheduler defaults when no override exists", async () => {
+    const repository = {
+      listOverridesByGroup: vi.fn().mockResolvedValue([])
+    } as unknown as SystemSettingsRepository;
+    const service = new SystemSettingsReadService(repository);
+
+    const result = await service.getGroup("analytics", createQueryable());
+
+    expect(findEntry(result.entries, "aiAnalyticsEnabled")).toMatchObject({
+      value: false,
+      defaultValue: false,
+      source: "default"
+    });
+    expect(findEntry(result.entries, "primaryProvider")).toMatchObject({
+      value: "openai",
+      defaultValue: "openai",
+      source: "default"
+    });
+    expect(findEntry(result.entries, "fallbackProvider")).toMatchObject({
+      value: "groq",
+      defaultValue: "groq",
+      source: "default"
+    });
+  });
+
   it("lets overrides win over defaults", () => {
     const repository = {
       listOverridesByGroup: vi.fn().mockResolvedValue([createOverride()])
@@ -108,6 +133,7 @@ describe("system-settings.read.service", () => {
     const secondResult = await service.getAllGroups();
     const importsGroup = firstResult.groups.find((group) => group.group === "imports");
     const transportMapsGroup = firstResult.groups.find((group) => group.group === "transportMaps");
+    const analyticsGroup = firstResult.groups.find((group) => group.group === "analytics");
 
     expect(firstResult.groups).toHaveLength(4);
     expect(secondResult.groups).toEqual(firstResult.groups);
@@ -121,6 +147,14 @@ describe("system-settings.read.service", () => {
     });
     expect(findEntry(transportMapsGroup?.entries ?? [], "etaDerivedEstimateEnabled")).toMatchObject({
       value: true,
+      source: "default"
+    });
+    expect(findEntry(analyticsGroup?.entries ?? [], "primaryProvider")).toMatchObject({
+      value: "openai",
+      source: "default"
+    });
+    expect(findEntry(analyticsGroup?.entries ?? [], "fallbackProvider")).toMatchObject({
+      value: "groq",
       source: "default"
     });
     expect(repository.listOverrides).toHaveBeenCalledTimes(1);
@@ -148,3 +182,4 @@ describe("system-settings.read.service", () => {
     expect(repository.listOverridesByGroup).toHaveBeenCalledTimes(2);
   });
 });
+

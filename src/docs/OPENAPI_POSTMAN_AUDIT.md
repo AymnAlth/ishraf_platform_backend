@@ -1,15 +1,15 @@
 # OpenAPI / Postman Audit
 
-- Audit date: 2026-04-08
-- Runtime endpoint count: 163
+- Audit date: 2026-04-23
+- Runtime endpoint count: 180
 - Scope: root health endpoints plus every router registered in `src/app/module-registry.ts`
 
 ## Coverage Summary
 
 | Artifact | Before | After |
 | --- | --- | --- |
-| Master OpenAPI | 163/163 | 163/163 |
-| Master Postman | 160/163 | 163/163 |
+| Master OpenAPI | 163/180 | 180/180 |
+| Master Postman | 163/180 | 180/180 |
 | Auth OpenAPI | 7/7 | 7/7 |
 | Auth Postman | 7/7 | 7/7 |
 
@@ -26,7 +26,7 @@
 | Attendance | 5 | 5/5 | 5/5 | 5/5 | 5/5 |
 | Assessments | 8 | 8/8 | 8/8 | 8/8 | 8/8 |
 | Behavior | 7 | 7/7 | 7/7 | 7/7 | 7/7 |
-| Transport | 31 | 31/31 | 28/31 | 31/31 | 31/31 |
+| Transport | 31 | 31/31 | 31/31 | 31/31 | 31/31 |
 | Communication | 17 | 17/17 | 17/17 | 17/17 | 17/17 |
 | Admin Imports | 4 | 4/4 | 4/4 | 4/4 | 4/4 |
 | Homework | 5 | 5/5 | 5/5 | 5/5 | 5/5 |
@@ -34,20 +34,30 @@
 
 ## Runtime Endpoints Missing From Master OpenAPI Before This Update
 
-- none
-
-## Runtime Endpoints Missing From Master Postman Before This Update
-
-- `GET /transport/trips/:tripId/live-status`
-- `GET /transport/trips/:tripId/summary`
-- `POST /transport/trips/:tripId/stops/:stopId/attendance`
+- `GET /analytics/admin/operational-digest`
+- `GET /analytics/classes/:classId/overview`
+- `GET /analytics/jobs/:jobId`
+- `POST /analytics/jobs/admin-operational-digest`
+- `POST /analytics/jobs/class-overview`
+- `POST /analytics/jobs/recompute`
+- `POST /analytics/jobs/retention-cleanup`
+- `POST /analytics/jobs/scheduled-dispatch`
+- `POST /analytics/jobs/student-risk`
+- `POST /analytics/jobs/teacher-compliance`
+- `POST /analytics/jobs/transport-route-anomalies`
+- `GET /analytics/snapshots/:snapshotId/feedback`
+- `POST /analytics/snapshots/:snapshotId/feedback`
+- `POST /analytics/snapshots/:snapshotId/review`
+- `GET /analytics/students/:studentId/risk-summary`
+- `GET /analytics/teachers/:teacherId/compliance-summary`
+- `GET /analytics/transport/routes/:routeId/anomalies`
 
 ## Route Extraction Rules
 
-- Runtime routes are extracted from root health endpoints and route files referenced by `src/app/module-registry.ts`.
+- Runtime routes are extracted from the registered route files defined in `scripts/reconcile-openapi-postman.mjs`.
 - `/health` and `/health/ready` are documented as root-level servers outside `/api/v1`.
 - The auth subset documents only the live auth router surface.
-- Manual schema/examples in OpenAPI/Postman must stay aligned with validators, DTOs, mappers, and policy middlewares in `src/modules`.
+- Manual schema examples inside the reconciliation script must stay aligned with validators, DTOs, and mappers in `src/modules`.
 
 ## Views, Events, Targets Alignment
 

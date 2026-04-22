@@ -80,6 +80,55 @@ describe("system-settings.validator", () => {
     expect(result.success).toBe(false);
   });
 
+  it("accepts analytics patches that select OpenAI primary and Groq fallback", () => {
+    const result = getSystemSettingsGroupPatchBodySchema("analytics").safeParse({
+      reason: "Enable AI analytics with primary and fallback providers",
+      values: {
+        aiAnalyticsEnabled: true,
+        primaryProvider: "openai",
+        fallbackProvider: "groq"
+      }
+    });
+
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts analytics patches that configure scheduled recompute controls", () => {
+    const result = getSystemSettingsGroupPatchBodySchema("analytics").safeParse({
+      reason: "Enable scheduled analytics dispatch",
+      values: {
+        scheduledRecomputeEnabled: true,
+        scheduledRecomputeIntervalMinutes: 720,
+        scheduledRecomputeMaxSubjectsPerTarget: 10,
+        scheduledTargets: [
+          "student_risk_summary",
+          "admin_operational_digest",
+          "student_risk_summary"
+        ]
+      }
+    });
+
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.values.scheduledTargets).toEqual([
+        "student_risk_summary",
+        "admin_operational_digest"
+      ]);
+    }
+  });
+
+  it("rejects analytics patches that reuse the same primary and fallback provider", () => {
+    const result = getSystemSettingsGroupPatchBodySchema("analytics").safeParse({
+      reason: "Invalid analytics provider chain",
+      values: {
+        primaryProvider: "openai",
+        fallbackProvider: "openai"
+      }
+    });
+
+    expect(result.success).toBe(false);
+  });
+
   it("accepts ISO datetime filters with timezone offsets", () => {
     const result = systemSettingsAuditQuerySchema.safeParse({
       page: 1,
@@ -113,3 +162,5 @@ describe("system-settings.validator", () => {
     expect(result.success).toBe(false);
   });
 });
+
+

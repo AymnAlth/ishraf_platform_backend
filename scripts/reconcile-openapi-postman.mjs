@@ -41,6 +41,7 @@ const TAG_ORDER = [
   "Attendance",
   "Assessments",
   "Behavior",
+  "Analytics",
   "Transport",
   "Communication",
   "Admin Imports",
@@ -61,6 +62,8 @@ const tagDescriptions = {
     "Session-based attendance endpoints used by admin, teachers, and supervisors.",
   Assessments: "Assessment types, assessments, and student score roster endpoints.",
   Behavior: "Behavior categories, behavior records, and student behavior timelines.",
+  Analytics:
+    "AI analytics jobs, snapshot publishing/review, feedback, and read-only analytics summary endpoints.",
   Transport:
     "Transport static data, assignments, trips, live locations, and trip student events.",
   Communication:
@@ -98,6 +101,12 @@ const moduleSources = [
     tag: "Behavior",
     basePath: "/behavior",
     routeFile: "src/modules/behavior/routes/behavior.routes.ts"
+  },
+  {
+    key: "analytics",
+    tag: "Analytics",
+    basePath: "/analytics",
+    routeFile: "src/modules/analytics/routes/analytics.routes.ts"
   },
   {
     key: "assessments",
@@ -167,7 +176,7 @@ const SYSTEM_INTEGRATION_PROVIDER_KEYS = [
 ];
 const BUS_STATUS_VALUES = ["active", "inactive", "maintenance"];
 const TRIP_TYPE_VALUES = ["pickup", "dropoff"];
-const TRIP_STATUS_VALUES = ["scheduled", "started", "ended", "cancelled"];
+const TRIP_STATUS_VALUES = ["scheduled", "started", "ended", "completed", "cancelled"];
 const TRIP_STUDENT_EVENT_TYPE_VALUES = ["boarded", "dropped_off", "absent"];
 const HOME_LOCATION_STATUS_VALUES = ["pending", "approved", "rejected"];
 const paginationExample = { page: 1, limit: 20, totalItems: 1, totalPages: 1 };
@@ -666,6 +675,63 @@ const examples = {
       }
     ],
     computedAt: NOW
+  },
+  tripLiveStatus: {
+    tripId: "1",
+    tripStatus: "started",
+    firebaseRtdbPath: "/transport/live-trips/1/latestLocation",
+    myStopSnapshot: {
+      stopId: "2",
+      stopName: "Stop 2",
+      stopOrder: 2,
+      etaAt: NOW,
+      remainingDistanceMeters: 850,
+      remainingDurationSeconds: 180,
+      isCompleted: false,
+      approachingNotified: false,
+      arrivedNotified: false,
+      updatedAt: NOW
+    },
+    routePolyline: {
+      encodedPolyline: "_p~iF~ps|U_ulLnnqC_mqNvxq`@"
+    }
+  },
+  tripSummary: {
+    tripId: "1",
+    tripStatus: "completed",
+    scheduledStartTime: null,
+    actualStartTime: NOW,
+    actualEndTime: NOW,
+    startDelayMinutes: null,
+    attendance: {
+      totalStudents: 30,
+      presentCount: 27,
+      absentCount: 3
+    }
+  },
+  tripStopAttendance: {
+    tripId: "1",
+    stopId: "2",
+    tripStatus: "completed",
+    stopCompleted: true,
+    tripCompleted: true,
+    recordedEvents: [
+      {
+        tripStudentEventId: "1",
+        student: {
+          studentId: "1",
+          academicNo: "SEED-STU-001",
+          fullName: "طالب تجريبي 1"
+        },
+        eventType: "boarded",
+        eventTime: NOW,
+        stop: {
+          stopId: "2",
+          stopName: "Stop 2"
+        },
+        notes: null
+      }
+    ]
   },
   ensureDailyTrip: {
     created: true,
@@ -1525,7 +1591,7 @@ examples.systemSettingsList = {
     {
       group: "analytics",
       description:
-        "Feature flags for external analytics and AI-assisted insight generation.",
+        "Feature flags, provider selection, and admin-controlled scheduled orchestration for AI analytics snapshots.",
       entries: [
         {
           key: "aiAnalyticsEnabled",
@@ -1533,7 +1599,139 @@ examples.systemSettingsList = {
           defaultValue: false,
           source: "default",
           description:
-            "Enables AI analytics capabilities when the analytics provider phase is implemented.",
+            "Enables analytics job execution and AI-assisted insight generation for admin-triggered snapshots.",
+          updatedAt: null,
+          updatedBy: null
+        },
+        {
+          key: "primaryProvider",
+          value: "openai",
+          defaultValue: "openai",
+          source: "default",
+          description:
+            "Selects the primary AI provider used to interpret deterministic analytics features into narrative insights.",
+          updatedAt: null,
+          updatedBy: null
+        },
+        {
+          key: "fallbackProvider",
+          value: "groq",
+          defaultValue: "groq",
+          source: "default",
+          description:
+            "Selects the fallback AI provider used only when the primary provider cannot complete the analytics interpretation.",
+          updatedAt: null,
+          updatedBy: null
+        },
+        {
+          key: "scheduledRecomputeEnabled",
+          value: false,
+          defaultValue: false,
+          source: "default",
+          description:
+            "Allows admin-controlled scheduled recompute dispatch cycles to create stale analytics jobs from the configured target list.",
+          updatedAt: null,
+          updatedBy: null
+        },
+        {
+          key: "scheduledRecomputeIntervalMinutes",
+          value: 1440,
+          defaultValue: 1440,
+          source: "default",
+          description:
+            "Defines the freshness window in minutes; scheduled dispatch only recreates analytics when no snapshot exists or the latest snapshot is older than this interval.",
+          updatedAt: null,
+          updatedBy: null
+        },
+        {
+          key: "scheduledRecomputeMaxSubjectsPerTarget",
+          value: 25,
+          defaultValue: 25,
+          source: "default",
+          description:
+            "Caps how many stale subjects each scheduled dispatch cycle may enqueue per analytics target.",
+          updatedAt: null,
+          updatedBy: null
+        },
+        {
+          key: "scheduledTargets",
+          value: [
+            "student_risk_summary",
+            "teacher_compliance_summary",
+            "admin_operational_digest",
+            "class_overview",
+            "transport_route_anomaly_summary"
+          ],
+          defaultValue: [
+            "student_risk_summary",
+            "teacher_compliance_summary",
+            "admin_operational_digest",
+            "class_overview",
+            "transport_route_anomaly_summary"
+          ],
+          source: "default",
+          description:
+            "Defines which analytics targets the scheduled dispatch cycle is allowed to recompute when stale.",
+          updatedAt: null,
+          updatedBy: null
+        },
+        {
+          key: "autonomousDispatchEnabled",
+          value: false,
+          defaultValue: false,
+          source: "default",
+          description:
+            "Allows the autonomous analytics scheduler worker to trigger stale scheduled-dispatch cycles without an interactive dashboard request.",
+          updatedAt: null,
+          updatedBy: null
+        },
+        {
+          key: "autonomousDispatchActorUserId",
+          value: null,
+          defaultValue: null,
+          source: "default",
+          description:
+            "Defines the active admin user id that will own autonomous scheduled analytics jobs for audit traceability.",
+          updatedAt: null,
+          updatedBy: null
+        },
+        {
+          key: "retentionCleanupEnabled",
+          value: false,
+          defaultValue: false,
+          source: "default",
+          description:
+            "Allows admin-triggered analytics retention cleanup to purge obsolete snapshots and terminal analytics execution records.",
+          updatedAt: null,
+          updatedBy: null
+        },
+        {
+          key: "obsoleteSnapshotRetentionDays",
+          value: 30,
+          defaultValue: 30,
+          source: "default",
+          description:
+            "Defines how long obsolete analytics snapshots remain before cleanup deletes draft, rejected, and superseded snapshots. Approved snapshots remain available until they become superseded or rejected.",
+          updatedAt: null,
+          updatedBy: null
+        },
+        {
+          key: "jobRetentionDays",
+          value: 30,
+          defaultValue: 30,
+          source: "default",
+          description:
+            "Defines how long completed, failed, and dead analytics jobs are retained before cleanup removes them.",
+          updatedAt: null,
+          updatedBy: null
+        },
+        {
+          key: "schedulerRunRetentionDays",
+          value: 30,
+          defaultValue: 30,
+          source: "default",
+          description:
+            "Defines how long completed or failed analytics scheduler run records remain before cleanup removes them.",
           updatedAt: null,
           updatedBy: null
         }
@@ -1608,6 +1806,339 @@ examples.systemIntegrationsStatus = {
       failedOutboxCount: 0
     }
   ]
+};
+
+examples.analyticsJob = {
+  jobId: "91",
+  analysisType: "student_risk_summary",
+  subjectType: "student",
+  subjectId: "12",
+  academicYearId: "2",
+  semesterId: "3",
+  status: "pending",
+  primaryProvider: "openai",
+  fallbackProvider: "groq",
+  selectedProvider: null,
+  fallbackUsed: false,
+  snapshotId: null,
+  lastErrorCode: null,
+  lastErrorMessage: null,
+  createdAt: NOW,
+  startedAt: null,
+  completedAt: null
+};
+
+examples.analyticsJobDispatch = {
+  created: true,
+  job: clone(examples.analyticsJob)
+};
+
+examples.analyticsSnapshotReview = {
+  snapshotId: "31",
+  reviewStatus: "approved",
+  reviewedByUserId: "1",
+  reviewedAt: NOW,
+  publishedAt: NOW,
+  reviewNotes: "Approved for frontend consumption"
+};
+
+examples.analyticsFeedback = {
+  feedbackId: "11",
+  snapshotId: "31",
+  user: {
+    userId: "20",
+    fullName: "ولي أمر تجريبي",
+    role: "parent"
+  },
+  rating: 4,
+  feedbackText: "التوصيات واضحة ومفيدة.",
+  createdAt: NOW
+};
+
+examples.analyticsFeedbackList = {
+  items: [clone(examples.analyticsFeedback)]
+};
+
+examples.analyticsStudentRiskSummary = {
+  snapshot: {
+    snapshotId: "31",
+    reviewStatus: "approved",
+    reviewedAt: NOW,
+    publishedAt: NOW
+  },
+  student: {
+    studentId: "12",
+    fullName: "أحمد علي",
+    classId: "4",
+    className: "الصف الرابع - أ"
+  },
+  analysisMode: "ai_assisted",
+  providerKey: "openai",
+  fallbackUsed: false,
+  computedAt: NOW,
+  featurePayload: {
+    student: {
+      studentId: "12",
+      fullName: "أحمد علي",
+      classId: "4",
+      className: "الصف الرابع - أ"
+    },
+    attendance: {
+      absentCount: 4,
+      lateCount: 2,
+      attendanceRate: 88.5
+    },
+    assessments: {
+      averageScore: 71,
+      lowScoreCount: 2
+    },
+    behavior: {
+      negativeCount: 3,
+      positiveCount: 1
+    },
+    homework: {
+      missingCount: 2,
+      lateCount: 1
+    }
+  },
+  insight: {
+    riskLevel: "medium",
+    confidence: 0.81,
+    summary: "مستوى الخطر متوسط ويحتاج متابعة مركزة خلال الفترة الحالية.",
+    parentGuidance: [
+      "متابعة الواجبات غير المكتملة خلال هذا الأسبوع.",
+      "التنسيق مع المدرسة بخصوص الغياب المتكرر."
+    ],
+    recommendedActions: [
+      "تثبيت خطة متابعة أسبوعية.",
+      "مراجعة نتائج التقييمات المنخفضة مع الطالب."
+    ],
+    adminRecommendations: [
+      "متابعة من المرشد الطلابي إذا استمر الانخفاض."
+    ]
+  }
+};
+
+examples.analyticsTeacherComplianceSummary = {
+  snapshot: {
+    snapshotId: "32",
+    reviewStatus: "draft",
+    reviewedAt: null,
+    publishedAt: null
+  },
+  teacher: {
+    teacherId: "47",
+    teacherUserId: "47",
+    fullName: "مروان أمين شعبان"
+  },
+  analysisMode: "ai_assisted",
+  providerKey: "openai",
+  fallbackUsed: false,
+  computedAt: NOW,
+  featurePayload: {
+    teacher: {
+      teacherId: "47",
+      teacherUserId: "47",
+      fullName: "مروان أمين شعبان"
+    },
+    compliance: {
+      attendanceCoveragePercentage: 96,
+      gradingCoveragePercentage: 91,
+      homeworkPublishingCadenceScore: 85,
+      behaviorLoggingCadenceScore: 78
+    }
+  },
+  insight: {
+    complianceLevel: "good",
+    confidence: 0.84,
+    summary: "التزام المعلم جيد مع حاجة بسيطة لتحسين انتظام تسجيل السلوك.",
+    operationalGaps: ["انخفاض طفيف في انتظام سجلات السلوك"],
+    recommendedActions: ["مراجعة وتيرة التوثيق السلوكي أسبوعيًا"]
+  }
+};
+
+examples.analyticsAdminOperationalDigestSummary = {
+  snapshot: {
+    snapshotId: "33",
+    reviewStatus: "draft",
+    reviewedAt: null,
+    publishedAt: null
+  },
+  context: {
+    academicYearId: "2",
+    academicYearName: "2026-2027",
+    semesterId: "3",
+    semesterName: "الفصل الأول"
+  },
+  analysisMode: "ai_assisted",
+  providerKey: "openai",
+  fallbackUsed: false,
+  computedAt: NOW,
+  featurePayload: {
+    context: {
+      academicYearId: "2",
+      academicYearName: "2026-2027",
+      semesterId: "3",
+      semesterName: "الفصل الأول"
+    },
+    attendance: { coveragePercentage: 94 },
+    assessments: { gradingCoveragePercentage: 89 },
+    homework: { publishingCoveragePercentage: 87 },
+    behavior: { loggingCoveragePercentage: 76 }
+  },
+  insight: {
+    confidence: 0.86,
+    summary: "الوضع التشغيلي العام مستقر مع حاجة لتحسين تغطية السلوك.",
+    keySignals: ["انخفاض نسبي في سلوكيات التوثيق", "استقرار جيد في الحضور"],
+    recommendedActions: ["رفع المتابعة الإدارية على توثيق السلوك"]
+  }
+};
+
+examples.analyticsClassOverviewSummary = {
+  snapshot: {
+    snapshotId: "34",
+    reviewStatus: "approved",
+    reviewedAt: NOW,
+    publishedAt: NOW
+  },
+  class: {
+    classId: "4",
+    className: "الصف الرابع - أ",
+    gradeLevelName: "الصف الرابع"
+  },
+  analysisMode: "ai_assisted",
+  providerKey: "groq",
+  fallbackUsed: true,
+  computedAt: NOW,
+  featurePayload: {
+    class: {
+      classId: "4",
+      className: "الصف الرابع - أ",
+      gradeLevelName: "الصف الرابع"
+    },
+    attendance: { attendanceRate: 92.4 },
+    assessments: { averageScore: 77.3 },
+    behavior: { negativeCount: 5 },
+    homework: { completionRate: 88 }
+  },
+  insight: {
+    confidence: 0.79,
+    summary: "الصف مستقر أكاديميًا مع حاجة إلى ضبط سلوك مجموعة محدودة من الطلاب.",
+    focusAreas: ["ضبط السلوك", "متابعة الواجبات المتأخرة"],
+    recommendedActions: ["تنسيق متابعة صفية مع المشرف"]
+  }
+};
+
+examples.analyticsTransportRouteAnomalySummary = {
+  snapshot: {
+    snapshotId: "35",
+    reviewStatus: "draft",
+    reviewedAt: null,
+    publishedAt: null
+  },
+  route: {
+    routeId: "7",
+    routeName: "خط الشمال"
+  },
+  analysisMode: "deterministic_only",
+  providerKey: null,
+  fallbackUsed: false,
+  computedAt: NOW,
+  featurePayload: {
+    route: {
+      routeId: "7",
+      routeName: "خط الشمال"
+    },
+    operationalSummary: {
+      tripCount: 12,
+      anomalyCount: 3,
+      averageDelayMinutes: 7
+    }
+  },
+  insight: {
+    anomalyLevel: "medium",
+    confidence: 0.74,
+    summary: "المسار يظهر انحرافات تشغيلية متوسطة مرتبطة بتأخر زمني متكرر.",
+    recommendedActions: ["مراجعة نقاط الازدحام على هذا المسار"]
+  }
+};
+
+examples.analyticsRecomputeDispatch = {
+  target: "all_supported",
+  activeContext: {
+    academicYearId: "2",
+    academicYearName: "2026-2027",
+    semesterId: "3",
+    semesterName: "الفصل الأول"
+  },
+  summary: {
+    totalJobs: 5,
+    createdCount: 3,
+    reusedCount: 2
+  },
+  breakdown: [
+    {
+      analysisType: "student_risk_summary",
+      totalJobs: 2,
+      createdCount: 1,
+      reusedCount: 1
+    }
+  ],
+  items: [clone(examples.analyticsJobDispatch)]
+};
+
+examples.analyticsScheduledDispatch = {
+  triggerMode: "admin_scheduled_dispatch",
+  activeContext: {
+    academicYearId: "2",
+    academicYearName: "2026-2027",
+    semesterId: "3",
+    semesterName: "الفصل الأول"
+  },
+  schedule: {
+    intervalMinutes: 1440,
+    maxSubjectsPerTarget: 25,
+    staleBefore: NOW,
+    targets: [
+      "student_risk_summary",
+      "teacher_compliance_summary",
+      "admin_operational_digest",
+      "class_overview",
+      "transport_route_anomaly_summary"
+    ]
+  },
+  summary: {
+    totalEligibleSubjects: 9,
+    dispatchedCount: 6,
+    reusedCount: 3
+  },
+  breakdown: [
+    {
+      analysisType: "class_overview",
+      eligibleCount: 2,
+      dispatchedCount: 1,
+      reusedCount: 1
+    }
+  ],
+  items: [clone(examples.analyticsJobDispatch)]
+};
+
+examples.analyticsRetentionCleanup = {
+  executedAt: NOW,
+  retention: {
+    obsoleteSnapshotRetentionDays: 30,
+    jobRetentionDays: 30,
+    schedulerRunRetentionDays: 30,
+    obsoleteSnapshotCutoff: NOW,
+    jobCutoff: NOW,
+    schedulerRunCutoff: NOW
+  },
+  summary: {
+    deletedSnapshots: 4,
+    cascadedFeedbackCount: 2,
+    deletedJobs: 7,
+    deletedSchedulerRuns: 1
+  }
 };
 
 examples.behaviorTimeline.records.push(clone(examples.behaviorRecord));
@@ -2148,7 +2679,18 @@ function addSchema(name, schema) {
   ["EnsureDailyTripRequest", { routeAssignmentId: "1", tripDate: TODAY, tripType: "pickup" }],
   ["RecordTripLocationRequest", { latitude: 15.3694, longitude: 44.191 }],
   ["CreateTripStudentEventRequest", { studentId: "1", eventType: "dropped_off", stopId: "1", notes: "تم النزول بنجاح" }],
+  ["RecordTripStopAttendanceRequest", { attendances: [{ studentId: "1", status: "present", notes: null }, { studentId: "2", status: "absent" }] }],
   ["SaveStudentHomeLocationRequest", { addressLabel: "Student Home 1", addressText: "Nearby the local market", latitude: 15.3701, longitude: 44.1921, status: "approved", notes: null }],
+  ["CreateStudentRiskJobRequest", { studentId: "12" }],
+  ["CreateTeacherComplianceJobRequest", { teacherId: "47" }],
+  ["CreateAdminOperationalDigestJobRequest", {}],
+  ["CreateClassOverviewJobRequest", { classId: "4" }],
+  ["CreateTransportRouteAnomalyJobRequest", { routeId: "7" }],
+  ["CreateAnalyticsScheduledDispatchRequest", {}],
+  ["CreateAnalyticsRecomputeJobRequest", { target: "all_supported", studentIds: ["12"], teacherIds: ["47"], classIds: ["4"], routeIds: ["7"] }],
+  ["CreateAnalyticsRetentionCleanupRequest", {}],
+  ["ReviewAnalyticsSnapshotRequest", { action: "approve", reviewNotes: "Approved for frontend consumption" }],
+  ["CreateAnalyticsFeedbackRequest", { rating: 4, feedbackText: "التوصيات واضحة ومفيدة." }],
   ["SendMessageRequest", { receiverUserId: "20", messageBody: "رسالة مباشرة تجريبية" }],
   ["SendBulkMessageRequest", { receiverUserIds: ["20"], targetRoles: ["teacher", "supervisor"], messageBody: "رسالة جماعية منسوخة كرسائل فردية" }],
   ["CreateAnnouncementRequest", { title: "[Seed] New notice", content: "إعلان موجّه للمعلمين والمشرفين", targetRoles: ["teacher", "supervisor"], expiresAt: "2026-04-01T00:00:00.000Z" }],
@@ -2253,7 +2795,55 @@ addSchema("UpdateAnalyticsSettingsRequest", {
     values: {
       type: "object",
       properties: {
-        aiAnalyticsEnabled: { type: "boolean" }
+        aiAnalyticsEnabled: { type: "boolean" },
+        primaryProvider: {
+          type: "string",
+          enum: ["openai", "groq"]
+        },
+        fallbackProvider: {
+          type: "string",
+          enum: ["openai", "groq"]
+        },
+        scheduledRecomputeEnabled: { type: "boolean" },
+        scheduledRecomputeIntervalMinutes: {
+          type: "integer",
+          minimum: 1
+        },
+        scheduledRecomputeMaxSubjectsPerTarget: {
+          type: "integer",
+          minimum: 1
+        },
+        scheduledTargets: {
+          type: "array",
+          minItems: 1,
+          items: {
+            type: "string",
+            enum: [
+              "student_risk_summary",
+              "teacher_compliance_summary",
+              "admin_operational_digest",
+              "class_overview",
+              "transport_route_anomaly_summary"
+            ]
+          }
+        },
+        autonomousDispatchEnabled: { type: "boolean" },
+        autonomousDispatchActorUserId: {
+          anyOf: [clone(numericIdSchema), { type: "null" }]
+        },
+        retentionCleanupEnabled: { type: "boolean" },
+        obsoleteSnapshotRetentionDays: {
+          type: "integer",
+          minimum: 1
+        },
+        jobRetentionDays: {
+          type: "integer",
+          minimum: 1
+        },
+        schedulerRunRetentionDays: {
+          type: "integer",
+          minimum: 1
+        }
       },
       additionalProperties: false,
       minProperties: 1
@@ -2262,9 +2852,152 @@ addSchema("UpdateAnalyticsSettingsRequest", {
   required: ["reason", "values"],
   additionalProperties: false,
   example: {
-    reason: "Enable analytics dry pilot",
-    values: { aiAnalyticsEnabled: true }
+    reason: "Enable analytics runtime with scheduled dispatch",
+    values: {
+      aiAnalyticsEnabled: true,
+      primaryProvider: "openai",
+      fallbackProvider: "groq",
+      scheduledRecomputeEnabled: true,
+      scheduledRecomputeIntervalMinutes: 1440,
+      scheduledTargets: [
+        "student_risk_summary",
+        "teacher_compliance_summary",
+        "admin_operational_digest",
+        "class_overview",
+        "transport_route_anomaly_summary"
+      ]
+    }
   }
+});
+
+addSchema("CreateStudentRiskJobRequest", {
+  type: "object",
+  properties: {
+    studentId: clone(numericIdSchema)
+  },
+  required: ["studentId"],
+  additionalProperties: false,
+  example: componentSchemas.CreateStudentRiskJobRequest.example
+});
+
+addSchema("CreateTeacherComplianceJobRequest", {
+  type: "object",
+  properties: {
+    teacherId: clone(numericIdSchema)
+  },
+  required: ["teacherId"],
+  additionalProperties: false,
+  example: componentSchemas.CreateTeacherComplianceJobRequest.example
+});
+
+addSchema("CreateAdminOperationalDigestJobRequest", {
+  type: "object",
+  additionalProperties: false,
+  example: componentSchemas.CreateAdminOperationalDigestJobRequest.example
+});
+
+addSchema("CreateClassOverviewJobRequest", {
+  type: "object",
+  properties: {
+    classId: clone(numericIdSchema)
+  },
+  required: ["classId"],
+  additionalProperties: false,
+  example: componentSchemas.CreateClassOverviewJobRequest.example
+});
+
+addSchema("CreateTransportRouteAnomalyJobRequest", {
+  type: "object",
+  properties: {
+    routeId: clone(numericIdSchema)
+  },
+  required: ["routeId"],
+  additionalProperties: false,
+  example: componentSchemas.CreateTransportRouteAnomalyJobRequest.example
+});
+
+addSchema("CreateAnalyticsScheduledDispatchRequest", {
+  type: "object",
+  additionalProperties: false,
+  example: componentSchemas.CreateAnalyticsScheduledDispatchRequest.example
+});
+
+addSchema("CreateAnalyticsRecomputeJobRequest", {
+  type: "object",
+  properties: {
+    target: {
+      type: "string",
+      enum: [
+        "student_risk_summary",
+        "teacher_compliance_summary",
+        "admin_operational_digest",
+        "class_overview",
+        "transport_route_anomaly_summary",
+        "all_supported"
+      ]
+    },
+    studentIds: {
+      type: "array",
+      items: clone(numericIdSchema)
+    },
+    teacherIds: {
+      type: "array",
+      items: clone(numericIdSchema)
+    },
+    classIds: {
+      type: "array",
+      items: clone(numericIdSchema)
+    },
+    routeIds: {
+      type: "array",
+      items: clone(numericIdSchema)
+    }
+  },
+  required: ["target"],
+  additionalProperties: false,
+  example: componentSchemas.CreateAnalyticsRecomputeJobRequest.example
+});
+
+addSchema("CreateAnalyticsRetentionCleanupRequest", {
+  type: "object",
+  additionalProperties: false,
+  example: componentSchemas.CreateAnalyticsRetentionCleanupRequest.example
+});
+
+addSchema("ReviewAnalyticsSnapshotRequest", {
+  type: "object",
+  properties: {
+    action: {
+      type: "string",
+      enum: ["approve", "reject"]
+    },
+    reviewNotes: {
+      type: "string",
+      minLength: 1,
+      maxLength: 2000
+    }
+  },
+  required: ["action"],
+  additionalProperties: false,
+  example: componentSchemas.ReviewAnalyticsSnapshotRequest.example
+});
+
+addSchema("CreateAnalyticsFeedbackRequest", {
+  type: "object",
+  properties: {
+    rating: {
+      type: "integer",
+      minimum: 1,
+      maximum: 5
+    },
+    feedbackText: {
+      type: "string",
+      minLength: 1,
+      maxLength: 2000
+    }
+  },
+  additionalProperties: false,
+  example: componentSchemas.CreateAnalyticsFeedbackRequest.example
 });
 
 addSchema("UpdateImportsSettingsRequest", {
@@ -2659,6 +3392,29 @@ addSchema("CreateTripStudentEventRequest", {
   example: componentSchemas.CreateTripStudentEventRequest.example
 });
 
+addSchema("RecordTripStopAttendanceRequest", {
+  type: "object",
+  properties: {
+    attendances: {
+      type: "array",
+      minItems: 1,
+      items: {
+        type: "object",
+        properties: {
+          studentId: clone(numericIdSchema),
+          status: { type: "string", enum: ["present", "absent"], example: "present" },
+          notes: { anyOf: [{ type: "string" }, { type: "null" }] }
+        },
+        required: ["studentId", "status"],
+        additionalProperties: false
+      }
+    }
+  },
+  required: ["attendances"],
+  additionalProperties: false,
+  example: componentSchemas.RecordTripStopAttendanceRequest.example
+});
+
 addSchema("SaveStudentHomeLocationRequest", {
   type: "object",
   properties: {
@@ -2880,6 +3636,7 @@ function postmanVariableForParam(routePath, paramName) {
   if (routePath.startsWith("/transport/assignments/:id")) return "assignmentId";
   if (routePath.startsWith("/transport/route-assignments/:id")) return "routeAssignmentId";
   if (routePath.startsWith("/transport/trips/:id")) return "tripId";
+  if (routePath.startsWith("/transport/trips/:tripId")) return "tripId";
   if (routePath.startsWith("/homework/:id")) return "homeworkId";
   return "id";
 }
@@ -3051,6 +3808,23 @@ endpoints.push(
   makeEndpoint({ m: "GET", p: "/system-settings/integrations/status", t: "System Settings", s: "[NEW] Get Integration Feature Status", u: "Return feature-enabled status for external integration groups together with pending and failed integration outbox counts.", r: ["admin"], e: "systemIntegrationsStatus", status: 200, notes: ["[NEW] This surface only covers pushNotifications, transportMaps, and analytics.", "[NEW] providerConfigured is intentionally not returned; this surface tracks feature state and integration outbox workload only."] }),
   makeEndpoint({ m: "GET", p: "/system-settings/:group", t: "System Settings", s: "[NEW] Get System Settings Group", u: "Return one system settings group with effective values, defaults, descriptions, and override metadata.", r: ["admin"], e: "systemSettingsGroup", status: 200, notes: ["[NEW] Allowed groups are pushNotifications, transportMaps, analytics, and imports.", "[NEW] transportMaps.etaProvider is part of the admin control plane and defaults to mapbox."] }),
   makeEndpoint({ m: "PATCH", p: "/system-settings/:group", t: "System Settings", s: "[NEW] Update System Settings Group", u: "Update one system settings group by writing overrides only for values that differ from code defaults.", r: ["admin"], b: "UpdateSystemSettingsGroupRequest", e: "systemSettingsGroup", status: 200, notes: ["[NEW] The request body is group-specific. Use UpdatePushNotificationsSettingsRequest, UpdateTransportMapsSettingsRequest, UpdateAnalyticsSettingsRequest, or UpdateImportsSettingsRequest depending on :group.", "[NEW] Sending a value equal to the code default clears any existing override instead of storing redundant data.", "[NEW] transportMaps updates runtime behavior through etaProvider and etaDerivedEstimateEnabled.", "[NEW] The first live consumer is imports.schoolOnboardingEnabled. When it is false, school onboarding import endpoints reject with 409 FEATURE_DISABLED."] }),
+  makeEndpoint({ m: "POST", p: "/analytics/jobs/student-risk", t: "Analytics", s: "[NEW] Create Student Risk Job", u: "Create or reuse one student risk analytics job for the active academic context.", r: ["admin"], b: "CreateStudentRiskJobRequest", e: "analyticsJobDispatch", status: 201, notes: ["[NEW] The endpoint may return 200 instead of 201 when a matching pending or processing job already exists.", "[NEW] Analytics execution is asynchronous and continues through integration_outbox and the analytics worker."] }),
+  makeEndpoint({ m: "POST", p: "/analytics/jobs/teacher-compliance", t: "Analytics", s: "[NEW] Create Teacher Compliance Job", u: "Create or reuse one teacher compliance analytics job for the active academic context.", r: ["admin"], b: "CreateTeacherComplianceJobRequest", e: "analyticsJobDispatch", status: 201, notes: ["[NEW] Analytics execution is asynchronous and continues through integration_outbox and the analytics worker."] }),
+  makeEndpoint({ m: "POST", p: "/analytics/jobs/admin-operational-digest", t: "Analytics", s: "[NEW] Create Admin Operational Digest Job", u: "Create or reuse the admin operational digest analytics job for the active academic context.", r: ["admin"], b: "CreateAdminOperationalDigestJobRequest", e: "analyticsJobDispatch", status: 201, notes: ["[NEW] There is one digest subject per active academic context.", "[NEW] Analytics execution is asynchronous and continues through integration_outbox and the analytics worker."] }),
+  makeEndpoint({ m: "POST", p: "/analytics/jobs/class-overview", t: "Analytics", s: "[NEW] Create Class Overview Job", u: "Create or reuse one class overview analytics job for the active academic context.", r: ["admin"], b: "CreateClassOverviewJobRequest", e: "analyticsJobDispatch", status: 201, notes: ["[NEW] Analytics execution is asynchronous and continues through integration_outbox and the analytics worker."] }),
+  makeEndpoint({ m: "POST", p: "/analytics/jobs/transport-route-anomalies", t: "Analytics", s: "[NEW] Create Transport Route Anomaly Job", u: "Create or reuse one transport route anomaly analytics job for the active academic context.", r: ["admin"], b: "CreateTransportRouteAnomalyJobRequest", e: "analyticsJobDispatch", status: 201, notes: ["[NEW] Analytics execution is asynchronous and continues through integration_outbox and the analytics worker."] }),
+  makeEndpoint({ m: "POST", p: "/analytics/jobs/scheduled-dispatch", t: "Analytics", s: "[NEW] Dispatch Scheduled Analytics Recompute", u: "Dispatch stale analytics jobs for the configured scheduled targets using the active academic context.", r: ["admin"], b: "CreateAnalyticsScheduledDispatchRequest", e: "analyticsScheduledDispatch", status: 200, notes: ["[NEW] This endpoint requires analytics.aiAnalyticsEnabled=true and analytics.scheduledRecomputeEnabled=true.", "[NEW] The response reports eligible, dispatched, and reused counts per analytics target."] }),
+  makeEndpoint({ m: "POST", p: "/analytics/jobs/recompute", t: "Analytics", s: "[NEW] Create Analytics Recompute Jobs", u: "Dispatch one or more analytics recompute jobs for the selected target and optional explicit subject ids.", r: ["admin"], b: "CreateAnalyticsRecomputeJobRequest", e: "analyticsRecomputeDispatch", status: 200, notes: ["[NEW] target may be a single analytics type or all_supported.", "[NEW] When ids are omitted, the backend expands active subjects from the active academic context."] }),
+  makeEndpoint({ m: "POST", p: "/analytics/jobs/retention-cleanup", t: "Analytics", s: "[NEW] Run Analytics Retention Cleanup", u: "Delete obsolete analytics snapshots and stale terminal analytics execution records according to the configured retention windows.", r: ["admin"], b: "CreateAnalyticsRetentionCleanupRequest", e: "analyticsRetentionCleanup", status: 200, notes: ["[NEW] This endpoint requires analytics.aiAnalyticsEnabled=true and analytics.retentionCleanupEnabled=true."] }),
+  makeEndpoint({ m: "POST", p: "/analytics/snapshots/:snapshotId/review", t: "Analytics", s: "[NEW] Review Analytics Snapshot", u: "Approve or reject one analytics snapshot. Approval publishes the snapshot and supersedes any older approved snapshot for the same subject context.", r: ["admin"], b: "ReviewAnalyticsSnapshotRequest", e: "analyticsSnapshotReview", status: 200 }),
+  makeEndpoint({ m: "POST", p: "/analytics/snapshots/:snapshotId/feedback", t: "Analytics", s: "[NEW] Create Analytics Snapshot Feedback", u: "Create feedback for one analytics snapshot. Non-admin roles may submit feedback only for approved snapshots they are allowed to read.", r: ["admin", "parent", "teacher", "supervisor"], b: "CreateAnalyticsFeedbackRequest", e: "analyticsFeedback", status: 201 }),
+  makeEndpoint({ m: "GET", p: "/analytics/jobs/:jobId", t: "Analytics", s: "[NEW] Get Analytics Job", u: "Return one analytics job execution record by id.", r: ["admin"], e: "analyticsJob", status: 200 }),
+  makeEndpoint({ m: "GET", p: "/analytics/snapshots/:snapshotId/feedback", t: "Analytics", s: "[NEW] List Analytics Snapshot Feedback", u: "Return all feedback rows recorded for one analytics snapshot.", r: ["admin"], e: "analyticsFeedbackList", status: 200 }),
+  makeEndpoint({ m: "GET", p: "/analytics/students/:studentId/risk-summary", t: "Analytics", s: "[NEW] Get Student Risk Summary", u: "Return the latest student risk analytics snapshot for one student in the active academic context.", r: ["admin", "parent"], e: "analyticsStudentRiskSummary", status: 200, notes: ["[NEW] Parents may read only their linked children and only approved snapshots.", "[NEW] Admin receives the latest snapshot regardless of reviewStatus."] }),
+  makeEndpoint({ m: "GET", p: "/analytics/teachers/:teacherId/compliance-summary", t: "Analytics", s: "[NEW] Get Teacher Compliance Summary", u: "Return the latest teacher compliance analytics snapshot for one teacher in the active academic context.", r: ["admin"], e: "analyticsTeacherComplianceSummary", status: 200 }),
+  makeEndpoint({ m: "GET", p: "/analytics/admin/operational-digest", t: "Analytics", s: "[NEW] Get Admin Operational Digest", u: "Return the latest admin operational digest snapshot for the active academic context.", r: ["admin"], e: "analyticsAdminOperationalDigestSummary", status: 200 }),
+  makeEndpoint({ m: "GET", p: "/analytics/classes/:classId/overview", t: "Analytics", s: "[NEW] Get Class Overview", u: "Return the latest class overview analytics snapshot for one class in the active academic context.", r: ["admin", "teacher", "supervisor"], e: "analyticsClassOverviewSummary", status: 200, notes: ["[NEW] Teachers and supervisors may read only classes assigned to them and only approved snapshots.", "[NEW] Admin receives the latest snapshot regardless of reviewStatus."] }),
+  makeEndpoint({ m: "GET", p: "/analytics/transport/routes/:routeId/anomalies", t: "Analytics", s: "[NEW] Get Transport Route Anomalies", u: "Return the latest transport route anomaly analytics snapshot for one route in the active academic context.", r: ["admin"], e: "analyticsTransportRouteAnomalySummary", status: 200 }),
   makeEndpoint({ m: "POST", p: "/assessments/types", t: "Assessments", s: "Create Assessment Type", u: "Create a reusable assessment type.", b: "CreateAssessmentTypeRequest", e: "assessment" }),
   makeEndpoint({ m: "GET", p: "/assessments/types", t: "Assessments", s: "List Assessment Types", u: "List assessment types.", r: ["admin", "teacher"], kind: "array", e: "assessment", status: 200 }),
   makeEndpoint({ m: "POST", p: "/assessments", t: "Assessments", s: "Create Assessment", u: "Create an assessment inside the active academic context. Teachers must omit teacherId and rely on the authenticated teacher profile. Admin teacherId accepts the teacher user id from /users?role=teacher or the legacy teacher profile id.", r: ["admin", "teacher"], b: "CreateAssessmentRequest", e: "assessment", notes: ["academicYearId and semesterId may be omitted; the backend resolves the active academic context automatically.", "If academicYearId or semesterId is sent, it must match the active context.", "The selected subjectId must have an active subject offering for the resolved semester.", "Admin frontend flows should send teacherId as the teacher user id returned by GET /users?role=teacher.", "Teacher frontend flows must not send teacherId; the backend returns TEACHER_ID_NOT_ALLOWED if it is present.", "Relevant domain errors include CLASS_YEAR_MISMATCH, SEMESTER_YEAR_MISMATCH, SUBJECT_GRADE_LEVEL_MISMATCH, SUBJECT_NOT_OFFERED_IN_SEMESTER, TEACHER_ID_REQUIRED, TEACHER_ID_NOT_ALLOWED, and ACADEMIC_CONTEXT_NOT_CONFIGURED."] }),
@@ -3090,12 +3864,15 @@ endpoints.push(
   makeEndpoint({ m: "GET", p: "/transport/trips", t: "Transport", s: "List Trips", u: "List trips with pagination. Drivers only see trips within their scope.", r: ["admin", "driver"], q: tripListQuery, kind: "paginated", e: "trip", status: 200 }),
   makeEndpoint({ m: "GET", p: "/transport/trips/:id", t: "Transport", s: "Get Trip", u: "Return one trip detail including latest location, route stops, and event summary.", r: ["admin", "driver"], e: "tripDetail", status: 200, derived: "Trip detail aggregates transport views such as vw_trip_details, vw_route_stops, and vw_latest_trip_location." }),
   makeEndpoint({ m: "GET", p: "/transport/trips/:id/eta", t: "Transport", s: "Get Trip ETA", u: "Return the stop-based ETA read model for one trip, including the route polyline cache, ETA summary, and remaining stop snapshots.", r: ["admin", "driver"], e: "tripEta", status: 200, notes: ["ETA responses are provider-neutral at the API surface and expose calculationMode as provider_snapshot or derived_estimate.", "Runtime provider selection is active through transportMaps.etaProvider with mapbox as the default selected provider.", "ETA is a backend snapshot surface; live GPS streaming is read directly from Firebase RTDB after realtime token bootstrap."], derived: "The response is built from transport_trip_eta_snapshots, transport_trip_eta_stop_snapshots, and the cached route polyline when available." }),
+  makeEndpoint({ m: "GET", p: "/transport/trips/:tripId/live-status", t: "Transport", s: "Get Trip Live Status", u: "Return the parent live-tracking payload for one trip, including provider-neutral ETA stop snapshot fields and the Firebase RTDB path used for live GPS.", r: ["parent"], e: "tripLiveStatus", status: 200, notes: ["The caller must be a parent linked to the selected trip; ownership violations return 403.", "myStopSnapshot is selected server-side as the nearest active parent-linked stop by stopOrder and may be null.", "This endpoint is a REST snapshot surface. Bus movement itself must be read from RTDB using firebaseRtdbPath."] }),
   makeEndpoint({ m: "GET", p: "/transport/trips/:id/students", t: "Transport", s: "Get Trip Student Roster", u: "Return the full student roster for one trip, including assigned stop coordinates, the latest event state inside the same trip, and approved home location when available.", r: ["admin", "driver"], q: tripRosterQuery, e: "tripRoster", status: 200, notes: ["The roster returns all students assigned to the trip route for the trip date, even when no trip event has been recorded yet.", "If the trip exists but has no eligible students, the response remains 200 with students=[].", "Only approved homeLocation data is exposed to the driver-facing roster."], derived: "Roster rows are derived from trip-date transport assignments, route stop coordinates, approved student_transport_home_locations, and the latest trip_student_events row per student inside the same trip." }),
   makeEndpoint({ m: "POST", p: "/transport/trips/:id/start", t: "Transport", s: "Start Trip", u: "Mark a scheduled trip as started.", r: ["admin", "driver"], e: "trip", status: 200, notes: ["The trip must currently be scheduled. Otherwise the request fails with TRIP_STATUS_START_INVALID.", "When pushNotifications.fcmEnabled and pushNotifications.transportRealtimeEnabled are both true, the backend enqueues FCM wake-up events for subscribed parents and admins."], side: "Trip start writes the transport state to PostgreSQL first, then emits async automation work through integration_outbox." }),
   makeEndpoint({ m: "POST", p: "/transport/trips/:id/end", t: "Transport", s: "End Trip", u: "Mark a trip as ended.", r: ["admin", "driver"], e: "trip", status: 200, notes: ["The trip must currently be started. Otherwise the request fails with TRIP_STATUS_END_INVALID.", "When pushNotifications.fcmEnabled and pushNotifications.transportRealtimeEnabled are both true, the backend enqueues FCM wake-up events for subscribed parents and admins."], side: "Trip end writes the transport state to PostgreSQL first, then emits async automation work through integration_outbox." }),
   makeEndpoint({ m: "POST", p: "/transport/trips/:id/locations", t: "Transport", s: "Record Trip Location", u: "Record one location point for a started trip.", r: ["admin", "driver"], b: "RecordTripLocationRequest", e: "trip", status: 201, notes: ["Locations are only accepted while the trip is started. Invalid state returns TRIP_LOCATION_STATUS_INVALID.", "This endpoint stores operational trip locations in PostgreSQL. High-frequency driver GPS for the live map should go directly to Firebase RTDB after GET /transport/realtime-token." ] }),
   makeEndpoint({ m: "POST", p: "/transport/trips/:id/events", t: "Transport", s: "Create Trip Student Event", u: "Create one trip student event. stopId is required for boarded and dropped_off events, and must be omitted for absent.", r: ["admin", "driver"], b: "CreateTripStudentEventRequest", e: "tripEvent", status: 201, notes: ["Trip student event validation is trip-date aware: the student must have a transport assignment covering the trip date and route.", "Events are only accepted while the trip is started or ended. Invalid state returns TRIP_EVENT_STATUS_INVALID.", "A mismatching route assignment or stop produces STUDENT_TRIP_DATE_ASSIGNMENT_NOT_FOUND, TRIP_STUDENT_ROUTE_MISMATCH, or TRIP_EVENT_STOP_ROUTE_MISMATCH.", "All trip student events can enqueue FCM wake-up events when pushNotifications.fcmEnabled and pushNotifications.transportRealtimeEnabled are both true. dropped_off also writes an in-app parent notification."], side: "Trip student events write PostgreSQL truth first, then emit async automation work through integration_outbox." }),
   makeEndpoint({ m: "GET", p: "/transport/trips/:id/events", t: "Transport", s: "List Trip Events", u: "List student events recorded for a trip.", r: ["admin", "driver"], kind: "array", e: "tripEvent", status: 200 }),
+  makeEndpoint({ m: "POST", p: "/transport/trips/:tripId/stops/:stopId/attendance", t: "Transport", s: "Record Trip Stop Attendance", u: "Record attendance for one trip stop and close the stop snapshot.", r: ["admin", "driver"], b: "RecordTripStopAttendanceRequest", e: "tripStopAttendance", status: 200, notes: ["trip must be started.", "Each attendance item must map to a student assigned to the same trip date, route, and stop.", "present maps to boarded/dropped_off based on trip type; absent maps to absent.", "If all trip stop snapshots are completed after this call, trip status transitions to completed."] }),
+  makeEndpoint({ m: "GET", p: "/transport/trips/:tripId/summary", t: "Transport", s: "Get Trip Summary", u: "Return summary analytics for one completed trip.", r: ["admin"], e: "tripSummary", status: 200, notes: ["This endpoint is restricted to completed trips. If tripStatus is not completed, the backend returns 409 with code TRIP_SUMMARY_REQUIRES_COMPLETED_STATUS."] }),
   makeEndpoint({ m: "GET", p: "/transport/students/:studentId/home-location", t: "Transport", s: "Get Student Home Location", u: "Return the current saved home location reference for one student. In this round the endpoint is admin-only.", e: "studentHomeLocation", status: 200, notes: ["If the student exists but no home location has been saved yet, the response remains 200 with homeLocation=null."] }),
   makeEndpoint({ m: "PUT", p: "/transport/students/:studentId/home-location", t: "Transport", s: "Save Student Home Location", u: "Create or update the current student home location reference. v1 uses admin as the submitting source.", b: "SaveStudentHomeLocationRequest", e: "studentHomeLocation", status: 200, notes: ["Admin may save pending, approved, or rejected locations. Only approved locations appear in the driver roster."] }),
   makeEndpoint({ m: "DELETE", p: "/transport/students/:studentId/home-location", t: "Transport", s: "Delete Student Home Location", u: "Delete the current saved home location for one student.", e: "studentHomeLocation", status: 200 })

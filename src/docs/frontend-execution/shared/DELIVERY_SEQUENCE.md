@@ -1,23 +1,28 @@
-# Delivery Sequence
+# Delivery Sequence (Backend-Accurate)
 
-هذا هو التسلسل المقترح لاستهلاك الباك الحالي دون الالتفاف على العقود.
+هذا التسلسل لتقليل التعارضات بين فرق الواجهة.
 
-## 1. ابدأ بالعقود المعيارية
+## 1. مرحلة الجلسة
 
-- `src/docs/API_REFERENCE.md`
-- `src/docs/openapi/ishraf-platform.openapi.json`
-- `src/docs/postman/ishraf-platform.postman_collection.json`
+1. بناء auth flow:
+   - login
+   - me
+   - refresh
+   - logout
+2. توحيد error handling لـ:
+   - `401`, `403`, `404`, `409`, `429`
 
-## 2. فعّل auth أولًا
+## 2. مرحلة السياق الأكاديمي
 
-- login
-- me
-- refresh
-- logout
+1. للإدارة:
+   - `GET /academic-structure/context/active`
+   - `PATCH /academic-structure/context/active`
+2. لباقي التطبيقات:
+   - التعامل مع `ACADEMIC_CONTEXT_NOT_CONFIGURED` وmismatch codes بشكل موحد.
 
-## 3. انتقل إلى ملفات التطبيق المستهلك
+## 3. مرحلة شاشات الدور الأساسية
 
-اختر واحدًا من:
+اعمل حسب role folder:
 
 - `admin-dashboard`
 - `teacher-app`
@@ -25,32 +30,27 @@
 - `parent-app`
 - `driver-app`
 
-واقرأ بالترتيب:
+الترتيب داخل كل role:
 
 1. `README.md`
 2. `ENDPOINT_MAP.md`
 3. `SCREENS_AND_TASKS.md`
 4. `QA_AND_ACCEPTANCE.md`
 
-## 4. عند تغير العقد
+## 4. مرحلة التكاملات
 
-بعد أي تغيير backend:
+قبل تشغيل التتبع الحي أو الإشعارات:
 
-```powershell
-node scripts/reconcile-openapi-postman.mjs
-pnpm.cmd build
-```
+1. راجع `shared/INTEGRATIONS_AND_ENV.md`.
+2. نفذ split القنوات:
+   - Live GPS عبر Firebase RTDB.
+   - Business snapshot (ETA وغيرها) عبر REST.
 
-ثم حدّث فقط handoff الحية التي تأثرت.
+## 5. Phase lock قبل الإطلاق
 
-إذا أعاد السكربت خطأ `Missing documentation manifest entry for runtime route`:
+قبل دمج أي واجهة:
 
-- أضف endpoint للـ OpenAPI/Postman يدويًا بشكل مؤقت حتى لا تبقى فجوة توثيقية.
-- حدّث manifest التوثيق لاحقًا في السكربت ضمن دفعة مستقلة (غير دفعة docs-only).
-
-## 5. ما لا نستخدمه
-
-- docs تاريخية
-- temp responses
-- backlog/request files
-- flows غير مدعومة في الكود
+1. endpoint coverage check (لا مسارات وهمية).
+2. payload contract check (request/response keys).
+3. ownership check لكل تدفق role-sensitive.
+4. 409 conflict scenarios check (خصوصًا context + trip summary).

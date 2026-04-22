@@ -9,7 +9,7 @@ interface MigrationSuiteContext {
 
 export const registerMigrationSmokeTests = ({ pool }: MigrationSuiteContext): void => {
   it(
-    "applies migrations with user, role profile, academic, operational, system settings, and ETA provider metadata tables",
+    "applies migrations with user, role profile, academic, operational, system settings, ETA, and analytics extensions tables",
     async () => {
       runMigration("up");
 
@@ -68,13 +68,21 @@ export const registerMigrationSmokeTests = ({ pool }: MigrationSuiteContext): vo
               'system_setting_audit_logs',
               'integration_outbox',
               'user_devices',
-              'user_device_subscriptions'
+              'user_device_subscriptions',
+              'analytics_jobs',
+              'analytics_snapshots',
+              'analytics_feedback',
+              'analytics_scheduler_runs'
             )
         `
       );
 
       expect(tables.rows.map((row) => row.table_name).sort()).toEqual([
         "academic_years",
+        "analytics_feedback",
+        "analytics_jobs",
+        "analytics_scheduler_runs",
+        "analytics_snapshots",
         "announcement_target_roles",
         "announcements",
         "assessment_types",
@@ -181,6 +189,30 @@ export const registerMigrationSmokeTests = ({ pool }: MigrationSuiteContext): vo
         "arrived_notified"
       ]);
 
+      const analyticsSnapshotReviewColumns = await pool.query<{ column_name: string }>(
+        `
+          SELECT column_name
+          FROM information_schema.columns
+          WHERE table_schema = 'public'
+            AND table_name = 'analytics_snapshots'
+            AND column_name IN (
+              'review_status',
+              'reviewed_by_user_id',
+              'reviewed_at',
+              'published_at',
+              'review_notes'
+            )
+        `
+      );
+
+      expect(analyticsSnapshotReviewColumns.rows.map((row) => row.column_name).sort()).toEqual([
+        "published_at",
+        "review_notes",
+        "review_status",
+        "reviewed_at",
+        "reviewed_by_user_id"
+      ]);
+
       const indexes = await pool.query<{ indexname: string }>(
         `
           SELECT indexname
@@ -207,12 +239,31 @@ export const registerMigrationSmokeTests = ({ pool }: MigrationSuiteContext): vo
               'idx_transport_trip_eta_snapshots_trip_id',
               'idx_transport_trip_eta_snapshots_status',
               'idx_transport_trip_eta_snapshots_provider_refreshed_at',
-              'idx_transport_trip_eta_stop_snapshots_trip_stop_order'
+              'idx_transport_trip_eta_stop_snapshots_trip_stop_order',
+              'idx_analytics_jobs_status_created_at',
+              'idx_analytics_jobs_subject_context_created_at',
+              'idx_analytics_jobs_requested_by_created_at',
+              'uq_analytics_jobs_active_natural_key',
+              'idx_analytics_snapshots_subject_context_computed_at',
+              'idx_analytics_snapshots_source_job_id',
+              'idx_analytics_snapshots_subject_context_review_computed_at',
+              'idx_analytics_feedback_snapshot_created_at',
+              'idx_analytics_scheduler_runs_trigger_started_at',
+              'idx_analytics_scheduler_runs_status_started_at'
             )
         `
       );
 
       expect(indexes.rows.map((row) => row.indexname).sort()).toEqual([
+        "idx_analytics_feedback_snapshot_created_at",
+        "idx_analytics_jobs_requested_by_created_at",
+        "idx_analytics_jobs_status_created_at",
+        "idx_analytics_jobs_subject_context_created_at",
+        "idx_analytics_scheduler_runs_status_started_at",
+        "idx_analytics_scheduler_runs_trigger_started_at",
+        "idx_analytics_snapshots_source_job_id",
+        "idx_analytics_snapshots_subject_context_computed_at",
+        "idx_analytics_snapshots_subject_context_review_computed_at",
         "idx_integration_outbox_aggregate_created_at",
         "idx_integration_outbox_dispatch_queue",
         "idx_integration_outbox_provider_status_created_at",
@@ -231,6 +282,7 @@ export const registerMigrationSmokeTests = ({ pool }: MigrationSuiteContext): vo
         "idx_user_device_subscriptions_key_enabled",
         "idx_user_devices_provider_active_updated_at",
         "idx_user_devices_user_active_updated_at",
+        "uq_analytics_jobs_active_natural_key",
         "uq_integration_outbox_idempotency_key",
         "uq_system_settings_group_key",
         "uq_transport_route_map_cache_route_provider_signature"
@@ -245,12 +297,18 @@ export const registerMigrationSmokeTests = ({ pool }: MigrationSuiteContext): vo
               'trg_system_settings_set_updated_at',
               'trg_integration_outbox_set_updated_at',
               'trg_user_devices_set_updated_at',
-              'trg_user_device_subscriptions_set_updated_at'
+              'trg_user_device_subscriptions_set_updated_at',
+              'trg_analytics_jobs_set_updated_at',
+              'trg_analytics_snapshots_set_updated_at',
+              'trg_analytics_scheduler_runs_set_updated_at'
             )
         `
       );
 
       expect(triggers.rows.map((row) => row.tgname).sort()).toEqual([
+        "trg_analytics_jobs_set_updated_at",
+        "trg_analytics_scheduler_runs_set_updated_at",
+        "trg_analytics_snapshots_set_updated_at",
         "trg_integration_outbox_set_updated_at",
         "trg_system_settings_set_updated_at",
         "trg_user_device_subscriptions_set_updated_at",
@@ -278,12 +336,43 @@ export const registerMigrationSmokeTests = ({ pool }: MigrationSuiteContext): vo
             'uq_transport_route_map_cache_route_provider_signature',
             'chk_transport_trip_eta_snapshots_status',
             'chk_transport_trip_eta_snapshots_calculation_mode',
-            'uq_transport_trip_eta_stop_snapshots_trip_stop'
+            'uq_transport_trip_eta_stop_snapshots_trip_stop',
+            'chk_analytics_jobs_analysis_type',
+            'chk_analytics_jobs_subject_type',
+            'chk_analytics_jobs_status',
+            'chk_analytics_jobs_primary_provider',
+            'chk_analytics_jobs_fallback_provider',
+            'chk_analytics_jobs_selected_provider',
+            'chk_analytics_jobs_distinct_providers',
+            'fk_analytics_jobs_snapshot_id',
+            'chk_analytics_snapshots_analysis_type',
+            'chk_analytics_snapshots_subject_type',
+            'chk_analytics_snapshots_provider_key',
+            'chk_analytics_snapshots_review_status',
+            'analytics_snapshots_reviewed_by_user_id_fkey',
+            'chk_analytics_feedback_rating',
+            'chk_analytics_scheduler_runs_trigger_mode',
+            'chk_analytics_scheduler_runs_status'
           )
         `
       );
 
       expect(constraints.rows.map((row) => row.conname).sort()).toEqual([
+        "analytics_snapshots_reviewed_by_user_id_fkey",
+        "chk_analytics_feedback_rating",
+        "chk_analytics_jobs_analysis_type",
+        "chk_analytics_jobs_distinct_providers",
+        "chk_analytics_jobs_fallback_provider",
+        "chk_analytics_jobs_primary_provider",
+        "chk_analytics_jobs_selected_provider",
+        "chk_analytics_jobs_status",
+        "chk_analytics_jobs_subject_type",
+        "chk_analytics_scheduler_runs_status",
+        "chk_analytics_scheduler_runs_trigger_mode",
+        "chk_analytics_snapshots_analysis_type",
+        "chk_analytics_snapshots_provider_key",
+        "chk_analytics_snapshots_review_status",
+        "chk_analytics_snapshots_subject_type",
         "chk_integration_outbox_attempt_count",
         "chk_integration_outbox_max_attempts",
         "chk_integration_outbox_status",
@@ -296,6 +385,7 @@ export const registerMigrationSmokeTests = ({ pool }: MigrationSuiteContext): vo
         "chk_user_device_subscriptions_key",
         "chk_user_devices_platform",
         "chk_user_devices_provider_key",
+        "fk_analytics_jobs_snapshot_id",
         "uq_system_settings_group_key",
         "uq_transport_route_map_cache_route_provider_signature",
         "uq_transport_trip_eta_stop_snapshots_trip_stop",
@@ -325,14 +415,64 @@ export const registerMigrationSmokeTests = ({ pool }: MigrationSuiteContext): vo
       );
 
       expect(tripStatusConstraint.rows[0]?.definition).toContain("completed");
+
+      const analyticsConstraintDefinitions = await pool.query<{ conname: string; definition: string }>(
+        `
+          SELECT conname, pg_get_constraintdef(oid) AS definition
+          FROM pg_constraint
+          WHERE conname IN (
+            'chk_analytics_jobs_analysis_type',
+            'chk_analytics_jobs_subject_type',
+            'chk_analytics_snapshots_analysis_type',
+            'chk_analytics_snapshots_subject_type'
+          )
+          ORDER BY conname ASC
+        `
+      );
+
+      expect(analyticsConstraintDefinitions.rows).toHaveLength(4);
+      analyticsConstraintDefinitions.rows.forEach((row) => {
+        if (row.conname.includes('analysis_type')) {
+          expect(row.definition).toContain('admin_operational_digest');
+          expect(row.definition).toContain('class_overview');
+          expect(row.definition).toContain('transport_route_anomaly_summary');
+        }
+
+        if (row.conname.includes('subject_type')) {
+          expect(row.definition).toContain('system');
+          expect(row.definition).toContain('class');
+          expect(row.definition).toContain('route');
+        }
+      });
     },
     20_000
   );
 
   it(
-    "rolls back only the last ETA arrival migration and can be applied again",
+    "rolls back only the analytics snapshot review extension and can be applied again",
     async () => {
       runMigration("down");
+
+      const analyticsTables = await pool.query<{ table_name: string }>(
+        `
+          SELECT table_name
+          FROM information_schema.tables
+          WHERE table_schema = 'public'
+            AND table_name IN (
+              'analytics_jobs',
+              'analytics_snapshots',
+              'analytics_feedback',
+              'analytics_scheduler_runs'
+            )
+        `
+      );
+
+      expect(analyticsTables.rows.map((row) => row.table_name).sort()).toEqual([
+        "analytics_feedback",
+        "analytics_jobs",
+        "analytics_scheduler_runs",
+        "analytics_snapshots"
+      ]);
 
       const etaTables = await pool.query<{ table_name: string }>(
         `
@@ -375,8 +515,27 @@ export const registerMigrationSmokeTests = ({ pool }: MigrationSuiteContext): vo
       );
 
       expect(etaStopSnapshotColumns.rows.map((row) => row.column_name).sort()).toEqual([
-        "approaching_notified"
+        "approaching_notified",
+        "arrived_notified"
       ]);
+
+      const rolledBackAnalyticsSnapshotReviewColumns = await pool.query<{ column_name: string }>(
+        `
+          SELECT column_name
+          FROM information_schema.columns
+          WHERE table_schema = 'public'
+            AND table_name = 'analytics_snapshots'
+            AND column_name IN (
+              'review_status',
+              'reviewed_by_user_id',
+              'reviewed_at',
+              'published_at',
+              'review_notes'
+            )
+        `
+      );
+
+      expect(rolledBackAnalyticsSnapshotReviewColumns.rows).toHaveLength(0);
 
       const providerAwareIndexes = await pool.query<{ indexname: string }>(
         `
@@ -409,6 +568,37 @@ export const registerMigrationSmokeTests = ({ pool }: MigrationSuiteContext): vo
 
       expect(etaIndexes.rows).toHaveLength(5);
 
+      const analyticsIndexes = await pool.query<{ indexname: string }>(
+        `
+          SELECT indexname
+          FROM pg_indexes
+          WHERE schemaname = 'public'
+            AND indexname IN (
+              'idx_analytics_jobs_status_created_at',
+              'idx_analytics_jobs_subject_context_created_at',
+              'idx_analytics_jobs_requested_by_created_at',
+              'uq_analytics_jobs_active_natural_key',
+              'idx_analytics_snapshots_subject_context_computed_at',
+              'idx_analytics_snapshots_source_job_id',
+              'idx_analytics_feedback_snapshot_created_at',
+              'idx_analytics_scheduler_runs_trigger_started_at',
+              'idx_analytics_scheduler_runs_status_started_at'
+            )
+        `
+      );
+
+      expect(analyticsIndexes.rows.map((row) => row.indexname).sort()).toEqual([
+        "idx_analytics_feedback_snapshot_created_at",
+        "idx_analytics_jobs_requested_by_created_at",
+        "idx_analytics_jobs_status_created_at",
+        "idx_analytics_jobs_subject_context_created_at",
+        "idx_analytics_scheduler_runs_status_started_at",
+        "idx_analytics_scheduler_runs_trigger_started_at",
+        "idx_analytics_snapshots_source_job_id",
+        "idx_analytics_snapshots_subject_context_computed_at",
+        "uq_analytics_jobs_active_natural_key"
+      ]);
+
       const etaConstraints = await pool.query<{ conname: string }>(
         `
           SELECT conname
@@ -427,6 +617,65 @@ export const registerMigrationSmokeTests = ({ pool }: MigrationSuiteContext): vo
         "chk_transport_trip_eta_snapshots_status",
         "uq_transport_route_map_cache_route_provider_signature",
         "uq_transport_trip_eta_stop_snapshots_trip_stop"
+      ]);
+
+      const analyticsConstraints = await pool.query<{ conname: string }>(
+        `
+          SELECT conname
+          FROM pg_constraint
+          WHERE conname IN (
+            'chk_analytics_jobs_analysis_type',
+            'chk_analytics_jobs_subject_type',
+            'chk_analytics_jobs_status',
+            'chk_analytics_jobs_primary_provider',
+            'chk_analytics_jobs_fallback_provider',
+            'chk_analytics_jobs_selected_provider',
+            'chk_analytics_jobs_distinct_providers',
+            'fk_analytics_jobs_snapshot_id',
+            'chk_analytics_snapshots_analysis_type',
+            'chk_analytics_snapshots_subject_type',
+            'chk_analytics_snapshots_provider_key',
+            'chk_analytics_feedback_rating',
+            'chk_analytics_scheduler_runs_trigger_mode',
+            'chk_analytics_scheduler_runs_status'
+          )
+        `
+      );
+
+      expect(analyticsConstraints.rows.map((row) => row.conname).sort()).toEqual([
+        "chk_analytics_feedback_rating",
+        "chk_analytics_jobs_analysis_type",
+        "chk_analytics_jobs_distinct_providers",
+        "chk_analytics_jobs_fallback_provider",
+        "chk_analytics_jobs_primary_provider",
+        "chk_analytics_jobs_selected_provider",
+        "chk_analytics_jobs_status",
+        "chk_analytics_jobs_subject_type",
+        "chk_analytics_scheduler_runs_status",
+        "chk_analytics_scheduler_runs_trigger_mode",
+        "chk_analytics_snapshots_analysis_type",
+        "chk_analytics_snapshots_provider_key",
+        "chk_analytics_snapshots_subject_type",
+        "fk_analytics_jobs_snapshot_id"
+      ]);
+
+      const analyticsTriggers = await pool.query<{ tgname: string }>(
+        `
+          SELECT tgname
+          FROM pg_trigger
+          WHERE NOT tgisinternal
+            AND tgname IN (
+              'trg_analytics_jobs_set_updated_at',
+              'trg_analytics_snapshots_set_updated_at',
+              'trg_analytics_scheduler_runs_set_updated_at'
+            )
+        `
+      );
+
+      expect(analyticsTriggers.rows.map((row) => row.tgname).sort()).toEqual([
+        "trg_analytics_jobs_set_updated_at",
+        "trg_analytics_scheduler_runs_set_updated_at",
+        "trg_analytics_snapshots_set_updated_at"
       ]);
 
       const calculationModeConstraint = await pool.query<{ definition: string }>(
@@ -450,7 +699,36 @@ export const registerMigrationSmokeTests = ({ pool }: MigrationSuiteContext): vo
         `
       );
 
-      expect(tripStatusConstraint.rows[0]?.definition).not.toContain("completed");
+      expect(tripStatusConstraint.rows[0]?.definition).toContain("completed");
+
+      const revertedAnalyticsConstraintDefinitions = await pool.query<{ conname: string; definition: string }>(
+        `
+          SELECT conname, pg_get_constraintdef(oid) AS definition
+          FROM pg_constraint
+          WHERE conname IN (
+            'chk_analytics_jobs_analysis_type',
+            'chk_analytics_jobs_subject_type',
+            'chk_analytics_snapshots_analysis_type',
+            'chk_analytics_snapshots_subject_type'
+          )
+          ORDER BY conname ASC
+        `
+      );
+
+      expect(revertedAnalyticsConstraintDefinitions.rows).toHaveLength(4);
+      revertedAnalyticsConstraintDefinitions.rows.forEach((row) => {
+        if (row.conname.includes('analysis_type')) {
+          expect(row.definition).toContain('admin_operational_digest');
+          expect(row.definition).toContain('class_overview');
+          expect(row.definition).toContain('transport_route_anomaly_summary');
+        }
+
+        if (row.conname.includes('subject_type')) {
+          expect(row.definition).toContain('system');
+          expect(row.definition).toContain('class');
+          expect(row.definition).toContain('route');
+        }
+      });
 
       const deviceTables = await pool.query<{ table_name: string }>(
         `
@@ -538,3 +816,13 @@ export const registerMigrationSmokeTests = ({ pool }: MigrationSuiteContext): vo
     20_000
   );
 };
+
+
+
+
+
+
+
+
+
+

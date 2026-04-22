@@ -7,6 +7,7 @@ import { createIntegrationTestContext } from "../helpers/integration-context";
 import { registerAccessIntegrationTests } from "./access/access.integration";
 import { registerAcademicIntegrationTests } from "./academic/academic.integration";
 import { registerAdminImportsIntegrationTests } from "./admin-imports/admin-imports.integration";
+import { registerAnalyticsIntegrationTests } from "./analytics/analytics.integration";
 import { registerAppSecurityIntegrationTests } from "./app/security.integration";
 import { registerAssessmentsIntegrationTests } from "./assessments/assessments.integration";
 import { registerAttendanceIntegrationTests } from "./attendance/attendance.integration";
@@ -71,6 +72,7 @@ describeIfDatabase("API integration", () => {
   registerUsersIntegrationTests(context);
   registerAcademicIntegrationTests(context);
   registerAdminImportsIntegrationTests(context);
+  registerAnalyticsIntegrationTests(context);
   registerStudentsIntegrationTests(context);
   registerAssessmentsIntegrationTests(context);
   registerBehaviorIntegrationTests(context);
@@ -83,5 +85,4 @@ describeIfDatabase("API integration", () => {
   registerReportingIntegrationTests(context);
   registerSystemSettingsIntegrationTests(context);
 });
-
 

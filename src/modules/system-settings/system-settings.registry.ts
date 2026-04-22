@@ -1,16 +1,20 @@
 import { z } from "zod";
 
 import type {
+  AiAnalyticsProvider,
   AnalyticsSettings,
   ImportsSettings,
   PushNotificationsSettings,
+  ScheduledAnalyticsTarget,
   SystemSettingGroup,
   SystemSettingsGroupValueMap,
   SystemSettingsGroupValues,
   TransportMapsSettings
 } from "./types/system-settings.types";
 import {
+  AI_ANALYTICS_PROVIDER_VALUES,
   ETA_PROVIDER_VALUES,
+  SCHEDULED_ANALYTICS_TARGET_VALUES,
   SYSTEM_SETTING_GROUP_VALUES
 } from "./types/system-settings.types";
 
@@ -55,6 +59,68 @@ const enumSetting = <TValue extends string>(
   description
 });
 
+const enumArraySetting = <TValue extends string>(
+  allowedValues: readonly [TValue, ...TValue[]],
+  defaultValue: readonly TValue[],
+  description: string
+): SystemSettingDefinition<TValue[]> => ({
+  schema: z
+    .array(z.enum(allowedValues))
+    .min(1)
+    .transform((values) => [...new Set(values)] as TValue[]),
+  defaultValue: [...defaultValue],
+  description
+});
+
+const nullableIdentifierSetting = (
+  description: string
+): SystemSettingDefinition<string | null> => ({
+  schema: z.preprocess(
+    (value) => {
+      if (value === null || value === undefined || value === "") {
+        return null;
+      }
+
+      if (typeof value === "number" && Number.isInteger(value) && value > 0) {
+        return String(value);
+      }
+
+      if (typeof value === "string") {
+        return value.trim();
+      }
+
+      return value;
+    },
+    z
+      .string()
+      .regex(/^\d+$/, "Expected a positive numeric identifier")
+      .nullable()
+  ),
+  defaultValue: null,
+  description
+});
+
+const hasDistinctAnalyticsProviders = (
+  value: Record<string, unknown>
+): boolean => {
+  const primaryProvider = value.primaryProvider as AiAnalyticsProvider | undefined;
+  const fallbackProvider = value.fallbackProvider as AiAnalyticsProvider | undefined;
+
+  return (
+    primaryProvider === undefined ||
+    fallbackProvider === undefined ||
+    primaryProvider !== fallbackProvider
+  );
+};
+
+const DEFAULT_SCHEDULED_ANALYTICS_TARGETS: ScheduledAnalyticsTarget[] = [
+  "student_risk_summary",
+  "teacher_compliance_summary",
+  "admin_operational_digest",
+  "class_overview",
+  "transport_route_anomaly_summary"
+];
+
 export const systemSettingsRegistry = {
   pushNotifications: {
     description: "Feature flags that gate future FCM and realtime push delivery behavior.",
@@ -96,11 +162,62 @@ export const systemSettingsRegistry = {
     }
   },
   analytics: {
-    description: "Feature flags for external analytics and AI-assisted insight generation.",
+    description:
+      "Feature flags, provider selection, and admin-controlled scheduled orchestration for AI analytics snapshots.",
     settings: {
       aiAnalyticsEnabled: booleanSetting(
         false,
-        "Enables AI analytics capabilities when the analytics provider phase is implemented."
+        "Enables analytics job execution and AI-assisted insight generation for admin-triggered snapshots."
+      ),
+      primaryProvider: enumSetting(
+        AI_ANALYTICS_PROVIDER_VALUES,
+        "openai",
+        "Selects the primary AI provider used to interpret deterministic analytics features into narrative insights."
+      ),
+      fallbackProvider: enumSetting(
+        AI_ANALYTICS_PROVIDER_VALUES,
+        "groq",
+        "Selects the fallback AI provider used only when the primary provider cannot complete the analytics interpretation."
+      ),
+      scheduledRecomputeEnabled: booleanSetting(
+        false,
+        "Allows admin-controlled scheduled recompute dispatch cycles to create stale analytics jobs from the configured target list."
+      ),
+      scheduledRecomputeIntervalMinutes: positiveIntegerSetting(
+        1440,
+        "Defines the freshness window in minutes; scheduled dispatch only recreates analytics when no snapshot exists or the latest snapshot is older than this interval."
+      ),
+      scheduledRecomputeMaxSubjectsPerTarget: positiveIntegerSetting(
+        25,
+        "Caps how many stale subjects each scheduled dispatch cycle may enqueue per analytics target."
+      ),
+      scheduledTargets: enumArraySetting(
+        SCHEDULED_ANALYTICS_TARGET_VALUES,
+        DEFAULT_SCHEDULED_ANALYTICS_TARGETS,
+        "Defines which analytics targets the scheduled dispatch cycle is allowed to recompute when stale."
+      ),
+      autonomousDispatchEnabled: booleanSetting(
+        false,
+        "Allows the autonomous analytics scheduler worker to trigger stale scheduled-dispatch cycles without an interactive dashboard request."
+      ),
+      autonomousDispatchActorUserId: nullableIdentifierSetting(
+        "Defines the active admin user id that will own autonomous scheduled analytics jobs for audit traceability."
+      ),
+      retentionCleanupEnabled: booleanSetting(
+        false,
+        "Allows admin-triggered analytics retention cleanup to purge obsolete snapshots and terminal analytics execution records."
+      ),
+      obsoleteSnapshotRetentionDays: positiveIntegerSetting(
+        30,
+        "Defines how long obsolete analytics snapshots remain before cleanup deletes draft, rejected, and superseded snapshots. Approved snapshots remain available until they become superseded or rejected."
+      ),
+      jobRetentionDays: positiveIntegerSetting(
+        30,
+        "Defines how long completed, failed, and dead analytics jobs are retained before cleanup removes them."
+      ),
+      schedulerRunRetentionDays: positiveIntegerSetting(
+        30,
+        "Defines how long completed or failed analytics scheduler run records remain before cleanup removes them."
       )
     }
   },
@@ -137,7 +254,7 @@ const createPatchBodySchema = <TGroup extends SystemSettingGroup>(group: TGroup)
     )
   );
 
-  return z
+  const schema = z
     .object({
       reason: z.string().trim().min(1, "Reason is required").max(500),
       values: z
@@ -149,6 +266,18 @@ const createPatchBodySchema = <TGroup extends SystemSettingGroup>(group: TGroup)
         })
     })
     .strict();
+
+  if (group === "analytics") {
+    return schema.refine(
+      (payload) => hasDistinctAnalyticsProviders(payload.values as Record<string, unknown>),
+      {
+        message: "primaryProvider and fallbackProvider must be different",
+        path: ["values", "fallbackProvider"]
+      }
+    );
+  }
+
+  return schema;
 };
 
 const patchBodySchemaRegistry = {
@@ -182,7 +311,9 @@ export const getSystemSettingsDefaultValues = <TGroup extends SystemSettingGroup
   for (const [key, entry] of Object.entries(
     systemSettingsRegistry[group].settings
   ) as Array<[string, SystemSettingDefinition<unknown>]>) {
-    defaults[key] = entry.defaultValue;
+    defaults[key] = Array.isArray(entry.defaultValue)
+      ? [...entry.defaultValue]
+      : entry.defaultValue;
   }
 
   return defaults as unknown as SystemSettingsGroupValues<TGroup>;

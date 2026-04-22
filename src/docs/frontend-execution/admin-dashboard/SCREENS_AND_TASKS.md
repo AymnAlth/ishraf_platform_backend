@@ -1,55 +1,139 @@
-# Admin Dashboard Screens And Tasks
+# Admin Dashboard Screens And Tasks (Code-Truth)
 
 ## 1. Bootstrap
 
 1. Login (`POST /auth/login`).
-2. Load current user (`GET /auth/me`).
-3. Check readiness (`/health`, `/health/ready`).
-4. Load active context (`GET /academic-structure/context/active`).
-5. Load admin dashboard (`GET /reporting/dashboards/admin/me`).
+2. Hydrate session (`GET /auth/me`).
+3. Read health/ready status.
+4. Load active academic context.
+5. Load admin dashboard summary.
 
-## 2. System settings screen
+## 2. Active Context management
 
-1. Load all groups (`GET /system-settings`).
-2. Open `transportMaps` details (`GET /system-settings/transportMaps`).
-3. Edit advanced ETA controls:
+1. اقرأ `GET /academic-structure/context/active`.
+2. عند تغيير السنة/الفصل:
+   - نفذ `PATCH /academic-structure/context/active`.
+3. بعد النجاح:
+   - أعد تحميل الشاشات اليومية (attendance/assessments/behavior/homework/reporting).
+
+## 3. System Settings Control Plane
+
+1. اعرض كل المجموعات (`GET /system-settings`).
+2. افتح `transportMaps` (`GET /system-settings/transportMaps`).
+3. افتح `analytics` (`GET /system-settings/analytics`).
+3. عدل القيم:
    - `etaProvider`
    - `etaDerivedEstimateEnabled`
    - `googleMapsEtaEnabled`
-   - refresh interval + deviation threshold
-4. Save with reason (`PATCH /system-settings/transportMaps`).
-5. Refresh group + audit/history views.
+   - refresh/deviation thresholds
+4. عدل قيم analytics عند الحاجة:
+   - `aiAnalyticsEnabled`
+   - `primaryProvider`
+   - `fallbackProvider`
+   - `scheduledRecomputeEnabled`
+   - `scheduledRecomputeIntervalMinutes`
+   - `scheduledRecomputeMaxSubjectsPerTarget`
+   - `scheduledTargets`
+   - `autonomousDispatchEnabled`
+   - `autonomousDispatchActorUserId`
+   - `retentionCleanupEnabled`
+   - retention windows
+5. احفظ (`PATCH /system-settings/:group`) مع `reason`.
+6. راقب:
+   - `GET /system-settings/audit`
+   - `GET /system-settings/integrations/status`
 
-## 3. Transport operations screen (admin tooling)
+## 4. Daily Academics
 
-1. List or create trips (`GET/POST /transport/trips`).
-2. Run trip lifecycle (`start/end/locations/events`).
-3. Submit stop attendance:
+1. Attendance:
+   - create session
+   - save records
+2. Assessments:
+   - create assessment
+   - save scores
+3. Behavior:
+   - create/update records
+4. Homework:
+   - create homework
+   - save submissions
+
+قاعدة تشغيل:
+
+- أي تضارب مع active context يجب أن يعالج برسائل واضحة.
+
+## 5. Transport operations
+
+1. إدارة static entities:
+   - buses/routes/stops/assignments.
+2. Trip lifecycle:
+   - create/ensure/list/start/end/locations/events.
+3. Stop attendance:
    - `POST /transport/trips/:tripId/stops/:stopId/attendance`
-   - send batch `attendances[]`.
-4. Inspect ETA snapshot (`GET /transport/trips/:id/eta`).
-5. Load summary after completion:
+   - يغلق المحطة.
+   - قد ينهي الرحلة تلقائيًا إلى `completed`.
+4. ETA/read:
+   - `GET /transport/trips/:id/eta`
+5. Summary analytics:
    - `GET /transport/trips/:tripId/summary`
-   - if trip not completed, handle `409 TRIP_SUMMARY_REQUIRES_COMPLETED_STATUS`.
-   - suggested toast message:
-     - `الرحلة لا تزال قائمة، سيظهر الملخص النهائي فور اكتمال كافة المحطات.`
+   - إذا الرحلة ليست `completed`:
+     - backend يرجع `409 TRIP_SUMMARY_REQUIRES_COMPLETED_STATUS`
+     - Suggested Toast:
+       - `الرحلة لا تزال قائمة، سيظهر الملخص النهائي فور اكتمال كافة المحطات.`
 
-## 4. Monitoring screens
+## 6. Live monitoring split
 
-1. Use `GET /transport/realtime-token?tripId=...` to bootstrap Firebase read access.
-2. Read live GPS from RTDB path:
+1. realtime token:
+   - `GET /transport/realtime-token?tripId=...`
+2. listen RTDB path:
    - `/transport/live-trips/{tripId}/latestLocation`
-3. Keep ETA and analytics from REST endpoints (`eta`, `summary`, reporting).
+3. keep ETA from REST snapshots.
 
-## 5. Admin import flow
+## 7. Communication center
 
-1. Dry-run (`POST /admin-imports/school-onboarding/dry-run`).
-2. Review issues/plan.
-3. Apply (`POST /admin-imports/school-onboarding/apply`).
-4. Track history (`GET /admin-imports/school-onboarding/history`).
+1. register device (FCM token binding).
+2. manage announcements/notifications/messages.
+3. read inbox/feed and mark as read.
 
-## 6. Communication center
+## 8. AI Analytics operations
 
-1. Register admin device (`POST /communication/devices`).
-2. Send direct/bulk messages and notifications.
-3. Read inbox/announcements/notification feed.
+1. لا تبدأ من شاشات القراءة قبل تفعيل:
+   - `analytics.aiAnalyticsEnabled=true`
+2. لإنشاء jobs الفردية:
+   - `POST /analytics/jobs/student-risk`
+   - `POST /analytics/jobs/teacher-compliance`
+   - `POST /analytics/jobs/admin-operational-digest`
+   - `POST /analytics/jobs/class-overview`
+   - `POST /analytics/jobs/transport-route-anomalies`
+3. لإعادة الحساب المؤسسية:
+   - `POST /analytics/jobs/recompute`
+   - `POST /analytics/jobs/scheduled-dispatch`
+4. لمتابعة التنفيذ:
+   - `GET /analytics/jobs/:jobId`
+5. لقراءة النتائج:
+   - `GET /analytics/students/:studentId/risk-summary`
+   - `GET /analytics/teachers/:teacherId/compliance-summary`
+   - `GET /analytics/admin/operational-digest`
+   - `GET /analytics/classes/:classId/overview`
+   - `GET /analytics/transport/routes/:routeId/anomalies`
+6. لمراجعة النتيجة قبل نشرها:
+   - `POST /analytics/snapshots/:snapshotId/review`
+   - `action = approve | reject`
+7. feedback:
+   - `GET /analytics/snapshots/:snapshotId/feedback`
+   - `POST /analytics/snapshots/:snapshotId/feedback`
+8. صيانة التشغيل:
+   - `POST /analytics/jobs/retention-cleanup`
+
+قواعد UX:
+
+- snapshot draft تبقى داخلية للإدارة.
+- approval هو لحظة النشر للأسطح غير الإدارية.
+- إذا كان job موجودًا `pending/processing` لنفـس natural key، قد يعيد backend job reused بدل إنشاء جديد.
+- لا تنتظر الواجهة completion داخل نفس request؛ هذه jobs غير متزامنة.
+
+## 9. Imports flow
+
+1. Dry-run onboarding import.
+2. Review results.
+3. Apply import.
+4. Track history/details.

@@ -34,8 +34,18 @@ export const INTEGRATION_OUTBOX_STATUS_VALUES = [
 export type IntegrationOutboxStatus = (typeof INTEGRATION_OUTBOX_STATUS_VALUES)[number];
 
 export const ETA_PROVIDER_VALUES = ["mapbox", "google"] as const;
+export const AI_ANALYTICS_PROVIDER_VALUES = ["openai", "groq"] as const;
+export const SCHEDULED_ANALYTICS_TARGET_VALUES = [
+  "student_risk_summary",
+  "teacher_compliance_summary",
+  "admin_operational_digest",
+  "class_overview",
+  "transport_route_anomaly_summary"
+] as const;
 
 export type EtaProvider = (typeof ETA_PROVIDER_VALUES)[number];
+export type AiAnalyticsProvider = (typeof AI_ANALYTICS_PROVIDER_VALUES)[number];
+export type ScheduledAnalyticsTarget = (typeof SCHEDULED_ANALYTICS_TARGET_VALUES)[number];
 
 export interface PushNotificationsSettings {
   fcmEnabled: boolean;
@@ -52,6 +62,18 @@ export interface TransportMapsSettings {
 
 export interface AnalyticsSettings {
   aiAnalyticsEnabled: boolean;
+  primaryProvider: AiAnalyticsProvider;
+  fallbackProvider: AiAnalyticsProvider;
+  scheduledRecomputeEnabled: boolean;
+  scheduledRecomputeIntervalMinutes: number;
+  scheduledRecomputeMaxSubjectsPerTarget: number;
+  scheduledTargets: ScheduledAnalyticsTarget[];
+  autonomousDispatchEnabled: boolean;
+  autonomousDispatchActorUserId: string | null;
+  retentionCleanupEnabled: boolean;
+  obsoleteSnapshotRetentionDays: number;
+  jobRetentionDays: number;
+  schedulerRunRetentionDays: number;
 }
 
 export interface ImportsSettings {

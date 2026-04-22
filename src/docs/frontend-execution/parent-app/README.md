@@ -1,117 +1,64 @@
-# Parent App Backend Contract
+# Parent App Backend Contract (Code-Truth)
+
+آخر مزامنة مع الكود: `2026-04-16`
 
 الدور المستهدف: `parent`
 
-هذا الدليل يركّز على تتبع رحلة الطالب من منظور ولي الأمر، مع الفصل الواضح بين:
+هذه الوثيقة تختصر ما يحتاجه مطور تطبيق ولي الأمر لبناء التطبيق بدون افتراضات.
+كل ما هنا مبني على الكود الفعلي فقط.
 
-- **GPS live** عبر Firebase RTDB
-- **ETA snapshot** عبر REST من الباك
+## 1) ماذا يبني تطبيق ولي الأمر فعليًا
 
-## النطاق
+1. مصادقة الجلسة (`login/refresh/me/logout/change-password`).
+2. لوحة ولي الأمر + بيانات الأبناء الأكاديمية.
+3. تتبع النقل الحي للابن:
+- `REST snapshot` للـ ETA والحالة.
+- `Firebase RTDB` لحركة الحافلة الحية.
+4. مركز الإشعارات والرسائل.
+5. تسجيل جهاز FCM لتلقي تنبيهات النقل.
+6. قراءة `AI Analytics` الخاصة بمخاطر الطالب من backend فقط.
 
-- `transport` (live-status + realtime-token)
-- `reporting` (parent dashboards and linked-student surfaces)
-- `homework`
-- `communication`
-- `auth`
+## 2) قاعدة القنوات الثلاث (إلزامية)
 
-## القواعد المؤثرة
+1. بيانات الأعمال (dashboard/reports/eta snapshot): من REST.
+2. إحداثيات الحركة الحية: من RTDB path فقط.
+3. إشعارات الاقتراب/الوصول: من FCM (`notification + data`).
 
-- كل surfaces الطالبية تعتمد parent-student linkage الفعلي.
-- endpoint التتبع الحي الرئيسي في هذه المرحلة:
-  - `GET /transport/trips/:tripId/live-status`
-- هذا endpoint يعيد:
-  - `tripStatus`
-  - `firebaseRtdbPath`
-  - `myStopSnapshot`
-  - `routePolyline`
-- إذا الوالد غير مرتبط بالرحلة يرجع `403`.
+لا تخلط القنوات الثلاث داخل نفس مصدر حالة بدون تمييز المصدر.
 
-## Live status payload concept
+## 3) قواعد تشغيل يجب الالتزام بها
 
-- `firebaseRtdbPath` دائمًا بصيغة:
-  - `/transport/live-trips/{tripId}/latestLocation`
-- `myStopSnapshot` يمثل محطة الوالد الأقرب النشطة فقط (حسب stopOrder):
-  - `remainingDistanceMeters`
-  - `remainingDurationSeconds`
-  - `approachingNotified`
-  - `arrivedNotified`
-  - `isCompleted`
-  - `etaAt`
-  - `updatedAt`
-  - بيانات المحطة (`stopId`, `stopName`, `stopOrder`)
-- `routePolyline` يأتي من ETA read model أو `null`.
+1. كل endpoints التطبيق تحت `/api/v1`.
+2. كل endpoints الخاصة بولي الأمر تتطلب `Bearer access token`.
+3. reporting endpoints تعتمد على `Active Academic Context` في الباك.
+4. endpoint `GET /transport/trips/:tripId/live-status` يتحقق من ملكية ولي الأمر للرحلة.
+5. endpoint `GET /transport/realtime-token` قد يرجع `409` عند تعطيل/عدم تهيئة التكامل.
+6. endpoint `GET /analytics/students/:studentId/risk-summary` يتحقق من ملكية ولي الأمر للطالب ويعيد snapshots `approved` فقط.
+7. endpoint `POST /analytics/snapshots/:snapshotId/feedback` يرفض أي snapshot غير منشورة لغير `admin`.
 
-## FCM proximity alerts (as implemented)
+## 4) التدفق المرجعي المختصر
 
-- approaching:
-  - `event_type`: `fcm.transport.bus_approaching`
-  - `title`: `اقتراب الحافلة`
-  - body (single):
-    - `حافلة الطالب [الاسم] تقترب من المحطة، ستصل خلال دقائق.`
-  - body (multi):
-    - `حافلة الطلاب [أسماء مفصولة بفاصلة عربية] تقترب من المحطة، ستصل خلال دقائق.`
-- arrived:
-  - `event_type`: `fcm.transport.bus_arrived`
-  - `title`: `وصول الحافلة`
-  - body (single):
-    - `الحافلة بالخارج في انتظار الطالب [الاسم].`
-  - body (multi):
-    - `الحافلة بالخارج في انتظار الطلاب [اسم1 و اسم2].`
+1. `POST /auth/login`
+2. `GET /reporting/dashboards/parent/me`
+3. عند اختيار طالب:
+- `GET /reporting/transport/parent/me/students/:studentId/live-status`
+4. إذا `activeTrip` موجود:
+- `GET /transport/trips/:tripId/live-status`
+- `GET /transport/realtime-token?tripId=:tripId`
+- subscribe على RTDB path الوارد من الباك.
+5. إذا كانت شاشة الطالب تتضمن insights:
+- `GET /analytics/students/:studentId/risk-summary`
+- لا تشغّل job من التطبيق.
+- إذا لم توجد snapshot منشورة بعد، اعرض empty-state تشغيلية.
 
-## Full SDK inbound payload (mobile)
+## 5) نقاط حساسة في التكامل
 
-هذا مثال payload كما تستقبله تطبيقات الموبايل عند وصول Push (FCM):
-
-```json
-{
-  "messageId": "0:1730000000000000%example",
-  "from": "1234567890",
-  "notification": {
-    "title": "وصول الحافلة",
-    "body": "الحافلة بالخارج في انتظار الطلاب أحمد و سارة."
-  },
-  "data": {
-    "eventType": "bus_arrived",
-    "notificationType": "transport_bus_arrived",
-    "tripId": "1201",
-    "routeId": "31",
-    "studentIds": "[\"501\",\"502\"]",
-    "referenceType": "trip_stop",
-    "referenceId": "1201:7"
-  }
-}
-```
-
-قواعد القراءة في التطبيق:
-
-- `notification`:
-  - يستخدم للـ banner/system notification (title/body الجاهز للعرض).
-- `data`:
-  - يستخدم للمنطق البرمجي (routing, deep link, state update).
-
-العلاقة بين الحدث الداخلي في الباك والـ payload القادم للهاتف:
-
-- `integration_outbox.event_type = fcm.transport.bus_approaching` -> `data.eventType = bus_approaching`
-- `integration_outbox.event_type = fcm.transport.bus_arrived` -> `data.eventType = bus_arrived`
-
-## Outbox/Firebase payload structure
-
-العقدة الداخلية (integration_outbox) لكل ولي أمر:
-
-- `provider_key`: `pushNotifications`
-- `subscriptionKey`: `transportRealtime`
-- `referenceType`: `trip_stop`
-- `referenceId`: `{tripId}:{stopId}`
-- `data`:
-  - `eventType`: `bus_approaching | bus_arrived`
-  - `tripId`
-  - `routeId`
-  - `studentIds[]`
-  - `notificationType`:
-    - `transport_bus_approaching` أو `transport_bus_arrived`
-- `idempotency_key`:
-  - `fcm:fcm.transport.bus_approaching:trip:{tripId}:stop:{stopId}:parent:{parentUserId}`
-  - `fcm:fcm.transport.bus_arrived:trip:{tripId}:stop:{stopId}:parent:{parentUserId}`
-
-> ملاحظة: التطبيق يستقبل `title/body/data` من FCM. `idempotency_key` جزء تشغيلي داخلي في outbox.
+1. `myStopSnapshot` قد يكون `null`، والواجهة يجب أن تدعم ذلك.
+2. `routePolyline` قد تكون `null`، لا تفترض وجود Polyline دائمًا.
+3. في FCM:
+- مفتاح التوجيه في التطبيق هو `data.eventType` وليس `event_type`.
+- `data.studentIds` تصل كسلسلة CSV (مثل `"12,18"`) وليست array.
+4. في `AI Analytics`:
+- الواجهة لا ترى drafts أو rejected snapshots.
+- `adminRecommendations` لا تظهر في استجابة ولي الأمر.
+- feedback يرسل إلى backend فقط، وليس إلى مزود AI مباشرة.

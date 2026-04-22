@@ -29,7 +29,9 @@
     "db:migrate:down": "node-pg-migrate down -m src/database/migrations -t pgmigrations",
     "db:migrate:create": "node-pg-migrate create -m src/database/migrations",
     "automation:fcm-worker": "tsx src/scripts/run-firebase-outbox-worker.ts",
-    "automation:transport-eta-worker": "tsx src/scripts/run-transport-eta-worker.ts"
+    "automation:transport-eta-worker": "tsx src/scripts/run-transport-eta-worker.ts",
+    "automation:analytics-worker": "tsx src/scripts/run-analytics-worker.ts",
+    "automation:analytics-scheduler": "tsx src/scripts/run-analytics-scheduler.ts"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",

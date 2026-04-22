@@ -1,35 +1,38 @@
-# Driver App QA And Acceptance
+# Driver App QA And Acceptance (Code-Truth)
 
-## Happy paths
+## 1. Happy paths
 
-- `GET /transport/route-assignments/me` returns only driver-owned assignments.
-- `POST /transport/trips/ensure-daily` creates or reuses daily trip correctly.
-- start -> locations -> events flow works for owned trip.
-- `GET /transport/trips/:id/students` returns trip-date roster and last event projection.
-- `GET /transport/trips/:id/eta` returns provider-neutral calculation mode.
-- `GET /transport/realtime-token?tripId=...` returns write-capable bootstrap payload for owned trip.
+- `GET /transport/route-assignments/me` يرجع بيانات السائق فقط.
+- `POST /transport/trips/ensure-daily` ينشئ/يعيد استخدام رحلة اليوم.
+- start -> locations -> eta flow يعمل على رحلة مملوكة للسائق.
+- roster/events endpoints تعمل على الرحلة المملوكة.
 
-## Stop attendance flow
+## 2. Attendance flow checks
 
-- `POST /transport/trips/:tripId/stops/:stopId/attendance` accepts valid batch.
-- for `pickup`, `present` is persisted as `boarded`.
-- for `dropoff`, `present` is persisted as `dropped_off`.
-- `absent` persists as `absent`.
-- successful attendance closes stop snapshot.
-- if this is last open stop, trip transitions to `completed`.
+- request valid => success.
+- mapping:
+  - pickup+present => boarded
+  - dropoff+present => dropped_off
+  - absent => absent
+- المحطة تُغلق بعد نجاح attendance.
+- آخر محطة تُكمل الرحلة إلى `completed`.
 
-## Expected validation failures
+## 3. Validation/domain failures
 
-- trip not `started` -> `TRIP_STOP_ATTENDANCE_STATUS_INVALID`.
-- stop outside route -> `TRIP_ATTENDANCE_STOP_ROUTE_MISMATCH`.
-- student assignment not on trip date -> `STUDENT_TRIP_DATE_ASSIGNMENT_NOT_FOUND`.
-- student assignment route mismatch -> `TRIP_STUDENT_ROUTE_MISMATCH`.
-- student assignment stop mismatch -> `TRIP_ATTENDANCE_STOP_ASSIGNMENT_MISMATCH`.
-- stop snapshot missing -> `TRIP_STOP_ETA_SNAPSHOT_NOT_FOUND`.
-- duplicate `studentId` in one request -> validation error.
+- trip ليست `started` => `TRIP_STOP_ATTENDANCE_STATUS_INVALID`.
+- stop خارج route => `TRIP_ATTENDANCE_STOP_ROUTE_MISMATCH`.
+- طالب بلا assignment على تاريخ الرحلة => `STUDENT_TRIP_DATE_ASSIGNMENT_NOT_FOUND`.
+- route mismatch => `TRIP_STUDENT_ROUTE_MISMATCH`.
+- stop mismatch => `TRIP_ATTENDANCE_STOP_ASSIGNMENT_MISMATCH`.
+- missing stop snapshot => `TRIP_STOP_ETA_SNAPSHOT_NOT_FOUND`.
+- duplicate studentId في نفس الطلب => validation error.
 
-## Expected denials
+## 4. Ownership and denies
 
-- driver cannot access admin static management surfaces.
-- driver cannot access admin trip summary endpoint.
-- driver cannot access other driver trips (ownership check).
+- سائق لا يملك الرحلة => `403`.
+- لا وصول لـ admin-only surfaces.
+- لا وصول لـ `/transport/trips/:tripId/summary` (admin-only).
+
+## 5. UX guard
+
+- إذا عادت الرحلة `completed` في أي response، يجب تعطيل/إخفاء زر `End Trip`.
