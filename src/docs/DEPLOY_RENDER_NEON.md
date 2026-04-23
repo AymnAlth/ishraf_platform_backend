@@ -108,3 +108,17 @@ pnpm.cmd deploy:reset-minimal-accounts
   - `/health`
   - `/health/ready`
   - و`/api/v1/*` حسب OpenAPI/Postman.
+## خدمات Analytics الخلفية
+
+حتى تعمل `AI Analytics` على الاستضافة، لا تكفي خدمة `web` وحدها.
+
+يجب تشغيل خدمتين إضافيتين على Render:
+
+- `ishraf-platform-analytics-worker-staging`
+  - الأمر: `pnpm automation:analytics-worker`
+  - المسؤولية: استهلاك `integration_outbox`، تنفيذ `analytics_jobs`، وإنشاء `analytics_snapshots`.
+- `ishraf-platform-analytics-scheduler-staging`
+  - الأمر: `pnpm automation:analytics-scheduler`
+  - المسؤولية: تشغيل scheduled dispatch cycles عندما تكون مفعلة من `system-settings.analytics`.
+
+إذا لم تعمل خدمة `analytics worker` فستبقى jobs في حالة `pending` أو ستعود أسطح القراءة بحالة `404` بسبب غياب `snapshots`.

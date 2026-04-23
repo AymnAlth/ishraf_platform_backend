@@ -254,7 +254,27 @@ export class AnalyticsRepository {
           last_error_message = NULL
         FROM target
         WHERE aj.id = target.id
-        RETURNING ${analyticsJobColumns}
+        RETURNING
+          aj.id::text AS id,
+          aj.analysis_type AS "analysisType",
+          aj.subject_type AS "subjectType",
+          aj.subject_id::text AS "subjectId",
+          aj.academic_year_id::text AS "academicYearId",
+          aj.semester_id::text AS "semesterId",
+          aj.requested_by_user_id::text AS "requestedByUserId",
+          aj.status,
+          aj.primary_provider AS "primaryProvider",
+          aj.fallback_provider AS "fallbackProvider",
+          aj.selected_provider AS "selectedProvider",
+          aj.fallback_used AS "fallbackUsed",
+          aj.input_json AS "inputJson",
+          aj.snapshot_id::text AS "snapshotId",
+          aj.started_at AS "startedAt",
+          aj.completed_at AS "completedAt",
+          aj.last_error_code AS "lastErrorCode",
+          aj.last_error_message AS "lastErrorMessage",
+          aj.created_at AS "createdAt",
+          aj.updated_at AS "updatedAt"
       `,
       [jobId]
     );
@@ -319,10 +339,10 @@ export class AnalyticsRepository {
       `
         UPDATE ${databaseTables.analyticsJobs}
         SET
-          status = $2,
-          last_error_code = $3,
-          last_error_message = $4,
-          completed_at = CASE WHEN $2 = 'dead' THEN NOW() ELSE completed_at END
+          status = $2::varchar(20),
+          last_error_code = $3::varchar(100),
+          last_error_message = $4::text,
+          completed_at = CASE WHEN $2::varchar(20) = 'dead' THEN NOW() ELSE completed_at END
         WHERE id = $1::bigint
       `,
       [jobId, input.status, input.errorCode, input.errorMessage]

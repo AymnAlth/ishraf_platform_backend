@@ -100,7 +100,17 @@ interface TransportRouteAnomalyFeatureInput {
 const clamp = (value: number, min: number, max: number): number =>
   Math.min(max, Math.max(min, value));
 
-const roundToTwo = (value: number): number => Number(value.toFixed(2));
+const roundToTwo = (value: unknown): number => {
+  const numericValue =
+    typeof value === "number"
+      ? value
+      : typeof value === "string"
+        ? Number(value)
+        : 0;
+
+  const safeValue = Number.isFinite(numericValue) ? numericValue : 0;
+  return Number(safeValue.toFixed(2));
+};
 
 const toNumber = (value: unknown): number => {
   if (typeof value === "number") {
