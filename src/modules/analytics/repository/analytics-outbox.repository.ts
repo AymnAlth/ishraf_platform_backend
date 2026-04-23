@@ -106,6 +106,67 @@ export class AnalyticsOutboxRepository {
     return result.rows;
   }
 
+  async releaseStaleProcessingDispatches(
+    staleBefore: Date,
+    queryable: Queryable = db
+  ): Promise<number> {
+    const result = await queryable.query<{ count: string }>(
+      `
+        WITH released AS (
+          UPDATE ${databaseTables.integrationOutbox} io
+          SET
+            status = 'pending',
+            reserved_at = NULL,
+            available_at = NOW()
+          WHERE io.provider_key = $1
+            AND io.event_type = $2
+            AND io.status = 'processing'
+            AND io.reserved_at IS NOT NULL
+            AND io.reserved_at <= $3
+          RETURNING io.id
+        )
+        SELECT COUNT(*)::text AS count
+        FROM released
+      `,
+      [ANALYTICS_OUTBOX_PROVIDER_KEY, ANALYTICS_OUTBOX_EVENT_TYPE, staleBefore]
+    );
+
+    return Number(result.rows[0]?.count ?? "0");
+  }
+
+  async summarizeDispatchQueue(
+    queryable: Queryable = db
+  ): Promise<{
+    pendingDispatches: number;
+    failedDispatches: number;
+    processingDispatches: number;
+  }> {
+    const result = await queryable.query<{
+      pendingDispatches: number;
+      failedDispatches: number;
+      processingDispatches: number;
+    }>(
+      `
+        SELECT
+          COUNT(*) FILTER (WHERE io.status = 'pending')::int AS "pendingDispatches",
+          COUNT(*) FILTER (WHERE io.status = 'failed')::int AS "failedDispatches",
+          COUNT(*) FILTER (WHERE io.status = 'processing')::int AS "processingDispatches"
+        FROM ${databaseTables.integrationOutbox} io
+        WHERE io.provider_key = $1
+          AND io.event_type = $2
+      `,
+      [ANALYTICS_OUTBOX_PROVIDER_KEY, ANALYTICS_OUTBOX_EVENT_TYPE]
+    );
+
+    return (
+      result.rows[0] ?? {
+        pendingDispatches: 0,
+        failedDispatches: 0,
+        processingDispatches: 0
+      }
+    );
+  }
+
   async markDelivered(outboxId: string, queryable: Queryable = db): Promise<void> {
     await queryable.query(
       `

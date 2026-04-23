@@ -58,6 +58,73 @@ export class AnalyticsOutboxProcessorService {
     return claimedItems.length;
   }
 
+  async processAvailableBatches(input?: {
+    batchSize?: number;
+    maxBatches?: number;
+    concurrency?: number;
+    staleProcessingThresholdMinutes?: number;
+  }): Promise<{
+    processing: {
+      batchSize: number;
+      maxBatches: number;
+      concurrency: number;
+      staleProcessingThresholdMinutes: number;
+    };
+    summary: {
+      releasedStaleDispatches: number;
+      processedDispatches: number;
+      processedBatches: number;
+      pendingDispatches: number;
+      failedDispatches: number;
+      processingDispatches: number;
+    };
+  }> {
+    const batchSize = input?.batchSize ?? 5;
+    const maxBatches = input?.maxBatches ?? 3;
+    const concurrency = input?.concurrency ?? 2;
+    const staleProcessingThresholdMinutes = input?.staleProcessingThresholdMinutes ?? 10;
+    const staleBefore = new Date(Date.now() - staleProcessingThresholdMinutes * 60_000);
+    const releasedStaleDispatches =
+      await this.analyticsOutboxRepository.releaseStaleProcessingDispatches(staleBefore);
+
+    let processedDispatches = 0;
+    let processedBatches = 0;
+
+    for (let index = 0; index < maxBatches; index += 1) {
+      const claimed = await this.processNextBatch(batchSize, concurrency);
+
+      if (claimed === 0) {
+        break;
+      }
+
+      processedDispatches += claimed;
+      processedBatches += 1;
+
+      if (claimed < batchSize) {
+        break;
+      }
+    }
+
+    const queueSummary = await this.analyticsOutboxRepository.summarizeDispatchQueue();
+
+    return {
+      processing: {
+        batchSize,
+        maxBatches,
+        concurrency,
+        staleProcessingThresholdMinutes
+      },
+      summary: {
+        releasedStaleDispatches,
+        processedDispatches,
+        processedBatches,
+        pendingDispatches: queueSummary.pendingDispatches,
+        failedDispatches: queueSummary.failedDispatches,
+        processingDispatches: queueSummary.processingDispatches
+      }
+    };
+  }
+
   private async processOne(
     outboxId: string,
     payloadJson: unknown,

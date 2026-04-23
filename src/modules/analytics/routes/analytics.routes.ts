@@ -13,6 +13,7 @@ import {
   analyticsTeacherIdParamsSchema,
   createAdminOperationalDigestJobBodySchema,
   createAnalyticsFeedbackBodySchema,
+  processPendingAnalyticsJobsBodySchema,
   createAnalyticsRecomputeJobBodySchema,
   createAnalyticsRetentionCleanupBodySchema,
   createAnalyticsScheduledDispatchBodySchema,
@@ -73,6 +74,13 @@ export const createAnalyticsRouter = (controller: AnalyticsController): Router =
     ...analyticsPolicies.admin,
     validateRequest({ body: createAnalyticsRecomputeJobBodySchema }),
     asyncHandler((req, res) => controller.createRecomputeJob(req, res))
+  );
+
+  router.post(
+    "/jobs/process-pending",
+    ...analyticsPolicies.admin,
+    validateRequest({ body: processPendingAnalyticsJobsBodySchema }),
+    asyncHandler((req, res) => controller.processPendingJobs(req, res))
   );
 
   router.post(

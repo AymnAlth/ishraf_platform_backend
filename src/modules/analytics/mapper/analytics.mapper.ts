@@ -4,6 +4,7 @@ import type {
   AnalyticsFeedbackListResponseDto,
   AnalyticsFeedbackResponseDto,
   AnalyticsJobDispatchResponseDto,
+  AnalyticsProcessPendingJobsResponseDto,
   AnalyticsSnapshotPublicationDto,
   AnalyticsSnapshotReviewResponseDto,
   AnalyticsJobResponseDto,
@@ -177,6 +178,28 @@ export const toAnalyticsScheduledDispatchResponseDto = (
   },
   breakdown,
   items
+});
+
+export const toAnalyticsProcessPendingJobsResponseDto = (
+  executedAt: Date,
+  processing: {
+    batchSize: number;
+    maxBatches: number;
+    concurrency: number;
+    staleProcessingThresholdMinutes: number;
+  },
+  summary: {
+    releasedStaleDispatches: number;
+    processedDispatches: number;
+    processedBatches: number;
+    pendingDispatches: number;
+    failedDispatches: number;
+    processingDispatches: number;
+  }
+): AnalyticsProcessPendingJobsResponseDto => ({
+  executedAt: executedAt.toISOString(),
+  processing,
+  summary
 });
 
 export const toAnalyticsFeedbackResponseDto = (

@@ -8,6 +8,8 @@ import type { AnalyticsJobExecutionServicePort } from "../../src/modules/analyti
 describe("AnalyticsOutboxProcessorService", () => {
   const outboxRepositoryMock = {
     claimJobExecutionDispatchBatch: vi.fn(),
+    releaseStaleProcessingDispatches: vi.fn(),
+    summarizeDispatchQueue: vi.fn(),
     markDelivered: vi.fn(),
     markFailed: vi.fn()
   };
@@ -30,6 +32,12 @@ describe("AnalyticsOutboxProcessorService", () => {
     Object.values(outboxRepositoryMock).forEach((mockFn) => mockFn.mockReset());
     Object.values(analyticsServiceMock).forEach((mockFn) => mockFn.mockReset());
     vi.mocked(outboxRepositoryMock.claimJobExecutionDispatchBatch).mockResolvedValue([]);
+    vi.mocked(outboxRepositoryMock.releaseStaleProcessingDispatches).mockResolvedValue(0);
+    vi.mocked(outboxRepositoryMock.summarizeDispatchQueue).mockResolvedValue({
+      pendingDispatches: 0,
+      failedDispatches: 0,
+      processingDispatches: 0
+    });
     vi.mocked(outboxRepositoryMock.markDelivered).mockResolvedValue(undefined);
     vi.mocked(outboxRepositoryMock.markFailed).mockResolvedValue(undefined);
     vi.mocked(analyticsServiceMock.executeJob).mockResolvedValue(true);
@@ -119,6 +127,73 @@ describe("AnalyticsOutboxProcessorService", () => {
       errorMessage: "Outbox payload does not match the analytics job execution contract"
     });
     expect(analyticsServiceMock.markJobFailure).not.toHaveBeenCalled();
+  });
+
+  it("releases stale processing rows and drains available batches on demand", async () => {
+    vi.mocked(outboxRepositoryMock.claimJobExecutionDispatchBatch)
+      .mockResolvedValueOnce([
+        {
+          id: "200",
+          providerKey: "analytics",
+          eventType: "analytics_job_execute",
+          aggregateType: "analytics_job",
+          aggregateId: "301",
+          status: "processing",
+          payloadJson: {
+            jobId: "301"
+          },
+          headersJson: {},
+          idempotencyKey: "analytics:job-execute:301",
+          availableAt: new Date("2026-04-22T10:00:00.000Z"),
+          reservedAt: new Date("2026-04-22T10:00:01.000Z"),
+          processedAt: null,
+          attemptCount: 0,
+          maxAttempts: 10,
+          lastErrorCode: null,
+          lastErrorMessage: null,
+          createdByUserId: null,
+          requestId: null,
+          createdAt: new Date("2026-04-22T10:00:00.000Z"),
+          updatedAt: new Date("2026-04-22T10:00:01.000Z")
+        }
+      ])
+      .mockResolvedValueOnce([]);
+    vi.mocked(outboxRepositoryMock.releaseStaleProcessingDispatches).mockResolvedValue(1);
+    vi.mocked(outboxRepositoryMock.summarizeDispatchQueue).mockResolvedValue({
+      pendingDispatches: 2,
+      failedDispatches: 1,
+      processingDispatches: 0
+    });
+
+    const service = new AnalyticsOutboxProcessorService(
+      outboxRepositoryMock as unknown as AnalyticsOutboxRepository,
+      analyticsServiceMock as unknown as AnalyticsJobExecutionServicePort
+    );
+
+    const response = await service.processAvailableBatches({
+      batchSize: 2,
+      maxBatches: 3,
+      concurrency: 1,
+      staleProcessingThresholdMinutes: 15
+    });
+
+    expect(outboxRepositoryMock.releaseStaleProcessingDispatches).toHaveBeenCalledWith(
+      expect.any(Date)
+    );
+    expect(response.processing).toEqual({
+      batchSize: 2,
+      maxBatches: 3,
+      concurrency: 1,
+      staleProcessingThresholdMinutes: 15
+    });
+    expect(response.summary).toEqual({
+      releasedStaleDispatches: 1,
+      processedDispatches: 1,
+      processedBatches: 1,
+      pendingDispatches: 2,
+      failedDispatches: 1,
+      processingDispatches: 0
+    });
   });
 
   it("retries with backoff and marks the analytics job failed or dead based on attempts", async () => {

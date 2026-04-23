@@ -63,6 +63,14 @@ export const createTransportRouteAnomalyJobBodySchema = z
 
 export const createAnalyticsScheduledDispatchBodySchema = z.object({}).strict();
 export const createAnalyticsRetentionCleanupBodySchema = z.object({}).strict();
+export const processPendingAnalyticsJobsBodySchema = z
+  .object({
+    batchSize: z.number().int().min(1).max(25).optional().default(5),
+    maxBatches: z.number().int().min(1).max(10).optional().default(3),
+    concurrency: z.number().int().min(1).max(5).optional().default(2),
+    staleProcessingThresholdMinutes: z.number().int().min(1).max(1440).optional().default(10)
+  })
+  .strict();
 
 export const createAnalyticsRecomputeJobBodySchema = z
   .object({

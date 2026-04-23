@@ -5,6 +5,7 @@ import type { AuthenticatedUser } from "../../../common/types/auth.types";
 import type {
   AnalyticsClassIdParamsDto,
   AnalyticsJobIdParamsDto,
+  ProcessPendingAnalyticsJobsRequestDto,
   AnalyticsRouteIdParamsDto,
   AnalyticsSnapshotIdParamsDto,
   AnalyticsStudentIdParamsDto,
@@ -19,12 +20,16 @@ import type {
   CreateTeacherComplianceJobRequestDto,
   CreateTransportRouteAnomalyJobRequestDto
 } from "../dto/analytics.dto";
+import type { AnalyticsOutboxProcessorService } from "../service/analytics-outbox-processor.service";
 import type { AnalyticsService } from "../service/analytics.service";
 
 const assertAuthUser = (req: Request): AuthenticatedUser => req.authUser as AuthenticatedUser;
 
 export class AnalyticsController {
-  constructor(private readonly analyticsService: AnalyticsService) {}
+  constructor(
+    private readonly analyticsService: AnalyticsService,
+    private readonly analyticsOutboxProcessorService: AnalyticsOutboxProcessorService
+  ) {}
 
   async createStudentRiskJob(req: Request, res: Response): Promise<void> {
     const payload = req.validated?.body as CreateStudentRiskJobRequestDto;
@@ -112,6 +117,18 @@ export class AnalyticsController {
     const response = await this.analyticsService.createRecomputeJobs(assertAuthUser(req), payload);
     res.status(200).json(
       buildSuccessResponse("Analytics recompute jobs dispatched successfully", response)
+    );
+  }
+
+  async processPendingJobs(req: Request, res: Response): Promise<void> {
+    const payload = (req.validated?.body ?? {}) as ProcessPendingAnalyticsJobsRequestDto;
+    const response = await this.analyticsOutboxProcessorService.processAvailableBatches(payload);
+    res.status(200).json(
+      buildSuccessResponse("Pending analytics jobs processed successfully", {
+        executedAt: new Date().toISOString(),
+        processing: response.processing,
+        summary: response.summary
+      })
     );
   }
 

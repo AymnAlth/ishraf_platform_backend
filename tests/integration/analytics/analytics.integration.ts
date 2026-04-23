@@ -706,6 +706,47 @@ export const registerAnalyticsIntegrationTests = (
       expect(outboxRows.rows[0]?.payload_json.jobId).toBe(createResponse.body.data.job.jobId);
     });
 
+    it("processes pending analytics jobs on demand through the web service", async () => {
+      const adminLogin = await context.loginAsAdmin();
+
+      await enableAnalytics(context, adminLogin.accessToken);
+
+      const createResponse = await request(context.app)
+        .post("/api/v1/analytics/jobs/student-risk")
+        .set("Authorization", `Bearer ${adminLogin.accessToken}`)
+        .send({ studentId: "1" });
+      const processResponse = await request(context.app)
+        .post("/api/v1/analytics/jobs/process-pending")
+        .set("Authorization", `Bearer ${adminLogin.accessToken}`)
+        .send({
+          batchSize: 2,
+          maxBatches: 2,
+          concurrency: 1,
+          staleProcessingThresholdMinutes: 10
+        });
+      const jobResponse = await request(context.app)
+        .get(`/api/v1/analytics/jobs/${createResponse.body.data.job.jobId as string}`)
+        .set("Authorization", `Bearer ${adminLogin.accessToken}`);
+      const summaryResponse = await request(context.app)
+        .get("/api/v1/analytics/students/1/risk-summary")
+        .set("Authorization", `Bearer ${adminLogin.accessToken}`);
+
+      expect(createResponse.status).toBe(201);
+      expect(processResponse.status).toBe(200);
+      expect(processResponse.body.data.processing).toMatchObject({
+        batchSize: 2,
+        maxBatches: 2,
+        concurrency: 1,
+        staleProcessingThresholdMinutes: 10
+      });
+      expect(processResponse.body.data.summary.processedDispatches).toBeGreaterThanOrEqual(1);
+      expect(jobResponse.status).toBe(200);
+      expect(jobResponse.body.data.status).toBe("completed");
+      expect(jobResponse.body.data.snapshotId).toEqual(expect.any(String));
+      expect(summaryResponse.status).toBe(200);
+      expect(summaryResponse.body.data.student.studentId).toBe("1");
+    });
+
     it("reuses an active teacher compliance job instead of creating duplicates and resolves teacher user ids", async () => {
       const adminLogin = await context.loginAsAdmin();
 

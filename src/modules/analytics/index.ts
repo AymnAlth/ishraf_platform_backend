@@ -41,7 +41,10 @@ export const analyticsOutboxProcessorService = new AnalyticsOutboxProcessorServi
   analyticsService
 );
 
-const analyticsController = new AnalyticsController(analyticsService);
+const analyticsController = new AnalyticsController(
+  analyticsService,
+  analyticsOutboxProcessorService
+);
 
 export const analyticsModule: AppModule = {
   name: "analytics",

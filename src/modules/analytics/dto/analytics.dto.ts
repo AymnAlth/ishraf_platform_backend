@@ -68,6 +68,13 @@ export interface CreateAnalyticsRecomputeJobRequestDto {
   routeIds?: string[];
 }
 
+export interface ProcessPendingAnalyticsJobsRequestDto {
+  batchSize?: number;
+  maxBatches?: number;
+  concurrency?: number;
+  staleProcessingThresholdMinutes?: number;
+}
+
 export interface CreateAnalyticsRetentionCleanupRequestDto {}
 
 export interface CreateAnalyticsFeedbackRequestDto {
@@ -187,6 +194,24 @@ export interface AnalyticsScheduledDispatchResponseDto {
   };
   breakdown: AnalyticsScheduledDispatchBreakdownItemDto[];
   items: AnalyticsJobDispatchResponseDto[];
+}
+
+export interface AnalyticsProcessPendingJobsResponseDto {
+  executedAt: string;
+  processing: {
+    batchSize: number;
+    maxBatches: number;
+    concurrency: number;
+    staleProcessingThresholdMinutes: number;
+  };
+  summary: {
+    releasedStaleDispatches: number;
+    processedDispatches: number;
+    processedBatches: number;
+    pendingDispatches: number;
+    failedDispatches: number;
+    processingDispatches: number;
+  };
 }
 
 export interface AnalyticsFeedbackResponseDto {
