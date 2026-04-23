@@ -1309,14 +1309,15 @@ export class AnalyticsRepository {
   ): Promise<AnalyticsStudentSubjectRow[]> {
     const result = await queryable.query<AnalyticsStudentSubjectRow>(
       `
-        SELECT DISTINCT
+        SELECT
           st.id::text AS "studentId",
           st.full_name AS "fullName"
         FROM ${databaseTables.students} st
         JOIN ${databaseTables.studentAcademicEnrollments} sae ON sae.student_id = st.id
         WHERE sae.academic_year_id = $1::bigint
           AND st.status = 'active'
-        ORDER BY st.full_name ASC, st.id ASC
+        GROUP BY st.id, st.full_name
+        ORDER BY "fullName" ASC, "studentId" ASC
       `,
       [academicYearId]
     );
