@@ -41,6 +41,7 @@ import {
   toUnregisterCommunicationDeviceResponseDto
 } from "../mapper/communication.mapper";
 import type { CommunicationRepository } from "../repository/communication.repository";
+import { CommunicationRecipientScopeService } from "./communication-recipient-scope.service";
 import type { CommunicationDeviceSubscriptionKey } from "../types/communication.types";
 
 type CommunicationTransactionRunner = <T>(
@@ -168,7 +169,10 @@ const defaultRecipientsQuery = (): AvailableRecipientsQueryDto => ({
 export class CommunicationService {
   constructor(
     private readonly communicationRepository: CommunicationRepository,
-    private readonly withTransaction: CommunicationTransactionRunner = defaultTransactionRunner
+    private readonly withTransaction: CommunicationTransactionRunner = defaultTransactionRunner,
+    private readonly communicationRecipientScopeService: CommunicationRecipientScopeService = new CommunicationRecipientScopeService(
+      communicationRepository
+    )
   ) {}
 
   private async resolveAudience(
@@ -242,6 +246,17 @@ export class CommunicationService {
     );
   }
 
+  async listParentContactRecipients(
+    authUser: AuthenticatedUser,
+    query: AvailableRecipientsQueryDto = defaultRecipientsQuery()
+  ): Promise<PaginatedData<AvailableRecipientResponseDto>> {
+    return this.communicationRecipientScopeService.listRecipientsForScope(
+      "parent_contacts",
+      authUser,
+      query
+    );
+  }
+
   async sendMessage(
     authUser: AuthenticatedUser,
     payload: SendMessageRequestDto
@@ -254,6 +269,7 @@ export class CommunicationService {
       await this.communicationRepository.findUserById(payload.receiverUserId),
       "Receiver user"
     );
+    await this.assertParentRecipientAllowed(authUser, payload.receiverUserId);
 
     const messageId = await this.communicationRepository.createMessage({
       senderUserId: authUser.userId,
@@ -349,6 +365,7 @@ export class CommunicationService {
     }
 
     assertFound(await this.communicationRepository.findUserById(otherUserId), "Conversation user");
+    await this.assertParentRecipientAllowed(authUser, otherUserId);
 
     const { rows, totalItems } = normalizePaginatedRows(
       await this.communicationRepository.listConversationMessages(
@@ -686,5 +703,22 @@ export class CommunicationService {
 
       return toUnregisterCommunicationDeviceResponseDto(device);
     });
+  }
+
+  private async assertParentRecipientAllowed(
+    authUser: AuthenticatedUser,
+    recipientUserId: string,
+    queryable?: Queryable
+  ): Promise<void> {
+    if (authUser.role !== "parent") {
+      return;
+    }
+
+    await this.communicationRecipientScopeService.assertRecipientAllowedForScope(
+      "parent_contacts",
+      authUser,
+      recipientUserId,
+      queryable
+    );
   }
 }

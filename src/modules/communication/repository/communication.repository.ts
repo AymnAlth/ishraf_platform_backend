@@ -61,6 +61,110 @@ const userSelect = `
   FROM ${databaseTables.users}
 `;
 
+const parentScopedRecipientsCte = `
+  WITH linked_students AS (
+    SELECT DISTINCT sp.student_id
+    FROM ${databaseTables.studentParents} sp
+    WHERE sp.parent_id = $1
+  ),
+  current_student_classes AS (
+    SELECT DISTINCT
+      sp.student_id,
+      sp.class_id,
+      sp.academic_year_id
+    FROM linked_students ls
+    JOIN ${databaseViews.studentProfiles} sp
+      ON sp.student_id = ls.student_id
+  ),
+  admin_candidates AS (
+    SELECT
+      u.id::text AS id,
+      u.full_name AS "fullName",
+      u.email,
+      u.phone,
+      u.role,
+      u.is_active AS "isActive"
+    FROM ${databaseTables.users} u
+    WHERE u.is_active = true
+      AND u.role = 'admin'
+  ),
+  driver_candidates AS (
+    SELECT DISTINCT
+      u.id::text AS id,
+      u.full_name AS "fullName",
+      u.email,
+      u.phone,
+      u.role,
+      u.is_active AS "isActive"
+    FROM linked_students ls
+    JOIN ${databaseTables.studentBusAssignments} sba
+      ON sba.student_id = ls.student_id
+     AND sba.is_active = true
+     AND sba.start_date <= CURRENT_DATE
+     AND (sba.end_date IS NULL OR sba.end_date >= CURRENT_DATE)
+    JOIN ${databaseTables.transportRouteAssignments} tra
+      ON tra.route_id = sba.route_id
+     AND tra.is_active = true
+     AND tra.start_date <= CURRENT_DATE
+     AND (tra.end_date IS NULL OR tra.end_date >= CURRENT_DATE)
+    JOIN ${databaseTables.buses} b
+      ON b.id = tra.bus_id
+    JOIN ${databaseTables.drivers} d
+      ON d.id = b.driver_id
+    JOIN ${databaseTables.users} u
+      ON u.id = d.user_id
+    WHERE u.is_active = true
+      AND u.role = 'driver'
+  ),
+  teacher_candidates AS (
+    SELECT DISTINCT
+      u.id::text AS id,
+      u.full_name AS "fullName",
+      u.email,
+      u.phone,
+      u.role,
+      u.is_active AS "isActive"
+    FROM current_student_classes csc
+    JOIN ${databaseTables.teacherClasses} tc
+      ON tc.class_id = csc.class_id
+     AND tc.academic_year_id = csc.academic_year_id
+    JOIN ${databaseTables.teachers} t
+      ON t.id = tc.teacher_id
+    JOIN ${databaseTables.users} u
+      ON u.id = t.user_id
+    WHERE u.is_active = true
+      AND u.role = 'teacher'
+  ),
+  supervisor_candidates AS (
+    SELECT DISTINCT
+      u.id::text AS id,
+      u.full_name AS "fullName",
+      u.email,
+      u.phone,
+      u.role,
+      u.is_active AS "isActive"
+    FROM current_student_classes csc
+    JOIN ${databaseTables.supervisorClasses} sc
+      ON sc.class_id = csc.class_id
+     AND sc.academic_year_id = csc.academic_year_id
+    JOIN ${databaseTables.supervisors} s
+      ON s.id = sc.supervisor_id
+    JOIN ${databaseTables.users} u
+      ON u.id = s.user_id
+    WHERE u.is_active = true
+      AND u.role = 'supervisor'
+  ),
+  scoped_recipients AS (
+    SELECT * FROM admin_candidates
+    UNION
+    SELECT * FROM driver_candidates
+    UNION
+    SELECT * FROM teacher_candidates
+    UNION
+    SELECT * FROM supervisor_candidates
+  )
+`;
+
 const messageSelect = `
   SELECT
     message_id AS id,
@@ -239,6 +343,62 @@ export class CommunicationRepository {
     };
   }
 
+  async listParentScopedRecipients(
+    parentId: string,
+    filters: RecipientListQuery,
+    queryable: Queryable = db
+  ): Promise<PaginatedQueryResult<CommunicationUserRow>> {
+    const conditions: string[] = [];
+    const values: unknown[] = [parentId];
+
+    if (filters.role) {
+      values.push(filters.role);
+      conditions.push(`role = $${values.length}`);
+    }
+
+    if (filters.search) {
+      values.push(`%${filters.search}%`);
+      conditions.push(
+        `("fullName" ILIKE $${values.length} OR COALESCE(email, '') ILIKE $${values.length} OR COALESCE(phone, '') ILIKE $${values.length})`
+      );
+    }
+
+    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+    const countResult = await queryable.query<{ total: string }>(
+      `
+        ${parentScopedRecipientsCte}
+        SELECT COUNT(*)::text AS total
+        FROM scoped_recipients
+        ${whereClause}
+      `,
+      values
+    );
+    const totalItems = Number(countResult.rows[0]?.total ?? 0);
+    const pagination = buildPaginationWindow(filters.page, filters.limit);
+    const result = await queryable.query<CommunicationUserRow>(
+      `
+        ${parentScopedRecipientsCte}
+        SELECT
+          id,
+          "fullName",
+          email,
+          phone,
+          role,
+          "isActive"
+        FROM scoped_recipients
+        ${whereClause}
+        ORDER BY "fullName" ASC, id ASC
+        ${buildLimitOffsetClause(values.length + 1)}
+      `,
+      [...values, filters.limit, pagination.offset]
+    );
+
+    return {
+      rows: result.rows,
+      totalItems
+    };
+  }
+
   async listAvailableRecipientIdsByUserIds(
     currentUserId: string,
     userIds: string[],
@@ -258,6 +418,29 @@ export class CommunicationRepository {
         ORDER BY id::text ASC
       `,
       [currentUserId, userIds]
+    );
+
+    return result.rows.map((row) => row.id);
+  }
+
+  async listParentScopedRecipientIdsByUserIds(
+    parentId: string,
+    userIds: string[],
+    queryable: Queryable = db
+  ): Promise<string[]> {
+    if (userIds.length === 0) {
+      return [];
+    }
+
+    const result = await queryable.query<{ id: string }>(
+      `
+        ${parentScopedRecipientsCte}
+        SELECT DISTINCT id
+        FROM scoped_recipients
+        WHERE id = ANY($2::text[])
+        ORDER BY id ASC
+      `,
+      [parentId, userIds]
     );
 
     return result.rows.map((row) => row.id);

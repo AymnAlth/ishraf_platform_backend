@@ -59,6 +59,13 @@ export const createCommunicationRouter = (
     asyncHandler((req, res) => controller.listAvailableRecipients(req, res))
   );
 
+  router.get(
+    "/recipients/parent-contacts",
+    ...communicationPolicies.messages,
+    validateRequest({ query: availableRecipientsQuerySchema }),
+    asyncHandler((req, res) => controller.listParentContactRecipients(req, res))
+  );
+
   router.post(
     "/messages",
     ...communicationPolicies.messages,

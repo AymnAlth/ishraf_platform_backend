@@ -38,6 +38,17 @@ export class CommunicationController {
       .json(buildSuccessResponse("Available recipients returned successfully", response));
   }
 
+  async listParentContactRecipients(req: Request, res: Response): Promise<void> {
+    const query = req.validated?.query as AvailableRecipientsQueryDto;
+    const response = await this.communicationService.listParentContactRecipients(
+      assertAuthUser(req),
+      query
+    );
+    res
+      .status(200)
+      .json(buildSuccessResponse("Parent contact recipients returned successfully", response));
+  }
+
   async sendMessage(req: Request, res: Response): Promise<void> {
     const payload = req.validated?.body as SendMessageRequestDto;
     const response = await this.communicationService.sendMessage(assertAuthUser(req), payload);

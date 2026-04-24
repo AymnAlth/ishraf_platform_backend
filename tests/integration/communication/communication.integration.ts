@@ -8,6 +8,14 @@ import { SEEDED_DRIVER, SEEDED_SUPERVISOR } from "../../setup/seed-test-data";
 export const registerCommunicationIntegrationTests = (
   context: IntegrationTestContext
 ): void => {
+  const toAccessToken = (response: { status: number; body: { data?: { tokens?: { accessToken: string } } } }): string => {
+    if (response.status !== 200 || !response.body.data?.tokens?.accessToken) {
+      throw new Error(`Parent login failed with status ${response.status}`);
+    }
+
+    return response.body.data.tokens.accessToken;
+  };
+
   describe("Communication", () => {
     it("sends direct messages and exposes inbox, sent, and conversation views privately", async () => {
       const teacherLogin = await context.loginAsTeacher();
@@ -399,6 +407,100 @@ export const registerCommunicationIntegrationTests = (
         role: "supervisor"
       });
     });
+
+    it("returns only parent-scoped contacts and enforces the same scope for direct messages", async () => {
+      const adminLogin = await context.loginAsAdmin();
+      const parentAccount = await context.createAdditionalParentAccount();
+      const additionalTeacher = await context.createAdditionalTeacher();
+
+      await context.pool.query(
+        `
+          INSERT INTO student_parents (
+            student_id,
+            parent_id,
+            relation_type,
+            is_primary
+          )
+          VALUES ($1, $2, $3, $4)
+        `,
+        ["1", parentAccount.parentId, "mother", false]
+      );
+
+      await context.seedTeacherAssignment("1", "1", "1", "1");
+      await context.seedSupervisorAssignment("1", "1", "1");
+
+      const routeResponse = await context.createRoute(adminLogin.accessToken, {
+        routeName: "Parent Contact Route"
+      });
+      const routeId = routeResponse.body.data.id as string;
+      const stopResponse = await context.createRouteStop(adminLogin.accessToken, routeId, {
+        stopName: "Parent Contact Stop"
+      });
+      const stopId = stopResponse.body.data.id as string;
+      const busResponse = await context.createBus(adminLogin.accessToken, {
+        plateNumber: "BUS-PC-001"
+      });
+      const busId = busResponse.body.data.id as string;
+
+      await context.createRouteAssignment(adminLogin.accessToken, {
+        busId,
+        routeId,
+        startDate: "2026-03-13"
+      });
+      await context.createAssignment(adminLogin.accessToken, {
+        studentId: "1",
+        routeId,
+        stopId,
+        startDate: "2026-03-13"
+      });
+
+      const parentAccessToken = toAccessToken(
+        await context.login(parentAccount.email, parentAccount.password)
+      );
+
+      const recipientsResponse = await request(context.app)
+        .get("/api/v1/communication/recipients/parent-contacts")
+        .set("Authorization", `Bearer ${parentAccessToken}`);
+      const allowedMessageResponse = await request(context.app)
+        .post("/api/v1/communication/messages")
+        .set("Authorization", `Bearer ${parentAccessToken}`)
+        .send({
+          receiverUserId: AUTH_TEST_FIXTURES.activePhoneUser.id,
+          messageBody: "Can we review this week's progress?"
+        });
+      const blockedMessageResponse = await request(context.app)
+        .post("/api/v1/communication/messages")
+        .set("Authorization", `Bearer ${parentAccessToken}`)
+        .send({
+          receiverUserId: additionalTeacher.userId,
+          messageBody: "This teacher is not assigned to my child"
+        });
+
+      expect(recipientsResponse.status).toBe(200);
+      expect(
+        recipientsResponse.body.data.items.map((item: { userId: string }) => item.userId).sort()
+      ).toEqual(
+        [
+          AUTH_TEST_FIXTURES.activeEmailUser.id,
+          AUTH_TEST_FIXTURES.activePhoneUser.id,
+          SEEDED_DRIVER.id,
+          SEEDED_SUPERVISOR.id
+        ].sort()
+      );
+      expect(
+        recipientsResponse.body.data.items.some(
+          (item: { userId: string }) => item.userId === additionalTeacher.userId
+        )
+      ).toBe(false);
+      expect(
+        recipientsResponse.body.data.items.some(
+          (item: { role: string }) => item.role === "parent"
+        )
+      ).toBe(false);
+      expect(allowedMessageResponse.status).toBe(201);
+      expect(blockedMessageResponse.status).toBe(403);
+    });
+
     it("registers, updates, and unregisters FCM devices for the authenticated user", async () => {
       const teacherLogin = await context.loginAsTeacher();
       const driverLogin = await context.loginAsDriver();

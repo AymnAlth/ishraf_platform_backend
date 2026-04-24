@@ -6,6 +6,7 @@ import { NotFoundError } from "../../src/common/errors/not-found-error";
 import { ValidationError } from "../../src/common/errors/validation-error";
 import type { AuthenticatedUser } from "../../src/common/types/auth.types";
 import type { CommunicationRepository } from "../../src/modules/communication/repository/communication.repository";
+import type { CommunicationRecipientScopeService } from "../../src/modules/communication/service/communication-recipient-scope.service";
 import { CommunicationService } from "../../src/modules/communication/service/communication.service";
 import type {
   AnnouncementRow,
@@ -28,6 +29,13 @@ const teacherAuthUser: AuthenticatedUser = {
   isActive: true
 };
 
+const parentAuthUser: AuthenticatedUser = {
+  userId: "1006",
+  role: "parent",
+  email: "parent@example.com",
+  isActive: true
+};
+
 const userRow = (
   overrides: Partial<CommunicationUserRow> = {}
 ): CommunicationUserRow => ({
@@ -38,6 +46,24 @@ const userRow = (
   role: "teacher",
   isActive: true,
   ...overrides
+});
+
+const toPaginatedRecipients = (rows: CommunicationUserRow[]) => ({
+  items: rows.map((row) => ({
+    userId: row.id,
+    fullName: row.fullName,
+    role: row.role,
+    phone: row.phone,
+    email: row.email
+  })),
+  pagination: {
+    page: 1,
+    limit: 20,
+    totalItems: rows.length,
+    totalPages: rows.length > 0 ? 1 : 0,
+    hasNextPage: false,
+    hasPreviousPage: false
+  }
 });
 
 const messageRow = (overrides: Partial<MessageRow> = {}): MessageRow => ({
@@ -87,6 +113,8 @@ const notificationRow = (
 describe("CommunicationService", () => {
   const repositoryMock = {
     listAvailableRecipients: vi.fn(),
+    listParentScopedRecipients: vi.fn(),
+    listParentScopedRecipientIdsByUserIds: vi.fn(),
     listAvailableRecipientIdsByUserIds: vi.fn(),
     listAvailableRecipientIdsByRoles: vi.fn(),
     findUserById: vi.fn(),
@@ -110,6 +138,10 @@ describe("CommunicationService", () => {
     findNotificationSummaryByUserId: vi.fn(),
     markNotificationAsRead: vi.fn()
   };
+  const recipientScopeServiceMock = {
+    listRecipientsForScope: vi.fn(),
+    assertRecipientAllowedForScope: vi.fn()
+  };
 
   let communicationService: CommunicationService;
   let withTransaction: ReturnType<typeof vi.fn>;
@@ -122,10 +154,12 @@ describe("CommunicationService", () => {
     withTransaction = vi.fn(async (callback) => callback(transactionQueryable));
     communicationService = new CommunicationService(
       repositoryMock as unknown as CommunicationRepository,
-      withTransaction
+      withTransaction,
+      recipientScopeServiceMock as unknown as CommunicationRecipientScopeService
     );
 
     Object.values(repositoryMock).forEach((mockFn) => mockFn.mockReset());
+    Object.values(recipientScopeServiceMock).forEach((mockFn) => mockFn.mockReset());
   });
 
   it("sends direct messages to another user", async () => {
@@ -179,6 +213,37 @@ describe("CommunicationService", () => {
     });
   });
 
+  it("returns parent contact recipients through the scoped audience policy", async () => {
+    vi.mocked(recipientScopeServiceMock.listRecipientsForScope).mockResolvedValue(
+      toPaginatedRecipients([
+        userRow({
+          id: "1004",
+          fullName: "Driver User",
+          role: "driver",
+          email: "driver@example.com"
+        })
+      ])
+    );
+
+    const response = await communicationService.listParentContactRecipients(parentAuthUser, {
+      page: 1,
+      limit: 20,
+      search: "Driver"
+    });
+
+    expect(recipientScopeServiceMock.listRecipientsForScope).toHaveBeenCalledWith(
+      "parent_contacts",
+      parentAuthUser,
+      {
+        page: 1,
+        limit: 20,
+        search: "Driver"
+      }
+    );
+    expect(response.items).toHaveLength(1);
+    expect(response.items[0].role).toBe("driver");
+  });
+
   it("rejects self-messaging and self-conversations", async () => {
     await expect(
       communicationService.sendMessage(adminAuthUser, {
@@ -190,6 +255,39 @@ describe("CommunicationService", () => {
     await expect(
       communicationService.getConversation(adminAuthUser, "1001")
     ).rejects.toBeInstanceOf(ValidationError);
+  });
+
+  it("blocks parents from messaging or opening conversations with disallowed recipients", async () => {
+    vi.mocked(repositoryMock.findUserById).mockResolvedValue(
+      userRow({
+        id: "2001",
+        fullName: "Other Teacher",
+        role: "teacher"
+      })
+    );
+    vi.mocked(recipientScopeServiceMock.assertRecipientAllowedForScope).mockRejectedValue(
+      new ForbiddenError("You do not have permission to contact this user")
+    );
+
+    await expect(
+      communicationService.sendMessage(parentAuthUser, {
+        receiverUserId: "2001",
+        messageBody: "Hello"
+      })
+    ).rejects.toBeInstanceOf(ForbiddenError);
+
+    await expect(
+      communicationService.getConversation(parentAuthUser, "2001", {
+        page: 1,
+        limit: 20,
+        sortBy: "sentAt",
+        sortOrder: "asc"
+      })
+    ).rejects.toBeInstanceOf(ForbiddenError);
+
+    expect(recipientScopeServiceMock.assertRecipientAllowedForScope).toHaveBeenCalledTimes(2);
+    expect(repositoryMock.createMessage).not.toHaveBeenCalled();
+    expect(repositoryMock.listConversationMessages).not.toHaveBeenCalled();
   });
 
   it("creates bulk messages with deduped recipients and returns a delivery summary", async () => {
