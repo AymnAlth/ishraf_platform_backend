@@ -24,14 +24,24 @@ const chunkArray = <T>(items: T[], size: number): T[][] => {
   return chunks;
 };
 
-const stringifyDataValue = (
-  value: string | number | boolean | null | undefined
-): string | undefined => {
+const stringifyDataValue = (value: unknown): string | undefined => {
   if (value === undefined || value === null) {
     return undefined;
   }
 
-  return typeof value === "string" ? value : String(value);
+  if (typeof value === "string") {
+    return value;
+  }
+
+  if (typeof value === "number" || typeof value === "boolean") {
+    return String(value);
+  }
+
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return undefined;
+  }
 };
 
 const normalizeDataPayload = (
@@ -114,3 +124,4 @@ export class FirebasePushService {
 }
 
 export const firebasePushService = new FirebasePushService();
+

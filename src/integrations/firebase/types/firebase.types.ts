@@ -2,7 +2,7 @@ export interface FirebasePushMessageInput {
   tokens: string[];
   title: string;
   body: string;
-  data: Record<string, string | number | boolean | null | undefined>;
+  data: Record<string, unknown>;
 }
 
 export interface FirebasePushMessageResult {
@@ -31,3 +31,4 @@ export interface FirebaseTransportRealtimeTokenResult {
   access: FirebaseTransportRealtimeAccess;
   refreshAfterSeconds: number;
 }
+
