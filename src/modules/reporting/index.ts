@@ -6,7 +6,12 @@ import { createReportingRouter } from "./routes/reporting.routes";
 import { ReportingService } from "./service/reporting.service";
 
 const reportingRepository = new ReportingRepository();
-const reportingService = new ReportingService(reportingRepository, undefined, undefined, undefined, transportEtaService);
+const reportingService = new ReportingService(
+  reportingRepository,
+  undefined,
+  undefined,
+  transportEtaService
+);
 const reportingController = new ReportingController(reportingService);
 
 export const reportingModule: AppModule = {

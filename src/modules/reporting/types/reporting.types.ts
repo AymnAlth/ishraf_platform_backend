@@ -86,6 +86,34 @@ export interface StudentBehaviorSummaryRow {
   negativeSeverityTotal: number | string;
 }
 
+export interface StudentProfileAssessmentSubjectSnapshotRow {
+  subjectId: string;
+  subjectName: string;
+  totalAssessments: number | string;
+  totalScore: number | string | null;
+  totalMaxScore: number | string | null;
+  overallPercentage: number | string | null;
+}
+
+export interface StudentProfileSummarySnapshotRow {
+  totalSessions: number | string;
+  presentCount: number | string;
+  absentCount: number | string;
+  lateCount: number | string;
+  excusedCount: number | string;
+  attendancePercentage: number | string | null;
+  totalBehaviorRecords: number | string;
+  positiveCount: number | string;
+  negativeCount: number | string;
+  negativeSeverityTotal: number | string;
+  assessmentSubjects: StudentProfileAssessmentSubjectSnapshotRow[] | null;
+}
+
+export interface StudentProfileSummarySnapshotByStudentRow
+  extends StudentProfileSummarySnapshotRow {
+  studentId: string;
+}
+
 export interface ParentProfileRow {
   parentId: string;
   userId: string;
@@ -195,23 +223,8 @@ export interface RecentAssessmentRow {
   subjectId: string;
   subjectName: string;
   subjectCode: string;
-  teacherId: string;
-  teacherUserId: string;
-  teacherFullName: string;
-  teacherEmail: string | null;
-  teacherPhone: string | null;
-  academicYearId: string;
-  academicYearName: string;
-  semesterId: string;
-  semesterName: string;
   title: string;
-  description: string | null;
-  maxScore: number | string;
-  weight: number | string;
   assessmentDate: Date | string;
-  isPublished: boolean;
-  createdAt: Date;
-  updatedAt: Date;
   gradedCount: number;
   expectedCount: number;
   averageScore: number | string | null;
@@ -227,14 +240,6 @@ export interface RecentBehaviorRecordRow {
   behaviorCode: string;
   behaviorName: string;
   behaviorType: "positive" | "negative";
-  teacherId: string | null;
-  teacherFullName: string | null;
-  supervisorId: string | null;
-  supervisorFullName: string | null;
-  academicYearId: string;
-  academicYearName: string;
-  semesterId: string;
-  semesterName: string;
   description: string | null;
   severity: number;
   behaviorDate: Date | string;

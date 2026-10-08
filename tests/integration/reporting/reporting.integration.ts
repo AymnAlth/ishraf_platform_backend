@@ -154,9 +154,15 @@ export const registerReportingIntegrationTests = (
 
       expect(profileResponse.status).toBe(200);
       expect(profileResponse.body.data.student.id).toBe("1");
+      expect(profileResponse.body.data.attendanceSummary.totalSessions).toBe(0);
+      expect(profileResponse.body.data.assessmentSummary.totalAssessments).toBe(0);
+      expect(profileResponse.body.data.behaviorSummary.totalBehaviorRecords).toBe(0);
       expect(attendanceResponse.status).toBe(200);
+      expect(attendanceResponse.body.data.attendanceSummary.totalSessions).toBe(0);
       expect(assessmentResponse.status).toBe(200);
+      expect(assessmentResponse.body.data.assessmentSummary.totalAssessments).toBe(0);
       expect(behaviorResponse.status).toBe(200);
+      expect(behaviorResponse.body.data.behaviorSummary.totalBehaviorRecords).toBe(0);
       expect(unrelatedChildResponse.status).toBe(403);
     });
 
@@ -166,6 +172,14 @@ export const registerReportingIntegrationTests = (
 
       await request(context.app)
         .post("/api/v1/students/1/parents")
+        .set("Authorization", `Bearer ${adminLogin.accessToken}`)
+        .send({
+          parentId: parentAccount.parentId,
+          relationType: "mother",
+          isPrimary: false
+        });
+      await request(context.app)
+        .post("/api/v1/students/2/parents")
         .set("Authorization", `Bearer ${adminLogin.accessToken}`)
         .send({
           parentId: parentAccount.parentId,
@@ -187,8 +201,12 @@ export const registerReportingIntegrationTests = (
 
       expect(dashboardResponse.status).toBe(200);
       expect(dashboardResponse.body.data.parent.parentId).toBe(parentAccount.parentId);
-      expect(dashboardResponse.body.data.children).toHaveLength(1);
-      expect(dashboardResponse.body.data.children[0].student.id).toBe("1");
+      expect(dashboardResponse.body.data.children).toHaveLength(2);
+      expect(
+        dashboardResponse.body.data.children.map(
+          (child: { student: { id: string } }) => child.student.id
+        )
+      ).toEqual(["1", "2"]);
       expect(dashboardResponse.body.data.latestNotifications).toHaveLength(1);
       expect(dashboardResponse.body.data.unreadNotifications).toBe(1);
     });
@@ -368,7 +386,12 @@ export const registerReportingIntegrationTests = (
 
       expect(dashboardResponse.status).toBe(200);
       expect(dashboardResponse.body.data.assignments).toHaveLength(1);
-      expect(dashboardResponse.body.data.studentSummaries.length).toBeGreaterThan(0);
+      expect(dashboardResponse.body.data.studentSummaries).toHaveLength(2);
+      expect(
+        dashboardResponse.body.data.studentSummaries.map(
+          (studentSummary: { student: { id: string } }) => studentSummary.student.id
+        )
+      ).toEqual(["1", "2"]);
       expect(dashboardResponse.body.data.recentBehaviorRecords).toHaveLength(1);
     });
 

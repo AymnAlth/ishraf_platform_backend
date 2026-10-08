@@ -1,7 +1,6 @@
 import { ForbiddenError } from "../../../common/errors/forbidden-error";
 import { NotFoundError } from "../../../common/errors/not-found-error";
 import { ActiveAcademicContextService } from "../../../common/services/active-academic-context.service";
-import { OwnershipService } from "../../../common/services/ownership.service";
 import { ProfileResolutionService } from "../../../common/services/profile-resolution.service";
 import type { AuthenticatedUser } from "../../../common/types/auth.types";
 import { toDateOnly } from "../../../common/utils/date.util";
@@ -39,6 +38,9 @@ import type { ReportingRepository } from "../repository/reporting.repository";
 import type {
   ActivePeriodRow,
   ReportingStudentRow,
+  StudentProfileAssessmentSubjectSnapshotRow,
+  StudentProfileSummarySnapshotByStudentRow,
+  StudentProfileSummarySnapshotRow,
   StudentAssessmentSummaryRow,
   StudentAttendanceSummaryRow,
   StudentBehaviorSummaryRow
@@ -73,7 +75,6 @@ export class ReportingService {
   constructor(
     private readonly reportingRepository: ReportingRepository,
     private readonly profileResolutionService = new ProfileResolutionService(),
-    private readonly ownershipService = new OwnershipService(),
     private readonly activeAcademicContextService: ActiveAcademicContextService = new ActiveAcademicContextService(),
     private readonly transportEtaService: TransportEtaReadServicePort | null = null
   ) {}
@@ -330,19 +331,9 @@ export class ReportingService {
     activePeriod: ActivePeriodRow,
     student: ReportingStudentRow
   ): Promise<ReportingStudentProfileResponseDto> {
-    const [parents, attendanceSummary, assessmentSummary, behaviorSummary] = await Promise.all([
+    const [parents, summarySnapshot] = await Promise.all([
       this.reportingRepository.listStudentParents(student.studentId),
-      this.reportingRepository.findStudentAttendanceSummary(
-        student.studentId,
-        activePeriod.academicYearId,
-        activePeriod.semesterId
-      ),
-      this.reportingRepository.listStudentAssessmentSummaries(
-        student.studentId,
-        activePeriod.academicYearId,
-        activePeriod.semesterId
-      ),
-      this.reportingRepository.findStudentBehaviorSummary(
+      this.reportingRepository.findStudentProfileSummarySnapshot(
         student.studentId,
         activePeriod.academicYearId,
         activePeriod.semesterId
@@ -352,9 +343,9 @@ export class ReportingService {
     return toStudentProfileResponseDto(
       student,
       parents,
-      attendanceSummary,
-      behaviorSummary,
-      assessmentSummary
+      this.buildStudentProfileAttendanceSummary(student, activePeriod, summarySnapshot),
+      this.buildStudentProfileBehaviorSummary(student, activePeriod, summarySnapshot),
+      this.buildStudentProfileAssessmentSummaries(student, activePeriod, summarySnapshot)
     );
   }
 
@@ -395,6 +386,109 @@ export class ReportingService {
     );
 
     return toStudentBehaviorReportResponseDto(student, summary);
+  }
+
+  private buildStudentProfileAttendanceSummary(
+    student: ReportingStudentRow,
+    activePeriod: ActivePeriodRow,
+    snapshot: StudentProfileSummarySnapshotRow | null
+  ): StudentAttendanceSummaryRow {
+    return {
+      studentId: student.studentId,
+      academicNo: student.academicNo,
+      studentName: student.fullName,
+      classId: student.classId,
+      className: student.className,
+      section: student.section,
+      academicYearId: activePeriod.academicYearId,
+      academicYearName: activePeriod.academicYearName,
+      semesterId: activePeriod.semesterId,
+      semesterName: activePeriod.semesterName,
+      totalSessions: snapshot?.totalSessions ?? 0,
+      presentCount: snapshot?.presentCount ?? 0,
+      absentCount: snapshot?.absentCount ?? 0,
+      lateCount: snapshot?.lateCount ?? 0,
+      excusedCount: snapshot?.excusedCount ?? 0,
+      attendancePercentage: snapshot?.attendancePercentage ?? 0
+    };
+  }
+
+  private buildStudentProfileBehaviorSummary(
+    student: ReportingStudentRow,
+    activePeriod: ActivePeriodRow,
+    snapshot: StudentProfileSummarySnapshotRow | null
+  ): StudentBehaviorSummaryRow {
+    return {
+      studentId: student.studentId,
+      academicNo: student.academicNo,
+      studentName: student.fullName,
+      academicYearId: activePeriod.academicYearId,
+      academicYearName: activePeriod.academicYearName,
+      semesterId: activePeriod.semesterId,
+      semesterName: activePeriod.semesterName,
+      totalBehaviorRecords: snapshot?.totalBehaviorRecords ?? 0,
+      positiveCount: snapshot?.positiveCount ?? 0,
+      negativeCount: snapshot?.negativeCount ?? 0,
+      negativeSeverityTotal: snapshot?.negativeSeverityTotal ?? 0
+    };
+  }
+
+  private buildStudentProfileAssessmentSummaries(
+    student: ReportingStudentRow,
+    activePeriod: ActivePeriodRow,
+    snapshot: StudentProfileSummarySnapshotRow | null
+  ): StudentAssessmentSummaryRow[] {
+    return this.parseStudentProfileAssessmentSubjects(snapshot?.assessmentSubjects).map(
+      (subject) => ({
+        studentId: student.studentId,
+        academicNo: student.academicNo,
+        studentName: student.fullName,
+        classId: student.classId,
+        className: student.className,
+        section: student.section,
+        academicYearId: activePeriod.academicYearId,
+        academicYearName: activePeriod.academicYearName,
+        semesterId: activePeriod.semesterId,
+        semesterName: activePeriod.semesterName,
+        subjectId: subject.subjectId,
+        subjectName: subject.subjectName,
+        totalAssessments: subject.totalAssessments,
+        totalScore: subject.totalScore,
+        totalMaxScore: subject.totalMaxScore,
+        overallPercentage: subject.overallPercentage
+      })
+    );
+  }
+
+  private parseStudentProfileAssessmentSubjects(
+    value: StudentProfileSummarySnapshotRow["assessmentSubjects"] | undefined
+  ): StudentProfileAssessmentSubjectSnapshotRow[] {
+    if (!Array.isArray(value)) {
+      return [];
+    }
+
+    return value.flatMap((subject) => {
+      if (!subject || typeof subject !== "object") {
+        return [];
+      }
+
+      const candidate = subject as Partial<StudentProfileAssessmentSubjectSnapshotRow>;
+
+      if (!candidate.subjectId || !candidate.subjectName) {
+        return [];
+      }
+
+      return [
+        {
+          subjectId: String(candidate.subjectId),
+          subjectName: String(candidate.subjectName),
+          totalAssessments: candidate.totalAssessments ?? 0,
+          totalScore: candidate.totalScore ?? 0,
+          totalMaxScore: candidate.totalMaxScore ?? 0,
+          overallPercentage: candidate.overallPercentage ?? 0
+        }
+      ];
+    });
   }
 
   private async buildParentDashboardResponse(
@@ -441,6 +535,8 @@ export class ReportingService {
           teacher.teacherId,
           activePeriod.academicYearId,
           activePeriod.semesterId,
+          activePeriod.academicYearName,
+          activePeriod.semesterName,
           RECENT_LIMIT
         ),
         this.reportingRepository.listRecentTeacherAssessments(
@@ -732,14 +828,58 @@ export class ReportingService {
     studentId: string
   ): Promise<{ activePeriod: ActivePeriodRow; student: ReportingStudentRow }> {
     const activePeriod = await this.requireActivePeriod();
-    const student = assertFound(
-      await this.reportingRepository.findStudentById(studentId),
-      "Student"
-    );
+    if (authUser.role === "admin") {
+      const student = assertFound(
+        await this.reportingRepository.findStudentById(studentId),
+        "Student"
+      );
 
-    await this.assertStaffStudentAccess(authUser, student, activePeriod);
+      return { activePeriod, student };
+    }
 
-    return { activePeriod, student };
+    if (authUser.role === "teacher") {
+      const teacher = assertFound(
+        await this.profileResolutionService.findTeacherProfileByUserId(authUser.userId),
+        "Teacher profile"
+      );
+      const student = await this.reportingRepository.findStudentByIdForTeacher(
+        teacher.teacherId,
+        studentId,
+        activePeriod.academicYearId
+      );
+
+      if (student) {
+        return { activePeriod, student };
+      }
+
+      await this.resolveMissingAccessibleStudent(
+        studentId,
+        "You do not have permission to access this teacher-assigned resource"
+      );
+    }
+
+    if (authUser.role === "supervisor") {
+      const supervisor = assertFound(
+        await this.profileResolutionService.findSupervisorProfileByUserId(authUser.userId),
+        "Supervisor profile"
+      );
+      const student = await this.reportingRepository.findStudentByIdForSupervisor(
+        supervisor.supervisorId,
+        studentId,
+        activePeriod.academicYearId
+      );
+
+      if (student) {
+        return { activePeriod, student };
+      }
+
+      await this.resolveMissingAccessibleStudent(
+        studentId,
+        "You do not have permission to access this supervisor-assigned resource"
+      );
+    }
+
+    throw new ForbiddenError("You do not have permission to access student reporting");
   }
 
   private async getAccessibleStudentForParent(
@@ -761,54 +901,32 @@ export class ReportingService {
       await this.profileResolutionService.findParentProfileByUserId(authUser.userId),
       "Parent profile"
     );
-    const student = assertFound(
-      await this.reportingRepository.findStudentById(studentId),
-      "Student"
+    const student = await this.reportingRepository.findStudentByIdForParent(
+      parent.parentId,
+      studentId
     );
 
-    await this.ownershipService.assertParentOwnsStudent(parent.parentId, studentId);
+    if (student) {
+      return student;
+    }
 
-    return student;
+    return this.resolveMissingAccessibleStudent(
+      studentId,
+      "You do not have permission to access this student"
+    );
   }
 
-  private async assertStaffStudentAccess(
-    authUser: AuthenticatedUser,
-    student: ReportingStudentRow,
-    activePeriod: ActivePeriodRow
-  ): Promise<void> {
-    if (authUser.role === "admin") {
-      return;
+  private async resolveMissingAccessibleStudent(
+    studentId: string,
+    forbiddenMessage: string
+  ): Promise<never> {
+    const student = await this.reportingRepository.findStudentById(studentId);
+
+    if (!student) {
+      throw new NotFoundError("Student not found");
     }
 
-    if (authUser.role === "teacher") {
-      const teacher = assertFound(
-        await this.profileResolutionService.findTeacherProfileByUserId(authUser.userId),
-        "Teacher profile"
-      );
-
-      await this.ownershipService.assertTeacherAssignedToClassYear(
-        teacher.teacherId,
-        student.classId,
-        activePeriod.academicYearId
-      );
-      return;
-    }
-
-    if (authUser.role === "supervisor") {
-      const supervisor = assertFound(
-        await this.profileResolutionService.findSupervisorProfileByUserId(authUser.userId),
-        "Supervisor profile"
-      );
-
-      await this.ownershipService.assertSupervisorAssignedToClassYear(
-        supervisor.supervisorId,
-        student.classId,
-        activePeriod.academicYearId
-      );
-      return;
-    }
-
-    throw new ForbiddenError("You do not have permission to access student reporting");
+    throw new ForbiddenError(forbiddenMessage);
   }
 
   private async buildTransportTripDtos(
@@ -845,37 +963,49 @@ export class ReportingService {
     activePeriod: ActivePeriodRow,
     students: ReportingStudentRow[]
   ): Promise<StudentSummaryMaps> {
-    const studentIds = students.map((student) => student.studentId);
-    const [attendanceRows, assessmentRows, behaviorRows] = await Promise.all([
-      this.reportingRepository.listStudentAttendanceSummaries(
-        studentIds,
-        activePeriod.academicYearId,
-        activePeriod.semesterId
-      ),
-      this.reportingRepository.listStudentAssessmentSummariesByStudentIds(
-        studentIds,
-        activePeriod.academicYearId,
-        activePeriod.semesterId
-      ),
-      this.reportingRepository.listStudentBehaviorSummaries(
-        studentIds,
-        activePeriod.academicYearId,
-        activePeriod.semesterId
-      )
-    ]);
+    if (students.length === 0) {
+      return {
+        attendanceByStudentId: new Map(),
+        assessmentByStudentId: new Map(),
+        behaviorByStudentId: new Map()
+      };
+    }
 
-    const attendanceByStudentId = new Map(
-      attendanceRows.map((row) => [row.studentId, row] as const)
+    const studentIds = students.map((student) => student.studentId);
+    const snapshots = await this.reportingRepository.listStudentProfileSummarySnapshotsByStudentIds(
+      studentIds,
+      activePeriod.academicYearId,
+      activePeriod.semesterId
     );
-    const behaviorByStudentId = new Map(
-      behaviorRows.map((row) => [row.studentId, row] as const)
+    const snapshotsByStudentId = new Map<string, StudentProfileSummarySnapshotByStudentRow>(
+      snapshots.map((row) => [row.studentId, row] as const)
     );
+
+    const attendanceByStudentId = new Map<string, StudentAttendanceSummaryRow>();
+    const behaviorByStudentId = new Map<string, StudentBehaviorSummaryRow>();
     const assessmentByStudentId = new Map<string, StudentAssessmentSummaryRow[]>();
 
-    for (const row of assessmentRows) {
-      const studentAssessmentRows = assessmentByStudentId.get(row.studentId) ?? [];
-      studentAssessmentRows.push(row);
-      assessmentByStudentId.set(row.studentId, studentAssessmentRows);
+    for (const student of students) {
+      const snapshot = snapshotsByStudentId.get(student.studentId) ?? null;
+
+      attendanceByStudentId.set(
+        student.studentId,
+        this.buildStudentProfileAttendanceSummary(student, activePeriod, snapshot)
+      );
+      behaviorByStudentId.set(
+        student.studentId,
+        this.buildStudentProfileBehaviorSummary(student, activePeriod, snapshot)
+      );
+
+      const assessmentRows = this.buildStudentProfileAssessmentSummaries(
+        student,
+        activePeriod,
+        snapshot
+      );
+
+      if (assessmentRows.length > 0) {
+        assessmentByStudentId.set(student.studentId, assessmentRows);
+      }
     }
 
     return {

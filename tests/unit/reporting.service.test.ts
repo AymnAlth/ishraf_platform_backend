@@ -4,7 +4,6 @@ import { ConflictError } from "../../src/common/errors/conflict-error";
 import { ForbiddenError } from "../../src/common/errors/forbidden-error";
 import { NotFoundError } from "../../src/common/errors/not-found-error";
 import type { ActiveAcademicContext } from "../../src/common/services/active-academic-context.service";
-import type { OwnershipService } from "../../src/common/services/ownership.service";
 import type {
   ParentProfile,
   SupervisorProfile,
@@ -85,12 +84,17 @@ describe("ReportingService", () => {
   const repositoryMock = {
     findActivePeriod: vi.fn(),
     findStudentById: vi.fn(),
+    findStudentByIdForParent: vi.fn(),
+    findStudentByIdForTeacher: vi.fn(),
+    findStudentByIdForSupervisor: vi.fn(),
     listStudentParents: vi.fn(),
     findStudentAttendanceSummary: vi.fn(),
     listStudentAttendanceSummaries: vi.fn(),
     listStudentAssessmentSummaries: vi.fn(),
     listStudentAssessmentSummariesByStudentIds: vi.fn(),
     findStudentBehaviorSummary: vi.fn(),
+    findStudentProfileSummarySnapshot: vi.fn(),
+    listStudentProfileSummarySnapshotsByStudentIds: vi.fn(),
     listStudentBehaviorSummaries: vi.fn(),
     listChildrenForParent: vi.fn(),
     listLatestNotificationsByUserId: vi.fn(),
@@ -119,11 +123,6 @@ describe("ReportingService", () => {
     findDriverProfileByUserId: vi.fn()
   };
 
-  const ownershipServiceMock = {
-    assertTeacherAssignedToClassYear: vi.fn(),
-    assertSupervisorAssignedToClassYear: vi.fn(),
-    assertParentOwnsStudent: vi.fn()
-  };
   const activeAcademicContextServiceMock = {
     getActiveContext: vi.fn(),
     requireActiveContext: vi.fn(),
@@ -136,7 +135,6 @@ describe("ReportingService", () => {
   beforeEach(() => {
     Object.values(repositoryMock).forEach((mockFn) => mockFn.mockReset());
     Object.values(profileResolutionServiceMock).forEach((mockFn) => mockFn.mockReset());
-    Object.values(ownershipServiceMock).forEach((mockFn) => mockFn.mockReset());
     Object.values(activeAcademicContextServiceMock).forEach((mockFn) => mockFn.mockReset());
     const activeContext: ActiveAcademicContext = {
       academicYearId: activePeriod.academicYearId,
@@ -155,10 +153,11 @@ describe("ReportingService", () => {
     vi.mocked(activeAcademicContextServiceMock.requireActiveContext).mockResolvedValue(
       activeContext
     );
+    vi.mocked(repositoryMock.findStudentProfileSummarySnapshot).mockResolvedValue(null);
+    vi.mocked(repositoryMock.listStudentProfileSummarySnapshotsByStudentIds).mockResolvedValue([]);
     reportingService = new ReportingService(
       repositoryMock as unknown as ReportingRepository,
       profileResolutionServiceMock as unknown as ProfileResolutionService,
-      ownershipServiceMock as unknown as OwnershipService,
       activeAcademicContextServiceMock as never
     );
   });
@@ -166,9 +165,6 @@ describe("ReportingService", () => {
   it("returns zero-safe summaries for student profile when no aggregates exist", async () => {
     vi.mocked(repositoryMock.findStudentById).mockResolvedValue(studentRow());
     vi.mocked(repositoryMock.listStudentParents).mockResolvedValue([]);
-    vi.mocked(repositoryMock.findStudentAttendanceSummary).mockResolvedValue(null);
-    vi.mocked(repositoryMock.listStudentAssessmentSummaries).mockResolvedValue([]);
-    vi.mocked(repositoryMock.findStudentBehaviorSummary).mockResolvedValue(null);
 
     const response = await reportingService.getStudentProfile(
       {
@@ -190,9 +186,7 @@ describe("ReportingService", () => {
     vi.mocked(profileResolutionServiceMock.findTeacherProfileByUserId).mockResolvedValue(
       teacherProfile()
     );
-    vi.mocked(ownershipServiceMock.assertTeacherAssignedToClassYear).mockRejectedValue(
-      new ForbiddenError("Teacher is not assigned to the selected class")
-    );
+    vi.mocked(repositoryMock.findStudentByIdForTeacher).mockResolvedValue(null);
 
     await expect(
       reportingService.getStudentProfile(
@@ -227,6 +221,8 @@ describe("ReportingService", () => {
       "1",
       "1",
       "2",
+      "2025-2026",
+      "Semester 2",
       5
     );
     expect(repositoryMock.listRecentTeacherAssessments).toHaveBeenCalledWith(
@@ -248,9 +244,6 @@ describe("ReportingService", () => {
       parentProfile()
     );
     vi.mocked(repositoryMock.listChildrenForParent).mockResolvedValue([studentRow()]);
-    vi.mocked(repositoryMock.listStudentAttendanceSummaries).mockResolvedValue([]);
-    vi.mocked(repositoryMock.listStudentAssessmentSummariesByStudentIds).mockResolvedValue([]);
-    vi.mocked(repositoryMock.listStudentBehaviorSummaries).mockResolvedValue([]);
     vi.mocked(repositoryMock.listLatestNotificationsByUserId).mockResolvedValue([]);
     vi.mocked(repositoryMock.findNotificationSummaryByUserId).mockResolvedValue({
       totalNotifications: "0",
@@ -268,13 +261,11 @@ describe("ReportingService", () => {
     expect(repositoryMock.findStudentAttendanceSummary).not.toHaveBeenCalled();
     expect(repositoryMock.listStudentAssessmentSummaries).not.toHaveBeenCalled();
     expect(repositoryMock.findStudentBehaviorSummary).not.toHaveBeenCalled();
-    expect(repositoryMock.listStudentAttendanceSummaries).toHaveBeenCalledWith(["1"], "1", "2");
-    expect(repositoryMock.listStudentAssessmentSummariesByStudentIds).toHaveBeenCalledWith(
+    expect(repositoryMock.listStudentProfileSummarySnapshotsByStudentIds).toHaveBeenCalledWith(
       ["1"],
       "1",
       "2"
     );
-    expect(repositoryMock.listStudentBehaviorSummaries).toHaveBeenCalledWith(["1"], "1", "2");
     expect(response.children).toHaveLength(1);
     expect(response.parent.parentId).toBe("1");
   });
@@ -319,9 +310,6 @@ describe("ReportingService", () => {
       parentProfile({ userId: "2001" })
     );
     vi.mocked(repositoryMock.listChildrenForParent).mockResolvedValue([studentRow()]);
-    vi.mocked(repositoryMock.listStudentAttendanceSummaries).mockResolvedValue([]);
-    vi.mocked(repositoryMock.listStudentAssessmentSummariesByStudentIds).mockResolvedValue([]);
-    vi.mocked(repositoryMock.listStudentBehaviorSummaries).mockResolvedValue([]);
     vi.mocked(repositoryMock.listLatestNotificationsByUserId).mockResolvedValue([]);
     vi.mocked(repositoryMock.findNotificationSummaryByUserId).mockResolvedValue({
       totalNotifications: "0",
@@ -399,9 +387,6 @@ describe("ReportingService", () => {
     );
     vi.mocked(repositoryMock.listSupervisorAssignments).mockResolvedValue([]);
     vi.mocked(repositoryMock.listStudentsForSupervisor).mockResolvedValue([studentRow()]);
-    vi.mocked(repositoryMock.listStudentAttendanceSummaries).mockResolvedValue([]);
-    vi.mocked(repositoryMock.listStudentAssessmentSummariesByStudentIds).mockResolvedValue([]);
-    vi.mocked(repositoryMock.listStudentBehaviorSummaries).mockResolvedValue([]);
     vi.mocked(repositoryMock.listRecentSupervisorBehaviorRecords).mockResolvedValue([]);
 
     const response = await reportingService.getAdminPreviewSupervisorDashboard(
@@ -420,7 +405,11 @@ describe("ReportingService", () => {
     expect(repositoryMock.findStudentAttendanceSummary).not.toHaveBeenCalled();
     expect(repositoryMock.listStudentAssessmentSummaries).not.toHaveBeenCalled();
     expect(repositoryMock.findStudentBehaviorSummary).not.toHaveBeenCalled();
-    expect(repositoryMock.listStudentAttendanceSummaries).toHaveBeenCalledWith(["1"], "1", "2");
+    expect(repositoryMock.listStudentProfileSummarySnapshotsByStudentIds).toHaveBeenCalledWith(
+      ["1"],
+      "1",
+      "2"
+    );
     expect(response.supervisor.userId).toBe("4001");
   });
 

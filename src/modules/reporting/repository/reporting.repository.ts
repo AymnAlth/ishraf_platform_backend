@@ -19,6 +19,8 @@ import type {
   RecentStudentRow,
   ReportingStudentParentRow,
   ReportingStudentRow,
+  StudentProfileSummarySnapshotByStudentRow,
+  StudentProfileSummarySnapshotRow,
   StudentAssessmentSummaryRow,
   StudentAttendanceSummaryRow,
   StudentBehaviorSummaryRow,
@@ -116,49 +118,6 @@ const driverProfileSelect = `
     d.driver_status AS "driverStatus"
   FROM ${databaseTables.drivers} d
   JOIN ${databaseTables.users} u ON u.id = d.user_id
-`;
-
-const buildActiveRosterCountLateralSelect = (
-  classIdSql: string,
-  academicYearIdSql: string,
-  outputAlias: string
-) => `
-  LEFT JOIN LATERAL (
-    SELECT COUNT(*)::int AS "expectedCount"
-    FROM ${databaseTables.studentAcademicEnrollments} sae
-    JOIN ${databaseTables.students} st ON st.id = sae.student_id
-    WHERE sae.class_id = ${classIdSql}
-      AND sae.academic_year_id = ${academicYearIdSql}
-      AND st.status = 'active'
-  ) ${outputAlias} ON true
-`;
-
-const buildAttendanceCountsLateralSelect = (sessionIdSql: string, outputAlias: string) => `
-  LEFT JOIN LATERAL (
-    SELECT
-      COUNT(*) FILTER (WHERE att.status = 'present')::int AS "presentCount",
-      COUNT(*) FILTER (WHERE att.status = 'absent')::int AS "absentCount",
-      COUNT(*) FILTER (WHERE att.status = 'late')::int AS "lateCount",
-      COUNT(*) FILTER (WHERE att.status = 'excused')::int AS "excusedCount",
-      COUNT(*)::int AS "recordedCount"
-    FROM ${databaseTables.attendance} att
-    WHERE att.attendance_session_id = ${sessionIdSql}
-  ) ${outputAlias} ON true
-`;
-
-const buildAssessmentSummaryLateralSelect = (
-  assessmentIdSql: string,
-  maxScoreSql: string,
-  outputAlias: string
-) => `
-  LEFT JOIN LATERAL (
-    SELECT
-      COUNT(sa.id)::int AS "gradedCount",
-      ROUND(AVG(sa.score), 2) AS "averageScore",
-      ROUND(AVG((sa.score / NULLIF(${maxScoreSql}, 0)) * 100), 2) AS "averagePercentage"
-    FROM ${databaseTables.studentAssessments} sa
-    WHERE sa.assessment_id = ${assessmentIdSql}
-  ) ${outputAlias} ON true
 `;
 
 const buildStudentAttendanceSummarySelect = (
@@ -302,14 +261,6 @@ const recentBehaviorRecordReadSelect = `
     bc.code AS "behaviorCode",
     bc.name AS "behaviorName",
     bc.behavior_type AS "behaviorType",
-    br.teacher_id AS "teacherId",
-    tu.full_name AS "teacherFullName",
-    br.supervisor_id AS "supervisorId",
-    su.full_name AS "supervisorFullName",
-    ay.id AS "academicYearId",
-    ay.name AS "academicYearName",
-    sem.id AS "semesterId",
-    sem.name AS "semesterName",
     br.description,
     br.severity,
     br.behavior_date AS "behaviorDate",
@@ -317,12 +268,6 @@ const recentBehaviorRecordReadSelect = `
   FROM ${databaseTables.behaviorRecords} br
   JOIN ${databaseTables.students} st ON st.id = br.student_id
   JOIN ${databaseTables.behaviorCategories} bc ON bc.id = br.behavior_category_id
-  LEFT JOIN ${databaseTables.teachers} t ON t.id = br.teacher_id
-  LEFT JOIN ${databaseTables.users} tu ON tu.id = t.user_id
-  LEFT JOIN ${databaseTables.supervisors} sp ON sp.id = br.supervisor_id
-  LEFT JOIN ${databaseTables.users} su ON su.id = sp.user_id
-  JOIN ${databaseTables.academicYears} ay ON ay.id = br.academic_year_id
-  JOIN ${databaseTables.semesters} sem ON sem.id = br.semester_id
 `;
 
 export class ReportingRepository {
@@ -358,6 +303,81 @@ export class ReportingRepository {
         LIMIT 1
       `,
       [studentId]
+    );
+
+    return mapSingleRow(result.rows);
+  }
+
+  async findStudentByIdForParent(
+    parentId: string,
+    studentId: string,
+    queryable: Queryable = db
+  ): Promise<ReportingStudentRow | null> {
+    const result = await queryable.query<ReportingStudentRow>(
+      `
+        ${studentSelect}
+        WHERE sp.student_id = $2
+          AND EXISTS (
+            SELECT 1
+            FROM ${databaseTables.studentParents} spl
+            WHERE spl.parent_id = $1
+              AND spl.student_id = sp.student_id
+          )
+        LIMIT 1
+      `,
+      [parentId, studentId]
+    );
+
+    return mapSingleRow(result.rows);
+  }
+
+  async findStudentByIdForTeacher(
+    teacherId: string,
+    studentId: string,
+    academicYearId: string,
+    queryable: Queryable = db
+  ): Promise<ReportingStudentRow | null> {
+    const result = await queryable.query<ReportingStudentRow>(
+      `
+        ${studentSelect}
+        WHERE sp.student_id = $2
+          AND sp.academic_year_id = $3
+          AND EXISTS (
+            SELECT 1
+            FROM ${databaseTables.teacherClasses} tc
+            WHERE tc.teacher_id = $1
+              AND tc.class_id = sp.class_id
+              AND tc.academic_year_id = sp.academic_year_id
+          )
+        LIMIT 1
+      `,
+      [teacherId, studentId, academicYearId]
+    );
+
+    return mapSingleRow(result.rows);
+  }
+
+  async findStudentByIdForSupervisor(
+    supervisorId: string,
+    studentId: string,
+    academicYearId: string,
+    queryable: Queryable = db
+  ): Promise<ReportingStudentRow | null> {
+    const result = await queryable.query<ReportingStudentRow>(
+      `
+        ${studentSelect}
+        WHERE sp.student_id = $2
+          AND sp.academic_year_id = $3
+          AND EXISTS (
+            SELECT 1
+            FROM ${databaseTables.supervisorClasses} sc
+            WHERE sc.supervisor_id = $1
+              AND sc.class_id = sp.class_id
+              AND sc.academic_year_id = sp.academic_year_id
+          )
+        LIMIT 1
+      `,
+      [supervisorId, studentId, academicYearId]
     );
 
     return mapSingleRow(result.rows);
@@ -509,6 +529,209 @@ export class ReportingRepository {
     );
 
     return mapSingleRow(result.rows);
+  }
+
+  async findStudentProfileSummarySnapshot(
+    studentId: string,
+    academicYearId: string,
+    semesterId: string,
+    queryable: Queryable = db
+  ): Promise<StudentProfileSummarySnapshotRow | null> {
+    const result = await queryable.query<StudentProfileSummarySnapshotRow>(
+      `
+        WITH attendance_summary AS (
+          SELECT
+            COUNT(att.id)::int AS "totalSessions",
+            COUNT(*) FILTER (WHERE att.status = 'present')::int AS "presentCount",
+            COUNT(*) FILTER (WHERE att.status = 'absent')::int AS "absentCount",
+            COUNT(*) FILTER (WHERE att.status = 'late')::int AS "lateCount",
+            COUNT(*) FILTER (WHERE att.status = 'excused')::int AS "excusedCount",
+            ROUND(
+              100.0 * COUNT(*) FILTER (WHERE att.status = 'present') / NULLIF(COUNT(att.id), 0),
+              2
+            ) AS "attendancePercentage"
+          FROM ${databaseTables.attendance} att
+          JOIN ${databaseTables.attendanceSessions} ats ON ats.id = att.attendance_session_id
+          WHERE att.student_id = $1
+            AND ats.academic_year_id = $2
+            AND ats.semester_id = $3
+        ),
+        behavior_summary AS (
+          SELECT
+            COUNT(br.id)::int AS "totalBehaviorRecords",
+            COUNT(*) FILTER (WHERE bc.behavior_type = 'positive')::int AS "positiveCount",
+            COUNT(*) FILTER (WHERE bc.behavior_type = 'negative')::int AS "negativeCount",
+            COALESCE(
+              SUM(br.severity) FILTER (WHERE bc.behavior_type = 'negative'),
+              0
+            )::int AS "negativeSeverityTotal"
+          FROM ${databaseTables.behaviorRecords} br
+          LEFT JOIN ${databaseTables.behaviorCategories} bc ON bc.id = br.behavior_category_id
+          WHERE br.student_id = $1
+            AND br.academic_year_id = $2
+            AND br.semester_id = $3
+        ),
+        assessment_subjects AS (
+          SELECT
+            subj.id::text AS "subjectId",
+            subj.name AS "subjectName",
+            COUNT(sa.id)::int AS "totalAssessments",
+            SUM(sa.score) AS "totalScore",
+            SUM(a.max_score) AS "totalMaxScore",
+            ROUND(100.0 * SUM(sa.score) / NULLIF(SUM(a.max_score), 0), 2) AS "overallPercentage"
+          FROM ${databaseTables.studentAssessments} sa
+          JOIN ${databaseTables.assessments} a ON a.id = sa.assessment_id
+          JOIN ${databaseTables.subjects} subj ON subj.id = a.subject_id
+          WHERE sa.student_id = $1
+            AND a.academic_year_id = $2
+            AND a.semester_id = $3
+          GROUP BY subj.id, subj.name
+        )
+        SELECT
+          attendance_summary."totalSessions",
+          attendance_summary."presentCount",
+          attendance_summary."absentCount",
+          attendance_summary."lateCount",
+          attendance_summary."excusedCount",
+          attendance_summary."attendancePercentage",
+          behavior_summary."totalBehaviorRecords",
+          behavior_summary."positiveCount",
+          behavior_summary."negativeCount",
+          behavior_summary."negativeSeverityTotal",
+          COALESCE(
+            (
+              SELECT json_agg(
+                json_build_object(
+                  'subjectId', assessment_subjects."subjectId",
+                  'subjectName', assessment_subjects."subjectName",
+                  'totalAssessments', assessment_subjects."totalAssessments",
+                  'totalScore', assessment_subjects."totalScore",
+                  'totalMaxScore', assessment_subjects."totalMaxScore",
+                  'overallPercentage', assessment_subjects."overallPercentage"
+                )
+                ORDER BY assessment_subjects."subjectName" ASC, assessment_subjects."subjectId" ASC
+              )
+              FROM assessment_subjects
+            ),
+            '[]'::json
+          ) AS "assessmentSubjects"
+        FROM attendance_summary
+        CROSS JOIN behavior_summary
+      `,
+      [studentId, academicYearId, semesterId]
+    );
+
+    return mapSingleRow(result.rows);
+  }
+
+  async listStudentProfileSummarySnapshotsByStudentIds(
+    studentIds: string[],
+    academicYearId: string,
+    semesterId: string,
+    queryable: Queryable = db
+  ): Promise<StudentProfileSummarySnapshotByStudentRow[]> {
+    if (studentIds.length === 0) {
+      return [];
+    }
+
+    const result = await queryable.query<StudentProfileSummarySnapshotByStudentRow>(
+      `
+        WITH target_students AS (
+          SELECT DISTINCT UNNEST($1::bigint[])::text AS "studentId"
+        ),
+        attendance_summary AS (
+          SELECT
+            att.student_id::text AS "studentId",
+            COUNT(att.id)::int AS "totalSessions",
+            COUNT(*) FILTER (WHERE att.status = 'present')::int AS "presentCount",
+            COUNT(*) FILTER (WHERE att.status = 'absent')::int AS "absentCount",
+            COUNT(*) FILTER (WHERE att.status = 'late')::int AS "lateCount",
+            COUNT(*) FILTER (WHERE att.status = 'excused')::int AS "excusedCount",
+            ROUND(
+              100.0 * COUNT(*) FILTER (WHERE att.status = 'present') / NULLIF(COUNT(att.id), 0),
+              2
+            ) AS "attendancePercentage"
+          FROM ${databaseTables.attendance} att
+          JOIN ${databaseTables.attendanceSessions} ats ON ats.id = att.attendance_session_id
+          JOIN target_students ts ON ts."studentId" = att.student_id::text
+          WHERE ats.academic_year_id = $2
+            AND ats.semester_id = $3
+          GROUP BY att.student_id
+        ),
+        behavior_summary AS (
+          SELECT
+            br.student_id::text AS "studentId",
+            COUNT(br.id)::int AS "totalBehaviorRecords",
+            COUNT(*) FILTER (WHERE bc.behavior_type = 'positive')::int AS "positiveCount",
+            COUNT(*) FILTER (WHERE bc.behavior_type = 'negative')::int AS "negativeCount",
+            COALESCE(
+              SUM(br.severity) FILTER (WHERE bc.behavior_type = 'negative'),
+              0
+            )::int AS "negativeSeverityTotal"
+          FROM ${databaseTables.behaviorRecords} br
+          LEFT JOIN ${databaseTables.behaviorCategories} bc ON bc.id = br.behavior_category_id
+          JOIN target_students ts ON ts."studentId" = br.student_id::text
+          WHERE br.academic_year_id = $2
+            AND br.semester_id = $3
+          GROUP BY br.student_id
+        ),
+        assessment_subjects AS (
+          SELECT
+            sa.student_id::text AS "studentId",
+            subj.id::text AS "subjectId",
+            subj.name AS "subjectName",
+            COUNT(sa.id)::int AS "totalAssessments",
+            SUM(sa.score) AS "totalScore",
+            SUM(a.max_score) AS "totalMaxScore",
+            ROUND(100.0 * SUM(sa.score) / NULLIF(SUM(a.max_score), 0), 2) AS "overallPercentage"
+          FROM ${databaseTables.studentAssessments} sa
+          JOIN ${databaseTables.assessments} a ON a.id = sa.assessment_id
+          JOIN ${databaseTables.subjects} subj ON subj.id = a.subject_id
+          JOIN target_students ts ON ts."studentId" = sa.student_id::text
+          WHERE a.academic_year_id = $2
+            AND a.semester_id = $3
+          GROUP BY sa.student_id, subj.id, subj.name
+        ),
+        assessment_summary AS (
+          SELECT
+            "studentId",
+            json_agg(
+              json_build_object(
+                'subjectId', "subjectId",
+                'subjectName', "subjectName",
+                'totalAssessments', "totalAssessments",
+                'totalScore', "totalScore",
+                'totalMaxScore', "totalMaxScore",
+                'overallPercentage', "overallPercentage"
+              )
+              ORDER BY "subjectName" ASC, "subjectId" ASC
+            ) AS "assessmentSubjects"
+          FROM assessment_subjects
+          GROUP BY "studentId"
+        )
+        SELECT
+          ts."studentId",
+          COALESCE(att."totalSessions", 0)::int AS "totalSessions",
+          COALESCE(att."presentCount", 0)::int AS "presentCount",
+          COALESCE(att."absentCount", 0)::int AS "absentCount",
+          COALESCE(att."lateCount", 0)::int AS "lateCount",
+          COALESCE(att."excusedCount", 0)::int AS "excusedCount",
+          att."attendancePercentage",
+          COALESCE(beh."totalBehaviorRecords", 0)::int AS "totalBehaviorRecords",
+          COALESCE(beh."positiveCount", 0)::int AS "positiveCount",
+          COALESCE(beh."negativeCount", 0)::int AS "negativeCount",
+          COALESCE(beh."negativeSeverityTotal", 0)::int AS "negativeSeverityTotal",
+          COALESCE(ass."assessmentSubjects", '[]'::json) AS "assessmentSubjects"
+        FROM target_students ts
+        LEFT JOIN attendance_summary att ON att."studentId" = ts."studentId"
+        LEFT JOIN behavior_summary beh ON beh."studentId" = ts."studentId"
+        LEFT JOIN assessment_summary ass ON ass."studentId" = ts."studentId"
+        ORDER BY ts."studentId" ASC
+      `,
+      [studentIds, academicYearId, semesterId]
+    );
+
+    return result.rows;
   }
 
   async listStudentBehaviorSummaries(
@@ -693,7 +916,7 @@ export class ReportingRepository {
   ): Promise<ReportingStudentRow[]> {
     const result = await queryable.query<ReportingStudentRow>(
       `
-        SELECT DISTINCT ON (sp.student_id)
+        SELECT
           spv.student_id AS "studentId",
           spv.academic_no AS "academicNo",
           spv.student_name AS "fullName",
@@ -711,7 +934,7 @@ export class ReportingRepository {
         FROM ${databaseTables.studentParents} sp
         JOIN ${databaseViews.studentProfiles} spv ON spv.student_id = sp.student_id
         WHERE sp.parent_id = $1
-        ORDER BY sp.student_id, sp.is_primary DESC, sp.created_at ASC
+        ORDER BY sp.student_id ASC
       `,
       [parentId]
     );
@@ -807,45 +1030,77 @@ export class ReportingRepository {
     teacherId: string,
     academicYearId: string,
     semesterId: string,
+    academicYearName: string,
+    semesterName: string,
     limit: number,
     queryable: Queryable = db
   ): Promise<RecentAttendanceSessionRow[]> {
     const result = await queryable.query<RecentAttendanceSessionRow>(
       `
+        WITH recent_sessions AS (
+          SELECT
+            ats.id,
+            ats.class_id,
+            c.class_name,
+            c.section,
+            ats.subject_id,
+            subj.name AS subject_name,
+            ats.academic_year_id,
+            ats.semester_id,
+            ats.session_date,
+            ats.period_no,
+            ats.title
+          FROM ${databaseTables.attendanceSessions} ats
+          JOIN ${databaseTables.classes} c ON c.id = ats.class_id
+          JOIN ${databaseTables.subjects} subj ON subj.id = ats.subject_id
+          WHERE ats.teacher_id = $1
+            AND ats.academic_year_id = $2
+            AND ats.semester_id = $3
+          ORDER BY ats.session_date DESC, ats.period_no DESC, ats.id DESC
+          LIMIT $4
+        )
         SELECT
-          ats.id,
-          ats.class_id AS "classId",
-          c.class_name AS "className",
-          c.section,
-          ats.subject_id AS "subjectId",
-          subj.name AS "subjectName",
-          ats.academic_year_id AS "academicYearId",
-          ay.name AS "academicYearName",
-          ats.semester_id AS "semesterId",
-          sem.name AS "semesterName",
-          ats.session_date AS "sessionDate",
-          ats.period_no AS "periodNo",
-          ats.title,
-          COALESCE(ac."presentCount", 0)::int AS "presentCount",
-          COALESCE(ac."absentCount", 0)::int AS "absentCount",
-          COALESCE(ac."lateCount", 0)::int AS "lateCount",
-          COALESCE(ac."excusedCount", 0)::int AS "excusedCount",
-          COALESCE(ac."recordedCount", 0)::int AS "recordedCount",
-          COALESCE(rc."expectedCount", 0)::int AS "expectedCount"
-        FROM ${databaseTables.attendanceSessions} ats
-        JOIN ${databaseTables.classes} c ON c.id = ats.class_id
-        JOIN ${databaseTables.subjects} subj ON subj.id = ats.subject_id
-        JOIN ${databaseTables.academicYears} ay ON ay.id = ats.academic_year_id
-        JOIN ${databaseTables.semesters} sem ON sem.id = ats.semester_id
-        ${buildAttendanceCountsLateralSelect("ats.id", "ac")}
-        ${buildActiveRosterCountLateralSelect("ats.class_id", "ats.academic_year_id", "rc")}
-        WHERE ats.teacher_id = $1
-          AND ats.academic_year_id = $2
-          AND ats.semester_id = $3
-        ORDER BY ats.session_date DESC, ats.period_no DESC, ats.id DESC
-        LIMIT $4
+          rs.id,
+          rs.class_id AS "classId",
+          rs.class_name AS "className",
+          rs.section,
+          rs.subject_id AS "subjectId",
+          rs.subject_name AS "subjectName",
+          rs.academic_year_id AS "academicYearId",
+          $5::text AS "academicYearName",
+          rs.semester_id AS "semesterId",
+          $6::text AS "semesterName",
+          rs.session_date AS "sessionDate",
+          rs.period_no AS "periodNo",
+          rs.title,
+          COALESCE(ac.present_count, 0)::int AS "presentCount",
+          COALESCE(ac.absent_count, 0)::int AS "absentCount",
+          COALESCE(ac.late_count, 0)::int AS "lateCount",
+          COALESCE(ac.excused_count, 0)::int AS "excusedCount",
+          COALESCE(ac.recorded_count, 0)::int AS "recordedCount",
+          COALESCE(rc.expected_count, 0)::int AS "expectedCount"
+        FROM recent_sessions rs
+        LEFT JOIN LATERAL (
+          SELECT
+            COUNT(*) FILTER (WHERE att.status = 'present')::int AS present_count,
+            COUNT(*) FILTER (WHERE att.status = 'absent')::int AS absent_count,
+            COUNT(*) FILTER (WHERE att.status = 'late')::int AS late_count,
+            COUNT(*) FILTER (WHERE att.status = 'excused')::int AS excused_count,
+            COUNT(*)::int AS recorded_count
+          FROM ${databaseTables.attendance} att
+          WHERE att.attendance_session_id = rs.id
+        ) ac ON true
+        LEFT JOIN LATERAL (
+          SELECT COUNT(*)::int AS expected_count
+          FROM ${databaseTables.studentAcademicEnrollments} sae
+          JOIN ${databaseTables.students} st ON st.id = sae.student_id
+          WHERE sae.class_id = rs.class_id
+            AND sae.academic_year_id = rs.academic_year_id
+            AND st.status = 'active'
+        ) rc ON true
+        ORDER BY rs.session_date DESC, rs.period_no DESC, rs.id DESC
       `,
-      [teacherId, academicYearId, semesterId, limit]
+      [teacherId, academicYearId, semesterId, limit, academicYearName, semesterName]
     );
 
     return result.rows;
@@ -860,56 +1115,81 @@ export class ReportingRepository {
   ): Promise<RecentAssessmentRow[]> {
     const result = await queryable.query<RecentAssessmentRow>(
       `
+        WITH recent_assessments AS (
+          SELECT
+            a.id,
+            a.assessment_type_id,
+            a.class_id,
+            a.subject_id,
+            a.academic_year_id,
+            a.title,
+            a.max_score,
+            a.assessment_date
+          FROM ${databaseTables.assessments} a
+          WHERE a.teacher_id = $1
+            AND a.academic_year_id = $2
+            AND a.semester_id = $3
+          ORDER BY a.assessment_date DESC, a.id DESC
+          LIMIT $4
+        ),
+        recent_classes AS (
+          SELECT DISTINCT
+            ra.class_id,
+            ra.academic_year_id
+          FROM recent_assessments ra
+        ),
+        roster_counts AS (
+          SELECT
+            sae.class_id,
+            sae.academic_year_id,
+            COUNT(*)::int AS expected_count
+          FROM ${databaseTables.studentAcademicEnrollments} sae
+          JOIN ${databaseTables.students} st ON st.id = sae.student_id
+          JOIN recent_classes rc
+            ON rc.class_id = sae.class_id
+           AND rc.academic_year_id = sae.academic_year_id
+          WHERE st.status = 'active'
+          GROUP BY sae.class_id, sae.academic_year_id
+        ),
+        assessment_scores AS (
+          SELECT
+            ra.id AS assessment_id,
+            COUNT(sa.id)::int AS graded_count,
+            ROUND(AVG(sa.score), 2) AS average_score,
+            ROUND(AVG((sa.score / NULLIF(ra.max_score, 0)) * 100), 2) AS average_percentage
+          FROM recent_assessments ra
+          LEFT JOIN ${databaseTables.studentAssessments} sa ON sa.assessment_id = ra.id
+          GROUP BY ra.id
+        )
         SELECT
-          a.id,
+          ra.id,
           at.id AS "assessmentTypeId",
           at.code AS "assessmentTypeCode",
           at.name AS "assessmentTypeName",
           c.id AS "classId",
           c.class_name AS "className",
           c.section,
-          c.grade_level_id AS "gradeLevelId",
+          gl.id AS "gradeLevelId",
           gl.name AS "gradeLevelName",
           subj.id AS "subjectId",
           subj.name AS "subjectName",
           subj.code AS "subjectCode",
-          t.id AS "teacherId",
-          t.user_id AS "teacherUserId",
-          tu.full_name AS "teacherFullName",
-          tu.email AS "teacherEmail",
-          tu.phone AS "teacherPhone",
-          a.academic_year_id AS "academicYearId",
-          ay.name AS "academicYearName",
-          a.semester_id AS "semesterId",
-          sem.name AS "semesterName",
-          a.title,
-          a.description,
-          a.max_score AS "maxScore",
-          a.weight,
-          a.assessment_date AS "assessmentDate",
-          a.is_published AS "isPublished",
-          a.created_at AS "createdAt",
-          a.updated_at AS "updatedAt",
-          COALESCE(sa."gradedCount", 0)::int AS "gradedCount",
-          COALESCE(rc."expectedCount", 0)::int AS "expectedCount",
-          sa."averageScore",
-          sa."averagePercentage"
-        FROM ${databaseTables.assessments} a
-        JOIN ${databaseTables.assessmentTypes} at ON at.id = a.assessment_type_id
-        JOIN ${databaseTables.classes} c ON c.id = a.class_id
+          ra.title,
+          ra.assessment_date AS "assessmentDate",
+          COALESCE(ascore.graded_count, 0)::int AS "gradedCount",
+          COALESCE(rc.expected_count, 0)::int AS "expectedCount",
+          ascore.average_score AS "averageScore",
+          ascore.average_percentage AS "averagePercentage"
+        FROM recent_assessments ra
+        JOIN ${databaseTables.assessmentTypes} at ON at.id = ra.assessment_type_id
+        JOIN ${databaseTables.classes} c ON c.id = ra.class_id
         JOIN ${databaseTables.gradeLevels} gl ON gl.id = c.grade_level_id
-        JOIN ${databaseTables.subjects} subj ON subj.id = a.subject_id
-        JOIN ${databaseTables.teachers} t ON t.id = a.teacher_id
-        JOIN ${databaseTables.users} tu ON tu.id = t.user_id
-        JOIN ${databaseTables.academicYears} ay ON ay.id = a.academic_year_id
-        JOIN ${databaseTables.semesters} sem ON sem.id = a.semester_id
-        ${buildAssessmentSummaryLateralSelect("a.id", "a.max_score", "sa")}
-        ${buildActiveRosterCountLateralSelect("a.class_id", "a.academic_year_id", "rc")}
-        WHERE a.teacher_id = $1
-          AND a.academic_year_id = $2
-          AND a.semester_id = $3
-        ORDER BY a.assessment_date DESC, a.id DESC
-        LIMIT $4
+        JOIN ${databaseTables.subjects} subj ON subj.id = ra.subject_id
+        LEFT JOIN assessment_scores ascore ON ascore.assessment_id = ra.id
+        LEFT JOIN roster_counts rc
+          ON rc.class_id = ra.class_id
+         AND rc.academic_year_id = ra.academic_year_id
+        ORDER BY ra.assessment_date DESC, ra.id DESC
       `,
       [teacherId, academicYearId, semesterId, limit]
     );
@@ -1162,7 +1442,7 @@ export class ReportingRepository {
   ): Promise<ReportingStudentRow[]> {
     const result = await queryable.query<ReportingStudentRow>(
       `
-        SELECT DISTINCT ON (sp.student_id)
+        SELECT
           sp.student_id AS "studentId",
           sp.academic_no AS "academicNo",
           sp.student_name AS "fullName",
@@ -1178,10 +1458,12 @@ export class ReportingRepository {
           sp.academic_year_id AS "academicYearId",
           sp.academic_year_name AS "academicYearName"
         FROM ${databaseTables.supervisorClasses} sc
-        JOIN ${databaseViews.studentProfiles} sp ON sp.class_id = sc.class_id
+        JOIN ${databaseViews.studentProfiles} sp
+          ON sp.class_id = sc.class_id
+         AND sp.academic_year_id = sc.academic_year_id
         WHERE sc.supervisor_id = $1
           AND sc.academic_year_id = $2
-        ORDER BY sp.student_id, sp.academic_no ASC
+        ORDER BY sp.student_id ASC, sp.academic_no ASC
       `,
       [supervisorId, academicYearId]
     );
