@@ -135,6 +135,48 @@ export class AuthRepository {
     );
   }
 
+  async issueLoginRefreshTokenAndUpdateLastLogin(
+    input: RefreshTokenCreateInput,
+    queryable: Queryable = db
+  ): Promise<Date> {
+    const result = await queryable.query<{ lastLoginAt: Date }>(
+      `
+        WITH inserted_token AS (
+          INSERT INTO ${databaseTables.authRefreshTokens} (
+            user_id,
+            token_hash,
+            device_info,
+            ip_address,
+            expires_at,
+            revoked_at
+          )
+          VALUES ($1, $2, $3, $4, $5, NULL)
+          RETURNING 1
+        ),
+        updated_user AS (
+          UPDATE ${databaseTables.users}
+          SET last_login_at = NOW(),
+              updated_at = NOW()
+          WHERE id = $1
+          RETURNING last_login_at AS "lastLoginAt"
+        )
+        SELECT updated_user."lastLoginAt"
+        FROM updated_user
+        JOIN inserted_token ON true
+        LIMIT 1
+      `,
+      [
+        input.userId,
+        input.tokenHash,
+        input.deviceInfo,
+        input.ipAddress,
+        input.expiresAt
+      ]
+    );
+
+    return result.rows[0].lastLoginAt;
+  }
+
   async findValidRefreshToken(
     tokenHash: string,
     queryable: Queryable = db

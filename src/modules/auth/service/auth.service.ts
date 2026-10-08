@@ -89,7 +89,7 @@ export class AuthService {
     const accessToken = buildAccessToken(user);
 
     const lastLoginAt = await db.withTransaction(async (client) => {
-      await this.authRepository.createRefreshToken(
+      return this.authRepository.issueLoginRefreshTokenAndUpdateLastLogin(
         {
           userId: user.id,
           tokenHash: refreshTokenHash,
@@ -99,8 +99,6 @@ export class AuthService {
         },
         client
       );
-
-      return this.authRepository.updateLastLoginAt(user.id, client);
     });
 
     return toLoginResponseDto(

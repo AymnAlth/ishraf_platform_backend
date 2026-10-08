@@ -29,6 +29,7 @@ describe("AuthService", () => {
   const repositoryMock = {
     findUserByIdentifier: vi.fn(),
     findUserById: vi.fn(),
+    issueLoginRefreshTokenAndUpdateLastLogin: vi.fn(),
     updateLastLoginAt: vi.fn(),
     updatePasswordHash: vi.fn(),
     createRefreshToken: vi.fn(),
@@ -69,8 +70,7 @@ describe("AuthService", () => {
     const user = await createUser();
 
     vi.mocked(repositoryMock.findUserByIdentifier).mockResolvedValue(user);
-    vi.mocked(repositoryMock.createRefreshToken).mockResolvedValue(undefined);
-    vi.mocked(repositoryMock.updateLastLoginAt).mockResolvedValue(
+    vi.mocked(repositoryMock.issueLoginRefreshTokenAndUpdateLastLogin).mockResolvedValue(
       new Date("2026-03-13T10:00:00.000Z")
     );
 
@@ -89,7 +89,7 @@ describe("AuthService", () => {
     expect(response.user).not.toHaveProperty("lastLoginAt");
     expect(response.tokens.accessToken).toBeTypeOf("string");
     expect(response.tokens.refreshToken).toBeTypeOf("string");
-    expect(repositoryMock.createRefreshToken).toHaveBeenCalledOnce();
+    expect(repositoryMock.issueLoginRefreshTokenAndUpdateLastLogin).toHaveBeenCalledOnce();
   });
 
   it("rejects invalid credentials", async () => {
