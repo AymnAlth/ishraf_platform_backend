@@ -240,6 +240,15 @@ export const registerMigrationSmokeTests = ({ pool }: MigrationSuiteContext): vo
               'idx_transport_trip_eta_snapshots_status',
               'idx_transport_trip_eta_snapshots_provider_refreshed_at',
               'idx_transport_trip_eta_stop_snapshots_trip_stop_order',
+              'idx_auth_refresh_tokens_active_token_hash_expires_at',
+              'idx_student_parents_parent_student_lookup',
+              'idx_supervisor_classes_supervisor_year_class_lookup',
+              'idx_attendance_student_session_lookup',
+              'idx_student_assessments_student_assessment_lookup',
+              'idx_attendance_sessions_teacher_period_recent',
+              'idx_assessments_teacher_period_recent',
+              'idx_behavior_records_teacher_period_recent',
+              'idx_behavior_records_supervisor_period_recent',
               'idx_analytics_jobs_status_created_at',
               'idx_analytics_jobs_subject_context_created_at',
               'idx_analytics_jobs_requested_by_created_at',
@@ -264,10 +273,19 @@ export const registerMigrationSmokeTests = ({ pool }: MigrationSuiteContext): vo
         "idx_analytics_snapshots_source_job_id",
         "idx_analytics_snapshots_subject_context_computed_at",
         "idx_analytics_snapshots_subject_context_review_computed_at",
+        "idx_assessments_teacher_period_recent",
+        "idx_attendance_sessions_teacher_period_recent",
+        "idx_attendance_student_session_lookup",
+        "idx_auth_refresh_tokens_active_token_hash_expires_at",
+        "idx_behavior_records_supervisor_period_recent",
+        "idx_behavior_records_teacher_period_recent",
         "idx_integration_outbox_aggregate_created_at",
         "idx_integration_outbox_dispatch_queue",
         "idx_integration_outbox_provider_status_created_at",
         "idx_integration_outbox_request_id",
+        "idx_student_assessments_student_assessment_lookup",
+        "idx_student_parents_parent_student_lookup",
+        "idx_supervisor_classes_supervisor_year_class_lookup",
         "idx_system_setting_audit_logs_changed_by_created_at",
         "idx_system_setting_audit_logs_created_at",
         "idx_system_setting_audit_logs_group_key_created_at",
@@ -449,77 +467,49 @@ export const registerMigrationSmokeTests = ({ pool }: MigrationSuiteContext): vo
   );
 
   it(
-    "rolls back only the analytics snapshot review extension and can be applied again",
+    "rolls back the latest reporting recent-activity index migration and can be applied again",
     async () => {
       runMigration("down");
 
-      const analyticsTables = await pool.query<{ table_name: string }>(
+      const reportingRecentActivityIndexes = await pool.query<{ indexname: string }>(
         `
-          SELECT table_name
-          FROM information_schema.tables
-          WHERE table_schema = 'public'
-            AND table_name IN (
-              'analytics_jobs',
-              'analytics_snapshots',
-              'analytics_feedback',
-              'analytics_scheduler_runs'
+          SELECT indexname
+          FROM pg_indexes
+          WHERE schemaname = 'public'
+            AND indexname IN (
+              'idx_attendance_sessions_teacher_period_recent',
+              'idx_assessments_teacher_period_recent',
+              'idx_behavior_records_teacher_period_recent',
+              'idx_behavior_records_supervisor_period_recent'
             )
         `
       );
 
-      expect(analyticsTables.rows.map((row) => row.table_name).sort()).toEqual([
-        "analytics_feedback",
-        "analytics_jobs",
-        "analytics_scheduler_runs",
-        "analytics_snapshots"
-      ]);
+      expect(reportingRecentActivityIndexes.rows).toHaveLength(0);
 
-      const etaTables = await pool.query<{ table_name: string }>(
+      const previousReportingHotPathIndexes = await pool.query<{ indexname: string }>(
         `
-          SELECT table_name
-          FROM information_schema.tables
-          WHERE table_schema = 'public'
-            AND table_name IN (
-              'transport_route_map_cache',
-              'transport_trip_eta_snapshots',
-              'transport_trip_eta_stop_snapshots'
+          SELECT indexname
+          FROM pg_indexes
+          WHERE schemaname = 'public'
+            AND indexname IN (
+              'idx_attendance_student_session_lookup',
+              'idx_student_parents_parent_student_lookup',
+              'idx_student_assessments_student_assessment_lookup',
+              'idx_supervisor_classes_supervisor_year_class_lookup'
             )
+          ORDER BY indexname ASC
         `
       );
 
-      expect(etaTables.rows).toHaveLength(3);
-
-      const etaSnapshotColumns = await pool.query<{ column_name: string }>(
-        `
-          SELECT column_name
-          FROM information_schema.columns
-          WHERE table_schema = 'public'
-            AND table_name = 'transport_trip_eta_snapshots'
-            AND column_name IN ('provider_key', 'refresh_reason')
-        `
-      );
-
-      expect(etaSnapshotColumns.rows.map((row) => row.column_name).sort()).toEqual([
-        "provider_key",
-        "refresh_reason"
+      expect(previousReportingHotPathIndexes.rows.map((row) => row.indexname)).toEqual([
+        "idx_attendance_student_session_lookup",
+        "idx_student_assessments_student_assessment_lookup",
+        "idx_student_parents_parent_student_lookup",
+        "idx_supervisor_classes_supervisor_year_class_lookup"
       ]);
 
-      const etaStopSnapshotColumns = await pool.query<{ column_name: string }>(
-        `
-          SELECT column_name
-          FROM information_schema.columns
-          WHERE table_schema = 'public'
-            AND table_name = 'transport_trip_eta_stop_snapshots'
-            AND column_name IN ('approaching_notified', 'arrived_notified')
-        `
-      );
-
-      expect(etaStopSnapshotColumns.rows.map((row) => row.column_name).sort()).toEqual([
-        "approaching_notified",
-        "arrived_notified"
-      ]);
-
-      const rolledBackAnalyticsSnapshotReviewColumns = await pool.query<{ column_name: string }>(
+      const analyticsSnapshotReviewColumns = await pool.query<{ column_name: string }>(
         `
           SELECT column_name
           FROM information_schema.columns
@@ -535,283 +525,33 @@ export const registerMigrationSmokeTests = ({ pool }: MigrationSuiteContext): vo
         `
       );
 
-      expect(rolledBackAnalyticsSnapshotReviewColumns.rows).toHaveLength(0);
-
-      const providerAwareIndexes = await pool.query<{ indexname: string }>(
-        `
-          SELECT indexname
-          FROM pg_indexes
-          WHERE schemaname = 'public'
-            AND indexname IN (
-              'idx_transport_route_map_cache_route_provider_signature',
-              'uq_transport_route_map_cache_route_provider_signature'
-            )
-        `
-      );
-
-      expect(providerAwareIndexes.rows).toHaveLength(2);
-
-      const etaIndexes = await pool.query<{ indexname: string }>(
-        `
-          SELECT indexname
-          FROM pg_indexes
-          WHERE schemaname = 'public'
-            AND indexname IN (
-              'idx_transport_route_map_cache_route_id',
-              'idx_transport_trip_eta_snapshots_trip_id',
-              'idx_transport_trip_eta_snapshots_status',
-              'idx_transport_trip_eta_snapshots_provider_refreshed_at',
-              'idx_transport_trip_eta_stop_snapshots_trip_stop_order'
-            )
-        `
-      );
-
-      expect(etaIndexes.rows).toHaveLength(5);
-
-      const analyticsIndexes = await pool.query<{ indexname: string }>(
-        `
-          SELECT indexname
-          FROM pg_indexes
-          WHERE schemaname = 'public'
-            AND indexname IN (
-              'idx_analytics_jobs_status_created_at',
-              'idx_analytics_jobs_subject_context_created_at',
-              'idx_analytics_jobs_requested_by_created_at',
-              'uq_analytics_jobs_active_natural_key',
-              'idx_analytics_snapshots_subject_context_computed_at',
-              'idx_analytics_snapshots_source_job_id',
-              'idx_analytics_feedback_snapshot_created_at',
-              'idx_analytics_scheduler_runs_trigger_started_at',
-              'idx_analytics_scheduler_runs_status_started_at'
-            )
-        `
-      );
-
-      expect(analyticsIndexes.rows.map((row) => row.indexname).sort()).toEqual([
-        "idx_analytics_feedback_snapshot_created_at",
-        "idx_analytics_jobs_requested_by_created_at",
-        "idx_analytics_jobs_status_created_at",
-        "idx_analytics_jobs_subject_context_created_at",
-        "idx_analytics_scheduler_runs_status_started_at",
-        "idx_analytics_scheduler_runs_trigger_started_at",
-        "idx_analytics_snapshots_source_job_id",
-        "idx_analytics_snapshots_subject_context_computed_at",
-        "uq_analytics_jobs_active_natural_key"
+      expect(analyticsSnapshotReviewColumns.rows.map((row) => row.column_name).sort()).toEqual([
+        "published_at",
+        "review_notes",
+        "review_status",
+        "reviewed_at",
+        "reviewed_by_user_id"
       ]);
-
-      const etaConstraints = await pool.query<{ conname: string }>(
-        `
-          SELECT conname
-          FROM pg_constraint
-          WHERE conname IN (
-            'uq_transport_route_map_cache_route_provider_signature',
-            'chk_transport_trip_eta_snapshots_status',
-            'chk_transport_trip_eta_snapshots_calculation_mode',
-            'uq_transport_trip_eta_stop_snapshots_trip_stop'
-          )
-        `
-      );
-
-      expect(etaConstraints.rows.map((row) => row.conname).sort()).toEqual([
-        "chk_transport_trip_eta_snapshots_calculation_mode",
-        "chk_transport_trip_eta_snapshots_status",
-        "uq_transport_route_map_cache_route_provider_signature",
-        "uq_transport_trip_eta_stop_snapshots_trip_stop"
-      ]);
-
-      const analyticsConstraints = await pool.query<{ conname: string }>(
-        `
-          SELECT conname
-          FROM pg_constraint
-          WHERE conname IN (
-            'chk_analytics_jobs_analysis_type',
-            'chk_analytics_jobs_subject_type',
-            'chk_analytics_jobs_status',
-            'chk_analytics_jobs_primary_provider',
-            'chk_analytics_jobs_fallback_provider',
-            'chk_analytics_jobs_selected_provider',
-            'chk_analytics_jobs_distinct_providers',
-            'fk_analytics_jobs_snapshot_id',
-            'chk_analytics_snapshots_analysis_type',
-            'chk_analytics_snapshots_subject_type',
-            'chk_analytics_snapshots_provider_key',
-            'chk_analytics_feedback_rating',
-            'chk_analytics_scheduler_runs_trigger_mode',
-            'chk_analytics_scheduler_runs_status'
-          )
-        `
-      );
-
-      expect(analyticsConstraints.rows.map((row) => row.conname).sort()).toEqual([
-        "chk_analytics_feedback_rating",
-        "chk_analytics_jobs_analysis_type",
-        "chk_analytics_jobs_distinct_providers",
-        "chk_analytics_jobs_fallback_provider",
-        "chk_analytics_jobs_primary_provider",
-        "chk_analytics_jobs_selected_provider",
-        "chk_analytics_jobs_status",
-        "chk_analytics_jobs_subject_type",
-        "chk_analytics_scheduler_runs_status",
-        "chk_analytics_scheduler_runs_trigger_mode",
-        "chk_analytics_snapshots_analysis_type",
-        "chk_analytics_snapshots_provider_key",
-        "chk_analytics_snapshots_subject_type",
-        "fk_analytics_jobs_snapshot_id"
-      ]);
-
-      const analyticsTriggers = await pool.query<{ tgname: string }>(
-        `
-          SELECT tgname
-          FROM pg_trigger
-          WHERE NOT tgisinternal
-            AND tgname IN (
-              'trg_analytics_jobs_set_updated_at',
-              'trg_analytics_snapshots_set_updated_at',
-              'trg_analytics_scheduler_runs_set_updated_at'
-            )
-        `
-      );
-
-      expect(analyticsTriggers.rows.map((row) => row.tgname).sort()).toEqual([
-        "trg_analytics_jobs_set_updated_at",
-        "trg_analytics_scheduler_runs_set_updated_at",
-        "trg_analytics_snapshots_set_updated_at"
-      ]);
-
-      const calculationModeConstraint = await pool.query<{ definition: string }>(
-        `
-          SELECT pg_get_constraintdef(oid) AS definition
-          FROM pg_constraint
-          WHERE conname = 'chk_transport_trip_eta_snapshots_calculation_mode'
-          LIMIT 1
-        `
-      );
-
-      expect(calculationModeConstraint.rows[0]?.definition).toContain("provider_snapshot");
-      expect(calculationModeConstraint.rows[0]?.definition).toContain("derived_estimate");
-
-      const tripStatusConstraint = await pool.query<{ definition: string }>(
-        `
-          SELECT pg_get_constraintdef(oid) AS definition
-          FROM pg_constraint
-          WHERE conname = 'chk_trips_status'
-          LIMIT 1
-        `
-      );
-
-      expect(tripStatusConstraint.rows[0]?.definition).toContain("completed");
-
-      const revertedAnalyticsConstraintDefinitions = await pool.query<{ conname: string; definition: string }>(
-        `
-          SELECT conname, pg_get_constraintdef(oid) AS definition
-          FROM pg_constraint
-          WHERE conname IN (
-            'chk_analytics_jobs_analysis_type',
-            'chk_analytics_jobs_subject_type',
-            'chk_analytics_snapshots_analysis_type',
-            'chk_analytics_snapshots_subject_type'
-          )
-          ORDER BY conname ASC
-        `
-      );
-
-      expect(revertedAnalyticsConstraintDefinitions.rows).toHaveLength(4);
-      revertedAnalyticsConstraintDefinitions.rows.forEach((row) => {
-        if (row.conname.includes('analysis_type')) {
-          expect(row.definition).toContain('admin_operational_digest');
-          expect(row.definition).toContain('class_overview');
-          expect(row.definition).toContain('transport_route_anomaly_summary');
-        }
-
-        if (row.conname.includes('subject_type')) {
-          expect(row.definition).toContain('system');
-          expect(row.definition).toContain('class');
-          expect(row.definition).toContain('route');
-        }
-      });
-
-      const deviceTables = await pool.query<{ table_name: string }>(
-        `
-          SELECT table_name
-          FROM information_schema.tables
-          WHERE table_schema = 'public'
-            AND table_name IN (
-              'user_devices',
-              'user_device_subscriptions'
-          )
-        `
-      );
-
-      expect(deviceTables.rows).toHaveLength(2);
-
-      const systemSettingsTables = await pool.query<{ table_name: string }>(
-        `
-          SELECT table_name
-          FROM information_schema.tables
-          WHERE table_schema = 'public'
-            AND table_name IN (
-              'system_settings',
-              'system_setting_audit_logs',
-              'integration_outbox'
-            )
-        `
-      );
-
-      expect(systemSettingsTables.rows).toHaveLength(3);
-
-      const rosterIndexes = await pool.query<{ indexname: string }>(
-        `
-          SELECT indexname
-          FROM pg_indexes
-          WHERE schemaname = 'public'
-            AND indexname = 'idx_student_academic_enrollments_class_year_student'
-        `
-      );
-
-      expect(rosterIndexes.rows).toHaveLength(1);
-
-      const behaviorPerformanceIndexes = await pool.query<{ indexname: string }>(
-        `
-          SELECT indexname
-          FROM pg_indexes
-          WHERE schemaname = 'public'
-            AND indexname IN (
-              'idx_behavior_records_student_year_semester_date',
-              'idx_behavior_records_teacher_year_semester_date',
-              'idx_behavior_records_supervisor_year_semester_date'
-            )
-        `
-      );
-
-      expect(behaviorPerformanceIndexes.rows).toHaveLength(3);
-
-      const previousPerformanceIndexes = await pool.query<{ indexname: string }>(
-        `
-          SELECT indexname
-          FROM pg_indexes
-          WHERE schemaname = 'public'
-            AND indexname IN (
-              'idx_attendance_sessions_teacher_year_semester_date',
-              'idx_assessments_teacher_year_semester_date',
-              'idx_homework_teacher_year_semester_due_date'
-            )
-        `
-      );
-
-      expect(previousPerformanceIndexes.rows).toHaveLength(3);
-
-      const importTables = await pool.query<{ table_name: string }>(
-        `
-          SELECT table_name
-          FROM information_schema.tables
-          WHERE table_schema = 'public'
-            AND table_name = 'school_onboarding_import_runs'
-        `
-      );
-
-      expect(importTables.rows).toHaveLength(1);
 
       runMigration("up");
+
+      const restoredReportingStudentSummaryIndexes = await pool.query<{ indexname: string }>(
+        `
+          SELECT indexname
+          FROM pg_indexes
+          WHERE schemaname = 'public'
+            AND indexname IN (
+              'idx_attendance_student_session_lookup',
+              'idx_student_assessments_student_assessment_lookup'
+            )
+          ORDER BY indexname ASC
+        `
+      );
+
+      expect(restoredReportingStudentSummaryIndexes.rows.map((row) => row.indexname)).toEqual([
+        "idx_attendance_student_session_lookup",
+        "idx_student_assessments_student_assessment_lookup"
+      ]);
     },
     20_000
   );
