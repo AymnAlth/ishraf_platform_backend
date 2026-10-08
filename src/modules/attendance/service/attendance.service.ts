@@ -33,7 +33,10 @@ import type {
   SemesterReferenceRow,
   SubjectReferenceRow
 } from "../types/attendance.types";
-import type { SupervisorProfile, TeacherProfile } from "../../../common/types/profile.types";
+import type {
+  SupervisorProfile,
+  TeacherProfileReference
+} from "../../../common/types/profile.types";
 
 type AttendanceActor =
   | {
@@ -43,7 +46,7 @@ type AttendanceActor =
   | {
       role: "teacher";
       authUser: AuthenticatedUser;
-      teacher: TeacherProfile;
+      teacher: TeacherProfileReference;
     }
   | {
       role: "supervisor";
@@ -271,6 +274,11 @@ export class AttendanceService {
       throw new ForbiddenError("Supervisors cannot create attendance sessions");
     }
 
+    const teacherId =
+      actor.role === "teacher"
+        ? actor.teacher.teacherId
+        : await this.resolveTeacherIdentifier(assertAdminTeacherId(payload.teacherId));
+
     const classRow = assertFound(
       await this.attendanceRepository.findClassById(payload.classId),
       "Class"
@@ -298,11 +306,6 @@ export class AttendanceService {
       )
     );
 
-    const teacherId =
-      actor.role === "teacher"
-        ? actor.teacher.teacherId
-        : await this.resolveTeacherIdentifier(assertAdminTeacherId(payload.teacherId));
-
     await this.assertTeacherAssignment(
       teacherId,
       payload.classId,
@@ -326,10 +329,20 @@ export class AttendanceService {
         client
       );
 
-      return assertFound(
-        await this.attendanceRepository.findAttendanceSessionById(sessionId, client),
+      const sessionHeader = assertFound(
+        await this.attendanceRepository.findAttendanceSessionHeaderById(sessionId, client),
         "Attendance session"
       );
+      const expectedCount = await this.attendanceRepository.countActiveAttendanceRoster(
+        sessionHeader.classId,
+        sessionHeader.academicYearId,
+        client
+      );
+
+      return {
+        ...sessionHeader,
+        expectedCount
+      };
     });
 
     return toAttendanceSessionListItemResponseDto(session);
@@ -376,7 +389,7 @@ export class AttendanceService {
     const { session } = await this.getAuthorizedSession(authUser, sessionId);
     const students = await this.attendanceRepository.listAttendanceSessionStudents(sessionId);
 
-    return toAttendanceSessionDetailResponseDto(session, students);
+    return toAttendanceSessionDetailResponseDto(applyAttendanceCounts(session, students), students);
   }
 
   async saveSessionAttendance(
@@ -517,7 +530,7 @@ export class AttendanceService {
   ): Promise<{ actor: AttendanceActor; session: AttendanceSessionRow }> {
     const actor = await this.resolveActor(authUser);
     const session = assertFound(
-      await this.attendanceRepository.findAttendanceSessionById(sessionId),
+      await this.attendanceRepository.findAttendanceSessionHeaderById(sessionId),
       "Attendance session"
     );
 
@@ -576,8 +589,8 @@ export class AttendanceService {
     );
   }
 
-  private async resolveTeacherProfile(userId: string): Promise<TeacherProfile> {
-    return this.profileResolutionService.requireTeacherProfile(userId);
+  private async resolveTeacherProfile(userId: string): Promise<TeacherProfileReference> {
+    return this.profileResolutionService.requireTeacherProfileReference(userId);
   }
 
   private async resolveSupervisorProfile(userId: string): Promise<SupervisorProfile> {
@@ -621,7 +634,7 @@ export class AttendanceService {
   }
 
   private async resolveTeacherIdentifier(identifier: string): Promise<string> {
-    const teacher = await this.profileResolutionService.requireTeacherProfileIdentifier(
+    const teacher = await this.profileResolutionService.requireTeacherProfileReferenceIdentifier(
       identifier
     );
 

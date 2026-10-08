@@ -11,6 +11,7 @@ import { databaseTables, databaseViews } from "../../../config/database";
 import { db } from "../../../database/db";
 import type {
   AcademicYearReferenceRow,
+  AssessmentCreationReferenceSnapshot,
   AssessmentListQuery,
   AssessmentRow,
   AssessmentScope,
@@ -61,41 +62,39 @@ const assessmentRosterCountsLateralSelect = `
   ) roster ON true
 `;
 
-const assessmentReadSelect = `
-  SELECT
-    a.id,
-    at.id AS "assessmentTypeId",
-    at.code AS "assessmentTypeCode",
-    at.name AS "assessmentTypeName",
-    c.id AS "classId",
-    c.class_name AS "className",
-    c.section,
-    gl.id AS "gradeLevelId",
-    gl.name AS "gradeLevelName",
-    subj.id AS "subjectId",
-    subj.name AS "subjectName",
-    subj.code AS "subjectCode",
-    t.id AS "teacherId",
-    tu.id AS "teacherUserId",
-    tu.full_name AS "teacherFullName",
-    tu.email AS "teacherEmail",
-    tu.phone AS "teacherPhone",
-    ay.id AS "academicYearId",
-    ay.name AS "academicYearName",
-    sem.id AS "semesterId",
-    sem.name AS "semesterName",
-    a.title,
-    a.description,
-    a.max_score AS "maxScore",
-    a.weight,
-    a.assessment_date AS "assessmentDate",
-    a.is_published AS "isPublished",
-    a.created_at AS "createdAt",
-    a.updated_at AS "updatedAt",
-    COALESCE(agg.graded_count, 0)::int AS "gradedCount",
-    COALESCE(roster.expected_count, 0)::int AS "expectedCount",
-    agg.average_score AS "averageScore",
-    agg.average_percentage AS "averagePercentage"
+const assessmentHeaderColumns = `
+  a.id,
+  at.id AS "assessmentTypeId",
+  at.code AS "assessmentTypeCode",
+  at.name AS "assessmentTypeName",
+  c.id AS "classId",
+  c.class_name AS "className",
+  c.section,
+  gl.id AS "gradeLevelId",
+  gl.name AS "gradeLevelName",
+  subj.id AS "subjectId",
+  subj.name AS "subjectName",
+  subj.code AS "subjectCode",
+  t.id AS "teacherId",
+  tu.id AS "teacherUserId",
+  tu.full_name AS "teacherFullName",
+  tu.email AS "teacherEmail",
+  tu.phone AS "teacherPhone",
+  ay.id AS "academicYearId",
+  ay.name AS "academicYearName",
+  sem.id AS "semesterId",
+  sem.name AS "semesterName",
+  a.title,
+  a.description,
+  a.max_score AS "maxScore",
+  a.weight,
+  a.assessment_date AS "assessmentDate",
+  a.is_published AS "isPublished",
+  a.created_at AS "createdAt",
+  a.updated_at AS "updatedAt"
+`;
+
+const assessmentFromClause = `
   FROM ${databaseTables.assessments} a
   JOIN ${databaseTables.assessmentTypes} at ON at.id = a.assessment_type_id
   JOIN ${databaseTables.classes} c ON c.id = a.class_id
@@ -105,6 +104,16 @@ const assessmentReadSelect = `
   JOIN ${databaseTables.users} tu ON tu.id = t.user_id
   JOIN ${databaseTables.academicYears} ay ON ay.id = a.academic_year_id
   JOIN ${databaseTables.semesters} sem ON sem.id = a.semester_id
+`;
+
+const assessmentReadSelect = `
+  SELECT
+    ${assessmentHeaderColumns},
+    COALESCE(agg.graded_count, 0)::int AS "gradedCount",
+    COALESCE(roster.expected_count, 0)::int AS "expectedCount",
+    agg.average_score AS "averageScore",
+    agg.average_percentage AS "averagePercentage"
+  ${assessmentFromClause}
   ${assessmentAggregateLateralSelect}
   ${assessmentRosterCountsLateralSelect}
 `;
@@ -306,6 +315,108 @@ export class AssessmentsRepository {
     );
 
     return mapSingleRow(result.rows);
+  }
+
+  async loadAssessmentCreationReferenceSnapshot(
+    assessmentTypeId: string,
+    classId: string,
+    subjectId: string,
+    academicYearId: string,
+    semesterId: string,
+    queryable: Queryable = db
+  ): Promise<AssessmentCreationReferenceSnapshot> {
+    const result = await queryable.query<AssessmentCreationReferenceSnapshot>(
+      `
+        SELECT
+          (
+            SELECT row_to_json(assessment_type_ref)
+            FROM (
+              SELECT
+                id,
+                code,
+                name,
+                description,
+                is_active AS "isActive"
+              FROM ${databaseTables.assessmentTypes}
+              WHERE id = $1
+              LIMIT 1
+            ) assessment_type_ref
+          ) AS "assessmentType",
+          (
+            SELECT row_to_json(class_ref)
+            FROM (
+              SELECT
+                c.id,
+                c.class_name AS "className",
+                c.section,
+                gl.id AS "gradeLevelId",
+                gl.name AS "gradeLevelName",
+                ay.id AS "academicYearId",
+                ay.name AS "academicYearName"
+              FROM ${databaseTables.classes} c
+              JOIN ${databaseTables.gradeLevels} gl ON gl.id = c.grade_level_id
+              JOIN ${databaseTables.academicYears} ay ON ay.id = c.academic_year_id
+              WHERE c.id = $2
+              LIMIT 1
+            ) class_ref
+          ) AS "classRef",
+          (
+            SELECT row_to_json(subject_ref)
+            FROM (
+              SELECT
+                s.id,
+                s.name,
+                s.code,
+                gl.id AS "gradeLevelId"
+                ,gl.name AS "gradeLevelName"
+              FROM ${databaseTables.subjects} s
+              JOIN ${databaseTables.gradeLevels} gl ON gl.id = s.grade_level_id
+              WHERE s.id = $3
+              LIMIT 1
+            ) subject_ref
+          ) AS "subjectRef",
+          (
+            SELECT row_to_json(academic_year_ref)
+            FROM (
+              SELECT
+                id,
+                name
+              FROM ${databaseTables.academicYears}
+              WHERE id = $4
+              LIMIT 1
+            ) academic_year_ref
+          ) AS "academicYear",
+          (
+            SELECT row_to_json(semester_ref)
+            FROM (
+              SELECT
+                id,
+                name,
+                academic_year_id AS "academicYearId"
+              FROM ${databaseTables.semesters}
+              WHERE id = $5
+              LIMIT 1
+            ) semester_ref
+          ) AS semester,
+          EXISTS (
+            SELECT 1
+            FROM ${databaseTables.subjectOfferings}
+            WHERE subject_id = $3
+              AND semester_id = $5
+              AND is_active = true
+          ) AS "hasActiveSubjectOffering"
+      `,
+      [assessmentTypeId, classId, subjectId, academicYearId, semesterId]
+    );
+
+    return result.rows[0] ?? {
+      assessmentType: null,
+      classRef: null,
+      subjectRef: null,
+      academicYear: null,
+      semester: null,
+      hasActiveSubjectOffering: false
+    };
   }
 
   async hasTeacherAssignment(

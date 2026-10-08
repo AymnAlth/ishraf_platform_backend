@@ -6,7 +6,7 @@ import { OwnershipService } from "../../../common/services/ownership.service";
 import { ProfileResolutionService } from "../../../common/services/profile-resolution.service";
 import type { AuthenticatedUser } from "../../../common/types/auth.types";
 import type { PaginatedData } from "../../../common/types/pagination.types";
-import type { TeacherProfile } from "../../../common/types/profile.types";
+import type { TeacherProfileReference } from "../../../common/types/profile.types";
 import { toPaginatedData } from "../../../common/utils/pagination.util";
 import { db } from "../../../database/db";
 import type {
@@ -47,7 +47,7 @@ type AssessmentActor =
   | {
       role: "teacher";
       authUser: AuthenticatedUser;
-      teacher: TeacherProfile;
+      teacher: TeacherProfileReference;
     };
 
 const assertFound = <T>(entity: T | null, label: string): T => {
@@ -287,36 +287,25 @@ export class AssessmentsService {
         semesterId: payload.semesterId
       });
 
-    assertFound(
-      await this.assessmentsRepository.findAssessmentTypeById(payload.assessmentTypeId),
-      "Assessment type"
-    );
-    const classRow = assertFound(
-      await this.assessmentsRepository.findClassById(payload.classId),
-      "Class"
-    );
-    const subjectRow = assertFound(
-      await this.assessmentsRepository.findSubjectById(payload.subjectId),
-      "Subject"
-    );
-    const academicYear = assertFound(
-      await this.assessmentsRepository.findAcademicYearById(operationalContext.academicYearId),
-      "Academic year"
-    );
-    const semester = assertFound(
-      await this.assessmentsRepository.findSemesterById(operationalContext.semesterId),
-      "Semester"
-    );
+    const referenceSnapshot =
+      await this.assessmentsRepository.loadAssessmentCreationReferenceSnapshot(
+        payload.assessmentTypeId,
+        payload.classId,
+        payload.subjectId,
+        operationalContext.academicYearId,
+        operationalContext.semesterId
+      );
+
+    assertFound(referenceSnapshot.assessmentType, "Assessment type");
+    const classRow = assertFound(referenceSnapshot.classRef, "Class");
+    const subjectRow = assertFound(referenceSnapshot.subjectRef, "Subject");
+    const academicYear = assertFound(referenceSnapshot.academicYear, "Academic year");
+    const semester = assertFound(referenceSnapshot.semester, "Semester");
 
     assertClassBelongsToAcademicYear(classRow, academicYear.id);
     assertSemesterBelongsToAcademicYear(semester, academicYear.id);
     assertSubjectBelongsToClassGradeLevel(subjectRow, classRow);
-    assertSubjectOfferedInSemester(
-      await this.assessmentsRepository.hasActiveSubjectOffering(
-        payload.subjectId,
-        operationalContext.semesterId
-      )
-    );
+    assertSubjectOfferedInSemester(referenceSnapshot.hasActiveSubjectOffering);
 
     let teacherId: string;
 
@@ -566,8 +555,8 @@ export class AssessmentsService {
     }
   }
 
-  private async resolveTeacherProfile(userId: string): Promise<TeacherProfile> {
-    return this.profileResolutionService.requireTeacherProfile(userId);
+  private async resolveTeacherProfile(userId: string): Promise<TeacherProfileReference> {
+    return this.profileResolutionService.requireTeacherProfileReference(userId);
   }
 
   private async assertTeacherAssignment(
@@ -591,7 +580,7 @@ export class AssessmentsService {
   }
 
   private async resolveTeacherIdentifier(identifier: string): Promise<string> {
-    const teacher = await this.profileResolutionService.requireTeacherProfileIdentifier(
+    const teacher = await this.profileResolutionService.requireTeacherProfileReferenceIdentifier(
       identifier
     );
 

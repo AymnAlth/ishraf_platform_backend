@@ -13,8 +13,7 @@ import type {
   ClassReferenceRow,
   SemesterReferenceRow,
   StudentAssessmentRow,
-  SubjectReferenceRow,
-  TeacherProfileRow
+  SubjectReferenceRow
 } from "../../src/modules/assessments/types/assessments.types";
 
 const assessmentTypeRow = (
@@ -25,17 +24,6 @@ const assessmentTypeRow = (
   name: "Exam",
   description: null,
   isActive: true,
-  ...overrides
-});
-
-const teacherProfile = (
-  overrides: Partial<TeacherProfileRow> = {}
-): TeacherProfileRow => ({
-  teacherId: "1",
-  teacherUserId: "1002",
-  teacherFullName: "Sara Teacher",
-  teacherEmail: "teacher@example.com",
-  teacherPhone: "700000003",
   ...overrides
 });
 
@@ -162,6 +150,7 @@ describe("AssessmentsService", () => {
     createAssessmentType: vi.fn(),
     listActiveAssessmentTypes: vi.fn(),
     findAssessmentTypeById: vi.fn(),
+    loadAssessmentCreationReferenceSnapshot: vi.fn(),
     findTeacherProfileByUserId: vi.fn(),
     findTeacherById: vi.fn(),
     findClassById: vi.fn(),
@@ -179,7 +168,9 @@ describe("AssessmentsService", () => {
     updateStudentAssessment: vi.fn()
   };
   const profileResolutionServiceMock = {
+    requireTeacherProfileReference: vi.fn(),
     requireTeacherProfile: vi.fn(),
+    requireTeacherProfileReferenceIdentifier: vi.fn(),
     requireTeacherProfileIdentifier: vi.fn()
   };
   const activeAcademicContextServiceMock = {
@@ -224,24 +215,20 @@ describe("AssessmentsService", () => {
   });
 
   it("creates an assessment for an assigned admin-selected teacher user id", async () => {
-    vi.mocked(repositoryMock.findAssessmentTypeById).mockResolvedValue(assessmentTypeRow());
-    vi.mocked(repositoryMock.findClassById).mockResolvedValue(classRow());
-    vi.mocked(repositoryMock.findSubjectById).mockResolvedValue(subjectRow());
-    vi.mocked(repositoryMock.findAcademicYearById).mockResolvedValue({
-      id: "1",
-      name: "2025-2026"
+    vi.mocked(repositoryMock.loadAssessmentCreationReferenceSnapshot).mockResolvedValue({
+      assessmentType: assessmentTypeRow(),
+      classRef: classRow(),
+      subjectRef: subjectRow(),
+      academicYear: {
+        id: "1",
+        name: "2025-2026"
+      },
+      semester: semesterRow(),
+      hasActiveSubjectOffering: true
     });
-    vi.mocked(repositoryMock.findSemesterById).mockResolvedValue(semesterRow());
-    vi.mocked(repositoryMock.hasActiveSubjectOffering).mockResolvedValue(true);
-    vi.mocked(profileResolutionServiceMock.requireTeacherProfileIdentifier).mockResolvedValue({
+    vi.mocked(profileResolutionServiceMock.requireTeacherProfileReferenceIdentifier).mockResolvedValue({
       teacherId: "1",
-      userId: "1002",
-      fullName: "Sara Teacher",
-      email: "teacher@example.com",
-      phone: "700000003",
-      specialization: null,
-      qualification: null,
-      hireDate: null
+      userId: "1002"
     });
     vi.mocked(repositoryMock.hasTeacherAssignment).mockResolvedValue(true);
     vi.mocked(repositoryMock.createAssessment).mockResolvedValue("10");
@@ -273,15 +260,9 @@ describe("AssessmentsService", () => {
   });
 
   it("normalizes teacher user ids in assessment list filters", async () => {
-    vi.mocked(profileResolutionServiceMock.requireTeacherProfileIdentifier).mockResolvedValue({
+    vi.mocked(profileResolutionServiceMock.requireTeacherProfileReferenceIdentifier).mockResolvedValue({
       teacherId: "1",
-      userId: "1002",
-      fullName: "Sara Teacher",
-      email: "teacher@example.com",
-      phone: "700000003",
-      specialization: null,
-      qualification: null,
-      hireDate: null
+      userId: "1002"
     });
     vi.mocked(repositoryMock.listAssessments).mockResolvedValue({
       rows: [assessmentRow()],
@@ -314,25 +295,21 @@ describe("AssessmentsService", () => {
   });
 
   it("rejects teachers that send teacherId in create assessment payloads", async () => {
-    vi.mocked(profileResolutionServiceMock.requireTeacherProfile).mockResolvedValue({
+    vi.mocked(profileResolutionServiceMock.requireTeacherProfileReference).mockResolvedValue({
       teacherId: "1",
-      userId: "1002",
-      fullName: "Sara Teacher",
-      email: "teacher@example.com",
-      phone: "700000003",
-      specialization: null,
-      qualification: null,
-      hireDate: null
+      userId: "1002"
     });
-    vi.mocked(repositoryMock.findAssessmentTypeById).mockResolvedValue(assessmentTypeRow());
-    vi.mocked(repositoryMock.findClassById).mockResolvedValue(classRow());
-    vi.mocked(repositoryMock.findSubjectById).mockResolvedValue(subjectRow());
-    vi.mocked(repositoryMock.findAcademicYearById).mockResolvedValue({
-      id: "1",
-      name: "2025-2026"
+    vi.mocked(repositoryMock.loadAssessmentCreationReferenceSnapshot).mockResolvedValue({
+      assessmentType: assessmentTypeRow(),
+      classRef: classRow(),
+      subjectRef: subjectRow(),
+      academicYear: {
+        id: "1",
+        name: "2025-2026"
+      },
+      semester: semesterRow(),
+      hasActiveSubjectOffering: true
     });
-    vi.mocked(repositoryMock.findSemesterById).mockResolvedValue(semesterRow());
-    vi.mocked(repositoryMock.hasActiveSubjectOffering).mockResolvedValue(true);
 
     await expect(
       assessmentsService.createAssessment(
@@ -358,22 +335,21 @@ describe("AssessmentsService", () => {
   });
 
   it("rejects class and semester mismatches before inserting assessments", async () => {
-    vi.mocked(repositoryMock.findAssessmentTypeById).mockResolvedValue(assessmentTypeRow());
-    vi.mocked(repositoryMock.findClassById).mockResolvedValue(
-      classRow({
+    vi.mocked(repositoryMock.loadAssessmentCreationReferenceSnapshot).mockResolvedValue({
+      assessmentType: assessmentTypeRow(),
+      classRef: classRow({
         academicYearId: "2"
-      })
-    );
-    vi.mocked(repositoryMock.findSubjectById).mockResolvedValue(subjectRow());
-    vi.mocked(repositoryMock.findAcademicYearById).mockResolvedValue({
-      id: "1",
-      name: "2025-2026"
+      }),
+      subjectRef: subjectRow(),
+      academicYear: {
+        id: "1",
+        name: "2025-2026"
+      },
+      semester: semesterRow({
+        academicYearId: "2"
+      }),
+      hasActiveSubjectOffering: true
     });
-    vi.mocked(repositoryMock.findSemesterById).mockResolvedValue(
-      semesterRow({
-        academicYearId: "2"
-      })
-    );
 
     await expect(
       assessmentsService.createAssessment(
@@ -399,15 +375,17 @@ describe("AssessmentsService", () => {
   });
 
   it("rejects assessment creation when the subject is not offered in the selected semester", async () => {
-    vi.mocked(repositoryMock.findAssessmentTypeById).mockResolvedValue(assessmentTypeRow());
-    vi.mocked(repositoryMock.findClassById).mockResolvedValue(classRow());
-    vi.mocked(repositoryMock.findSubjectById).mockResolvedValue(subjectRow());
-    vi.mocked(repositoryMock.findAcademicYearById).mockResolvedValue({
-      id: "1",
-      name: "2025-2026"
+    vi.mocked(repositoryMock.loadAssessmentCreationReferenceSnapshot).mockResolvedValue({
+      assessmentType: assessmentTypeRow(),
+      classRef: classRow(),
+      subjectRef: subjectRow(),
+      academicYear: {
+        id: "1",
+        name: "2025-2026"
+      },
+      semester: semesterRow(),
+      hasActiveSubjectOffering: false
     });
-    vi.mocked(repositoryMock.findSemesterById).mockResolvedValue(semesterRow());
-    vi.mocked(repositoryMock.hasActiveSubjectOffering).mockResolvedValue(false);
 
     await expect(
       assessmentsService.createAssessment(
@@ -542,15 +520,9 @@ describe("AssessmentsService", () => {
   });
 
   it("updates one student assessment and blocks teachers from editing other teachers' records", async () => {
-    vi.mocked(profileResolutionServiceMock.requireTeacherProfile).mockResolvedValue({
+    vi.mocked(profileResolutionServiceMock.requireTeacherProfileReference).mockResolvedValue({
       teacherId: "1",
-      userId: "1002",
-      fullName: "Sara Teacher",
-      email: "teacher@example.com",
-      phone: "700000003",
-      specialization: null,
-      qualification: null,
-      hireDate: null
+      userId: "1002"
     });
     vi.mocked(repositoryMock.findStudentAssessmentById)
       .mockResolvedValueOnce(

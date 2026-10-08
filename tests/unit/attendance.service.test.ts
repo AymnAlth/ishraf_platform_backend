@@ -150,14 +150,18 @@ describe("AttendanceService", () => {
     createAttendanceSession: vi.fn(),
     listAttendanceSessions: vi.fn(),
     findAttendanceSessionById: vi.fn(),
+    findAttendanceSessionHeaderById: vi.fn(),
+    countActiveAttendanceRoster: vi.fn(),
     listAttendanceSessionStudents: vi.fn(),
     upsertAttendanceRecords: vi.fn(),
     findAttendanceRecordById: vi.fn(),
     updateAttendanceRecord: vi.fn()
   };
   const profileResolutionServiceMock = {
+    requireTeacherProfileReference: vi.fn(),
     requireTeacherProfile: vi.fn(),
     requireSupervisorProfile: vi.fn(),
+    requireTeacherProfileReferenceIdentifier: vi.fn(),
     requireTeacherProfileIdentifier: vi.fn(),
     requireSupervisorProfileIdentifier: vi.fn()
   };
@@ -219,19 +223,18 @@ describe("AttendanceService", () => {
     });
     vi.mocked(repositoryMock.findSemesterById).mockResolvedValue(semesterRow());
     vi.mocked(repositoryMock.hasActiveSubjectOffering).mockResolvedValue(true);
-    vi.mocked(profileResolutionServiceMock.requireTeacherProfileIdentifier).mockResolvedValue({
+    vi.mocked(profileResolutionServiceMock.requireTeacherProfileReferenceIdentifier).mockResolvedValue({
       teacherId: "1",
-      userId: "1002",
-      fullName: "Sara Teacher",
-      email: "teacher@example.com",
-      phone: "700000003",
-      specialization: null,
-      qualification: null,
-      hireDate: null
+      userId: "1002"
     });
     vi.mocked(repositoryMock.hasTeacherAssignment).mockResolvedValue(true);
     vi.mocked(repositoryMock.createAttendanceSession).mockResolvedValue("10");
-    vi.mocked(repositoryMock.findAttendanceSessionById).mockResolvedValue(sessionRow());
+    vi.mocked(repositoryMock.findAttendanceSessionHeaderById).mockResolvedValue(
+      sessionRow({
+        expectedCount: 0
+      })
+    );
+    vi.mocked(repositoryMock.countActiveAttendanceRoster).mockResolvedValue(2);
 
     const response = await attendanceService.createSession(
       {
@@ -256,15 +259,9 @@ describe("AttendanceService", () => {
   });
 
   it("normalizes teacher user ids in attendance list filters", async () => {
-    vi.mocked(profileResolutionServiceMock.requireTeacherProfileIdentifier).mockResolvedValue({
+    vi.mocked(profileResolutionServiceMock.requireTeacherProfileReferenceIdentifier).mockResolvedValue({
       teacherId: "1",
-      userId: "1002",
-      fullName: "Sara Teacher",
-      email: "teacher@example.com",
-      phone: "700000003",
-      specialization: null,
-      qualification: null,
-      hireDate: null
+      userId: "1002"
     });
     vi.mocked(repositoryMock.listAttendanceSessions).mockResolvedValue({
       rows: [sessionRow()],
@@ -327,6 +324,10 @@ describe("AttendanceService", () => {
   });
 
   it("rejects class and semester mismatches before inserting a session", async () => {
+    vi.mocked(profileResolutionServiceMock.requireTeacherProfileReferenceIdentifier).mockResolvedValue({
+      teacherId: "1",
+      userId: "1002"
+    });
     vi.mocked(repositoryMock.findClassById).mockResolvedValue(
       classRow({
         academicYearId: "2"
@@ -340,7 +341,7 @@ describe("AttendanceService", () => {
     vi.mocked(repositoryMock.findSemesterById).mockResolvedValue(
       semesterRow({
         academicYearId: "2"
-      })
+      }),
     );
 
     await expect(
@@ -365,6 +366,10 @@ describe("AttendanceService", () => {
   });
 
   it("rejects creating a session when the subject is not offered in the selected semester", async () => {
+    vi.mocked(profileResolutionServiceMock.requireTeacherProfileReferenceIdentifier).mockResolvedValue({
+      teacherId: "1",
+      userId: "1002"
+    });
     vi.mocked(repositoryMock.findClassById).mockResolvedValue(classRow());
     vi.mocked(repositoryMock.findSubjectById).mockResolvedValue(subjectRow());
     vi.mocked(repositoryMock.findAcademicYearById).mockResolvedValue({
@@ -398,17 +403,11 @@ describe("AttendanceService", () => {
   });
 
   it("rejects attendance payloads that do not match the full active roster", async () => {
-    vi.mocked(profileResolutionServiceMock.requireTeacherProfile).mockResolvedValue({
+    vi.mocked(profileResolutionServiceMock.requireTeacherProfileReference).mockResolvedValue({
       teacherId: "1",
-      userId: "1002",
-      fullName: "Sara Teacher",
-      email: "teacher@example.com",
-      phone: "700000003",
-      specialization: null,
-      qualification: null,
-      hireDate: null
+      userId: "1002"
     });
-    vi.mocked(repositoryMock.findAttendanceSessionById).mockResolvedValue(sessionRow());
+    vi.mocked(repositoryMock.findAttendanceSessionHeaderById).mockResolvedValue(sessionRow());
     vi.mocked(repositoryMock.listAttendanceSessionStudents).mockResolvedValue([
       rosterStudent({
         studentId: "1"
@@ -480,17 +479,11 @@ describe("AttendanceService", () => {
   });
 
   it("triggers absent-student automation after saving full-session attendance", async () => {
-    vi.mocked(profileResolutionServiceMock.requireTeacherProfile).mockResolvedValue({
+    vi.mocked(profileResolutionServiceMock.requireTeacherProfileReference).mockResolvedValue({
       teacherId: "1",
-      userId: "1002",
-      fullName: "Sara Teacher",
-      email: "teacher@example.com",
-      phone: "700000003",
-      specialization: null,
-      qualification: null,
-      hireDate: null
+      userId: "1002"
     });
-    vi.mocked(repositoryMock.findAttendanceSessionById).mockResolvedValue(sessionRow());
+    vi.mocked(repositoryMock.findAttendanceSessionHeaderById).mockResolvedValue(sessionRow());
     vi.mocked(repositoryMock.listAttendanceSessionStudents).mockResolvedValue([
       rosterStudent({
         studentId: "1"
@@ -531,7 +524,7 @@ describe("AttendanceService", () => {
       subjectName: "Science",
       sessionDate: "2026-02-16"
     });
-    expect(repositoryMock.findAttendanceSessionById).toHaveBeenCalledTimes(1);
+    expect(repositoryMock.findAttendanceSessionHeaderById).toHaveBeenCalledTimes(1);
     expect(repositoryMock.listAttendanceSessionStudents).toHaveBeenCalledTimes(1);
   });
 

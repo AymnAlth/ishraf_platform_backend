@@ -63,37 +63,33 @@ const attendanceRosterCountsLateralSelect = `
   ) rc ON true
 `;
 
-const attendanceSessionReadSelect = `
-  SELECT
-    ats.id,
-    ats.class_id AS "classId",
-    c.class_name AS "className",
-    c.section,
-    gl.id AS "gradeLevelId",
-    gl.name AS "gradeLevelName",
-    ats.subject_id AS "subjectId",
-    subj.name AS "subjectName",
-    subj.code AS "subjectCode",
-    ats.teacher_id AS "teacherId",
-    t.user_id AS "teacherUserId",
-    tu.full_name AS "teacherFullName",
-    tu.email AS "teacherEmail",
-    tu.phone AS "teacherPhone",
-    ats.academic_year_id AS "academicYearId",
-    ay.name AS "academicYearName",
-    ats.semester_id AS "semesterId",
-    sem.name AS "semesterName",
-    ats.session_date AS "sessionDate",
-    ats.period_no AS "periodNo",
-    ats.title,
-    ats.notes,
-    ats.created_at AS "createdAt",
-    COALESCE(ac.present_count, 0)::int AS "presentCount",
-    COALESCE(ac.absent_count, 0)::int AS "absentCount",
-    COALESCE(ac.late_count, 0)::int AS "lateCount",
-    COALESCE(ac.excused_count, 0)::int AS "excusedCount",
-    COALESCE(ac.recorded_count, 0)::int AS "recordedCount",
-    COALESCE(rc.expected_count, 0)::int AS "expectedCount"
+const attendanceSessionHeaderColumns = `
+  ats.id,
+  ats.class_id AS "classId",
+  c.class_name AS "className",
+  c.section,
+  gl.id AS "gradeLevelId",
+  gl.name AS "gradeLevelName",
+  ats.subject_id AS "subjectId",
+  subj.name AS "subjectName",
+  subj.code AS "subjectCode",
+  ats.teacher_id AS "teacherId",
+  t.user_id AS "teacherUserId",
+  tu.full_name AS "teacherFullName",
+  tu.email AS "teacherEmail",
+  tu.phone AS "teacherPhone",
+  ats.academic_year_id AS "academicYearId",
+  ay.name AS "academicYearName",
+  ats.semester_id AS "semesterId",
+  sem.name AS "semesterName",
+  ats.session_date AS "sessionDate",
+  ats.period_no AS "periodNo",
+  ats.title,
+  ats.notes,
+  ats.created_at AS "createdAt"
+`;
+
+const attendanceSessionFromClause = `
   FROM ${databaseTables.attendanceSessions} ats
   JOIN ${databaseTables.classes} c ON c.id = ats.class_id
   JOIN ${databaseTables.gradeLevels} gl ON gl.id = c.grade_level_id
@@ -102,6 +98,18 @@ const attendanceSessionReadSelect = `
   JOIN ${databaseTables.users} tu ON tu.id = t.user_id
   JOIN ${databaseTables.academicYears} ay ON ay.id = ats.academic_year_id
   JOIN ${databaseTables.semesters} sem ON sem.id = ats.semester_id
+`;
+
+const attendanceSessionReadSelect = `
+  SELECT
+    ${attendanceSessionHeaderColumns},
+    COALESCE(ac.present_count, 0)::int AS "presentCount",
+    COALESCE(ac.absent_count, 0)::int AS "absentCount",
+    COALESCE(ac.late_count, 0)::int AS "lateCount",
+    COALESCE(ac.excused_count, 0)::int AS "excusedCount",
+    COALESCE(ac.recorded_count, 0)::int AS "recordedCount",
+    COALESCE(rc.expected_count, 0)::int AS "expectedCount"
+  ${attendanceSessionFromClause}
   ${attendanceCountsLateralSelect}
   ${attendanceRosterCountsLateralSelect}
 `;
@@ -484,6 +492,50 @@ export class AttendanceRepository {
     );
 
     return mapSingleRow(result.rows);
+  }
+
+  async findAttendanceSessionHeaderById(
+    sessionId: string,
+    queryable: Queryable = db
+  ): Promise<AttendanceSessionRow | null> {
+    const result = await queryable.query<AttendanceSessionRow>(
+      `
+        SELECT
+          ${attendanceSessionHeaderColumns},
+          0::int AS "presentCount",
+          0::int AS "absentCount",
+          0::int AS "lateCount",
+          0::int AS "excusedCount",
+          0::int AS "recordedCount",
+          0::int AS "expectedCount"
+        ${attendanceSessionFromClause}
+        WHERE ats.id = $1
+        LIMIT 1
+      `,
+      [sessionId]
+    );
+
+    return mapSingleRow(result.rows);
+  }
+
+  async countActiveAttendanceRoster(
+    classId: string,
+    academicYearId: string,
+    queryable: Queryable = db
+  ): Promise<number> {
+    const result = await queryable.query<{ expectedCount: string }>(
+      `
+        SELECT COUNT(*)::text AS "expectedCount"
+        FROM ${databaseTables.studentAcademicEnrollments} sae
+        JOIN ${databaseTables.students} st ON st.id = sae.student_id
+        WHERE sae.class_id = $1
+          AND sae.academic_year_id = $2
+          AND st.status = 'active'
+      `,
+      [classId, academicYearId]
+    );
+
+    return Number(result.rows[0]?.expectedCount ?? 0);
   }
 
   async listAttendanceSessionStudents(

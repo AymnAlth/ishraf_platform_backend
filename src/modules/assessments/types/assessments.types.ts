@@ -10,7 +10,6 @@ export interface AssessmentTypeRow {
   description: string | null;
   isActive: boolean;
 }
-
 export interface AssessmentRow {
   id: string;
   assessmentTypeId: string;
@@ -110,6 +109,15 @@ export interface SemesterReferenceRow {
   id: string;
   name: string;
   academicYearId: string;
+}
+
+export interface AssessmentCreationReferenceSnapshot {
+  assessmentType: AssessmentTypeRow | null;
+  classRef: ClassReferenceRow | null;
+  subjectRef: SubjectReferenceRow | null;
+  academicYear: AcademicYearReferenceRow | null;
+  semester: SemesterReferenceRow | null;
+  hasActiveSubjectOffering: boolean;
 }
 
 export interface AssessmentTypeWriteInput {
