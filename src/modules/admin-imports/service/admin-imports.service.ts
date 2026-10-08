@@ -30,7 +30,7 @@ const attachImportId = (
 });
 
 const parseStoredResponse = (
-  row: SchoolOnboardingImportRunRow,
+  row: Pick<SchoolOnboardingImportRunRow, "id" | "resultJson">,
   options: { alreadyApplied?: boolean } = {}
 ): SchoolOnboardingImportResponseDto => {
   const stored = row.resultJson as Omit<SchoolOnboardingImportResponseDto, "importId">;
@@ -85,7 +85,7 @@ export class AdminImportsService {
     await this.assertSchoolOnboardingEnabled();
     const snapshot = await this.adminImportsRepository.loadReferenceSnapshot();
     const evaluation = this.importEngine.evaluate(payload, snapshot);
-    const importRun = await this.adminImportsRepository.createImportRun({
+    const importRunId = await this.adminImportsRepository.createImportRunId({
       mode: "dry-run",
       status: evaluation.response.status,
       templateVersion: payload.templateVersion,
@@ -101,7 +101,7 @@ export class AdminImportsService {
       resolvedReferenceCountsJson: evaluation.response.resolvedReferenceCounts
     });
 
-    return attachImportId(importRun.id, evaluation.response);
+    return attachImportId(importRunId, evaluation.response);
   }
 
   async applySchoolOnboardingImport(
@@ -109,7 +109,7 @@ export class AdminImportsService {
     payload: SchoolOnboardingApplyRequestDto
   ): Promise<SchoolOnboardingImportResponseDto> {
     await this.assertSchoolOnboardingEnabled();
-    const dryRun = await this.adminImportsRepository.findImportRunById(payload.dryRunId);
+    const dryRun = await this.adminImportsRepository.findImportRunPayloadById(payload.dryRunId);
 
     if (!dryRun) {
       throw new NotFoundError("School onboarding dry-run not found");
@@ -135,7 +135,7 @@ export class AdminImportsService {
       ]);
     }
 
-    const existingApply = await this.adminImportsRepository.findAppliedImportRunByDryRunSourceId(
+    const existingApply = await this.adminImportsRepository.findAppliedImportResultByDryRunSourceId(
       payload.dryRunId
     );
 
@@ -154,7 +154,7 @@ export class AdminImportsService {
         snapshot,
         client
       );
-      const importRun = await this.adminImportsRepository.createImportRun(
+      const importRunId = await this.adminImportsRepository.createImportRunId(
         {
           mode: "apply",
           status: applyResponse.status,
@@ -175,7 +175,7 @@ export class AdminImportsService {
         client
       );
 
-      return attachImportId(importRun.id, applyResponse);
+      return attachImportId(importRunId, applyResponse);
     });
   }
 
@@ -186,7 +186,7 @@ export class AdminImportsService {
     const history = await this.adminImportsRepository.listImportRuns(query);
 
     return toPaginatedData(
-      history.rows.map((row) => toHistoryItem(row)),
+      history.rows.map((row: SchoolOnboardingImportRunRow) => toHistoryItem(row)),
       query.page,
       query.limit,
       history.totalItems

@@ -71,6 +71,11 @@ type UserStateEntry = {
   licenseNumber: string | null;
 };
 
+type PreparedImportedUserRow = {
+  row: NormalizedRow;
+  passwordHash: string;
+};
+
 type ApplyState = {
   academicYearIdsByName: Map<string, string>;
   semesterIdsByKey: Map<string, string>;
@@ -103,6 +108,8 @@ type ApplyState = {
 const editableSheetIds = SCHOOL_ONBOARDING_SHEET_IDS.filter(
   (sheetId) => !NON_EDITABLE_SHEET_IDS.has(sheetId)
 ) as EditableSheetId[];
+
+const IMPORTED_USER_PASSWORD_HASH_CONCURRENCY = 4;
 
 const toNormalizedText = (value: unknown): string | null => {
   if (value === null || value === undefined) {
@@ -1240,6 +1247,17 @@ export class SchoolOnboardingImportEngine {
     applyRequest: SchoolOnboardingApplyRequestDto
   ): Promise<void> {
     const state = this.buildApplyState(snapshot);
+    const [
+      preparedTeacherUsers,
+      preparedSupervisorUsers,
+      preparedParentUsers,
+      preparedDriverUsers
+    ] = await Promise.all([
+      this.prepareImportedUsers(workbook.Users_Teachers, applyRequest.fallbackPassword),
+      this.prepareImportedUsers(workbook.Users_Supervisors, applyRequest.fallbackPassword),
+      this.prepareImportedUsers(workbook.Users_Parents, applyRequest.fallbackPassword),
+      this.prepareImportedUsers(workbook.Users_Drivers, applyRequest.fallbackPassword)
+    ]);
 
     for (const row of workbook.AcademicYears) {
       const yearId = await this.academicStructureRepository.createAcademicYear(
@@ -1344,10 +1362,10 @@ export class SchoolOnboardingImportEngine {
       );
     }
 
-    await this.createImportedUsers("teacher", workbook.Users_Teachers, state, queryable, applyRequest.fallbackPassword);
-    await this.createImportedUsers("supervisor", workbook.Users_Supervisors, state, queryable, applyRequest.fallbackPassword);
-    await this.createImportedUsers("parent", workbook.Users_Parents, state, queryable, applyRequest.fallbackPassword);
-    await this.createImportedUsers("driver", workbook.Users_Drivers, state, queryable, applyRequest.fallbackPassword);
+    await this.createImportedUsers("teacher", preparedTeacherUsers, state, queryable);
+    await this.createImportedUsers("supervisor", preparedSupervisorUsers, state, queryable);
+    await this.createImportedUsers("parent", preparedParentUsers, state, queryable);
+    await this.createImportedUsers("driver", preparedDriverUsers, state, queryable);
 
     for (const row of workbook.Students) {
       const bootstrapEnrollment = workbook.StudentEnrollments.find(
@@ -1820,15 +1838,41 @@ export class SchoolOnboardingImportEngine {
     }
   }
 
+  private async prepareImportedUsers(
+    rows: NormalizedRow[],
+    fallbackPassword: string | undefined
+  ): Promise<PreparedImportedUserRow[]> {
+    const preparedUsers: PreparedImportedUserRow[] = [];
+
+    for (
+      let index = 0;
+      index < rows.length;
+      index += IMPORTED_USER_PASSWORD_HASH_CONCURRENCY
+    ) {
+      const batch = rows.slice(index, index + IMPORTED_USER_PASSWORD_HASH_CONCURRENCY);
+      const preparedBatch = await Promise.all(
+        batch.map(async (row) => ({
+          row,
+          passwordHash: await hashPassword(
+            this.resolvePasswordSeed(row, fallbackPassword)
+          )
+        }))
+      );
+
+      preparedUsers.push(...preparedBatch);
+    }
+
+    return preparedUsers;
+  }
+
   private async createImportedUsers(
     role: ContactRole,
-    rows: NormalizedRow[],
+    rows: PreparedImportedUserRow[],
     state: ApplyState,
-    queryable: Queryable,
-    fallbackPassword: string | undefined
+    queryable: Queryable
   ): Promise<void> {
-    for (const row of rows) {
-      const passwordHash = await hashPassword(this.resolvePasswordSeed(row, fallbackPassword));
+    for (const preparedRow of rows) {
+      const { row, passwordHash } = preparedRow;
       const userId = await this.usersRepository.createUser(
         {
           fullName: row.values.full_name!,
@@ -1843,7 +1887,7 @@ export class SchoolOnboardingImportEngine {
       let profileId = "";
 
       if (role === "teacher") {
-        await this.usersRepository.createTeacherProfile(
+        profileId = await this.usersRepository.createTeacherProfileId(
           userId,
           {
             specialization: row.values.specialization ?? null,
@@ -1852,24 +1896,20 @@ export class SchoolOnboardingImportEngine {
           },
           queryable
         );
-        const result = await queryable.query<{ id: string }>(`SELECT id::text AS id FROM ${databaseTables.teachers} WHERE user_id = $1 LIMIT 1`, [userId]);
-        profileId = result.rows[0]?.id ?? "";
       }
 
       if (role === "supervisor") {
-        await this.usersRepository.createSupervisorProfile(
+        profileId = await this.usersRepository.createSupervisorProfileId(
           userId,
           {
             department: row.values.department ?? null
           },
           queryable
         );
-        const result = await queryable.query<{ id: string }>(`SELECT id::text AS id FROM ${databaseTables.supervisors} WHERE user_id = $1 LIMIT 1`, [userId]);
-        profileId = result.rows[0]?.id ?? "";
       }
 
       if (role === "parent") {
-        await this.usersRepository.createParentProfile(
+        profileId = await this.usersRepository.createParentProfileId(
           userId,
           {
             address: row.values.address ?? null,
@@ -1877,12 +1917,10 @@ export class SchoolOnboardingImportEngine {
           },
           queryable
         );
-        const result = await queryable.query<{ id: string }>(`SELECT id::text AS id FROM ${databaseTables.parents} WHERE user_id = $1 LIMIT 1`, [userId]);
-        profileId = result.rows[0]?.id ?? "";
       }
 
       if (role === "driver") {
-        await this.usersRepository.createDriverProfile(
+        profileId = await this.usersRepository.createDriverProfileId(
           userId,
           {
             licenseNumber: row.values.license_number!,
@@ -1890,8 +1928,6 @@ export class SchoolOnboardingImportEngine {
           },
           queryable
         );
-        const result = await queryable.query<{ id: string }>(`SELECT id::text AS id FROM ${databaseTables.drivers} WHERE user_id = $1 LIMIT 1`, [userId]);
-        profileId = result.rows[0]?.id ?? "";
         state.driverIdsByLicenseNumber.set(toLookupKey(row.values.license_number), profileId);
       }
 
@@ -1965,10 +2001,4 @@ export class SchoolOnboardingImportEngine {
     ]);
   }
 }
-
-
-
-
-
-
 

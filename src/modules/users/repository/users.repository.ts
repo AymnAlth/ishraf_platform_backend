@@ -113,12 +113,12 @@ export class UsersRepository {
     return result.rows[0].id;
   }
 
-  async createParentProfile(
+  async createParentProfileId(
     userId: string,
     input: ParentProfileInput,
     queryable: Queryable = db
-  ): Promise<void> {
-    await queryable.query(
+  ): Promise<string> {
+    const result = await queryable.query<{ id: string }>(
       `
         INSERT INTO ${databaseTables.parents} (
           user_id,
@@ -126,17 +126,28 @@ export class UsersRepository {
           relation_type
         )
         VALUES ($1, $2, $3)
+        RETURNING id::text AS id
       `,
       [userId, input.address, input.relationType]
     );
+
+    return result.rows[0].id;
   }
 
-  async createTeacherProfile(
+  async createParentProfile(
+    userId: string,
+    input: ParentProfileInput,
+    queryable: Queryable = db
+  ): Promise<void> {
+    await this.createParentProfileId(userId, input, queryable);
+  }
+
+  async createTeacherProfileId(
     userId: string,
     input: TeacherProfileInput,
     queryable: Queryable = db
-  ): Promise<void> {
-    await queryable.query(
+  ): Promise<string> {
+    const result = await queryable.query<{ id: string }>(
       `
         INSERT INTO ${databaseTables.teachers} (
           user_id,
@@ -145,9 +156,40 @@ export class UsersRepository {
           hire_date
         )
         VALUES ($1, $2, $3, $4)
+        RETURNING id::text AS id
       `,
       [userId, input.specialization, input.qualification, input.hireDate]
     );
+
+    return result.rows[0].id;
+  }
+
+  async createTeacherProfile(
+    userId: string,
+    input: TeacherProfileInput,
+    queryable: Queryable = db
+  ): Promise<void> {
+    await this.createTeacherProfileId(userId, input, queryable);
+  }
+
+  async createSupervisorProfileId(
+    userId: string,
+    input: SupervisorProfileInput,
+    queryable: Queryable = db
+  ): Promise<string> {
+    const result = await queryable.query<{ id: string }>(
+      `
+        INSERT INTO ${databaseTables.supervisors} (
+          user_id,
+          department
+        )
+        VALUES ($1, $2)
+        RETURNING id::text AS id
+      `,
+      [userId, input.department]
+    );
+
+    return result.rows[0].id;
   }
 
   async createSupervisorProfile(
@@ -155,24 +197,15 @@ export class UsersRepository {
     input: SupervisorProfileInput,
     queryable: Queryable = db
   ): Promise<void> {
-    await queryable.query(
-      `
-        INSERT INTO ${databaseTables.supervisors} (
-          user_id,
-          department
-        )
-        VALUES ($1, $2)
-      `,
-      [userId, input.department]
-    );
+    await this.createSupervisorProfileId(userId, input, queryable);
   }
 
-  async createDriverProfile(
+  async createDriverProfileId(
     userId: string,
     input: DriverProfileInput,
     queryable: Queryable = db
-  ): Promise<void> {
-    await queryable.query(
+  ): Promise<string> {
+    const result = await queryable.query<{ id: string }>(
       `
         INSERT INTO ${databaseTables.drivers} (
           user_id,
@@ -180,9 +213,20 @@ export class UsersRepository {
           driver_status
         )
         VALUES ($1, $2, $3)
+        RETURNING id::text AS id
       `,
       [userId, input.licenseNumber, input.driverStatus]
     );
+
+    return result.rows[0].id;
+  }
+
+  async createDriverProfile(
+    userId: string,
+    input: DriverProfileInput,
+    queryable: Queryable = db
+  ): Promise<void> {
+    await this.createDriverProfileId(userId, input, queryable);
   }
 
   async findUserById(
@@ -200,7 +244,6 @@ export class UsersRepository {
 
     return mapSingleRow(result.rows);
   }
-
   async listUsers(
     filters: ListUsersQuery,
     queryable: Queryable = db

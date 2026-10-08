@@ -25,6 +25,17 @@ export interface SchoolOnboardingImportRunRow {
   createdAt: Date;
   updatedAt: Date;
 }
+export interface SchoolOnboardingImportRunPayloadLookupRow {
+  id: string;
+  mode: SchoolOnboardingImportMode;
+  status: SchoolOnboardingImportStatus;
+  payloadJson: unknown;
+}
+
+export interface SchoolOnboardingImportStoredResultRow {
+  id: string;
+  resultJson: unknown;
+}
 
 export interface SchoolOnboardingReferenceUserRow {
   profileId: string;

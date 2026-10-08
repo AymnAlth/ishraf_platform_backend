@@ -9,7 +9,9 @@ import {
 import { databaseTables } from "../../../config/database";
 import { db } from "../../../database/db";
 import type {
+  SchoolOnboardingImportRunPayloadLookupRow,
   SchoolOnboardingImportRunRow,
+  SchoolOnboardingImportStoredResultRow,
   SchoolOnboardingReferenceAcademicYearRow,
   SchoolOnboardingReferenceBusRow,
   SchoolOnboardingReferenceClassRow,
@@ -75,12 +77,32 @@ export interface CreateSchoolOnboardingImportRunInput {
   dryRunSourceId?: string | null;
   appliedAt?: Date | null;
 }
+interface SchoolOnboardingReferenceSnapshotRow {
+  academicYears: SchoolOnboardingReferenceAcademicYearRow[] | null;
+  semesters: SchoolOnboardingReferenceSemesterRow[] | null;
+  gradeLevels: SchoolOnboardingReferenceGradeLevelRow[] | null;
+  classes: SchoolOnboardingReferenceClassRow[] | null;
+  subjects: SchoolOnboardingReferenceSubjectRow[] | null;
+  users: SchoolOnboardingReferenceUserRow[] | null;
+  students: SchoolOnboardingReferenceStudentRow[] | null;
+  studentParentLinks: SchoolOnboardingReferenceStudentParentLinkRow[] | null;
+  studentEnrollments: SchoolOnboardingReferenceStudentEnrollmentRow[] | null;
+  subjectOfferings: SchoolOnboardingReferenceSubjectOfferingRow[] | null;
+  teacherAssignments: SchoolOnboardingReferenceTeacherAssignmentRow[] | null;
+  supervisorAssignments: SchoolOnboardingReferenceSupervisorAssignmentRow[] | null;
+  buses: SchoolOnboardingReferenceBusRow[] | null;
+  routes: SchoolOnboardingReferenceRouteRow[] | null;
+  routeStops: SchoolOnboardingReferenceRouteStopRow[] | null;
+  routeAssignments: SchoolOnboardingReferenceRouteAssignmentRow[] | null;
+  studentTransportAssignments: SchoolOnboardingReferenceStudentTransportAssignmentRow[] | null;
+  studentHomeLocations: SchoolOnboardingReferenceStudentHomeLocationRow[] | null;
+}
 
 export class AdminImportsRepository {
-  async createImportRun(
+  async createImportRunId(
     input: CreateSchoolOnboardingImportRunInput,
     queryable: Queryable = db
-  ): Promise<SchoolOnboardingImportRunRow> {
+  ): Promise<string> {
     const result = await queryable.query<{ id: string }>(
       `
         INSERT INTO ${databaseTables.schoolOnboardingImportRuns} (
@@ -128,6 +150,14 @@ export class AdminImportsRepository {
       throw new Error("Failed to persist school onboarding import run");
     }
 
+    return importRunId;
+  }
+
+  async createImportRun(
+    input: CreateSchoolOnboardingImportRunInput,
+    queryable: Queryable = db
+  ): Promise<SchoolOnboardingImportRunRow> {
+    const importRunId = await this.createImportRunId(input, queryable);
     const importRun = await this.findImportRunById(importRunId, queryable);
 
     if (!importRun) {
@@ -148,6 +178,47 @@ export class AdminImportsRepository {
         LIMIT 1
       `,
       [importId]
+    );
+
+    return mapSingleRow(result.rows);
+  }
+
+  async findImportRunPayloadById(
+    importId: string,
+    queryable: Queryable = db
+  ): Promise<SchoolOnboardingImportRunPayloadLookupRow | null> {
+    const result = await queryable.query<SchoolOnboardingImportRunPayloadLookupRow>(
+      `
+        SELECT
+          id::text AS id,
+          mode,
+          status,
+          payload_json AS "payloadJson"
+        FROM ${databaseTables.schoolOnboardingImportRuns}
+        WHERE id = $1
+        LIMIT 1
+      `,
+      [importId]
+    );
+
+    return mapSingleRow(result.rows);
+  }
+
+  async findAppliedImportResultByDryRunSourceId(
+    dryRunSourceId: string,
+    queryable: Queryable = db
+  ): Promise<SchoolOnboardingImportStoredResultRow | null> {
+    const result = await queryable.query<SchoolOnboardingImportStoredResultRow>(
+      `
+        SELECT
+          id::text AS id,
+          result_json AS "resultJson"
+        FROM ${databaseTables.schoolOnboardingImportRuns}
+        WHERE mode = 'apply'
+          AND dry_run_source_id = $1
+        LIMIT 1
+      `,
+      [dryRunSourceId]
     );
 
     return mapSingleRow(result.rows);
@@ -199,65 +270,350 @@ export class AdminImportsRepository {
   async loadReferenceSnapshot(
     queryable: Queryable = db
   ): Promise<SchoolOnboardingReferenceSnapshot> {
-    const [
-      academicYears,
-      semesters,
-      gradeLevels,
-      classes,
-      subjects,
-      users,
-      students,
-      studentParentLinks,
-      studentEnrollments,
-      subjectOfferings,
-      teacherAssignments,
-      supervisorAssignments,
-      buses,
-      routes,
-      routeStops,
-      routeAssignments,
-      studentTransportAssignments,
-      studentHomeLocations
-    ] = await Promise.all([
-      this.listAcademicYears(queryable),
-      this.listSemesters(queryable),
-      this.listGradeLevels(queryable),
-      this.listClasses(queryable),
-      this.listSubjects(queryable),
-      this.listRoleUsers(queryable),
-      this.listStudents(queryable),
-      this.listStudentParentLinks(queryable),
-      this.listStudentEnrollments(queryable),
-      this.listSubjectOfferings(queryable),
-      this.listTeacherAssignments(queryable),
-      this.listSupervisorAssignments(queryable),
-      this.listBuses(queryable),
-      this.listRoutes(queryable),
-      this.listRouteStops(queryable),
-      this.listRouteAssignments(queryable),
-      this.listStudentTransportAssignments(queryable),
-      this.listStudentHomeLocations(queryable)
-    ]);
+    const result = await queryable.query<SchoolOnboardingReferenceSnapshotRow>(
+      `
+        SELECT
+          (
+            SELECT COALESCE(
+              jsonb_agg(to_jsonb(item) - 'sortStartDate' ORDER BY item."sortStartDate" DESC, item.id DESC),
+              '[]'::jsonb
+            )
+            FROM (
+              SELECT
+                id::text AS id,
+                name,
+                start_date AS "sortStartDate"
+              FROM ${databaseTables.academicYears}
+            ) item
+          ) AS "academicYears",
+          (
+            SELECT COALESCE(
+              jsonb_agg(
+                to_jsonb(item) - 'sortAcademicYearStartDate' - 'sortSemesterStartDate'
+                ORDER BY item."sortAcademicYearStartDate" DESC, item."sortSemesterStartDate" ASC, item.id ASC
+              ),
+              '[]'::jsonb
+            )
+            FROM (
+              SELECT
+                s.id::text AS id,
+                s.academic_year_id::text AS "academicYearId",
+                ay.name AS "academicYearName",
+                s.name,
+                ay.start_date AS "sortAcademicYearStartDate",
+                s.start_date AS "sortSemesterStartDate"
+              FROM ${databaseTables.semesters} s
+              JOIN ${databaseTables.academicYears} ay ON ay.id = s.academic_year_id
+            ) item
+          ) AS semesters,
+          (
+            SELECT COALESCE(
+              jsonb_agg(to_jsonb(item) ORDER BY item."levelOrder" ASC, item.id ASC),
+              '[]'::jsonb
+            )
+            FROM (
+              SELECT
+                id::text AS id,
+                name,
+                level_order AS "levelOrder"
+              FROM ${databaseTables.gradeLevels}
+            ) item
+          ) AS "gradeLevels",
+          (
+            SELECT COALESCE(
+              jsonb_agg(
+                to_jsonb(item) - 'sortAcademicYearStartDate' - 'sortGradeLevelOrder'
+                ORDER BY item."sortAcademicYearStartDate" DESC, item."sortGradeLevelOrder" ASC, item."className" ASC, item.section ASC, item.id ASC
+              ),
+              '[]'::jsonb
+            )
+            FROM (
+              SELECT
+                c.id::text AS id,
+                c.academic_year_id::text AS "academicYearId",
+                ay.name AS "academicYearName",
+                c.grade_level_id::text AS "gradeLevelId",
+                gl.name AS "gradeLevelName",
+                c.class_name AS "className",
+                c.section,
+                ay.start_date AS "sortAcademicYearStartDate",
+                gl.level_order AS "sortGradeLevelOrder"
+              FROM ${databaseTables.classes} c
+              JOIN ${databaseTables.academicYears} ay ON ay.id = c.academic_year_id
+              JOIN ${databaseTables.gradeLevels} gl ON gl.id = c.grade_level_id
+            ) item
+          ) AS classes,
+          (
+            SELECT COALESCE(
+              jsonb_agg(
+                to_jsonb(item) - 'sortGradeLevelOrder'
+                ORDER BY item."sortGradeLevelOrder" ASC, item.name ASC, item.id ASC
+              ),
+              '[]'::jsonb
+            )
+            FROM (
+              SELECT
+                s.id::text AS id,
+                s.grade_level_id::text AS "gradeLevelId",
+                gl.name AS "gradeLevelName",
+                s.code,
+                s.name,
+                gl.level_order AS "sortGradeLevelOrder"
+              FROM ${databaseTables.subjects} s
+              JOIN ${databaseTables.gradeLevels} gl ON gl.id = s.grade_level_id
+            ) item
+          ) AS subjects,
+          (
+            SELECT COALESCE(
+              jsonb_agg(to_jsonb(item) ORDER BY item.role ASC, item."fullName" ASC, item."profileId" ASC),
+              '[]'::jsonb
+            )
+            FROM (
+              SELECT
+                p.id::text AS "profileId",
+                u.id::text AS "userId",
+                'parent'::text AS role,
+                u.full_name AS "fullName",
+                u.email,
+                u.phone,
+                NULL::text AS "licenseNumber"
+              FROM ${databaseTables.parents} p
+              JOIN ${databaseTables.users} u ON u.id = p.user_id
+              UNION ALL
+              SELECT
+                t.id::text AS "profileId",
+                u.id::text AS "userId",
+                'teacher'::text AS role,
+                u.full_name AS "fullName",
+                u.email,
+                u.phone,
+                NULL::text AS "licenseNumber"
+              FROM ${databaseTables.teachers} t
+              JOIN ${databaseTables.users} u ON u.id = t.user_id
+              UNION ALL
+              SELECT
+                s.id::text AS "profileId",
+                u.id::text AS "userId",
+                'supervisor'::text AS role,
+                u.full_name AS "fullName",
+                u.email,
+                u.phone,
+                NULL::text AS "licenseNumber"
+              FROM ${databaseTables.supervisors} s
+              JOIN ${databaseTables.users} u ON u.id = s.user_id
+              UNION ALL
+              SELECT
+                d.id::text AS "profileId",
+                u.id::text AS "userId",
+                'driver'::text AS role,
+                u.full_name AS "fullName",
+                u.email,
+                u.phone,
+                d.license_number AS "licenseNumber"
+              FROM ${databaseTables.drivers} d
+              JOIN ${databaseTables.users} u ON u.id = d.user_id
+            ) item
+          ) AS users,
+          (
+            SELECT COALESCE(
+              jsonb_agg(to_jsonb(item) ORDER BY item."academicNo" ASC, item.id ASC),
+              '[]'::jsonb
+            )
+            FROM (
+              SELECT
+                id::text AS id,
+                academic_no AS "academicNo",
+                full_name AS "fullName",
+                class_id::text AS "classId"
+              FROM ${databaseTables.students}
+            ) item
+          ) AS students,
+          (
+            SELECT COALESCE(
+              jsonb_agg(to_jsonb(item) ORDER BY item."studentId" ASC, item."parentId" ASC),
+              '[]'::jsonb
+            )
+            FROM (
+              SELECT
+                sp.student_id::text AS "studentId",
+                st.academic_no AS "academicNo",
+                sp.parent_id::text AS "parentId",
+                p.user_id::text AS "parentUserId",
+                sp.is_primary AS "isPrimary"
+              FROM ${databaseTables.studentParents} sp
+              JOIN ${databaseTables.students} st ON st.id = sp.student_id
+              JOIN ${databaseTables.parents} p ON p.id = sp.parent_id
+            ) item
+          ) AS "studentParentLinks",
+          (
+            SELECT COALESCE(
+              jsonb_agg(
+                to_jsonb(item) - 'sortAcademicYearStartDate'
+                ORDER BY item."sortAcademicYearStartDate" DESC, item."academicNo" ASC, item.id ASC
+              ),
+              '[]'::jsonb
+            )
+            FROM (
+              SELECT
+                sae.id::text AS id,
+                sae.student_id::text AS "studentId",
+                st.academic_no AS "academicNo",
+                sae.academic_year_id::text AS "academicYearId",
+                ay.name AS "academicYearName",
+                sae.class_id::text AS "classId",
+                ay.start_date AS "sortAcademicYearStartDate"
+              FROM ${databaseTables.studentAcademicEnrollments} sae
+              JOIN ${databaseTables.students} st ON st.id = sae.student_id
+              JOIN ${databaseTables.academicYears} ay ON ay.id = sae.academic_year_id
+            ) item
+          ) AS "studentEnrollments",
+          (
+            SELECT COALESCE(jsonb_agg(to_jsonb(item) ORDER BY item.id ASC), '[]'::jsonb)
+            FROM (
+              SELECT
+                id::text AS id,
+                subject_id::text AS "subjectId",
+                semester_id::text AS "semesterId"
+              FROM ${databaseTables.subjectOfferings}
+            ) item
+          ) AS "subjectOfferings",
+          (
+            SELECT COALESCE(jsonb_agg(to_jsonb(item) ORDER BY item.id ASC), '[]'::jsonb)
+            FROM (
+              SELECT
+                id::text AS id,
+                teacher_id::text AS "teacherId",
+                class_id::text AS "classId",
+                subject_id::text AS "subjectId",
+                academic_year_id::text AS "academicYearId"
+              FROM ${databaseTables.teacherClasses}
+            ) item
+          ) AS "teacherAssignments",
+          (
+            SELECT COALESCE(jsonb_agg(to_jsonb(item) ORDER BY item.id ASC), '[]'::jsonb)
+            FROM (
+              SELECT
+                id::text AS id,
+                supervisor_id::text AS "supervisorId",
+                class_id::text AS "classId",
+                academic_year_id::text AS "academicYearId"
+              FROM ${databaseTables.supervisorClasses}
+            ) item
+          ) AS "supervisorAssignments",
+          (
+            SELECT COALESCE(
+              jsonb_agg(to_jsonb(item) ORDER BY item."plateNumber" ASC, item.id ASC),
+              '[]'::jsonb
+            )
+            FROM (
+              SELECT
+                id::text AS id,
+                plate_number AS "plateNumber"
+              FROM ${databaseTables.buses}
+            ) item
+          ) AS buses,
+          (
+            SELECT COALESCE(
+              jsonb_agg(to_jsonb(item) ORDER BY item."routeName" ASC, item.id ASC),
+              '[]'::jsonb
+            )
+            FROM (
+              SELECT
+                id::text AS id,
+                route_name AS "routeName"
+              FROM ${databaseTables.routes}
+            ) item
+          ) AS routes,
+          (
+            SELECT COALESCE(
+              jsonb_agg(to_jsonb(item) ORDER BY item."routeName" ASC, item."stopOrder" ASC, item."stopId" ASC),
+              '[]'::jsonb
+            )
+            FROM (
+              SELECT
+                bs.id::text AS "stopId",
+                bs.route_id::text AS "routeId",
+                r.route_name AS "routeName",
+                bs.stop_order AS "stopOrder"
+              FROM ${databaseTables.busStops} bs
+              JOIN ${databaseTables.routes} r ON r.id = bs.route_id
+            ) item
+          ) AS "routeStops",
+          (
+            SELECT COALESCE(
+              jsonb_agg(to_jsonb(item) ORDER BY item."routeAssignmentId" ASC),
+              '[]'::jsonb
+            )
+            FROM (
+              SELECT
+                id::text AS "routeAssignmentId",
+                bus_id::text AS "busId",
+                route_id::text AS "routeId",
+                start_date AS "startDate",
+                end_date AS "endDate",
+                is_active AS "isActive"
+              FROM ${databaseTables.transportRouteAssignments}
+            ) item
+          ) AS "routeAssignments",
+          (
+            SELECT COALESCE(
+              jsonb_agg(to_jsonb(item) ORDER BY item."assignmentId" ASC),
+              '[]'::jsonb
+            )
+            FROM (
+              SELECT
+                sba.id::text AS "assignmentId",
+                sba.student_id::text AS "studentId",
+                st.academic_no AS "academicNo",
+                sba.route_id::text AS "routeId",
+                sba.stop_id::text AS "stopId",
+                sba.start_date AS "startDate",
+                sba.end_date AS "endDate",
+                sba.is_active AS "isActive"
+              FROM ${databaseTables.studentBusAssignments} sba
+              JOIN ${databaseTables.students} st ON st.id = sba.student_id
+            ) item
+          ) AS "studentTransportAssignments",
+          (
+            SELECT COALESCE(
+              jsonb_agg(to_jsonb(item) ORDER BY item."studentId" ASC),
+              '[]'::jsonb
+            )
+            FROM (
+              SELECT
+                shl.student_id::text AS "studentId",
+                st.academic_no AS "academicNo"
+              FROM ${databaseTables.studentTransportHomeLocations} shl
+              JOIN ${databaseTables.students} st ON st.id = shl.student_id
+            ) item
+          ) AS "studentHomeLocations"
+      `
+    );
+    const snapshot = mapSingleRow(result.rows);
+
+    if (!snapshot) {
+      throw new Error("Failed to load school onboarding reference snapshot");
+    }
 
     return {
-      academicYears,
-      semesters,
-      gradeLevels,
-      classes,
-      subjects,
-      users,
-      students,
-      studentParentLinks,
-      studentEnrollments,
-      subjectOfferings,
-      teacherAssignments,
-      supervisorAssignments,
-      buses,
-      routes,
-      routeStops,
-      routeAssignments,
-      studentTransportAssignments,
-      studentHomeLocations
+      academicYears: snapshot.academicYears ?? [],
+      semesters: snapshot.semesters ?? [],
+      gradeLevels: snapshot.gradeLevels ?? [],
+      classes: snapshot.classes ?? [],
+      subjects: snapshot.subjects ?? [],
+      users: snapshot.users ?? [],
+      students: snapshot.students ?? [],
+      studentParentLinks: snapshot.studentParentLinks ?? [],
+      studentEnrollments: snapshot.studentEnrollments ?? [],
+      subjectOfferings: snapshot.subjectOfferings ?? [],
+      teacherAssignments: snapshot.teacherAssignments ?? [],
+      supervisorAssignments: snapshot.supervisorAssignments ?? [],
+      buses: snapshot.buses ?? [],
+      routes: snapshot.routes ?? [],
+      routeStops: snapshot.routeStops ?? [],
+      routeAssignments: snapshot.routeAssignments ?? [],
+      studentTransportAssignments: snapshot.studentTransportAssignments ?? [],
+      studentHomeLocations: snapshot.studentHomeLocations ?? []
     };
   }
 
