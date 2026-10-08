@@ -144,6 +144,16 @@ export class StudentsService {
     );
   }
 
+  private async assertStudentExists(
+    studentId: string,
+    queryable: Queryable = db
+  ): Promise<void> {
+    assertFound(
+      await this.studentsRepository.findStudentIdentityById(studentId, queryable),
+      "Student"
+    );
+  }
+
   async createStudent(
     payload: CreateStudentRequestDto
   ): Promise<StudentDetailResponseDto> {
@@ -233,7 +243,7 @@ export class StudentsService {
     payload: LinkStudentParentRequestDto
   ): Promise<StudentParentLinkResponseDto> {
     const link = await db.withTransaction(async (client) => {
-      assertFound(await this.studentsRepository.findStudentById(studentId, client), "Student");
+      await this.assertStudentExists(studentId, client);
       const parent = await this.resolveParentReference(payload.parentId, client);
       assertParentLinkDoesNotExist(
         await this.studentsRepository.findStudentParentLink(
@@ -272,7 +282,7 @@ export class StudentsService {
 
   async listStudentParents(studentId: string): Promise<StudentParentLinkResponseDto[]> {
     await this.activeAcademicContextService.requireActiveContext();
-    assertFound(await this.studentsRepository.findStudentById(studentId), "Student");
+    await this.assertStudentExists(studentId);
     const links = await this.studentsRepository.listStudentParentLinks(studentId);
 
     return links.map((link) => toStudentParentLinkResponseDto(link));
@@ -289,7 +299,7 @@ export class StudentsService {
   async listStudentAcademicEnrollments(
     studentId: string
   ): Promise<StudentAcademicEnrollmentResponseDto[]> {
-    assertFound(await this.studentsRepository.findStudentById(studentId), "Student");
+    await this.assertStudentExists(studentId);
     const enrollments = await this.studentsRepository.listStudentAcademicEnrollments({ studentId });
 
     return enrollments.map((enrollment) => toStudentAcademicEnrollmentResponseDto(enrollment));
@@ -300,7 +310,7 @@ export class StudentsService {
     payload: CreateStudentAcademicEnrollmentRequestDto
   ): Promise<StudentAcademicEnrollmentResponseDto> {
     const enrollment = await db.withTransaction(async (client) => {
-      assertFound(await this.studentsRepository.findStudentById(studentId, client), "Student");
+      await this.assertStudentExists(studentId, client);
       const academicYear = assertFound(
         await this.studentsRepository.findAcademicYearById(payload.academicYearId, client),
         "Academic year"
@@ -416,7 +426,7 @@ export class StudentsService {
     parentId: string
   ): Promise<StudentParentLinkResponseDto> {
     const link = await db.withTransaction(async (client) => {
-      assertFound(await this.studentsRepository.findStudentById(studentId, client), "Student");
+      await this.assertStudentExists(studentId, client);
       const parent = await this.resolveParentReference(parentId, client);
       const existingLink = assertFound(
         await this.studentsRepository.findStudentParentLink(

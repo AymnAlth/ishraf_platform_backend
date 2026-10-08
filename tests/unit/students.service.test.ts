@@ -156,6 +156,7 @@ describe("StudentsService", () => {
   const repositoryMock = {
     listStudents: vi.fn(),
     findStudentById: vi.fn(),
+    findStudentIdentityById: vi.fn(),
     createStudent: vi.fn(),
     createStudentAcademicEnrollment: vi.fn(),
     updateStudent: vi.fn(),
@@ -212,6 +213,7 @@ describe("StudentsService", () => {
       academicYearId: "1",
       academicYearName: "2025-2026"
     });
+    vi.mocked(repositoryMock.findStudentIdentityById).mockResolvedValue({ id: "1" });
   });
 
   it("creates a student after confirming the class exists", async () => {

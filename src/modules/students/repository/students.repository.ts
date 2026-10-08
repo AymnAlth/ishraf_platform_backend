@@ -250,6 +250,23 @@ export class StudentsRepository {
     return mapSingleRow(result.rows);
   }
 
+  async findStudentIdentityById(
+    studentId: string,
+    queryable: Queryable = db
+  ): Promise<Pick<StudentReadRow, "id"> | null> {
+    const result = await queryable.query<Pick<StudentReadRow, "id">>(
+      `
+        SELECT id
+        FROM ${databaseTables.students}
+        WHERE id = $1
+        LIMIT 1
+      `,
+      [studentId]
+    );
+
+    return mapSingleRow(result.rows);
+  }
+
   async createStudent(
     input: CreateStudentRowInput,
     queryable: Queryable = db
