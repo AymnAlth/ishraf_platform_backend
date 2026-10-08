@@ -25,6 +25,7 @@ import type {
   StudentHomeLocationWriteInput,
   StudentBusAssignmentRow,
   StudentBusAssignmentWriteInput,
+  StudentTransportIdentityRow,
   StudentTransportReferenceRow,
   TransportRouteAssignmentRow,
   TripListQuery,
@@ -443,6 +444,23 @@ export class TransportRepository {
           sp.academic_year_name AS "academicYearName"
         FROM ${databaseViews.studentProfiles} sp
         WHERE sp.student_id = $1
+        LIMIT 1
+      `,
+      [studentId]
+    );
+
+    return mapSingleRow(result.rows);
+  }
+
+  async findStudentTransportIdentityById(
+    studentId: string,
+    queryable: Queryable = db
+  ): Promise<StudentTransportIdentityRow | null> {
+    const result = await queryable.query<StudentTransportIdentityRow>(
+      `
+        SELECT id AS "studentId"
+        FROM ${databaseTables.students}
+        WHERE id = $1
         LIMIT 1
       `,
       [studentId]

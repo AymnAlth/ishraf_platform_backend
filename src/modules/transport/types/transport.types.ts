@@ -89,6 +89,10 @@ export interface StudentTransportReferenceRow {
   academicYearName: string;
 }
 
+export interface StudentTransportIdentityRow {
+  studentId: string;
+}
+
 export interface StudentBusAssignmentRow {
   assignmentId: string;
   studentId: string;

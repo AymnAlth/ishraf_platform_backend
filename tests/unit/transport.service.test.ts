@@ -242,6 +242,7 @@ describe("TransportService", () => {
     listRouteStopsByRouteId: vi.fn(),
     findRouteStopById: vi.fn(),
     findStudentTransportReferenceById: vi.fn(),
+    findStudentTransportIdentityById: vi.fn(),
     findStudentBusAssignmentById: vi.fn(),
     findActiveStudentAssignmentByStudentId: vi.fn(),
     createStudentBusAssignment: vi.fn(),
@@ -362,6 +363,9 @@ describe("TransportService", () => {
     vi.mocked(repositoryMock.hasDriverTripOwnership).mockResolvedValue(true);
     vi.mocked(repositoryMock.hasDriverRouteAssignmentOwnership).mockResolvedValue(true);
     vi.mocked(repositoryMock.hasParentTripAccess).mockResolvedValue(true);
+    vi.mocked(repositoryMock.findStudentTransportIdentityById).mockResolvedValue({
+      studentId: "1"
+    });
     vi.mocked(repositoryMock.listParentTripStops).mockResolvedValue([]);
     vi.mocked(repositoryMock.listTripStudentRoster).mockResolvedValue([]);
   });

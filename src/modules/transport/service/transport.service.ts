@@ -252,6 +252,16 @@ export class TransportService {
     private readonly transportEtaRepository: TransportEtaRepository = new TransportEtaRepository()
   ) {}
 
+  private async assertStudentExists(
+    studentId: string,
+    queryable: Queryable = db
+  ): Promise<void> {
+    assertFound(
+      await this.transportRepository.findStudentTransportIdentityById(studentId, queryable),
+      "Student"
+    );
+  }
+
   async getRealtimeToken(
     authUser: AuthenticatedUser,
     query: TransportRealtimeTokenQueryDto
@@ -430,10 +440,7 @@ export class TransportService {
     payload: CreateStudentBusAssignmentRequestDto
   ): Promise<TransportStudentBusAssignmentResponseDto> {
     assertAdmin(authUser);
-    assertFound(
-      await this.transportRepository.findStudentTransportReferenceById(payload.studentId),
-      "Student"
-    );
+    await this.assertStudentExists(payload.studentId);
     assertFound(await this.transportRepository.findRouteById(payload.routeId), "Route");
     const stop = assertFound(
       await this.transportRepository.findRouteStopById(payload.stopId),
@@ -947,10 +954,7 @@ export class TransportService {
 
     assertTripEventStatus(trip);
     assertEventStopRequirements(payload.eventType, payload.stopId);
-    assertFound(
-      await this.transportRepository.findStudentTransportReferenceById(payload.studentId),
-      "Student"
-    );
+    await this.assertStudentExists(payload.studentId);
 
     const assignment = await this.transportRepository.findStudentAssignmentByStudentIdOnDate(
       payload.studentId,
@@ -1046,10 +1050,7 @@ export class TransportService {
       const recordedEvents: TripStudentEventRow[] = [];
 
       for (const attendance of payload.attendances) {
-        assertFound(
-          await this.transportRepository.findStudentTransportReferenceById(attendance.studentId, client),
-          "Student"
-        );
+        await this.assertStudentExists(attendance.studentId, client);
 
         const assignment = await this.transportRepository.findStudentAssignmentByStudentIdOnDate(
           attendance.studentId,
@@ -1179,10 +1180,7 @@ export class TransportService {
     payload: SaveStudentHomeLocationRequestDto
   ): Promise<TransportStudentHomeLocationResponseDto> {
     assertAdmin(authUser);
-    assertFound(
-      await this.transportRepository.findStudentTransportReferenceById(studentId),
-      "Student"
-    );
+    await this.assertStudentExists(studentId);
 
     const status: HomeLocationStatus = payload.status ?? "approved";
     const approvedByUserId = status === "approved" ? authUser.userId : null;
