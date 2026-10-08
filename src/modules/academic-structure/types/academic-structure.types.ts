@@ -131,6 +131,12 @@ export interface TeacherAssignmentRow {
   createdAt: Date;
 }
 
+export interface TeacherAssignmentCreationReferenceSnapshot {
+  academicYear: AcademicYearRow | null;
+  classRef: ClassRow | null;
+  subjectRef: SubjectRow | null;
+}
+
 export interface SupervisorAssignmentRow {
   id: string;
   academicYearId: string;
@@ -248,6 +254,11 @@ export interface TeacherAssignmentWriteInput {
   classId: string;
   subjectId: string;
   academicYearId: string;
+}
+
+export interface CreatedTeacherAssignmentRow {
+  id: string;
+  createdAt: Date;
 }
 
 export interface TeacherAssignmentUpdateInput {

@@ -29,6 +29,17 @@ type ActiveAcademicContextInput = {
   semesterId?: string;
 };
 
+interface ActiveAcademicContextServiceOptions {
+  sharedCacheTtlMs?: number;
+  now?: () => number;
+}
+
+interface SharedActiveAcademicContextCacheEntry {
+  generation: number;
+  expiresAt: number;
+  data: ActiveAcademicContext;
+}
+
 const buildContextNotConfiguredError = (): ConflictError =>
   new ConflictError("Academic context not configured", [
     {
@@ -63,13 +74,50 @@ const buildActiveSemesterMismatchError = (
     }
   ]);
 
+const cloneDate = (value: Date | string): Date =>
+  value instanceof Date ? new Date(value.getTime()) : new Date(value);
+
+const cloneActiveAcademicContext = (
+  context: ActiveAcademicContext
+): ActiveAcademicContext => ({
+  academicYearId: context.academicYearId,
+  academicYearName: context.academicYearName,
+  academicYearStartDate: cloneDate(context.academicYearStartDate),
+  academicYearEndDate: cloneDate(context.academicYearEndDate),
+  academicYearCreatedAt: cloneDate(context.academicYearCreatedAt),
+  academicYearUpdatedAt: cloneDate(context.academicYearUpdatedAt),
+  semesterId: context.semesterId,
+  semesterName: context.semesterName,
+  semesterStartDate: cloneDate(context.semesterStartDate),
+  semesterEndDate: cloneDate(context.semesterEndDate),
+  semesterCreatedAt: cloneDate(context.semesterCreatedAt),
+  semesterUpdatedAt: cloneDate(context.semesterUpdatedAt)
+});
+
 export class ActiveAcademicContextService {
+  private static sharedCacheGeneration = 0;
+
+  private readonly sharedCacheTtlMs: number;
+  private readonly now: () => number;
+  private sharedCache: SharedActiveAcademicContextCacheEntry | null = null;
+
+  constructor(options: ActiveAcademicContextServiceOptions = {}) {
+    this.sharedCacheTtlMs = options.sharedCacheTtlMs ?? 5_000;
+    this.now = options.now ?? (() => Date.now());
+  }
+
   async getActiveContext(
     queryable: Queryable = db
   ): Promise<ActiveAcademicContext | null> {
     return requestMemoService.memoize(
       `active-academic-context:${requestMemoService.getQueryableMemoKey(queryable)}`,
       async () => {
+        const cachedContext = this.getSharedCache(queryable);
+
+        if (cachedContext) {
+          return cachedContext;
+        }
+
         const result = await queryable.query<ActiveAcademicContext>(
           `
             SELECT
@@ -90,9 +138,24 @@ export class ActiveAcademicContextService {
           `
         );
 
-        return result.rows[0] ?? null;
+        const activeContext = result.rows[0] ? cloneActiveAcademicContext(result.rows[0]) : null;
+
+        if (queryable === db && activeContext) {
+          this.sharedCache = {
+            generation: ActiveAcademicContextService.sharedCacheGeneration,
+            expiresAt: this.now() + this.sharedCacheTtlMs,
+            data: cloneActiveAcademicContext(activeContext)
+          };
+        }
+
+        return activeContext;
       }
     );
+  }
+
+  invalidateSharedCache(): void {
+    ActiveAcademicContextService.sharedCacheGeneration += 1;
+    this.sharedCache = null;
   }
 
   async requireActiveContext(
@@ -149,5 +212,21 @@ export class ActiveAcademicContextService {
       semesterId: activeContext.semesterId,
       semesterName: activeContext.semesterName
     };
+  }
+
+  private getSharedCache(queryable: Queryable): ActiveAcademicContext | null {
+    if (queryable !== db || !this.sharedCache) {
+      return null;
+    }
+
+    if (
+      this.sharedCache.generation !== ActiveAcademicContextService.sharedCacheGeneration ||
+      this.sharedCache.expiresAt <= this.now()
+    ) {
+      this.sharedCache = null;
+      return null;
+    }
+
+    return cloneActiveAcademicContext(this.sharedCache.data);
   }
 }

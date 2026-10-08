@@ -30,7 +30,9 @@ import type {
   SupervisorAssignmentRow,
   SupervisorAssignmentUpdateInput,
   SupervisorAssignmentWriteInput,
+  TeacherAssignmentCreationReferenceSnapshot,
   SupervisorSummaryRow,
+  CreatedTeacherAssignmentRow,
   TeacherAssignmentFilters,
   TeacherAssignmentRow,
   TeacherAssignmentUpdateInput,
@@ -795,6 +797,137 @@ export class AcademicStructureRepository {
     return mapSingleRow(result.rows);
   }
 
+  async loadTeacherAssignmentCreationReferenceSnapshot(
+    classId: string,
+    subjectId: string,
+    academicYearId: string,
+    queryable: Queryable = db
+  ): Promise<TeacherAssignmentCreationReferenceSnapshot> {
+    type TeacherAssignmentCreationReferenceRow = {
+      academicYearId: string | null;
+      academicYearName: string | null;
+      academicYearStartDate: Date | null;
+      academicYearEndDate: Date | null;
+      academicYearIsActive: boolean | null;
+      academicYearCreatedAt: Date | null;
+      academicYearUpdatedAt: Date | null;
+      classId: string | null;
+      className: string | null;
+      classSection: string | null;
+      classCapacity: number | null;
+      classIsActive: boolean | null;
+      classAcademicYearId: string | null;
+      classGradeLevelId: string | null;
+      classGradeLevelName: string | null;
+      classGradeLevelOrder: number | null;
+      classCreatedAt: Date | null;
+      classUpdatedAt: Date | null;
+      subjectId: string | null;
+      subjectName: string | null;
+      subjectCode: string | null;
+      subjectIsActive: boolean | null;
+      subjectGradeLevelId: string | null;
+      subjectGradeLevelName: string | null;
+      subjectGradeLevelOrder: number | null;
+      subjectCreatedAt: Date | null;
+      subjectUpdatedAt: Date | null;
+    };
+
+    const result = await queryable.query<TeacherAssignmentCreationReferenceRow>(
+      `
+        SELECT
+          ay.id AS "academicYearId",
+          ay.name AS "academicYearName",
+          ay.start_date AS "academicYearStartDate",
+          ay.end_date AS "academicYearEndDate",
+          ay.is_active AS "academicYearIsActive",
+          ay.created_at AS "academicYearCreatedAt",
+          ay.updated_at AS "academicYearUpdatedAt",
+          c.id AS "classId",
+          c.class_name AS "className",
+          c.section AS "classSection",
+          c.capacity AS "classCapacity",
+          c.is_active AS "classIsActive",
+          c.academic_year_id AS "classAcademicYearId",
+          glc.id AS "classGradeLevelId",
+          glc.name AS "classGradeLevelName",
+          glc.level_order AS "classGradeLevelOrder",
+          c.created_at AS "classCreatedAt",
+          c.updated_at AS "classUpdatedAt",
+          s.id AS "subjectId",
+          s.name AS "subjectName",
+          s.code AS "subjectCode",
+          s.is_active AS "subjectIsActive",
+          s.grade_level_id AS "subjectGradeLevelId",
+          gls.name AS "subjectGradeLevelName",
+          gls.level_order AS "subjectGradeLevelOrder",
+          s.created_at AS "subjectCreatedAt",
+          s.updated_at AS "subjectUpdatedAt"
+        FROM ${databaseTables.academicYears} ay
+        LEFT JOIN ${databaseTables.classes} c ON c.id = $1
+        LEFT JOIN ${databaseTables.gradeLevels} glc ON glc.id = c.grade_level_id
+        LEFT JOIN ${databaseTables.subjects} s ON s.id = $2
+        LEFT JOIN ${databaseTables.gradeLevels} gls ON gls.id = s.grade_level_id
+        WHERE ay.id = $3
+        LIMIT 1
+      `,
+      [classId, subjectId, academicYearId]
+    );
+
+    const row = result.rows[0];
+
+    if (!row) {
+      return {
+        academicYear: null,
+        classRef: null,
+        subjectRef: null
+      };
+    }
+
+    return {
+      academicYear: row.academicYearId
+        ? {
+            id: row.academicYearId,
+            name: row.academicYearName ?? "",
+            startDate: row.academicYearStartDate ?? new Date(0),
+            endDate: row.academicYearEndDate ?? new Date(0),
+            isActive: row.academicYearIsActive ?? false,
+            createdAt: row.academicYearCreatedAt ?? new Date(0),
+            updatedAt: row.academicYearUpdatedAt ?? new Date(0)
+          }
+        : null,
+      classRef: row.classId
+        ? {
+            id: row.classId,
+            className: row.className ?? "",
+            section: row.classSection ?? "",
+            capacity: row.classCapacity,
+            isActive: row.classIsActive ?? false,
+            academicYearId: row.classAcademicYearId ?? "",
+            academicYearName: row.academicYearName ?? "",
+            gradeLevelId: row.classGradeLevelId ?? "",
+            gradeLevelName: row.classGradeLevelName ?? "",
+            gradeLevelOrder: row.classGradeLevelOrder ?? 0,
+            createdAt: row.classCreatedAt ?? new Date(0),
+            updatedAt: row.classUpdatedAt ?? new Date(0)
+          }
+        : null,
+      subjectRef: row.subjectId
+        ? {
+            id: row.subjectId,
+            name: row.subjectName ?? "",
+            code: row.subjectCode,
+            isActive: row.subjectIsActive ?? false,
+            gradeLevelId: row.subjectGradeLevelId ?? "",
+            gradeLevelName: row.subjectGradeLevelName ?? "",
+            gradeLevelOrder: row.subjectGradeLevelOrder ?? 0,
+            createdAt: row.subjectCreatedAt ?? new Date(0),
+            updatedAt: row.subjectUpdatedAt ?? new Date(0)
+          }
+        : null
+    };
+  }
+
   async findSupervisorById(
     id: string,
     queryable: Queryable = db
@@ -821,8 +954,8 @@ export class AcademicStructureRepository {
   async createTeacherAssignment(
     input: TeacherAssignmentWriteInput,
     queryable: Queryable = db
-  ): Promise<string> {
-    const result = await queryable.query<{ id: string }>(
+  ): Promise<CreatedTeacherAssignmentRow> {
+    const result = await queryable.query<CreatedTeacherAssignmentRow>(
       `
         INSERT INTO ${databaseTables.teacherClasses} (
           teacher_id,
@@ -831,12 +964,12 @@ export class AcademicStructureRepository {
           academic_year_id
         )
         VALUES ($1, $2, $3, $4)
-        RETURNING id
+        RETURNING id, created_at AS "createdAt"
       `,
       [input.teacherId, input.classId, input.subjectId, input.academicYearId]
     );
 
-    return result.rows[0].id;
+    return result.rows[0];
   }
 
   async listTeacherAssignments(

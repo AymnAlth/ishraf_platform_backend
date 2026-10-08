@@ -1,5 +1,6 @@
 import { NotFoundError } from "../../../common/errors/not-found-error";
 import { ValidationError } from "../../../common/errors/validation-error";
+import { ActiveAcademicContextService } from "../../../common/services/active-academic-context.service";
 import { ProfileResolutionService } from "../../../common/services/profile-resolution.service";
 import { db } from "../../../database/db";
 import type {
@@ -162,7 +163,9 @@ const assertSupervisorAssignmentCompatibility = (
 export class AcademicStructureService {
   constructor(
     private readonly academicStructureRepository: AcademicStructureRepository,
-    private readonly profileResolutionService: ProfileResolutionService = new ProfileResolutionService()
+    private readonly profileResolutionService: ProfileResolutionService = new ProfileResolutionService(),
+    private readonly activeAcademicContextService: ActiveAcademicContextService =
+      new ActiveAcademicContextService()
   ) {}
 
   async getActiveAcademicContext(): Promise<ActiveAcademicContextResponseDto> {
@@ -219,6 +222,8 @@ export class AcademicStructureService {
       );
     });
 
+    this.activeAcademicContextService.invalidateSharedCache();
+
     return toActiveAcademicContextResponseDto(activeContext);
   }
 
@@ -248,6 +253,8 @@ export class AcademicStructureService {
         "Academic year"
       );
     });
+
+    this.activeAcademicContextService.invalidateSharedCache();
 
     return toAcademicYearResponseDto(academicYear);
   }
@@ -303,6 +310,8 @@ export class AcademicStructureService {
       );
     });
 
+    this.activeAcademicContextService.invalidateSharedCache();
+
     return toAcademicYearResponseDto(academicYear);
   }
 
@@ -328,6 +337,8 @@ export class AcademicStructureService {
         "Academic year"
       );
     });
+
+    this.activeAcademicContextService.invalidateSharedCache();
 
     return toAcademicYearResponseDto(academicYear);
   }
@@ -370,6 +381,8 @@ export class AcademicStructureService {
         "Semester"
       );
     });
+
+    this.activeAcademicContextService.invalidateSharedCache();
 
     return toSemesterResponseDto(semester);
   }
@@ -433,6 +446,8 @@ export class AcademicStructureService {
         "Semester"
       );
     });
+
+    this.activeAcademicContextService.invalidateSharedCache();
 
     return toSemesterResponseDto(semester);
   }
@@ -632,35 +647,56 @@ export class AcademicStructureService {
   async createTeacherAssignment(
     payload: TeacherAssignmentRequestDto
   ): Promise<TeacherAssignmentResponseDto> {
-    const teacher = await this.profileResolutionService.requireTeacherProfileIdentifier(
+    const teacher = await this.profileResolutionService.requireTeacherProfileReferenceIdentifier(
       payload.teacherId
     );
 
-    assertFound(
-      await this.academicStructureRepository.findAcademicYearById(payload.academicYearId),
-      "Academic year"
-    );
-    const classRow = assertFound(
-      await this.academicStructureRepository.findClassById(payload.classId),
-      "Class"
-    );
-    const subjectRow = assertFound(
-      await this.academicStructureRepository.findSubjectById(payload.subjectId),
-      "Subject"
-    );
+    const referenceSnapshot =
+      await this.academicStructureRepository.loadTeacherAssignmentCreationReferenceSnapshot(
+        payload.classId,
+        payload.subjectId,
+        payload.academicYearId
+      );
+    const academicYear = assertFound(referenceSnapshot.academicYear, "Academic year");
+    const classRow = assertFound(referenceSnapshot.classRef, "Class");
+    const subjectRow = assertFound(referenceSnapshot.subjectRef, "Subject");
 
     assertTeacherAssignmentCompatibility(classRow, subjectRow, payload.academicYearId);
 
-    const id = await this.academicStructureRepository.createTeacherAssignment({
+    const createdAssignment = await this.academicStructureRepository.createTeacherAssignment({
       teacherId: teacher.teacherId,
       classId: payload.classId,
       subjectId: payload.subjectId,
       academicYearId: payload.academicYearId
     });
-    const row = assertFound(
-      await this.academicStructureRepository.findTeacherAssignmentById(id),
-      "Teacher assignment"
+    const teacherRow = assertFound(
+      await this.academicStructureRepository.findTeacherById(teacher.teacherId),
+      "Teacher"
     );
+    const row = {
+      id: createdAssignment.id,
+      academicYearId: academicYear.id,
+      academicYearName: academicYear.name,
+      classId: classRow.id,
+      className: classRow.className,
+      classSection: classRow.section,
+      classIsActive: classRow.isActive,
+      classAcademicYearId: classRow.academicYearId,
+      classGradeLevelId: classRow.gradeLevelId,
+      classGradeLevelName: classRow.gradeLevelName,
+      classGradeLevelOrder: classRow.gradeLevelOrder,
+      subjectId: subjectRow.id,
+      subjectName: subjectRow.name,
+      subjectCode: subjectRow.code,
+      subjectIsActive: subjectRow.isActive,
+      subjectGradeLevelId: subjectRow.gradeLevelId,
+      teacherId: teacherRow.teacherId,
+      teacherUserId: teacherRow.teacherUserId,
+      teacherFullName: teacherRow.teacherFullName,
+      teacherEmail: teacherRow.teacherEmail,
+      teacherPhone: teacherRow.teacherPhone,
+      createdAt: createdAssignment.createdAt
+    };
 
     return toTeacherAssignmentResponseDto(row);
   }
@@ -670,7 +706,7 @@ export class AcademicStructureService {
   ): Promise<TeacherAssignmentResponseDto[]> {
     const resolvedTeacher =
       filters.teacherId !== undefined
-        ? await this.profileResolutionService.requireTeacherProfileIdentifier(filters.teacherId)
+        ? await this.profileResolutionService.requireTeacherProfileReferenceIdentifier(filters.teacherId)
         : null;
     const rows = await this.academicStructureRepository.listTeacherAssignments({
       academicYearId: filters.academicYearId,
@@ -702,7 +738,7 @@ export class AcademicStructureService {
 
     const resolvedTeacher =
       payload.teacherId !== undefined
-        ? await this.profileResolutionService.requireTeacherProfileIdentifier(payload.teacherId)
+        ? await this.profileResolutionService.requireTeacherProfileReferenceIdentifier(payload.teacherId)
         : null;
     const nextAcademicYearId = payload.academicYearId ?? existing.academicYearId;
     const nextClassId = payload.classId ?? existing.classId;

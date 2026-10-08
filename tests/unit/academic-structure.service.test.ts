@@ -98,6 +98,7 @@ describe("AcademicStructureService", () => {
     createSubjectOffering: vi.fn(),
     updateSubjectOffering: vi.fn(),
     findTeacherById: vi.fn(),
+    loadTeacherAssignmentCreationReferenceSnapshot: vi.fn(),
     findSupervisorById: vi.fn(),
     createTeacherAssignment: vi.fn(),
     listTeacherAssignments: vi.fn(),
@@ -109,7 +110,7 @@ describe("AcademicStructureService", () => {
     updateSupervisorAssignment: vi.fn()
   };
   const profileResolutionServiceMock = {
-    requireTeacherProfileIdentifier: vi.fn(),
+    requireTeacherProfileReferenceIdentifier: vi.fn(),
     requireSupervisorProfileIdentifier: vi.fn()
   };
 
@@ -170,23 +171,19 @@ describe("AcademicStructureService", () => {
   });
 
   it("rejects teacher assignments when the subject and class grade levels differ", async () => {
-    vi.mocked(repositoryMock.findAcademicYearById).mockResolvedValue(academicYearRow);
-    vi.mocked(profileResolutionServiceMock.requireTeacherProfileIdentifier).mockResolvedValue({
+    vi.mocked(profileResolutionServiceMock.requireTeacherProfileReferenceIdentifier).mockResolvedValue({
       teacherId: "3",
-      userId: "30",
-      fullName: "Sara Teacher",
-      email: "teacher1@eshraf.local",
-      phone: "700000003",
-      specialization: null,
-      qualification: null,
-      hireDate: null
+      userId: "30"
     });
-    vi.mocked(repositoryMock.findClassById).mockResolvedValue(classRow);
-    vi.mocked(repositoryMock.findSubjectById).mockResolvedValue({
-      ...subjectRow,
-      gradeLevelId: "5",
-      gradeLevelName: "Grade 5",
-      gradeLevelOrder: 5
+    vi.mocked(repositoryMock.loadTeacherAssignmentCreationReferenceSnapshot).mockResolvedValue({
+      academicYear: academicYearRow,
+      classRef: classRow,
+      subjectRef: {
+        ...subjectRow,
+        gradeLevelId: "5",
+        gradeLevelName: "Grade 5",
+        gradeLevelOrder: 5
+      }
     });
 
     await expect(
@@ -200,38 +197,25 @@ describe("AcademicStructureService", () => {
   });
 
   it("normalizes teacher user ids before creating teacher assignments", async () => {
-    vi.mocked(profileResolutionServiceMock.requireTeacherProfileIdentifier).mockResolvedValue({
+    vi.mocked(profileResolutionServiceMock.requireTeacherProfileReferenceIdentifier).mockResolvedValue({
       teacherId: "3",
-      userId: "1002",
-      fullName: "Sara Teacher",
-      email: "teacher1@eshraf.local",
-      phone: "700000003",
-      specialization: null,
-      qualification: null,
-      hireDate: null
+      userId: "1002"
     });
-    vi.mocked(repositoryMock.findAcademicYearById).mockResolvedValue(academicYearRow);
-    vi.mocked(repositoryMock.findClassById).mockResolvedValue(classRow);
-    vi.mocked(repositoryMock.findSubjectById).mockResolvedValue(subjectRow);
-    vi.mocked(repositoryMock.createTeacherAssignment).mockResolvedValue("30");
-    vi.mocked(repositoryMock.findTeacherAssignmentById).mockResolvedValue({
+    vi.mocked(repositoryMock.loadTeacherAssignmentCreationReferenceSnapshot).mockResolvedValue({
+      academicYear: academicYearRow,
+      classRef: classRow,
+      subjectRef: subjectRow
+    });
+    vi.mocked(repositoryMock.createTeacherAssignment).mockResolvedValue({
       id: "30",
+      createdAt: new Date("2026-03-27T10:00:00.000Z")
+    });
+    vi.mocked(repositoryMock.findTeacherById).mockResolvedValue({
       teacherId: "3",
       teacherUserId: "1002",
       teacherFullName: "Sara Teacher",
       teacherEmail: "teacher1@eshraf.local",
-      teacherPhone: "700000003",
-      classId: "11",
-      className: "A",
-      section: "A",
-      subjectId: "7",
-      subjectName: "Science",
-      subjectCode: "SCI-G2",
-      academicYearId: "1",
-      academicYearName: "2025-2026",
-      gradeLevelId: "2",
-      gradeLevelName: "Grade 2",
-      createdAt: new Date("2026-03-27T10:00:00.000Z")
+      teacherPhone: "700000003"
     });
 
     await academicStructureService.createTeacherAssignment({
@@ -399,15 +383,9 @@ describe("AcademicStructureService", () => {
   });
 
   it("normalizes teacher user ids in teacher assignment filters", async () => {
-    vi.mocked(profileResolutionServiceMock.requireTeacherProfileIdentifier).mockResolvedValue({
+    vi.mocked(profileResolutionServiceMock.requireTeacherProfileReferenceIdentifier).mockResolvedValue({
       teacherId: "3",
-      userId: "1002",
-      fullName: "Sara Teacher",
-      email: "teacher1@eshraf.local",
-      phone: "700000003",
-      specialization: null,
-      qualification: null,
-      hireDate: null
+      userId: "1002"
     });
     vi.mocked(repositoryMock.listTeacherAssignments).mockResolvedValue([]);
 
@@ -474,15 +452,9 @@ describe("AcademicStructureService", () => {
         subjectGradeLevelId: "2",
         createdAt: new Date("2026-03-27T10:00:00.000Z")
       });
-    vi.mocked(profileResolutionServiceMock.requireTeacherProfileIdentifier).mockResolvedValue({
+    vi.mocked(profileResolutionServiceMock.requireTeacherProfileReferenceIdentifier).mockResolvedValue({
       teacherId: "8",
-      userId: "1010",
-      fullName: "Fahad Teacher",
-      email: "teacher2@eshraf.local",
-      phone: "700000008",
-      specialization: null,
-      qualification: null,
-      hireDate: null
+      userId: "1010"
     });
     vi.mocked(repositoryMock.findAcademicYearById).mockResolvedValue(academicYearRow);
     vi.mocked(repositoryMock.findClassById).mockResolvedValue(classRow);
