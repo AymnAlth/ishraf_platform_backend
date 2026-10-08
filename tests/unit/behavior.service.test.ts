@@ -106,8 +106,10 @@ describe("BehaviorService", () => {
   };
   const profileResolutionServiceMock = {
     requireTeacherProfile: vi.fn(),
+    requireTeacherProfileReference: vi.fn(),
     requireSupervisorProfile: vi.fn(),
     requireTeacherProfileIdentifier: vi.fn(),
+    requireTeacherProfileReferenceIdentifier: vi.fn(),
     requireSupervisorProfileIdentifier: vi.fn()
   };
   const activeAcademicContextServiceMock = {
@@ -175,15 +177,9 @@ describe("BehaviorService", () => {
   });
 
   it("creates behavior records for assigned teachers using category default severity", async () => {
-    vi.mocked(profileResolutionServiceMock.requireTeacherProfile).mockResolvedValue({
+    vi.mocked(profileResolutionServiceMock.requireTeacherProfileReference).mockResolvedValue({
       teacherId: "1",
-      userId: "1002",
-      fullName: "Sara Teacher",
-      email: "teacher@example.com",
-      phone: "700000003",
-      specialization: null,
-      qualification: null,
-      hireDate: null
+      userId: "1002"
     });
     vi.mocked(repositoryMock.findStudentBehaviorReferenceById).mockResolvedValue(studentRow());
     vi.mocked(repositoryMock.findBehaviorCategoryById).mockResolvedValue(categoryRow());
@@ -275,15 +271,9 @@ describe("BehaviorService", () => {
       name: "Semester 2",
       academicYearId: "1"
     });
-    vi.mocked(profileResolutionServiceMock.requireTeacherProfileIdentifier).mockResolvedValue({
+    vi.mocked(profileResolutionServiceMock.requireTeacherProfileReferenceIdentifier).mockResolvedValue({
       teacherId: "1",
-      userId: "1002",
-      fullName: "Sara Teacher",
-      email: "teacher@example.com",
-      phone: "700000003",
-      specialization: null,
-      qualification: null,
-      hireDate: null
+      userId: "1002"
     });
     vi.mocked(repositoryMock.hasTeacherBehaviorAssignment).mockResolvedValue(true);
     vi.mocked(repositoryMock.createBehaviorRecord).mockResolvedValue("10");
@@ -317,15 +307,9 @@ describe("BehaviorService", () => {
   });
 
   it("normalizes teacher and supervisor user ids in behavior list filters", async () => {
-    vi.mocked(profileResolutionServiceMock.requireTeacherProfileIdentifier).mockResolvedValue({
+    vi.mocked(profileResolutionServiceMock.requireTeacherProfileReferenceIdentifier).mockResolvedValue({
       teacherId: "1",
-      userId: "1002",
-      fullName: "Sara Teacher",
-      email: "teacher@example.com",
-      phone: "700000003",
-      specialization: null,
-      qualification: null,
-      hireDate: null
+      userId: "1002"
     });
     vi.mocked(profileResolutionServiceMock.requireSupervisorProfileIdentifier).mockResolvedValue({
       supervisorId: "1",
@@ -368,15 +352,9 @@ describe("BehaviorService", () => {
   });
 
   it("rejects non-admin actor ids and unauthorized record access", async () => {
-    vi.mocked(profileResolutionServiceMock.requireTeacherProfile).mockResolvedValue({
+    vi.mocked(profileResolutionServiceMock.requireTeacherProfileReference).mockResolvedValue({
       teacherId: "1",
-      userId: "1002",
-      fullName: "Sara Teacher",
-      email: "teacher@example.com",
-      phone: "700000003",
-      specialization: null,
-      qualification: null,
-      hireDate: null
+      userId: "1002"
     });
     vi.mocked(repositoryMock.findStudentBehaviorReferenceById).mockResolvedValue(studentRow());
     vi.mocked(repositoryMock.findBehaviorCategoryById).mockResolvedValue(categoryRow());
@@ -432,15 +410,9 @@ describe("BehaviorService", () => {
   });
 
   it("returns scoped student behavior records and summaries", async () => {
-    vi.mocked(profileResolutionServiceMock.requireTeacherProfile).mockResolvedValue({
+    vi.mocked(profileResolutionServiceMock.requireTeacherProfileReference).mockResolvedValue({
       teacherId: "1",
-      userId: "1002",
-      fullName: "Sara Teacher",
-      email: "teacher@example.com",
-      phone: "700000003",
-      specialization: null,
-      qualification: null,
-      hireDate: null
+      userId: "1002"
     });
     vi.mocked(repositoryMock.findStudentBehaviorReferenceById).mockResolvedValue(studentRow());
     vi.mocked(repositoryMock.hasTeacherBehaviorAssignment).mockResolvedValue(true);

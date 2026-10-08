@@ -19,6 +19,11 @@ export interface TeacherProfile {
   hireDate: Date | null;
 }
 
+export interface TeacherProfileReference {
+  teacherId: string;
+  userId: string;
+}
+
 export interface SupervisorProfile {
   supervisorId: string;
   userId: string;

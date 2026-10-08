@@ -8,7 +8,7 @@ import type { AuthenticatedUser } from "../../../common/types/auth.types";
 import type { PaginatedData } from "../../../common/types/pagination.types";
 import type {
   SupervisorProfile,
-  TeacherProfile
+  TeacherProfileReference
 } from "../../../common/types/profile.types";
 import { toPaginatedData } from "../../../common/utils/pagination.util";
 import { db } from "../../../database/db";
@@ -45,7 +45,7 @@ type BehaviorActor =
   | {
       role: "teacher";
       authUser: AuthenticatedUser;
-      teacher: TeacherProfile;
+      teacher: TeacherProfileReference;
     }
   | {
       role: "supervisor";
@@ -606,8 +606,8 @@ export class BehaviorService {
     }
   }
 
-  private async resolveTeacherProfile(userId: string): Promise<TeacherProfile> {
-    return this.profileResolutionService.requireTeacherProfile(userId);
+  private async resolveTeacherProfile(userId: string): Promise<TeacherProfileReference> {
+    return this.profileResolutionService.requireTeacherProfileReference(userId);
   }
 
   private async resolveSupervisorProfile(userId: string): Promise<SupervisorProfile> {
@@ -673,7 +673,7 @@ export class BehaviorService {
   }
 
   private async resolveTeacherIdentifier(identifier: string): Promise<string> {
-    const teacher = await this.profileResolutionService.requireTeacherProfileIdentifier(
+    const teacher = await this.profileResolutionService.requireTeacherProfileReferenceIdentifier(
       identifier
     );
 

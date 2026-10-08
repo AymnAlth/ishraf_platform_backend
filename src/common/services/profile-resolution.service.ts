@@ -7,7 +7,8 @@ import type {
   DriverProfile,
   ParentProfile,
   SupervisorProfile,
-  TeacherProfile
+  TeacherProfile,
+  TeacherProfileReference
 } from "../types/profile.types";
 import { databaseTables } from "../../config/database";
 import { db } from "../../database/db";
@@ -45,6 +46,14 @@ const teacherProfileSelect = `
     t.specialization,
     t.qualification,
     t.hire_date AS "hireDate"
+  FROM ${databaseTables.teachers} t
+  JOIN ${databaseTables.users} u ON u.id = t.user_id
+`;
+
+const teacherProfileReferenceSelect = `
+  SELECT
+    t.id AS "teacherId",
+    u.id AS "userId"
   FROM ${databaseTables.teachers} t
   JOIN ${databaseTables.users} u ON u.id = t.user_id
 `;
@@ -178,6 +187,42 @@ export class ProfileResolutionService {
     });
   }
 
+  async findTeacherProfileReferenceByUserId(
+    userId: string,
+    queryable: Queryable = db
+  ): Promise<TeacherProfileReference | null> {
+    return this.memoizedLookup("teacher-ref:user-id", userId, queryable, async () => {
+      const result = await queryable.query<TeacherProfileReference>(
+        `
+          ${teacherProfileReferenceSelect}
+          WHERE u.id = $1
+          LIMIT 1
+        `,
+        [userId]
+      );
+
+      return mapSingleRow(result.rows);
+    });
+  }
+
+  async findTeacherProfileReferenceById(
+    teacherId: string,
+    queryable: Queryable = db
+  ): Promise<TeacherProfileReference | null> {
+    return this.memoizedLookup("teacher-ref:profile-id", teacherId, queryable, async () => {
+      const result = await queryable.query<TeacherProfileReference>(
+        `
+          ${teacherProfileReferenceSelect}
+          WHERE t.id = $1
+          LIMIT 1
+        `,
+        [teacherId]
+      );
+
+      return mapSingleRow(result.rows);
+    });
+  }
+
   async findSupervisorProfileByUserId(
     userId: string,
     queryable: Queryable = db
@@ -254,6 +299,16 @@ export class ProfileResolutionService {
     );
   }
 
+  async requireTeacherProfileReference(
+    userId: string,
+    queryable: Queryable = db
+  ): Promise<TeacherProfileReference> {
+    return assertProfile(
+      await this.findTeacherProfileReferenceByUserId(userId, queryable),
+      "Teacher profile"
+    );
+  }
+
   async requireSupervisorProfile(
     userId: string,
     queryable: Queryable = db
@@ -296,6 +351,35 @@ export class ProfileResolutionService {
   ): Promise<TeacherProfile> {
     return assertProfile(
       await this.resolveTeacherProfileIdentifier(identifier, queryable, field),
+      "Teacher"
+    );
+  }
+
+  async resolveTeacherProfileReferenceIdentifier(
+    identifier: string,
+    queryable: Queryable = db,
+    field = "teacherId"
+  ): Promise<TeacherProfileReference | null> {
+    const [teacherByProfileId, teacherByUserId] = await Promise.all([
+      this.findTeacherProfileReferenceById(identifier, queryable),
+      this.findTeacherProfileReferenceByUserId(identifier, queryable)
+    ]);
+
+    return resolveFlexibleProfileIdentifier(teacherByProfileId, teacherByUserId, {
+      field,
+      label: "Teacher",
+      ambiguousCode: "TEACHER_ID_AMBIGUOUS",
+      getProfileId: (profile) => profile.teacherId
+    });
+  }
+
+  async requireTeacherProfileReferenceIdentifier(
+    identifier: string,
+    queryable: Queryable = db,
+    field = "teacherId"
+  ): Promise<TeacherProfileReference> {
+    return assertProfile(
+      await this.resolveTeacherProfileReferenceIdentifier(identifier, queryable, field),
       "Teacher"
     );
   }
