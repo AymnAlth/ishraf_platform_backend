@@ -17,6 +17,7 @@ import { registerBehaviorIntegrationTests } from "./behavior/behavior.integratio
 import { registerCommunicationIntegrationTests } from "./communication/communication.integration";
 import { registerHomeworkIntegrationTests } from "./homework/homework.integration";
 import { registerMigrationSmokeTests } from "./migrations/migrations.integration";
+import { registerObservabilityIntegrationTests } from "./observability/observability.integration";
 import { registerReportingIntegrationTests } from "./reporting/reporting.integration";
 import { registerStudentsIntegrationTests } from "./students/students.integration";
 import { registerSystemSettingsIntegrationTests } from "./system-settings/system-settings.integration";
@@ -82,6 +83,7 @@ describeIfDatabase("API integration", () => {
   registerCommunicationIntegrationTests(context);
   registerAutomationIntegrationTests(context);
   registerAccessIntegrationTests(context);
+  registerObservabilityIntegrationTests(context);
   registerReportingIntegrationTests(context);
   registerSystemSettingsIntegrationTests(context);
 });

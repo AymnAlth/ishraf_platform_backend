@@ -1,7 +1,9 @@
 import type { NextFunction, Request, Response } from "express";
 
 import { logger } from "../../config/logger";
+import { performanceTelemetryService } from "../services/performance-telemetry.service";
 import { requestPerformanceAuditService } from "../services/request-performance-audit.service";
+import { requestExecutionContextService } from "../services/request-execution-context.service";
 import { buildSafeRequestLog } from "../utils/request-log.util";
 
 const buildRoutePattern = (req: Request): string => {
@@ -22,6 +24,7 @@ export const requestLoggerMiddleware = (
   next: NextFunction
 ): void => {
   const startedAt = process.hrtime.bigint();
+  const requestContext = requestExecutionContextService.getCurrentContext();
 
   res.on("finish", () => {
     const durationInMs = Number(process.hrtime.bigint() - startedAt) / 1_000_000;
@@ -33,6 +36,7 @@ export const requestLoggerMiddleware = (
 
     logger.info(
       {
+        requestId: requestContext?.requestId,
         method: req.method,
         path: req.originalUrl,
         statusCode: res.statusCode,
@@ -42,6 +46,29 @@ export const requestLoggerMiddleware = (
       },
       "HTTP request completed"
     );
+
+    performanceTelemetryService.recordRequest({
+      requestId: requestContext?.requestId,
+      method: req.method,
+      routePattern: buildRoutePattern(req),
+      originalPath: req.originalUrl,
+      statusCode: res.statusCode,
+      durationInMs: roundedDurationInMs
+    });
+
+    if (performanceTelemetryService.isSlowRequest(roundedDurationInMs)) {
+      logger.warn(
+        {
+          requestId: requestContext?.requestId,
+          method: req.method,
+          routePattern: buildRoutePattern(req),
+          path: req.originalUrl,
+          statusCode: res.statusCode,
+          durationInMs: roundedDurationInMs
+        },
+        "Slow HTTP request detected"
+      );
+    }
 
     requestPerformanceAuditService.record({
       method: req.method,

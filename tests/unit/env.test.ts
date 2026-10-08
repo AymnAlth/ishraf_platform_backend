@@ -40,6 +40,11 @@ const createValidEnv = (overrides: Record<string, string> = {}): NodeJS.ProcessE
   MAPBOX_API_TIMEOUT_MS: "4000",
   GOOGLE_MAPS_API_KEY: "",
   GOOGLE_MAPS_API_TIMEOUT_MS: "4000",
+  OBSERVABILITY_PERFORMANCE_ENABLED: "false",
+  OBSERVABILITY_REQUEST_SAMPLE_LIMIT: "1000",
+  OBSERVABILITY_QUERY_SAMPLE_LIMIT: "2000",
+  OBSERVABILITY_SLOW_REQUEST_THRESHOLD_MS: "1500",
+  OBSERVABILITY_SLOW_QUERY_THRESHOLD_MS: "250",
   LOG_LEVEL: "silent",
   ...overrides
 });
@@ -61,6 +66,11 @@ describe("buildEnv", () => {
     expect(env.GROQ_API_MODEL).toBe("openai/gpt-oss-20b");
     expect(env.MAPBOX_API_KEY).toBeUndefined();
     expect(env.GOOGLE_MAPS_API_KEY).toBeUndefined();
+    expect(env.OBSERVABILITY_PERFORMANCE_ENABLED).toBe(false);
+    expect(env.OBSERVABILITY_REQUEST_SAMPLE_LIMIT).toBe(1000);
+    expect(env.OBSERVABILITY_QUERY_SAMPLE_LIMIT).toBe(2000);
+    expect(env.OBSERVABILITY_SLOW_REQUEST_THRESHOLD_MS).toBe(1500);
+    expect(env.OBSERVABILITY_SLOW_QUERY_THRESHOLD_MS).toBe(250);
   });
 
   it("accepts blank AI and maps provider keys with explicit timeout overrides", () => {

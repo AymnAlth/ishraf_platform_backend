@@ -1,9 +1,11 @@
 import { Pool, type PoolClient, type QueryResult, type QueryResultRow } from "pg";
 
 import type { Queryable } from "../common/interfaces/queryable.interface";
+import { performanceTelemetryService } from "../common/services/performance-telemetry.service";
 import { queryPerformanceAuditService } from "../common/services/query-performance-audit.service";
 import { requestExecutionContextService } from "../common/services/request-execution-context.service";
 import { databaseConfig } from "../config/database";
+import { logger } from "../config/logger";
 
 const connectionString =
   process.env.NODE_ENV === "test"
@@ -21,21 +23,85 @@ const instrumentQuery = async <T extends QueryResultRow>(
   executor: () => Promise<QueryResult<T>>
 ): Promise<QueryResult<T>> => {
   const startedAt = process.hrtime.bigint();
-  const result = await executor();
-  const durationInMs = Number(process.hrtime.bigint() - startedAt) / 1_000_000;
   const context = requestExecutionContextService.getCurrentContext();
+  const routePattern = requestExecutionContextService.getCurrentRoutePattern();
+  const normalizedSqlPreview = text.replace(/\s+/g, " ").trim();
+  const sqlPreview =
+    normalizedSqlPreview.length > 300
+      ? `${normalizedSqlPreview.slice(0, 300)}...`
+      : normalizedSqlPreview;
 
-  queryPerformanceAuditService.record({
-    requestId: context?.requestId,
-    method: context?.method,
-    routePattern: requestExecutionContextService.getCurrentRoutePattern(),
-    originalPath: context?.originalPath,
-    sql: text,
-    durationInMs,
-    rowCount: typeof result.rowCount === "number" ? result.rowCount : null
-  });
+  try {
+    const result = await executor();
+    const durationInMs = Number(process.hrtime.bigint() - startedAt) / 1_000_000;
+    const rowCount = typeof result.rowCount === "number" ? result.rowCount : null;
 
-  return result;
+    queryPerformanceAuditService.record({
+      requestId: context?.requestId,
+      method: context?.method,
+      routePattern,
+      originalPath: context?.originalPath,
+      sql: text,
+      durationInMs,
+      rowCount
+    });
+
+    performanceTelemetryService.recordQuery({
+      requestId: context?.requestId,
+      method: context?.method,
+      routePattern,
+      originalPath: context?.originalPath,
+      sql: text,
+      durationInMs,
+      rowCount
+    });
+
+    if (performanceTelemetryService.isSlowQuery(durationInMs)) {
+      logger.warn(
+        {
+          requestId: context?.requestId,
+          method: context?.method,
+          routePattern,
+          originalPath: context?.originalPath,
+          durationInMs: Number(durationInMs.toFixed(2)),
+          rowCount,
+          sql: sqlPreview
+        },
+        "Slow SQL query detected"
+      );
+    }
+
+    return result;
+  } catch (error) {
+    const durationInMs = Number(process.hrtime.bigint() - startedAt) / 1_000_000;
+
+    performanceTelemetryService.recordQuery({
+      requestId: context?.requestId,
+      method: context?.method,
+      routePattern,
+      originalPath: context?.originalPath,
+      sql: text,
+      durationInMs,
+      rowCount: null
+    });
+
+    if (performanceTelemetryService.isSlowQuery(durationInMs)) {
+      logger.warn(
+        {
+          requestId: context?.requestId,
+          method: context?.method,
+          routePattern,
+          originalPath: context?.originalPath,
+          durationInMs: Number(durationInMs.toFixed(2)),
+          rowCount: null,
+          sql: sqlPreview
+        },
+        "Slow SQL query detected before failure"
+      );
+    }
+
+    throw error;
+  }
 };
 
 export const db = {
@@ -45,7 +111,7 @@ export const db = {
     params: unknown[] = []
   ): Promise<QueryResult<T>> => instrumentQuery(text, params, () => pool.query<T>(text, params)),
   ping: async (): Promise<void> => {
-    await pool.query("SELECT 1");
+    await instrumentQuery("SELECT 1", [], () => pool.query("SELECT 1"));
   },
   getClient: (): Promise<PoolClient> => pool.connect(),
   withTransaction: async <T>(callback: (client: Queryable & PoolClient) => Promise<T>) => {

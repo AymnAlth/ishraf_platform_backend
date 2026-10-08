@@ -44,55 +44,73 @@ const booleanStringSchema = z
   .default(false)
   .transform((value) => (typeof value === "boolean" ? value : value === "true"));
 
-const envSchema = z.object({
-  NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
-  PORT: z.coerce.number().int().positive().default(4000),
-  APP_NAME: z.string().min(1).default("ishraf-platform-backend"),
-  API_PREFIX: z.string().min(1).default("/api/v1"),
-  PUBLIC_ROOT_URL: optionalUrlSchema,
-  PUBLIC_API_BASE_URL: optionalUrlSchema,
-  DATABASE_URL: z.string().min(1),
-  DATABASE_URL_MIGRATIONS: z.string().min(1).optional(),
-  DATABASE_SCHEMA: z
-    .string()
-    .regex(/^[A-Za-z_][A-Za-z0-9_]*$/)
-    .default("public"),
-  ACCESS_TOKEN_SECRET: z.string().min(1),
-  ACCESS_TOKEN_TTL_MINUTES: z.coerce.number().int().positive().default(15),
-  REFRESH_TOKEN_SECRET: z.string().min(1),
-  REFRESH_TOKEN_TTL_DAYS: z.coerce.number().int().positive().default(7),
-  PASSWORD_RESET_TOKEN_TTL_MINUTES: z.coerce.number().int().positive().default(30),
-  CORS_ALLOWED_ORIGINS: z.string().default(""),
-  TRUST_PROXY: trustProxySchema,
-  REQUEST_BODY_LIMIT: z.string().min(1).default("1mb"),
-  AUTH_LOGIN_RATE_LIMIT_MAX: z.coerce.number().int().positive().default(5),
-  AUTH_LOGIN_RATE_LIMIT_WINDOW_MS: z.coerce.number().int().positive().default(15 * 60 * 1000),
-  AUTH_PASSWORD_RESET_RATE_LIMIT_MAX: z.coerce.number().int().positive().default(5),
-  AUTH_PASSWORD_RESET_RATE_LIMIT_WINDOW_MS: z.coerce
-    .number()
-    .int()
-    .positive()
-    .default(15 * 60 * 1000),
-  AUTH_EXPOSE_RESET_TOKEN_IN_RESPONSE: booleanStringSchema,
-  BCRYPT_SALT_ROUNDS: z.coerce.number().int().min(10).max(15).default(12),
-  FIREBASE_PROJECT_ID: optionalTrimmedStringSchema,
-  FIREBASE_CLIENT_EMAIL: optionalTrimmedStringSchema,
-  FIREBASE_PRIVATE_KEY: optionalTrimmedStringSchema,
-  FIREBASE_DATABASE_URL: optionalUrlSchema,
-  OPENAI_API_KEY: optionalTrimmedStringSchema,
-  OPENAI_API_MODEL: z.string().trim().min(1).default("gpt-5-mini"),
-  OPENAI_API_TIMEOUT_MS: z.coerce.number().int().positive().default(15_000),
-  GROQ_API_KEY: optionalTrimmedStringSchema,
-  GROQ_API_MODEL: z.string().trim().min(1).default("openai/gpt-oss-20b"),
-  GROQ_API_TIMEOUT_MS: z.coerce.number().int().positive().default(15_000),
-  MAPBOX_API_KEY: optionalTrimmedStringSchema,
-  MAPBOX_API_TIMEOUT_MS: z.coerce.number().int().positive().default(4_000),
-  GOOGLE_MAPS_API_KEY: optionalTrimmedStringSchema,
-  GOOGLE_MAPS_API_TIMEOUT_MS: z.coerce.number().int().positive().default(4_000),
-  LOG_LEVEL: z
-    .enum(["fatal", "error", "warn", "info", "debug", "trace", "silent"])
-    .default("info")
-});
+const optionalBooleanStringSchema = z
+  .union([z.boolean(), z.enum(["true", "false"])])
+  .optional()
+  .transform((value) =>
+    typeof value === "boolean" ? value : typeof value === "string" ? value === "true" : undefined
+  );
+
+const envSchema = z
+  .object({
+    NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
+    PORT: z.coerce.number().int().positive().default(4000),
+    APP_NAME: z.string().min(1).default("ishraf-platform-backend"),
+    API_PREFIX: z.string().min(1).default("/api/v1"),
+    PUBLIC_ROOT_URL: optionalUrlSchema,
+    PUBLIC_API_BASE_URL: optionalUrlSchema,
+    DATABASE_URL: z.string().min(1),
+    DATABASE_URL_MIGRATIONS: z.string().min(1).optional(),
+    DATABASE_SCHEMA: z
+      .string()
+      .regex(/^[A-Za-z_][A-Za-z0-9_]*$/)
+      .default("public"),
+    ACCESS_TOKEN_SECRET: z.string().min(1),
+    ACCESS_TOKEN_TTL_MINUTES: z.coerce.number().int().positive().default(15),
+    REFRESH_TOKEN_SECRET: z.string().min(1),
+    REFRESH_TOKEN_TTL_DAYS: z.coerce.number().int().positive().default(7),
+    PASSWORD_RESET_TOKEN_TTL_MINUTES: z.coerce.number().int().positive().default(30),
+    CORS_ALLOWED_ORIGINS: z.string().default(""),
+    TRUST_PROXY: trustProxySchema,
+    REQUEST_BODY_LIMIT: z.string().min(1).default("1mb"),
+    AUTH_LOGIN_RATE_LIMIT_MAX: z.coerce.number().int().positive().default(5),
+    AUTH_LOGIN_RATE_LIMIT_WINDOW_MS: z.coerce.number().int().positive().default(15 * 60 * 1000),
+    AUTH_PASSWORD_RESET_RATE_LIMIT_MAX: z.coerce.number().int().positive().default(5),
+    AUTH_PASSWORD_RESET_RATE_LIMIT_WINDOW_MS: z.coerce
+      .number()
+      .int()
+      .positive()
+      .default(15 * 60 * 1000),
+    AUTH_EXPOSE_RESET_TOKEN_IN_RESPONSE: booleanStringSchema,
+    BCRYPT_SALT_ROUNDS: z.coerce.number().int().min(10).max(15).default(12),
+    FIREBASE_PROJECT_ID: optionalTrimmedStringSchema,
+    FIREBASE_CLIENT_EMAIL: optionalTrimmedStringSchema,
+    FIREBASE_PRIVATE_KEY: optionalTrimmedStringSchema,
+    FIREBASE_DATABASE_URL: optionalUrlSchema,
+    OPENAI_API_KEY: optionalTrimmedStringSchema,
+    OPENAI_API_MODEL: z.string().trim().min(1).default("gpt-5-mini"),
+    OPENAI_API_TIMEOUT_MS: z.coerce.number().int().positive().default(15_000),
+    GROQ_API_KEY: optionalTrimmedStringSchema,
+    GROQ_API_MODEL: z.string().trim().min(1).default("openai/gpt-oss-20b"),
+    GROQ_API_TIMEOUT_MS: z.coerce.number().int().positive().default(15_000),
+    MAPBOX_API_KEY: optionalTrimmedStringSchema,
+    MAPBOX_API_TIMEOUT_MS: z.coerce.number().int().positive().default(4_000),
+    GOOGLE_MAPS_API_KEY: optionalTrimmedStringSchema,
+    GOOGLE_MAPS_API_TIMEOUT_MS: z.coerce.number().int().positive().default(4_000),
+    OBSERVABILITY_PERFORMANCE_ENABLED: optionalBooleanStringSchema,
+    OBSERVABILITY_REQUEST_SAMPLE_LIMIT: z.coerce.number().int().min(100).max(10_000).default(1_000),
+    OBSERVABILITY_QUERY_SAMPLE_LIMIT: z.coerce.number().int().min(100).max(20_000).default(2_000),
+    OBSERVABILITY_SLOW_REQUEST_THRESHOLD_MS: z.coerce.number().int().positive().default(1_500),
+    OBSERVABILITY_SLOW_QUERY_THRESHOLD_MS: z.coerce.number().int().positive().default(250),
+    LOG_LEVEL: z
+      .enum(["fatal", "error", "warn", "info", "debug", "trace", "silent"])
+      .default("info")
+  })
+  .transform((value) => ({
+    ...value,
+    OBSERVABILITY_PERFORMANCE_ENABLED:
+      value.OBSERVABILITY_PERFORMANCE_ENABLED ?? value.NODE_ENV === "test"
+  }));
 
 export type AppEnv = z.infer<typeof envSchema>;
 

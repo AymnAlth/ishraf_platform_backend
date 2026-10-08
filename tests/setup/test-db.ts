@@ -32,6 +32,11 @@ const applyTestDefaults = (): void => {
   process.env.AUTH_PASSWORD_RESET_RATE_LIMIT_WINDOW_MS ??= "900000";
   process.env.AUTH_EXPOSE_RESET_TOKEN_IN_RESPONSE ??= "true";
   process.env.BCRYPT_SALT_ROUNDS ??= "10";
+  process.env.OBSERVABILITY_PERFORMANCE_ENABLED ??= "true";
+  process.env.OBSERVABILITY_REQUEST_SAMPLE_LIMIT ??= "500";
+  process.env.OBSERVABILITY_QUERY_SAMPLE_LIMIT ??= "1000";
+  process.env.OBSERVABILITY_SLOW_REQUEST_THRESHOLD_MS ??= "300";
+  process.env.OBSERVABILITY_SLOW_QUERY_THRESHOLD_MS ??= "50";
   process.env.LOG_LEVEL ??= "silent";
 };
 
